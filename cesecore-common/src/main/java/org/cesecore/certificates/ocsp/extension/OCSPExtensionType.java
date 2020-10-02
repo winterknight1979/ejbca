@@ -15,7 +15,7 @@ package org.cesecore.certificates.ocsp.extension;
 
 /**
  * Context in which the {@link OCSPExtension} may be used
- * 
+ *
  * @version $Id: OCSPExtensionType.java 28882 2018-05-08 18:19:23Z anatom $
  */
 public enum OCSPExtensionType {

@@ -23,66 +23,66 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
  * Interface for custom certificate extensions.
- * 
+ *
  * @version $Id: CustomCertificateExtension.java 29941 2018-10-01 14:44:59Z henriks $
  *
  */
 public interface CustomCertificateExtension {
 
     String[] BOOLEAN = {"true", "false"};
-    
-    
+
+
     /**
      * @return the unique id of the extension
      */
     int getId();
-    
+
     /**
      * @return The unique OID of the extension
      */
     String getOID();
-    
+
     /**
-     * 
-     * @return a map containing available extension properties as keys, along with possible values. 
+     *
+     * @return a map containing available extension properties as keys, along with possible values.
      */
     Map<String, String[]> getAvailableProperties();
-    
+
 
     /**
      * @return This extension's readable name
      */
     String getDisplayName();
-    
+
     /**
      * @return flag indicating if the extension should be marked as critical or not.
      */
     boolean isCriticalFlag();
-    
+
     /**
      * @return flag indicating if the extension should be marked as required or not.
      */
     boolean isRequiredFlag();
-    
+
     /**
      * The propertes configured for this extension. The properties are stripped
      * of the beginning "idX.property.". So searching for the property
      * "id1.property.value" only the key "value" should be used in the returned property.
-     * 
+     *
      * @return the properties configured for this certificate extension.
      */
     Properties getProperties();
-    
+
     /**
-     * Method that should return the byte[] value used in the extension. 
-     * 
-     * The default implementation of this method first calls the getValue() 
-     * method and then encodes the result as an byte array. 
-     * CertificateExtension implementors has the choice of overriding this 
+     * Method that should return the byte[] value used in the extension.
+     *
+     * The default implementation of this method first calls the getValue()
+     * method and then encodes the result as an byte array.
+     * CertificateExtension implementors has the choice of overriding this
      * method if they want to include byte[] data in the certificate that
-     * is not necessarily an ASN.1 structure otherwise the getValue method 
+     * is not necessarily an ASN.1 structure otherwise the getValue method
      * can be implemented as before.
-     * 
+     *
      * @param userData the userdata of the issued certificate.
      * @param ca the CA data with access to all the keys etc
      * @param certProfile the certificate profile
@@ -95,17 +95,17 @@ public interface CustomCertificateExtension {
      */
     byte[] getValueEncoded(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
             PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException;
-    
+
     /**
-     * Method that should return the byte[] value used in the extension. 
-     * 
-     * The default implementation of this method first calls the getValue() 
-     * method and then encodes the result as an byte array. 
-     * CertificateExtension implementors has the choice of overriding this 
+     * Method that should return the byte[] value used in the extension.
+     *
+     * The default implementation of this method first calls the getValue()
+     * method and then encodes the result as an byte array.
+     * CertificateExtension implementors has the choice of overriding this
      * method if they want to include byte[] data in the certificate that
-     * is not necessarily an ASN.1 structure otherwise the getValue method 
+     * is not necessarily an ASN.1 structure otherwise the getValue method
      * can be implemented as before.
-     * 
+     *
      * @param userData the userdata of the issued certificate.
      * @param ca the CA data with access to all the keys etc
      * @param certProfile the certificate profile

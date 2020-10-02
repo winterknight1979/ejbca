@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.crl;
 
 import java.io.Serializable;
@@ -27,16 +27,16 @@ import org.cesecore.util.CompressedCollection;
  * information that goes into a CRLEntry.
  *
  * @version $Id: RevokedCertInfo.java 34193 2020-01-07 15:18:15Z samuellb $
- * 
+ *
  **/
 public class RevokedCertInfo implements Serializable {
 
-	/** Version number for serialization */
-	private static final long serialVersionUID = 1L;
-	
-	private static final Logger log = Logger.getLogger(RevokedCertInfo.class);
+    /** Version number for serialization */
+    private static final long serialVersionUID = 1L;
 
-	/** Constants defining different revocation reasons. */
+    private static final Logger log = Logger.getLogger(RevokedCertInfo.class);
+
+    /** Constants defining different revocation reasons. */
     public static final int NOT_REVOKED                            = RevocationReasons.NOT_REVOKED.getDatabaseValue();
     public static final int REVOCATION_REASON_UNSPECIFIED          = RevocationReasons.UNSPECIFIED.getDatabaseValue();
     public static final int REVOCATION_REASON_KEYCOMPROMISE        = RevocationReasons.KEYCOMPROMISE.getDatabaseValue();
@@ -49,33 +49,33 @@ public class RevokedCertInfo implements Serializable {
     public static final int REVOCATION_REASON_REMOVEFROMCRL        = RevocationReasons.REMOVEFROMCRL.getDatabaseValue();
     public static final int REVOCATION_REASON_PRIVILEGESWITHDRAWN  = RevocationReasons.PRIVILEGESWITHDRAWN.getDatabaseValue();
     public static final int REVOCATION_REASON_AACOMPROMISE         = RevocationReasons.AACOMPROMISE.getDatabaseValue();
-    
+
     /** BigInteger (serialNumber) in byte format, BigInteger.toByteArray() */
     private byte[]      userCertificate;
     private long        revocationDate;
     private long        expireDate;
     private int         reason;
-    /** Fingerprint in byte format, String.getBytes() */    
-    private byte[] 		fingerprint;
+    /** Fingerprint in byte format, String.getBytes() */
+    private byte[]         fingerprint;
 
     /**
      * A default constructor is needed to instantiate
-     * RevokedCertInfo objects using &lt;jsp:useBean&gt; by Tomcat 5. 
+     * RevokedCertInfo objects using &lt;jsp:useBean&gt; by Tomcat 5.
      */
     public RevokedCertInfo() {
-    	fingerprint = null;
-    	userCertificate = null;
-    	revocationDate = 0;
-    	expireDate = 0;
-    	reason = REVOCATION_REASON_UNSPECIFIED;
+        fingerprint = null;
+        userCertificate = null;
+        revocationDate = 0;
+        expireDate = 0;
+        reason = REVOCATION_REASON_UNSPECIFIED;
     }
 
     /**
      * Constructor filling in the whole object.
      * @param fingerprint print
-     * @param sernoBigIntegerArray serials 
+     * @param sernoBigIntegerArray serials
      * @param revdate date
-     * 
+     *
      * @param reason {@link RevokedCertInfo#REVOCATION_REASON_UNSPECIFIED}
      * @param expdate date
      *
@@ -101,7 +101,7 @@ public class RevokedCertInfo implements Serializable {
     public void setCertificateFingerprint(final String fp) {
         this.fingerprint = fp == null ? null : fp.getBytes();
     }
-    
+
     /**
      * @return Certificate serial number
      **/
@@ -116,7 +116,7 @@ public class RevokedCertInfo implements Serializable {
         this.userCertificate = serno==null ? null : serno.toByteArray();
     }
 
-    /** 
+    /**
      * @return true is there is a revocationDate set (getRevocationDate() != null), false otherwise
      */
     public boolean isRevocationDateSet() {
@@ -186,34 +186,34 @@ public class RevokedCertInfo implements Serializable {
     public String toString() {
         return this.userCertificate == null ? "null" : new BigInteger(userCertificate).toString();
     }
-    
+
     /**
-     * A quick way to tell if the certificate has been revoked. 
+     * A quick way to tell if the certificate has been revoked.
      * @return true if the certificate has been revoked, otherwise false.
      */
     public boolean isRevoked() {
-    	return isRevoked(reason);
+        return isRevoked(reason);
     }
-    
+
     /**
      * @return true if the certificate is permanently revoked (i.e. revoked and not just "on hold")
      */
     public boolean isPermanentlyRevoked() {
         return isPermanentlyRevoked(reason);
     }
-    
+
     public static boolean isRevoked(int revocationReason) {
         return revocationReason != NOT_REVOKED && revocationReason != REVOCATION_REASON_REMOVEFROMCRL;
     }
-    
+
     public static boolean isPermanentlyRevoked(int revocationReason) {
         return isRevoked(revocationReason) && revocationReason != REVOCATION_REASON_CERTIFICATEHOLD;
     }
-    
+
     /**
      * This method returns the revocation reason as a text string that is understandable.
      * TODO: The strings in the enum should be easier for users to change, used from "publicweb/retrieve/check_status_result.jsp"
-     * 
+     *
      * @return A string describing the reason for revocation.
      */
     public String getHumanReadableReason() {
@@ -225,7 +225,7 @@ public class RevokedCertInfo implements Serializable {
             return "unknown";
         }
     }
-    
+
     /**
      * Merges two collections of RevokedCertInfo. Note that the parameters are slightly different. Duplicates are removed according to these rules:
      * <ul>
@@ -233,7 +233,7 @@ public class RevokedCertInfo implements Serializable {
      * <li>Permanent status changes always win over temporary ones ("on hold" / "re-activate")
      * <li>More recent temporary status changes win over older ones
      * </ul>
-     * 
+     *
      * @param a First collection of RevokedCertInfo. May <b>not</b> contain duplicates for the same serial number.
      * @param b Second collection of RevokedCertInfo. May contain duplicates
      * @param lastBaseCrlDate Entries in unrevoked state will only be included if they are more recent than this date. (&lt;= 0 means never include them)
@@ -274,7 +274,7 @@ public class RevokedCertInfo implements Serializable {
                 continue;
             }
             final RevokedCertInfo tempDate = tempRevoked.get(serial);
-            // More recent temporary status changes win over older ones 
+            // More recent temporary status changes win over older ones
             if (tempDate == null || tempDate.getRevocationDate().before(revdate)) {
                 tempRevoked.put(serial, revoked);
             }

@@ -9,14 +9,14 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.extendedservices;
 
 /**
  * @version $Id: ExtendedCAServiceNotActiveException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class ExtendedCAServiceNotActiveException extends java.lang.Exception {
-    
+
     private static final long serialVersionUID = -4585542922703140980L;
 
     /**
@@ -25,7 +25,7 @@ public class ExtendedCAServiceNotActiveException extends java.lang.Exception {
     public ExtendedCAServiceNotActiveException() {
         super();
     }
-        
+
     /**
      * Constructs an instance of <code>ExtendedCAServiceNotActiveException</code> with the specified detail message.
      * @param msg the detail message.

@@ -18,32 +18,32 @@ import java.util.List;
 
 /**
  * A sub-element of a AuditLogValidationReport representing an error or warning.
- * 
+ *
  * @version $Id: AuditLogReportElem.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class AuditLogReportElem implements Serializable {
 
     private static final long serialVersionUID = -7018231147212983227L;
-    
+
     private Long first;
     private Long second;
     private final List<String> reasons = new ArrayList<String>();
-    
+
     public AuditLogReportElem() {
     }
-    
+
     public AuditLogReportElem(final Long first, final Long second, final List<String> reasons) {
-    	this.first = first;
-    	this.second = second;
-    	this.reasons.addAll(reasons);
+        this.first = first;
+        this.second = second;
+        this.reasons.addAll(reasons);
     }
-    
+
     public AuditLogReportElem(final Long first, final Long second, final String reason) {
-    	this.first = first;
-    	this.second = second;
-    	this.reasons.add(reason);
+        this.first = first;
+        this.second = second;
+        this.reasons.add(reason);
     }
-    
+
     /**
      * Gets the first for this instance.
      *

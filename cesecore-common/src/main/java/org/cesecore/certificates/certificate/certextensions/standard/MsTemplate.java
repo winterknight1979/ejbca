@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
@@ -23,26 +23,26 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
 
 /** Microsoft Template extension, for domain controllers
- * 
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.      
- * 
+ *
+ * Class for standard X509 certificate extension.
+ * See rfc3280 or later for spec of this extension.
+ *
  * @version $Id: MsTemplate.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
 public class MsTemplate extends StandardCertificateExtension {
-	
+
     private static final long serialVersionUID = 1L;
 
     @Override
-	public void init(final CertificateProfile certProf) {
-		super.setOID(CertTools.OID_MSTEMPLATE);
-		super.setCriticalFlag(false);
-	}
-    
+    public void init(final CertificateProfile certProf) {
+        super.setOID(CertTools.OID_MSTEMPLATE);
+        super.setCriticalFlag(false);
+    }
+
     @Override
     public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
             final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
-		final String mstemplate = certProfile.getMicrosoftTemplate();             
-        return new DERBMPString(mstemplate);             
-	}	
+        final String mstemplate = certProfile.getMicrosoftTemplate();
+        return new DERBMPString(mstemplate);
+    }
 }

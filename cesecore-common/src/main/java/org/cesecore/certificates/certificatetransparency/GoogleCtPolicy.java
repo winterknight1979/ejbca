@@ -120,7 +120,7 @@ public class GoogleCtPolicy implements Serializable {
     public int getMoreThan39Months() {
         return minScts[MORE_THAN_39_MONTHS];
     }
-    
+
     /**
      * Returns the minimum SCTs for the given index.
      * @param breakpointIndex Index
@@ -131,7 +131,7 @@ public class GoogleCtPolicy implements Serializable {
     public int getMinSctsByIndex(int breakpointIndex) {
         return minScts[breakpointIndex];
     }
-    
+
     /**
      * Returns the "less than months" validity restriction for the given index.
      * @param breakpointIndex Index
@@ -142,7 +142,7 @@ public class GoogleCtPolicy implements Serializable {
     public int getLessThanMonthsByIndex(int breakpointIndex) {
         return lessThanMonths[breakpointIndex];
     }
-    
+
     /**
      * @return the number of breakpoints (i.e. indices to getMinSctsByIndex/getLessThanMonthsByIndex)
      */

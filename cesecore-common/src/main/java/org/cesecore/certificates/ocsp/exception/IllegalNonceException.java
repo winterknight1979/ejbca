@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ocsp.exception;
 
 import org.cesecore.CesecoreException;
@@ -20,9 +20,9 @@ import org.cesecore.CesecoreException;
  * @version $Id: IllegalNonceException.java 22982 2016-03-14 15:57:11Z anatom $
  */
 public class IllegalNonceException extends CesecoreException {
- 
+
     private static final long serialVersionUID = 6774153561528947365L;
-  
+
     /**
      * Constructor used to create exception with an error message. Calls the same constructor in
      * baseclass <code>Exception</code>.

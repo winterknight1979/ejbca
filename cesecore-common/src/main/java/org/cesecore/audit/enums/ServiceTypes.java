@@ -15,18 +15,18 @@ package org.cesecore.audit.enums;
 /**
  * Represents the basic service types supported.
  *
- * When doing secure audit log ServiceType is used to indicate if the log  
+ * When doing secure audit log ServiceType is used to indicate if the log
  * was executed from the core itself or by an external application.
- * 
+ *
  * @see org.cesecore.audit.enums.EventTypes
  * @see org.cesecore.audit.enums.ModuleTypes
  * @version $Id: ServiceTypes.java 20951 2015-03-20 13:15:30Z jeklund $
  */
 public enum ServiceTypes implements ServiceType {
     /** CE Security Core */
-	CORE;
+    CORE;
 
-	@Override
+    @Override
     public boolean equals(ServiceType value) {
         if(value == null) {
             return false;

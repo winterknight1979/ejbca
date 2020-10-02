@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 
 /**
  * Helper methods for basic network interactions.
- * 
+ *
  * @version $Id: NetworkTools.java 18958 2014-05-19 15:04:40Z mikekushner $
  */
 public abstract class NetworkTools {

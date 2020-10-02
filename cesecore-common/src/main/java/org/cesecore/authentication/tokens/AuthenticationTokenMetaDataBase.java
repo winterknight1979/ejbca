@@ -20,11 +20,11 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
  * Common functions for meta data definitions for AuthenticationTokens that should be auto-detected via ServiceLoader of AuthenticationTokenMetaData.
- * 
+ *
  * @version $Id: AuthenticationTokenMetaDataBase.java 25431 2017-03-09 16:52:15Z mikekushner $
  */
 public abstract class AuthenticationTokenMetaDataBase implements AuthenticationTokenMetaData {
-    
+
     private final String tokenType;
     private final List<? extends AccessMatchValue> accessMatchValues;
     private final boolean userConfigurable;
@@ -76,7 +76,7 @@ public abstract class AuthenticationTokenMetaDataBase implements AuthenticationT
     public AccessMatchValue getAccessMatchValueDefault() {
         return defaultAccessMatchValue;
     }
-    
+
     @Override
     public boolean isSuperToken() {
         // Legacy pattern: When default value is assigned number Integer.MAX_VALUE, the AuthenticationToken will grant any access rule...

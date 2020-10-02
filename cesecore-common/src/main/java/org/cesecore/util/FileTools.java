@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.cesecore.util;
 
 import java.io.BufferedReader;
@@ -67,7 +67,7 @@ public abstract class FileTools {
             final BufferedReader bufRdr = new BufferedReader(new InputStreamReader(instream));
             final ByteArrayOutputStream ostr = new ByteArrayOutputStream();
             final PrintStream opstr = new PrintStream(ostr);
-            
+
             String temp;
 
             while (((temp = bufRdr.readLine()) != null) && !temp.equals(beginKey)) {
@@ -116,7 +116,7 @@ public abstract class FileTools {
     public static byte[] readFiletoBuffer(final String file) throws FileNotFoundException {
         final InputStream in = new FileInputStream(file);
         return readInputStreamtoBuffer(in);
-    } 
+    }
 
     /**
      * Help function to read an InputStream to a byte array.
@@ -137,7 +137,7 @@ public abstract class FileTools {
         os.close();
         return os.toByteArray();
         } catch(IOException e) {
-            throw new RuntimeException("Caught IOException for unknown reason", e);      
+            throw new RuntimeException("Caught IOException for unknown reason", e);
         }
     }
 
@@ -146,30 +146,30 @@ public abstract class FileTools {
      * @param files files
      */
     public static void sortByName(final File[] files) {
-    	if (files == null) {
-    		return;
-    	}
-    	Arrays.sort(files, new FileComp());
+        if (files == null) {
+            return;
+        }
+        Arrays.sort(files, new FileComp());
     }
-    
-    private static class FileComp implements Comparator<File> {
-    	private final Collator c = Collator.getInstance();
 
-    	@Override
-    	public int compare(final File f1, final File f2) {
-    		if(f1 == f2) {
-    			return 0;
-    		}
-    		if(f1.isDirectory() && f2.isFile()) {
-    			return -1;
-    		}
-    		if(f1.isFile() && f2.isDirectory()) {
-    			return 1;
-    		}
-    		return c.compare(f1.getName(), f2.getName());
-    	}
+    private static class FileComp implements Comparator<File> {
+        private final Collator c = Collator.getInstance();
+
+        @Override
+        public int compare(final File f1, final File f2) {
+            if(f1 == f2) {
+                return 0;
+            }
+            if(f1.isDirectory() && f2.isFile()) {
+                return -1;
+            }
+            if(f1.isFile() && f2.isDirectory()) {
+                return 1;
+            }
+            return c.compare(f1.getName(), f2.getName());
+        }
     }
-    
+
     public static File createTempDirectory() throws IOException {
         return createTempDirectory(null);
     }
@@ -185,10 +185,10 @@ public abstract class FileTools {
         }
         return temp;
     }
-    
+
     /**
      * Recursively deletes a file. If file is a directory, then it will delete all files and subdirectories contained.
-     * 
+     *
      * @param file the file to delete
      */
     public static void delete(File file) {
@@ -201,10 +201,10 @@ public abstract class FileTools {
             log.error("Could not delete directory " + file.getAbsolutePath());
         }
     }
-    
+
     /**
      * Copies the data from an input stream to an output stream. A limit on the file size is imposed.
-     * 
+     *
      * @param input Stream to copy from.
      * @param output Stream to copy to.
      * @param maxBytes Throw a SizeLimitExceededException if more than this number of bytes are read.
@@ -228,7 +228,7 @@ public abstract class FileTools {
             }
             output.write(buff, 0, len);
         }
-        
+
         return bytesCopied;
     }
 }

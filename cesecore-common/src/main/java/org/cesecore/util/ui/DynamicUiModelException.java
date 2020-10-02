@@ -14,7 +14,7 @@ package org.cesecore.util.ui;
 
 /**
  * Any exception in dynamic UI property context.
- * 
+ *
  * @version $Id: DynamicUiModelException.java 28531 2018-03-21 06:57:37Z mikekushner $
  *
  */
@@ -24,7 +24,7 @@ public class DynamicUiModelException extends Exception {
 
     /**
      * Creates an exception with a message and a cause.
-     * 
+     *
      * @param message the message.
      * @param cause the cause.
      */

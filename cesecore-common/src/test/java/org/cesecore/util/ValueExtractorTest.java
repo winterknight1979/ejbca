@@ -21,7 +21,7 @@ import org.junit.Test;
 
 /**
  * Tests value extraction in jdbc utility class
- * 
+ *
  * @version $Id: ValueExtractorTest.java 22133 2015-11-02 14:20:32Z mikekushner $
  */
 public class ValueExtractorTest {
@@ -45,19 +45,19 @@ public class ValueExtractorTest {
         BigInteger birow = new BigInteger("2");
         BigDecimal bdval = new BigDecimal(3);
         BigDecimal bdrow = new BigDecimal(4);
-        
+
         Object[] db2 = new Object[2];
         db2[0] = birow;
         db2[1] = intval;
-        
+
         Object[] oracle = new Object[2];
         oracle[0] = bdval;
         oracle[1] = bdrow;
-        
+
         assertEquals(1, ValueExtractor.extractIntValue(db2));
         assertEquals(3, ValueExtractor.extractIntValue(oracle));
         assertEquals(1, ValueExtractor.extractLongValue(db2));
-        assertEquals(3, ValueExtractor.extractLongValue(oracle));        
+        assertEquals(3, ValueExtractor.extractLongValue(oracle));
     }
 
 }

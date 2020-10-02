@@ -40,13 +40,13 @@ import org.junit.Test;
 
 /**
  * Test of the AuthorizationCache.
- * 
+ *
  * @version $Id: AuthorizationCacheTest.java 25591 2017-03-23 13:13:02Z jeklund $
  */
 public class AuthorizationCacheTest {
 
     private static final Logger log = Logger.getLogger(AuthorizationCacheTest.class);
-    
+
     @Test
     public void testBasicOperations() throws InterruptedException, AuthenticationFailedException {
         log.trace(">testBasicOperations");
@@ -119,7 +119,7 @@ public class AuthorizationCacheTest {
         log.trace("<testBasicOperations");
     }
 
-    /** Test already cached entries are reloaded if there is an update to the authorization system 
+    /** Test already cached entries are reloaded if there is an update to the authorization system
      * @throws InterruptedException fail
      * @throws AuthenticationFailedException fail  */
     @Test
@@ -186,7 +186,7 @@ public class AuthorizationCacheTest {
         log.trace("<testSubscribeToAuthorizationCacheReload");
     }
 
-    /** Test cache refresh similar to what AuthorizationSessionBean timeout performs on the cache 
+    /** Test cache refresh similar to what AuthorizationSessionBean timeout performs on the cache
      * @throws InterruptedException fail
      * @throws AuthenticationFailedException fail */
     @Test
@@ -253,7 +253,7 @@ public class AuthorizationCacheTest {
         log.trace("<testAuthorizationCacheRefresh");
     }
 
-    /** Verify that only one of many calling threads for a cache entry will do the actual database lookup. 
+    /** Verify that only one of many calling threads for a cache entry will do the actual database lookup.
      * @throws InterruptedException fail */
     @Test
     public void testConcurrentRead() throws InterruptedException {
@@ -301,7 +301,7 @@ public class AuthorizationCacheTest {
             cacheReaderThread.start();
         }
         countDownLatchThreadsStarted.await();
-        // Before the latch is released, none of the treads should have any result 
+        // Before the latch is released, none of the treads should have any result
         for (final CacheReaderThread cacheReaderThread : cacheReaderThreads) {
             assertNull(cacheReaderThread.result);
         }
@@ -321,15 +321,15 @@ public class AuthorizationCacheTest {
         }
         log.trace("<testConcurrentRead");
     }
-    
+
     /** Helper class for retrieving a cache entry in a background thread */
     private class CacheReaderThread extends Thread {
-        
+
         private final CountDownLatch countDownLatch;
         private final AuthenticationToken authenticationToken;
         private final AuthorizationCacheCallback authorizationCacheCallback;
         HashMap<String,Boolean> result = null;
-        
+
         public CacheReaderThread(CountDownLatch countDownLatch, AuthenticationToken authenticationToken, AuthorizationCacheCallback authorizationCacheCallback) {
             this.countDownLatch = countDownLatch;
             this.authenticationToken = authenticationToken;

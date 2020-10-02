@@ -27,15 +27,15 @@ import org.cesecore.configuration.ConfigurationBase;
 
 /**
  * This file handles configuration of Available Extended Key Usages
- * 
+ *
  * @version $Id: AvailableExtendedKeyUsagesConfiguration.java 26046 2017-06-20 08:53:38Z mikekushner $
  */
 public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase implements Serializable{
 
     private static final long serialVersionUID = -3430732247486886608L;
     public static final String CONFIGURATION_ID = "AVAILABLE_EXTENDED_KEY_USAGES";
-    
-    /** Creates a new instance of AvailableExtendedKeyUsagesConfiguration without defaults 
+
+    /** Creates a new instance of AvailableExtendedKeyUsagesConfiguration without defaults
      * @param ignored ignored */
     public AvailableExtendedKeyUsagesConfiguration(boolean ignored)  {
         super();
@@ -115,24 +115,24 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase i
         LinkedHashMap<Object, Object> d = (LinkedHashMap<Object, Object>) dataobj;
         data = d;
     }
-    
+
     @Override
     public String getConfigurationId() {
         return CONFIGURATION_ID;
     }
-    
+
     public boolean isExtendedKeyUsageSupported(String oid) {
         return data.containsKey(oid.trim());
     }
-    
+
     public void addExtKeyUsage(String oid, String name) {
         data.put(oid.trim(), name);
     }
-    
+
     public void removeExtKeyUsage(String oid) {
         data.remove(oid.trim());
     }
-    
+
     public String getExtKeyUsageName(String oid) {
         oid = oid.trim();
         String name = (String) data.get(oid);
@@ -141,7 +141,7 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase i
         }
         return name;
     }
-    
+
     public List<String> getAllOIDs() {
         Set<Object> keyset = data.keySet();
         ArrayList<String> keys = new ArrayList<String>();
@@ -152,14 +152,14 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase i
         }
         return keys;
     }
-    
+
     public Map<String, String> getAllEKUOidsAndNames() {
         @SuppressWarnings("unchecked")
         Map<String, String> ret = (Map<String, String>) saveData();
         ret.remove("version");
         return ret;
     }
-    
+
     public Properties getAsProperties() {
         Properties properties = new Properties();
         Map<String, String> allEkus = getAllEKUOidsAndNames();
@@ -168,8 +168,8 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase i
         }
         return properties;
     }
-    
+
     @Override
     public void upgrade() {}
-    
+
 }

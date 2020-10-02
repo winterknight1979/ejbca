@@ -33,13 +33,13 @@ import org.cesecore.util.ui.DynamicUiModel;
 import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
- * Default ECC key validator using the Bouncy Castle BCECPublicKey implementation 
- * (see org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey). 
- * 
- * The key validator is used to implement the CA/B-Forum requirements for RSA public 
+ * Default ECC key validator using the Bouncy Castle BCECPublicKey implementation
+ * (see org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey).
+ *
+ * The key validator is used to implement the CA/B-Forum requirements for RSA public
  * key quality requirements, including FIPS 186-4 and NIST (SP 800-89 and NIST SP 56A: Revision 2)
  * requirements. See: https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf section 6.1.6
- * 
+ *
  * @version $Id: EccKeyValidator.java 29467 2018-07-05 16:23:04Z mikekushner $
  */
 public class EccKeyValidator extends KeyValidatorBase {
@@ -54,14 +54,14 @@ public class EccKeyValidator extends KeyValidatorBase {
     protected static final String CURVES = "ecCurves";
 
     protected static final String USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE = "useFullPublicKeyValidationRoutine";
-        
+
     /**
      * Public constructor needed for deserialization.
      */
     public EccKeyValidator() {
         super();
     }
-    
+
     /**
      * Creates a new instance.
      * @param name name
@@ -106,7 +106,7 @@ public class EccKeyValidator extends KeyValidatorBase {
             }
         });
         uiModel.add(settingsTemplate);
-        final DynamicUiProperty<String> curves = new DynamicUiProperty<String>(String.class, CURVES, getCurvesAsString(), 
+        final DynamicUiProperty<String> curves = new DynamicUiProperty<String>(String.class, CURVES, getCurvesAsString(),
                 new ArrayList<String>(AlgorithmTools.getFlatNamedEcCurvesMap(false).keySet())) {
                     @Override
                     public boolean isDisabled() { return isCurvesDisabled(); }
@@ -120,7 +120,7 @@ public class EccKeyValidator extends KeyValidatorBase {
             public boolean isDisabled() { return isPropertyDisabled(); }
         });
     }
-    
+
     /**
      * Returns true if the dynamic property fields for this validator are supposed to be disabled.
      * @return true if disabled.
@@ -128,7 +128,7 @@ public class EccKeyValidator extends KeyValidatorBase {
     private final boolean isPropertyDisabled() {
         return KeyValidatorSettingsTemplate.USE_CAB_FORUM_SETTINGS.getOption() == getSettingsTemplate();
     }
-    
+
     /**
      * Returns true if the dynamic property fields for this validator are supposed to be disabled.
      * @return true if disabled.
@@ -136,7 +136,7 @@ public class EccKeyValidator extends KeyValidatorBase {
     private final boolean isCurvesDisabled() {
         return KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption() != getSettingsTemplate();
     }
-        
+
     @Override
     public void setKeyValidatorSettingsTemplate(final KeyValidatorSettingsTemplate template) {
         setSettingsTemplate(template.getOption());
@@ -169,7 +169,7 @@ public class EccKeyValidator extends KeyValidatorBase {
     public List<String> getCurves() {
         return (List<String>) data.get(CURVES);
     }
-    
+
     public String getCurvesAsString() {
         return getCurves() != null ? StringUtils.join(getCurves(), LIST_SEPARATOR) : StringUtils.EMPTY;
     }
@@ -258,7 +258,7 @@ public class EccKeyValidator extends KeyValidatorBase {
                 messages.add("Invalid: ECDSA curve "+AlgorithmTools.getEcKeySpecAliases(keySpecification)+": Use one of the following " + availableEcCurves + ".");
             }
         }
-        
+
         if (isUseFullPublicKeyValidationRoutine()) {
             if (log.isDebugEnabled()) {
                 log.debug("Performing full EC public key validation.");
@@ -324,7 +324,7 @@ public class EccKeyValidator extends KeyValidatorBase {
     public final void setCABForumBaseLineRequirements142() {
         setUseFullPublicKeyValidationRoutine(true);
     }
-    
+
     @Override
     public String getLabel() {
         return intres.getLocalizedMessage("validator.implementation.key.ecc");

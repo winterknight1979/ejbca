@@ -20,69 +20,69 @@ import org.cesecore.internal.UpgradeableDataHashMap;
 
 /**
  * Base class for all Profile entity beans. Mainly a holder for an UpgradeableDataHashMap, it's meant to be completely agnostic of any implementation
- * details. 
- * 
+ * details.
+ *
  * @version $Id: ProfileBase.java 28140 2018-01-30 12:40:30Z andresjakobs $
  *
  */
 public abstract class ProfileBase extends UpgradeableDataHashMap implements Profile, Serializable{
-    
+
     private static final long serialVersionUID = 1L;
-    
+
     public static final float LATEST_VERSION = 1f;
-    
+
     private static final String PROFILE_NAME_KEY = "profile.name";
     private static final String PROFILE_ID_KEY = "profile.id";
-    
+
     private transient Class<? extends Profile> implementationClass = null;
-    
+
     private transient String name = null;
     private transient Integer profileId = null;
 
     /** List separator. */
     protected static final String LIST_SEPARATOR = ";";
-    
+
     public ProfileBase() {
-        //Public constructor needed deserialization 
+        //Public constructor needed deserialization
     }
     public ProfileBase(final String name) {
         super();
         setProfileName(name);
         initialize();
     }
-    
+
     /*
-     * This method only needs to be called by the factory method (and some unit tests), because it sets a ton of boilerplate stuff which isn't 
+     * This method only needs to be called by the factory method (and some unit tests), because it sets a ton of boilerplate stuff which isn't
      * required by already initialized profiles.
      */
     @Override
     public void initialize() {
-        data.put(PROFILE_TYPE, getImplementationClass()); 
+        data.put(PROFILE_TYPE, getImplementationClass());
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public LinkedHashMap<Object, Object> getDataMap() {
         LinkedHashMap<Object, Object> saveData = (LinkedHashMap<Object, Object>) saveData();
         return saveData;
     }
-    
+
     protected abstract Class<? extends Profile>  getImplementationClass();
-    
+
     /**
-     * Method allows implementions to add non-datamapped objects to be persisted. 
-     * 
+     * Method allows implementions to add non-datamapped objects to be persisted.
+     *
      */
     protected abstract void saveTransientObjects();
-    
+
     protected abstract void loadTransientObjects();
-    
+
     @Override
     public void setDataMap(LinkedHashMap<Object, Object> dataMap) {
         loadData(dataMap);
         loadTransientObjects();
     }
-        
+
     @SuppressWarnings("unchecked")
     @Override
     public Class<? extends Profile> getType() {
@@ -91,7 +91,7 @@ public abstract class ProfileBase extends UpgradeableDataHashMap implements Prof
         }
         return implementationClass;
     }
-  
+
     @Override
     public Integer getProfileId() {
         if(profileId == null) {
@@ -99,21 +99,21 @@ public abstract class ProfileBase extends UpgradeableDataHashMap implements Prof
         }
         return profileId;
     }
-    
+
     @Override
     public void setProfileId(Integer profileId) {
         this.profileId = profileId;
         data.put(PROFILE_ID_KEY, profileId);
     }
-    
+
     @Override
     public String getProfileName() {
         if(name == null) {
             name = (String) data.get(PROFILE_NAME_KEY);
         }
         return name;
-    }     
-    
+    }
+
     @Override
     public void setProfileName(String profileName) {
        this.name = profileName;
@@ -128,9 +128,9 @@ public abstract class ProfileBase extends UpgradeableDataHashMap implements Prof
 
     @Override
     public void upgrade() {}
-    
+
     /** @param key key
-     * @param defaultValue value 
+     * @param defaultValue value
      * @param <T> type
      * @return data from the underlying map. Encourages use of String valued keys. */
     @SuppressWarnings("unchecked")
@@ -138,14 +138,14 @@ public abstract class ProfileBase extends UpgradeableDataHashMap implements Prof
         final T ret = (T) data.get(key);
         return ret==null ? defaultValue : ret;
     }
-    
-    /** Store data in the underlying map. Encourages use of String valued keys. 
+
+    /** Store data in the underlying map. Encourages use of String valued keys.
      * @param key key
      * @param value value */
     protected void putData(final String key, final Object value) {
         data.put(key, value);
     }
-   
+
     @Override
     public Map<Object, Object> diff(Profile newobj) {
         Map<Object, Object> newmap = (Map<Object, Object>) newobj.getDataMap();

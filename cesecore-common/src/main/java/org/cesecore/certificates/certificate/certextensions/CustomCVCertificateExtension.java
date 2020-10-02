@@ -22,7 +22,7 @@ import org.ejbca.cvc.CVCDiscretionaryDataTemplate;
 
 /**
  * Additional interface for custom CV (Card Verifiable) Certificate extensions.
- * 
+ *
  * @version $Id: CustomCVCertificateExtension.java 27581 2017-12-19 08:40:07Z samuellb $
  */
 public interface CustomCVCertificateExtension extends CustomCertificateExtension {
@@ -41,17 +41,17 @@ public interface CustomCVCertificateExtension extends CustomCertificateExtension
      */
     CVCDiscretionaryDataTemplate getValueCVC(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
             PublicKey caPublicKey, CertificateValidity validity, CertificateExtensionLocation extensionLocation) throws CertificateExtensionException;
-    
+
     /**
      * @return true if the certificate is to be included in certificates.
      */
     boolean isIncludedInCertificates();
-    
+
     /**
      * @return true if the certificate is to be included in CSRs.
      */
     boolean isIncludedInCSR();
-    
+
     /**
      * @return true if the certificate is to be included in link certificates.
      */

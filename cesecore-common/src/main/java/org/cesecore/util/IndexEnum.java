@@ -18,11 +18,11 @@ package org.cesecore.util;
  * <p>
  * Avoid building enums using this pattern, unless storage space is really a concern.
  * Please store the enum name as a string instead.
- * 
+ *
  * @version $Id: IndexEnum.java 30982 2019-01-04 12:53:31Z samuellb $
  */
 public interface IndexEnum {
-    /** @return a stable "index" of the enum value, which is guaranteed to not change with new versions (unlike {@link Enum#ordinal}). 
+    /** @return a stable "index" of the enum value, which is guaranteed to not change with new versions (unlike {@link Enum#ordinal}).
      * */
     int getIndex();
 }

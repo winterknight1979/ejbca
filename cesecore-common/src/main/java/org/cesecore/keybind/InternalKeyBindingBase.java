@@ -30,7 +30,7 @@ import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
  * Holder of general InternalKeyBinding relevant properties.
- * 
+ *
  * @version $Id: InternalKeyBindingBase.java 30208 2018-10-26 09:04:57Z samuellb $
  */
 public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap implements InternalKeyBinding {
@@ -43,7 +43,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
     private static final String PROP_OCSP_EXTENSION = "ocspExtensions";
     private static final String BASECLASS_PREFIX = "BASECLASS_";
     public static final String SUBCLASS_PREFIX = "SUBCLASS_";
-    
+
     private int internalKeyBindingId;
     private String name;
     private InternalKeyBindingStatus status;
@@ -54,13 +54,13 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
     private List<InternalKeyBindingTrustEntry> trustedCertificateReferences;
     private List<String> ocspExtensions;
     private String signatureAlgorithm;
-    
+
     private final LinkedHashMap<String,DynamicUiProperty<? extends Serializable>> propertyTemplates = new LinkedHashMap<>();
-    
+
     protected void addProperty(DynamicUiProperty<? extends Serializable> property) {
         propertyTemplates.put(property.getName(), property);
     }
-    
+
     @Override
     public Map<String, DynamicUiProperty<? extends Serializable>> getCopyOfProperties() {
         final LinkedHashMap<String, DynamicUiProperty<? extends Serializable>> ret = new LinkedHashMap<>();
@@ -122,7 +122,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
             this.status = status;
         }
     }
-    
+
     @Override
     public InternalKeyBindingOperationalStatus getOperationalStatus() {
         if (operationalStatus == null) {
@@ -138,7 +138,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
             this.operationalStatus = operationalStatus;
         }
     }
-    
+
     @Override
     public String getCertificateId() { return certificateId; }
     @Override
@@ -171,8 +171,8 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
     private static final SimpleDateFormat DATE_FORMAT_MS = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     private static final Pattern DATE_FORMAT_PATTERN = Pattern.compile("_\\d{8}\\d{6}$");
     private static final Pattern DATE_FORMAT_PATTERN_MS = Pattern.compile("_\\d{8}\\d{9}$");
-    
-    /** Replace existing postfix or generate add a new one (using current time with millisecond granularity). 
+
+    /** Replace existing postfix or generate add a new one (using current time with millisecond granularity).
      * @param oldAlias alias
      * @return  new alias*/
     private String getNewAlias(final String oldAlias) {
@@ -234,7 +234,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
         ocspExensions.addAll(this.ocspExtensions);
         return ocspExtensions;
     }
-    
+
     @Override
     public void setOcspExtensions(List<String> ocspExtensions) {
         this.ocspExtensions = ocspExtensions;
@@ -242,7 +242,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
         arrayList.addAll(ocspExtensions);
         putDataInternal(PROP_OCSP_EXTENSION, arrayList);
     }
-    
+
     @Override
     public String getSignatureAlgorithm() {
         if (signatureAlgorithm == null) {
@@ -256,13 +256,13 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
         this.signatureAlgorithm = signatureAlgorithm;
         putDataInternal(PROP_SIGNATURE_ALGORITHM, signatureAlgorithm);
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public LinkedHashMap<Object, Object> getDataMapToPersist() {
         return (LinkedHashMap<Object, Object>) saveData();
     }
-    
+
     @Override
     public abstract float getLatestVersion();
     @Override
@@ -274,12 +274,12 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
         upgrade(getLatestVersion(), getVersion());
     }
 
-    /** Invoked after the all data has been loaded in init(...) 
+    /** Invoked after the all data has been loaded in init(...)
      * @param latestVersion new version
      * @param currentVersion old version */
     protected abstract void upgrade(final float latestVersion, final float currentVersion);
 
-    /** Store data in the underlying map. Encourages use of String valued keys. 
+    /** Store data in the underlying map. Encourages use of String valued keys.
      * @param key key
      * @param value value */
     private void putData(final String key, final Object value) {
@@ -287,7 +287,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
     }
 
     /** @param key key
-     * @param defaultValue value 
+     * @param defaultValue value
      * @param <T> type
      * @return data from the underlying map. Encourages use of String valued keys. */
     @SuppressWarnings("unchecked")
@@ -296,7 +296,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
         return ret==null ? defaultValue : ret;
     }
 
-    /** Store data in the underlying map. Encourages use of String valued keys. 
+    /** Store data in the underlying map. Encourages use of String valued keys.
      * @param key key
      * @param value value*/
     private void putDataInternal(final String key, final Object value) {

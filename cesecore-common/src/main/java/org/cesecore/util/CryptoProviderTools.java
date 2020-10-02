@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.cesecore.util;
 
 import java.math.BigInteger;
@@ -31,67 +31,67 @@ import org.ejbca.cvc.CVCProvider;
 
 /**
  * Basic crypto provider helper methods.
- * 
+ *
  * @version $Id: CryptoProviderTools.java 26046 2017-06-20 08:53:38Z mikekushner $
  */
 
 @SuppressWarnings("deprecation")
 public final class CryptoProviderTools {
-	
-	private static final Logger log = Logger.getLogger(CryptoProviderTools.class);
-			
+
+    private static final Logger log = Logger.getLogger(CryptoProviderTools.class);
+
     private CryptoProviderTools() {} // Not for instantiation
 
     /** Parameters used when generating or verifying ECDSA keys/certs using the "implicitlyCA" key encoding.
      * The curve parameters is then defined outside of the key and configured in the BC provider.
      */
     private static final String IMPLICITLYCA_Q = CesecoreConfiguration.getEcdsaImplicitlyCaQ();
-    private static final String IMPLICITLYCA_A = CesecoreConfiguration.getEcdsaImplicitlyCaA(); 
-    private static final String IMPLICITLYCA_B = CesecoreConfiguration.getEcdsaImplicitlyCaB(); 
-    private static final String IMPLICITLYCA_G = CesecoreConfiguration.getEcdsaImplicitlyCaG(); 
+    private static final String IMPLICITLYCA_A = CesecoreConfiguration.getEcdsaImplicitlyCaA();
+    private static final String IMPLICITLYCA_B = CesecoreConfiguration.getEcdsaImplicitlyCaB();
+    private static final String IMPLICITLYCA_G = CesecoreConfiguration.getEcdsaImplicitlyCaG();
     private static final String IMPLICITLYCA_N = CesecoreConfiguration.getEcdsaImplicitlyCaN();
 
-    /** System provider used to circumvent a bug in Glassfish. Should only be used by 
-     * X509CAInfo, OCSPCAService, CMSCAService. 
+    /** System provider used to circumvent a bug in Glassfish. Should only be used by
+     * X509CAInfo, OCSPCAService, CMSCAService.
      * Defaults to SUN but can be changed to IBM by the installBCProvider method.
      */
     public static String SYSTEM_SECURITY_PROVIDER = "SUN";
-    
+
     /**
      * Detect if "Unlimited Strength" Policy files has bean properly installed.
-     * 
+     *
      * @return true if key strength is limited
      */
     public static boolean isUsingExportableCryptography() {
-    	boolean returnValue = true;
-    	try {
-    		final int keylen = Cipher.getMaxAllowedKeyLength("DES");
-    		if (log.isDebugEnabled()) {
-    			log.debug("MaxAllowedKeyLength for DES is: "+keylen);
-    		}
-			if ( keylen == Integer.MAX_VALUE ) {
-				returnValue = false;
-			}
-		} catch (NoSuchAlgorithmException e) {
-			// NOPMD
-		}
-		return returnValue;
+        boolean returnValue = true;
+        try {
+            final int keylen = Cipher.getMaxAllowedKeyLength("DES");
+            if (log.isDebugEnabled()) {
+                log.debug("MaxAllowedKeyLength for DES is: "+keylen);
+            }
+            if ( keylen == Integer.MAX_VALUE ) {
+                returnValue = false;
+            }
+        } catch (NoSuchAlgorithmException e) {
+            // NOPMD
+        }
+        return returnValue;
     }
-    
+
     public static synchronized void installBCProviderIfNotAvailable() {
-    	if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-    		installBCProvider();
-    	}
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            installBCProvider();
+        }
     }
 
     public static synchronized void removeBCProvider() {
-        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);  
+        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
         // Also remove the CVC provider
         Security.removeProvider("CVC");
     }
     @SuppressWarnings({ "unchecked" })
     public static synchronized void installBCProvider() {
-    	
+
         // A flag that ensures that we install the parameters for implcitlyCA only when we have installed a new provider
         boolean installImplicitlyCA = false;
         if (Security.addProvider(new BouncyCastleProvider()) < 0) {
@@ -110,14 +110,14 @@ public final class CryptoProviderTools {
         } else {
             installImplicitlyCA = true;
         }
-        
-    	// Also install the CVC provider
-    	try {
-        	Security.addProvider(new CVCProvider());    		
-    	} catch (Exception e) {
-    		log.info("CVC provider can not be installed, CVC certificate will not work: ", e);
-    	}
-    	
+
+        // Also install the CVC provider
+        try {
+            Security.addProvider(new CVCProvider());
+        } catch (Exception e) {
+            log.info("CVC provider can not be installed, CVC certificate will not work: ", e);
+        }
+
         if (installImplicitlyCA) {
             // Install EC parameters for implicitlyCA encoding of EC keys, we have default curve parameters if no new ones have been given.
             // The parameters are only used if implicitlyCA is used for generating keys, or verifying certs
@@ -131,26 +131,26 @@ public final class CryptoProviderTools {
                     new BigInteger(IMPLICITLYCA_N)); // n
             final ConfigurableProvider config = (ConfigurableProvider)Security.getProvider("BC");
             if (config != null) {
-                config.setParameter(ConfigurableProvider.EC_IMPLICITLY_CA, implicitSpec);                                               
+                config.setParameter(ConfigurableProvider.EC_IMPLICITLY_CA, implicitSpec);
             } else {
                 log.error("Can not get ConfigurableProvider, implicitlyCA EC parameters NOT set!");
-            }                
+            }
         }
-        
+
         // 2007-05-25
         // Finally we must configure SERIALNUMBER behavior in BC >=1.36 to be the same
         // as the behavior in BC 1.35, it changed from SN to SERIALNUMBER in BC 1.36
         // We must be backwards compatible
-        
+
         X509Name.DefaultSymbols.put(X509Name.SN, "SN");
-        // We hard specify the system security provider in a few cases (see SYSTEM_SECURITY_PROVIDER). 
+        // We hard specify the system security provider in a few cases (see SYSTEM_SECURITY_PROVIDER).
         // If the SUN provider does not exist, we will always use BC.
         final Provider p = Security.getProvider(SYSTEM_SECURITY_PROVIDER);
         if (p == null) {
-        	log.debug("SUN security provider does not exist, using BC as system default provider.");
-        	SYSTEM_SECURITY_PROVIDER = BouncyCastleProvider.PROVIDER_NAME;
+            log.debug("SUN security provider does not exist, using BC as system default provider.");
+            SYSTEM_SECURITY_PROVIDER = BouncyCastleProvider.PROVIDER_NAME;
         }
-        
+
     }
 
 }

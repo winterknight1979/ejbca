@@ -24,9 +24,9 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 /**
  * An authentication token that always matches the provided AccessUserAspectData if the AuthenticationToken was created in the same JVM as it is
  * verified.
- * 
+ *
  * Example usage: AuthenticationToken authenticationToken = new AlwaysAllowLocalAuthenticationToken("Internal function abc");
- * 
+ *
  * @version $Id: AlwaysAllowLocalAuthenticationToken.java 27631 2017-12-21 14:12:37Z anatom $
  */
 public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationToken {
@@ -34,7 +34,7 @@ public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationT
     private static final long serialVersionUID = -3942437717641924829L;
 
     public static final AlwaysAllowLocalAuthenticationTokenMetaData metaData = new AlwaysAllowLocalAuthenticationTokenMetaData();
-    
+
     public AlwaysAllowLocalAuthenticationToken(final Principal principal) {
         // This can be written nicer like:
         // super(new HashSet<Principal>(Arrays.asList(principal)), null);
@@ -54,19 +54,19 @@ public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationT
 
     @Override
     public boolean matches(AccessUserAspect accessUser) {
-       return super.isCreatedInThisJvm();  
+       return super.isCreatedInThisJvm();
     }
-    
+
     @Override
     public int getPreferredMatchKey() {
         return AuthenticationToken.NO_PREFERRED_MATCH_KEY; // not applicable to this type of authentication token
     }
-    
+
     @Override
     public String getPreferredMatchValue() {
         return null;
     }
-    
+
     @Override
     public boolean equals(Object authenticationToken) {
         if (this == authenticationToken) {
@@ -88,7 +88,7 @@ public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationT
     }
 
     @Override
-    public boolean matchTokenType(String tokenType) {  
+    public boolean matchTokenType(String tokenType) {
         return true;
     }
 
@@ -97,7 +97,7 @@ public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationT
         // Special legacy handling for unclear reasons..?
         return getMetaData().getAccessMatchValues().get(0);
     }
-    
+
     @Override
     protected String generateUniqueId() {
         return generateUniqueId(super.isCreatedInThisJvm()) + ";" + super.generateUniqueId();
@@ -107,28 +107,28 @@ public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationT
     public AlwaysAllowLocalAuthenticationTokenMetaData getMetaData() {
         return metaData;
     }
-    
+
     /** Do not use since EJBCA 6.8. Kept for backwards compatibility reasons to de-serialize ApprovalRequests. See ECA-6442 */
     @SuppressWarnings("unused")
-	@Deprecated 
+    @Deprecated
     private static enum InternalMatchValue implements AccessMatchValue {
         INSTANCE(0), DEFAULT(Integer.MAX_VALUE);
 
         private static final String TOKEN_TYPE = "AlwaysAllowAuthenticationToken";
-        
+
         private final int numericValue;
-        
+
         private InternalMatchValue(final int numericValue) {
             this.numericValue = numericValue;
         }
-        
+
         @Override
-        public int getNumericValue() {         
+        public int getNumericValue() {
             return numericValue;
         }
 
         @Override
-        public String getTokenType() {           
+        public String getTokenType() {
             return TOKEN_TYPE;
         }
 

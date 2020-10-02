@@ -20,7 +20,7 @@ import org.cesecore.keys.token.CryptoToken;
 
 /**
  * Class for printing properties (for debug purposes) without revealing any pin properties in the log file
- * 
+ *
  * @version $Id: PropertiesWithHiddenPIN.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class PropertiesWithHiddenPIN extends Properties {

@@ -29,41 +29,41 @@ import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
  * Holder of "external" (e.g. non-CA signing key) OCSP InternalKeyBinding properties.
- * 
+ *
  * @version $Id: OcspKeyBinding.java 25867 2017-05-17 16:18:06Z mikekushner $
  */
 public class OcspKeyBinding extends InternalKeyBindingBase {
-  
+
     private static final long serialVersionUID = 1L;
     private static final Logger log = Logger.getLogger(OcspKeyBinding.class);
-    
+
     public enum ResponderIdType {
         KEYHASH(2, "KeyHash"), NAME(1, "Name");
-        
+
         private final int numericValue;
         private final String label;
         private static Map<Integer, ResponderIdType> numericValueLookupMap;
-        
+
         static {
             numericValueLookupMap = new HashMap<>();
             for(ResponderIdType responderIdType : ResponderIdType.values()) {
                 numericValueLookupMap.put(responderIdType.getNumericValue(), responderIdType);
             }
         }
-        
+
         private ResponderIdType(int numericValue, String label) {
             this.numericValue = numericValue;
             this.label = label;
         }
-        
+
         public int getNumericValue() {
             return numericValue;
         }
-        
+
         public String getLabel() {
             return label;
         }
-        
+
         public static ResponderIdType getFromNumericValue(int numericValue) {
             return numericValueLookupMap.get(Integer.valueOf(numericValue));
         }
@@ -81,7 +81,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     public static final String PROPERTY_UNTIL_NEXT_UPDATE = "untilNextUpdate";
     public static final String PROPERTY_MAX_AGE = "maxAge";
     public static final String PROPERTY_ENABLE_NONCE = "enableNonce";
-    
+
     {
         addProperty(new DynamicUiProperty<Boolean>(PROPERTY_NON_EXISTING_GOOD, Boolean.FALSE));
         addProperty(new DynamicUiProperty<Boolean>(PROPERTY_NON_EXISTING_REVOKED, Boolean.FALSE));
@@ -96,12 +96,12 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
         addProperty(new DynamicUiProperty<Boolean>(PROPERTY_ENABLE_NONCE, Boolean.TRUE));
     }
 
-    
+
     @Override
     public String getImplementationAlias() {
         return IMPLEMENTATION_ALIAS;
     }
-    
+
     @Override
     public float getLatestVersion() {
         return serialVersionUID;
@@ -111,7 +111,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     protected void upgrade(float latestVersion, float currentVersion) {
         // Nothing to do
     }
-    
+
     @Override
     public void assertCertificateCompatability(final Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) throws CertificateImportException {
         assertCertificateCompatabilityInternal(certificate, ekuConfig);
@@ -166,7 +166,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     public long getUntilNextUpdate() {
         return (Long) getProperty(PROPERTY_UNTIL_NEXT_UPDATE).getValue();
     }
-    /** Set the value in seconds (granularity defined in RFC 5019) 
+    /** Set the value in seconds (granularity defined in RFC 5019)
      * @param untilNextUpdate time */
     public void setUntilNextUpdate(long untilNextUpdate) {
         setProperty(PROPERTY_UNTIL_NEXT_UPDATE, Long.valueOf(untilNextUpdate));
@@ -175,12 +175,12 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     public long getMaxAge() {
         return (Long) getProperty(PROPERTY_MAX_AGE).getValue();
     }
-    /** Set the value in seconds (granularity defined in RFC 5019) 
+    /** Set the value in seconds (granularity defined in RFC 5019)
      * @param maxAge age*/
     public void setMaxAge(long maxAge) {
         setProperty(PROPERTY_MAX_AGE, Long.valueOf(maxAge));
     }
-    
+
     /** @return true if NONCE's are to be used in replies */
     public boolean isNonceEnabled() {
         if(getProperty(PROPERTY_ENABLE_NONCE) == null) {
@@ -188,7 +188,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
         }
         return (Boolean) getProperty(PROPERTY_ENABLE_NONCE).getValue();
     }
-    /** 
+    /**
      * @param enabled as true of NONCE's are to be included in replies
      *  */
     public void setNonceEnabled(boolean enabled) {

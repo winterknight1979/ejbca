@@ -24,16 +24,16 @@ import org.apache.log4j.Logger;
 
 /**
  * Object and name to id lookup cache base implementation.
- * 
+ *
  * Note that this type of cache is not optimized for short-lived objects, but
  * will prevent memory leaks to some extent through checking for stale data
  * during updates.
- * 
+ *
  * @version $Id: CommonCacheBase.java 28332 2018-02-20 14:40:52Z anatom $
  * @param <T> type
  */
 public abstract class CommonCacheBase<T> implements CommonCache<T> {
-    
+
     private class CacheEntry {
         long lastUpdate;
         final int digest;
@@ -46,14 +46,14 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
             this.object = object;
         }
     }
-    
+
     private final Logger log = Logger.getLogger(CommonCacheBase.class);
     private Map<Integer, CacheEntry> cache = new HashMap<Integer, CacheEntry>();
     private Map<String, Integer> nameToIdMap = new HashMap<String, Integer>();
 
     /** @return how long to cache objects in milliseconds. */
     protected abstract long getCacheTime();
-    
+
     /** @return the maximum allowed time an object may reside in the cache before it is purged. 0 means live forever. */
     protected abstract long getMaxCacheLifeTime();
 
@@ -127,7 +127,7 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
             return false;
         }
     }
-    
+
     @Override
     public void updateWith(int id, int digest, String name, T object) {
         final Integer key = Integer.valueOf(id);
@@ -147,20 +147,20 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
             }
         }
     }
-    
+
     @Override
     public String getName(int id) {
         final CacheEntry entry = getCacheEntry(id);
         return entry != null ? entry.name : null;
     }
-    
+
     /** @param key key
      * @return cache entry for the requested key or null */
     private CacheEntry getCacheEntry(final Integer key) {
         return cache.get(key);
     }
-    
-    /** Set or remove cache entry. 
+
+    /** Set or remove cache entry.
      * @param key key
      * @param cacheEntry entry */
     private void setCacheEntry(final Integer key, final CacheEntry cacheEntry) {
@@ -207,28 +207,28 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
         final Map<String, Integer> nameToIdMapStage = new HashMap<String, Integer>();
         replaceCache(cacheStage, nameToIdMapStage);
     }
-    
+
     @Override
     public void replaceCacheWith(List<Integer> keys) {
         Map<Integer, CacheEntry> cacheStage = new HashMap<Integer, CacheEntry>();
         Map<String, Integer> nameToIdMapStage = new HashMap<String, Integer>();
-        
+
         for(Integer key : keys) {
             CacheEntry entry = cache.get(key);
             cacheStage.put(key, entry);
-            
+
             String name = entry.name;
             nameToIdMapStage.put(name, nameToIdMap.get(name));
         }
-        
+
         replaceCache(cacheStage, nameToIdMapStage);
     }
-    
+
     private void replaceCache(Map<Integer, CacheEntry> cacheStage, Map<String, Integer> nameToIdMapStage) {
         synchronized (this) {
             cache = cacheStage;
             nameToIdMap = nameToIdMapStage;
         }
     }
-    
+
 }

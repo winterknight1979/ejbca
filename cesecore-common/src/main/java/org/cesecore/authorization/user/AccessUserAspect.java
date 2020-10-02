@@ -16,8 +16,8 @@ package org.cesecore.authorization.user;
 import java.io.Serializable;
 
 /**
- * Interface for AccessUserAspectData.  
- * 
+ * Interface for AccessUserAspectData.
+ *
  * @version $Id: AccessUserAspect.java 17625 2013-09-20 07:12:06Z netmackan $
  *
  */
@@ -46,5 +46,5 @@ public interface AccessUserAspect extends Serializable {
     String getTokenType();
 
     void setTokenType(String tokenType);
-   
+
 }

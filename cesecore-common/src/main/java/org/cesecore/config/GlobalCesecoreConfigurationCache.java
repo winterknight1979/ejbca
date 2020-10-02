@@ -19,9 +19,9 @@ import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
 
 /**
- * Class Holding cache variable for CESeCore global configuration. Needed because EJB spec does not allow volatile, non-final 
+ * Class Holding cache variable for CESeCore global configuration. Needed because EJB spec does not allow volatile, non-final
  * fields in session beans.
- * 
+ *
  * @version $Id: GlobalCesecoreConfigurationCache.java 22740 2016-02-05 13:28:45Z mikekushner $
  *
  */
@@ -34,8 +34,8 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
      */
     private volatile GlobalCesecoreConfiguration globalconfigurationCache = null;
     /** help variable used to control that GlobalConfiguration update isn't performed to often. */
-    private volatile long lastupdatetime = -1;  
-    
+    private volatile long lastupdatetime = -1;
+
     public GlobalCesecoreConfigurationCache() {
     }
 
@@ -78,7 +78,7 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
 
     @Override
     public ConfigurationBase getNewConfiguration() {
-        return new GlobalCesecoreConfiguration();      
+        return new GlobalCesecoreConfiguration();
 
     }
 

@@ -19,10 +19,10 @@ import org.cesecore.config.OcspConfiguration;
 import org.cesecore.keybind.impl.OcspKeyBinding;
 
 /**
- * This cache contains non persistent configuration elements that need to be cached in order to be shared between all 
+ * This cache contains non persistent configuration elements that need to be cached in order to be shared between all
  * beans and servlets.
- * 
- * 
+ *
+ *
  * @version $Id: OcspConfigurationCache.java 25867 2017-05-17 16:18:06Z mikekushner $
  *
  */
@@ -30,7 +30,7 @@ public enum OcspConfigurationCache {
     INSTANCE;
 
     private static final Logger log = Logger.getLogger(OcspConfigurationCache.class);
-    
+
     /* If true a certificate that does not exist in the database, but is issued by a CA the responder handles
      * will be treated as not revoked. Default is to treat is as "unknown".
      */
@@ -56,7 +56,7 @@ public enum OcspConfigurationCache {
      * If this regex is fulfilled the "revoked" will be return even if {@link #nonExistingIsRevoked} is false;
      */
     private Pattern nonExistingIsRevokedOverideRegex;
-    
+
     private OcspConfigurationCache() {
         reloadConfiguration();
     }
@@ -65,14 +65,14 @@ public enum OcspConfigurationCache {
         this.nonExistingIsGood = OcspConfiguration.getNonExistingIsGood();
         this.nonExistingIsRevoked = OcspConfiguration.getNonExistingIsRevoked();
         this.nonExistingIsUnauthorized = OcspConfiguration.getNonExistingIsUnauthorized();
-        
+
         //Write an error to the logs if more than one of the above is true
-        if( (this.nonExistingIsGood && (this.nonExistingIsRevoked || this.nonExistingIsUnauthorized)) 
+        if( (this.nonExistingIsGood && (this.nonExistingIsRevoked || this.nonExistingIsUnauthorized))
                 || (this.nonExistingIsRevoked && this.nonExistingIsUnauthorized)) {
             log.error("Error: More than one of ocsp.nonexistingisgood, ocsp.nonexistingisrevoked and ocsp.nonexistingisunauthorized has"
                     + " been set to true at the same time.");
         }
-        
+
         {
             final String value = OcspConfiguration.getNonExistingIsGoodOverideRegex();
             nonExistingIsGoodOverideRegex = value != null ? Pattern.compile(value) : null;
@@ -96,7 +96,7 @@ public enum OcspConfigurationCache {
         }
         return nonExistingIsUnauthorized;
     }
-    
+
     public boolean isNonExistingGood(StringBuffer url, OcspKeyBinding ocspKeyBinding) {
         // First we read the global default
         boolean nonExistingIsGood = this.nonExistingIsGood;
@@ -110,7 +110,7 @@ public enum OcspConfigurationCache {
         }
         return isRegexFulFilled(url, nonExistingIsGoodOverideRegex);
     }
-    
+
     public boolean isNonExistingRevoked(StringBuffer url, OcspKeyBinding ocspKeyBinding) {
         // First we read the global default
         boolean nonExistingIsRevoked = this.nonExistingIsRevoked;

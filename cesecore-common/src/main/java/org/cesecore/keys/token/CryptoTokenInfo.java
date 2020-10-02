@@ -19,7 +19,7 @@ import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
 
 /**
  * Non-sensitive information about a CryptoToken.
- * 
+ *
  * @version $Id: CryptoTokenInfo.java 28849 2018-05-04 12:33:49Z jekaterina_b_helmes $
  */
 public class CryptoTokenInfo implements Serializable {
@@ -68,7 +68,7 @@ public class CryptoTokenInfo implements Serializable {
     public boolean isAllowExplicitParameters() {
         return Boolean.valueOf(cryptoTokenProperties.getProperty(SoftCryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS, Boolean.FALSE.toString()));
     }
-    
+
     public String getP11Library() {
         return cryptoTokenProperties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY, "");
     }

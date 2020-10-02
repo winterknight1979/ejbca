@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * An implementation of HashMap that base64 encodes all String's that you 'put', it encodes them to form "B64:&lt;base64 encoded string&gt;". It only
  * encodes objects of type String.
- * 
+ *
  * @version $Id: Base64PutHashMap.java 24742 2016-11-15 13:59:14Z jeklund $
  */
 public class Base64PutHashMap extends LinkedHashMap<Object, Object> {

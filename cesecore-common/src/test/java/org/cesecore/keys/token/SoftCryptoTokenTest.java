@@ -29,103 +29,103 @@ import org.junit.Test;
  */
 public class SoftCryptoTokenTest extends CryptoTokenTestBase {
 
-	public SoftCryptoTokenTest() {
-		CryptoProviderTools.installBCProvider();
-	}
+    public SoftCryptoTokenTest() {
+        CryptoProviderTools.installBCProvider();
+    }
 
     @Test
     public void testCryptoTokenRSA() throws Exception {
-    	CryptoToken catoken = createSoftToken(true);
+        CryptoToken catoken = createSoftToken(true);
         doCryptoTokenRSA(catoken);
     }
 
-	@Test
+    @Test
     public void testCryptoTokenECC() throws Exception {
-    	CryptoToken catoken = createSoftToken(true);
+        CryptoToken catoken = createSoftToken(true);
         doCryptoTokenECC(catoken, "secp256r1", 256, "secp384r1", 384);
     }
 
-	@Test
+    @Test
     public void testCryptoTokenECCImplicitlyCA() throws Exception {
-    	CryptoToken catoken = createSoftToken(true);
+        CryptoToken catoken = createSoftToken(true);
         doCryptoTokenECC(catoken, "implicitlyCA", 0, "prime192v1", 192);
     }
 
-	@Test
+    @Test
     public void testCryptoTokenDSA() throws Exception {
-    	CryptoToken catoken = createSoftToken(true);
+        CryptoToken catoken = createSoftToken(true);
         doCryptoTokenDSA(catoken);
     }
 
-	@Test
+    @Test
     public void testActivateDeactivate() throws Exception {
-    	CryptoToken catoken = createSoftToken(true);
+        CryptoToken catoken = createSoftToken(true);
         doActivateDeactivate(catoken);
     }
 
-	@Test
+    @Test
     public void testAutoActivate() throws Exception {
-    	CryptoToken catoken = createSoftToken(true);
-    	doAutoActivate(catoken);
+        CryptoToken catoken = createSoftToken(true);
+        doAutoActivate(catoken);
     }
 
-	@Test
+    @Test
     public void testStoreAndLoad() throws Exception {
-    	CryptoToken token = createSoftToken(true);
-    	doStoreAndLoad(token);
-	}
+        CryptoToken token = createSoftToken(true);
+        doStoreAndLoad(token);
+    }
 
-	@Test
+    @Test
     public void testGenerateSymKey() throws Exception {
-    	CryptoToken token = createSoftToken(true);
-    	doGenerateSymKey(token);
-	}
+        CryptoToken token = createSoftToken(true);
+        doGenerateSymKey(token);
+    }
 
-	@Test
-	public void testDefaultPwdOrNot() throws Exception {
-    	final CryptoToken cryptoToken1 = createSoftToken(true);
-    	// Should not work, we need to activate
-    	try {
-    		cryptoToken1.generateKeyPair("1024", "foo");
-    		assertTrue("Should throw", false);
-    	} catch (CryptoTokenOfflineException e) {
-    		// NOPMD
-    	}
-		cryptoToken1.activate("bar123".toCharArray());
-		cryptoToken1.generateKeyPair("1024", "foo");
-		KeyTools.testKey(cryptoToken1.getPrivateKey("foo"), cryptoToken1.getPublicKey("foo"), null);
+    @Test
+    public void testDefaultPwdOrNot() throws Exception {
+        final CryptoToken cryptoToken1 = createSoftToken(true);
+        // Should not work, we need to activate
+        try {
+            cryptoToken1.generateKeyPair("1024", "foo");
+            assertTrue("Should throw", false);
+        } catch (CryptoTokenOfflineException e) {
+            // NOPMD
+        }
+        cryptoToken1.activate("bar123".toCharArray());
+        cryptoToken1.generateKeyPair("1024", "foo");
+        KeyTools.testKey(cryptoToken1.getPrivateKey("foo"), cryptoToken1.getPublicKey("foo"), null);
 
-		// Use default password
-		final CryptoToken cryptoToken2 = createSoftToken(false);
-    	// Should work, auto-password
-    	cryptoToken2.generateKeyPair("1024", "foo");
-		KeyTools.testKey(cryptoToken2.getPrivateKey("foo"), cryptoToken2.getPublicKey("foo"), null);
-    	cryptoToken2.deactivate();
-    	// Should still work, auto-password
-    	cryptoToken2.generateKeyPair("1024", "foo");
-		KeyTools.testKey(cryptoToken2.getPrivateKey("foo"), cryptoToken2.getPublicKey("foo"), null);
+        // Use default password
+        final CryptoToken cryptoToken2 = createSoftToken(false);
+        // Should work, auto-password
+        cryptoToken2.generateKeyPair("1024", "foo");
+        KeyTools.testKey(cryptoToken2.getPrivateKey("foo"), cryptoToken2.getPublicKey("foo"), null);
+        cryptoToken2.deactivate();
+        // Should still work, auto-password
+        cryptoToken2.generateKeyPair("1024", "foo");
+        KeyTools.testKey(cryptoToken2.getPrivateKey("foo"), cryptoToken2.getPublicKey("foo"), null);
         // Should work token is already (auto) active
         cryptoToken2.activate("bar123".toCharArray());
-		cryptoToken2.activate("foo123".toCharArray());
-		cryptoToken2.generateKeyPair("1024", "foo");
-		KeyTools.testKey(cryptoToken2.getPrivateKey("foo"), cryptoToken2.getPublicKey("foo"), null);
-	}
+        cryptoToken2.activate("foo123".toCharArray());
+        cryptoToken2.generateKeyPair("1024", "foo");
+        KeyTools.testKey(cryptoToken2.getPrivateKey("foo"), cryptoToken2.getPublicKey("foo"), null);
+    }
 
-	@Override
-	String getProvider() {
-		return BouncyCastleProvider.PROVIDER_NAME;
-	}
+    @Override
+    String getProvider() {
+        return BouncyCastleProvider.PROVIDER_NAME;
+    }
 
-	public static CryptoToken createSoftToken(boolean nodefaultpwd) {
+    public static CryptoToken createSoftToken(boolean nodefaultpwd) {
         return createSoftToken(nodefaultpwd, true);
-	}
+    }
 
 
     public static CryptoToken createSoftToken(boolean nodefaultpwd, boolean extractable) {
-		Properties prop = new Properties();
-		if (nodefaultpwd) {
-			prop.setProperty(SoftCryptoToken.NODEFAULTPWD, Boolean.toString(nodefaultpwd));
-		}
+        Properties prop = new Properties();
+        if (nodefaultpwd) {
+            prop.setProperty(SoftCryptoToken.NODEFAULTPWD, Boolean.toString(nodefaultpwd));
+        }
         if(extractable){
             prop.setProperty(CryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY, Boolean.toString(true));
         } else {
@@ -137,7 +137,7 @@ public class SoftCryptoTokenTest extends CryptoTokenTestBase {
         } catch (NoSuchSlotException e) {
             throw new RuntimeException("Attempted to find a slot for a soft crypto token. This should not happen.");
         }
-		return catoken;
-	}
+        return catoken;
+    }
 
 }

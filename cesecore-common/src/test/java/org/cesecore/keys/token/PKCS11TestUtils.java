@@ -34,8 +34,8 @@ public class PKCS11TestUtils {
     public static final String PKCS11_LIBRARY = "pkcs11.library";
     public static final String PKCS11_SLOT_PIN = "pkcs11.slotpin";
     public static final String PKCS11_SECURITY_PROVIDER = "pkcs11.provider";
-    public static final String PKCS11_SLOT_TYPE = "pkcs11.slottype"; 
-    public static final String PKCS11_SLOT_VALUE = "pkcs11.slottypevalue"; 
+    public static final String PKCS11_SLOT_TYPE = "pkcs11.slottype";
+    public static final String PKCS11_SLOT_VALUE = "pkcs11.slottypevalue";
 
     private static final String UTIMACO_PKCS11_LINUX_LIB = "/etc/utimaco/libcs2_pkcs11.so";
     private static final String UTIMACO_PKCS11_WINDOWS_LIB = "C:/Program Files/Utimaco/SafeGuard CryptoServer/Lib/cs2_pkcs11.dll";
@@ -46,7 +46,7 @@ public class PKCS11TestUtils {
     private static final String PROTECTSERVER_PKCS11_LINUX32_LIB = "/opt/ETcpsdk/lib/linux-i386/libcryptoki.so";
     private static final String PROTECTSERVER_PKCS11_WINDOWS_LIB = "C:/Program Files/SafeNet/ProtectToolkit C SDK/bin/sw/cryptoki.dll";
 
-    
+
     public static String getHSMProvider() {
         final File utimacoCSLinux = new File(UTIMACO_PKCS11_LINUX_LIB);
         final File utimacoCSWindows = new File(UTIMACO_PKCS11_WINDOWS_LIB);
@@ -77,7 +77,7 @@ public class PKCS11TestUtils {
         }
         return ret;
     }
-    
+
     public static String getHSMLibrary() {
         final File utimacoCSLinux = new File(UTIMACO_PKCS11_LINUX_LIB);
         final File utimacoCSWindows = new File(UTIMACO_PKCS11_WINDOWS_LIB);

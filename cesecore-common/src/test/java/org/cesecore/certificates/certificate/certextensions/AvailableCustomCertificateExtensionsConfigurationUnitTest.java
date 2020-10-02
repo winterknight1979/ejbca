@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -39,7 +39,7 @@ public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
 
     /**
      * Tests the method that is used for parsing old certextensions.properties files from EJBCA 6.3.x and earlier.
-     * @throws Exception fail 
+     * @throws Exception fail
      */
     @Test
     public void testUpgradeParsing() throws Exception {
@@ -67,6 +67,6 @@ public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
         final byte[] valueEncoded = upgraded.getValueEncoded(dummyEndEntity, null, new CertificateProfile(), /*userPublicKey*/null, /*caPublicKey*/null, /*validity*/null);
         assertArrayEquals("Wrong encoded value.", EXPECTED_ENCODED_VALUE, valueEncoded);
         log.trace("<testUpgradeParsing");
-        
+
     }
 }

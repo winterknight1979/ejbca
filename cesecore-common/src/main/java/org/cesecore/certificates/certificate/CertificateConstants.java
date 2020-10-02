@@ -90,16 +90,16 @@ public final class CertificateConstants {
     public static final int CERT_RES_TYPE_PKCS7          = 1;
     public static final int CERT_RES_TYPE_PKCS7WITHCHAIN = 2;
 
-	/** KeyUsage constants */
-	public static final int DIGITALSIGNATURE = 0;
-	public static final int NONREPUDIATION   = 1;
-	public static final int KEYENCIPHERMENT  = 2;
-	public static final int DATAENCIPHERMENT = 3;
-	public static final int KEYAGREEMENT     = 4;
-	public static final int KEYCERTSIGN      = 5;
-	public static final int CRLSIGN          = 6;
-	public static final int ENCIPHERONLY     = 7;
-	public static final int DECIPHERONLY     = 8;
+    /** KeyUsage constants */
+    public static final int DIGITALSIGNATURE = 0;
+    public static final int NONREPUDIATION   = 1;
+    public static final int KEYENCIPHERMENT  = 2;
+    public static final int DATAENCIPHERMENT = 3;
+    public static final int KEYAGREEMENT     = 4;
+    public static final int KEYCERTSIGN      = 5;
+    public static final int CRLSIGN          = 6;
+    public static final int ENCIPHERONLY     = 7;
+    public static final int DECIPHERONLY     = 8;
 
     public static final int HIGN_REASON_BOUNDRARY = 11;
 

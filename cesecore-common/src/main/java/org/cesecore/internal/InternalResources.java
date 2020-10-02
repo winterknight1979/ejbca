@@ -27,10 +27,10 @@ import org.cesecore.config.CesecoreConfiguration;
 /**
  * Class managing internal localization of texts such as notification messages
  * and log comments.
- * 
+ *
  * If fetched the resource files from the src/intresources directory and is
  * included in the file cesecore-ejb.jar
- * 
+ *
  * @version $Id: InternalResources.java 26298 2017-08-14 13:49:21Z anatom $
  */
 public class InternalResources implements Serializable {
@@ -39,12 +39,12 @@ public class InternalResources implements Serializable {
 
     /**
      * Determines if a de-serialized file is compatible with this class.
-     * 
+     *
      * Maintainers must change this value if and only if the new version of this
      * class is not compatible with old versions. See Sun docs for <a
      * href=http://java.sun.com/products/jdk/1.1/docs/guide
      * /serialization/spec/version.doc.html> details. </a>
-     * 
+     *
      */
     private static final long serialVersionUID = -1003L;
 
@@ -60,7 +60,7 @@ public class InternalResources implements Serializable {
 
     /**
      * Method used to setup the Internal Resource management.
-     * 
+     *
      *
      */
     protected InternalResources() {
@@ -81,16 +81,16 @@ public class InternalResources implements Serializable {
 
             primaryStream = InternalResources.class.getResourceAsStream(resLocation + primaryLanguage + ".properties");
             if (primaryStream == null) {
-            	try {
-            		primaryStream = new FileInputStream(resLocation + primaryLanguage + ".properties");
+                try {
+                    primaryStream = new FileInputStream(resLocation + primaryLanguage + ".properties");
                 } catch (FileNotFoundException e) {
                     log.error("Localization files not found: "+e.getMessage());
                 }
             }
             secondaryStream = InternalResources.class.getResourceAsStream(resLocation + secondaryLanguage + ".properties");
             if (secondaryStream == null) {
-            	try {
-            		secondaryStream = new FileInputStream(resLocation + secondaryLanguage + ".properties");
+                try {
+                    secondaryStream = new FileInputStream(resLocation + secondaryLanguage + ".properties");
                 } catch (FileNotFoundException e) {
                     log.error("Localization files not found: "+e.getMessage());
                 }
@@ -134,7 +134,7 @@ public class InternalResources implements Serializable {
 
     /**
      * Method returning the localized message for the given resource key.
-     * 
+     *
      * It first looks up in the primary language then in the secondary If not
      * found in any of the resource file "no text" is returned.
      * <br><br>
@@ -142,17 +142,17 @@ public class InternalResources implements Serializable {
      * of a reference to it. This is more memory consuming than using
      * getLocalizedMessageCs(..) if you pass on the result to Log4J.
      * @see #getLocalizedMessageCs(String, Object...)
-     * 
+     *
      * @param key
      *            is the key searched for in the resource files
      * @param params
      *            indicates the parameter that will be replaced by {X} in the
      *            language resource, a maximum of 10 parameters can be given.
-     * 
+     *
      *            Ex Calling the method with key = TEST and param0 set to "hi"
      *            and the resource file have "TEST = messages is {0}" will
      *            result in the string "message is hi".
-     * 
+     *
      * @return The message as a String, not trimmed for whitespace
      */
     public String getLocalizedMessage(final String key, final Object... params) {
@@ -161,28 +161,28 @@ public class InternalResources implements Serializable {
 
     /**
      * Method returning the localized message for the given resource key.
-     * 
+     *
      * It first looks up in the primary language then in the secondary If not
      * found in any of the resource file "no text" is returned.
-     * 
+     *
      * @param key
      *            is the key searched for in the resource files
      * @param params
      *            indicates the parameter that will be replaced by {X} in the
      *            language resource, a maximum of 10 parameters can be given.
-     * 
+     *
      *            Ex Calling the method with key = TEST and param0 set to "hi"
      *            and the resource file have "TEST = messages is {0}" will
      *            result in the string "message is hi".
-     * 
-     * @return The message as a CharSequence, the return value is not trimmed for whitespace. 
+     *
+     * @return The message as a CharSequence, the return value is not trimmed for whitespace.
      */
     protected CharSequence getLocalizedMessageCs(final String key, final Object... params) {
         final StringBuilder sb = new StringBuilder();
         return getLocalizedMessageInternal(sb, key, params);
     }
 
-    /** Lookup the default string if the StringBuilder is empty. Perform place holder replacement processing. 
+    /** Lookup the default string if the StringBuilder is empty. Perform place holder replacement processing.
      * @param sb StringBuilder buffer
      * @param key key
      * @param params parameters
@@ -208,14 +208,14 @@ public class InternalResources implements Serializable {
         }
         return sb;
     }
-    
+
     public static void replacePlaceholders(final StringBuilder sb, final Object... params) {
         for (int i=0; i<params.length; i++) {
             replaceAll(sb, i, params[i]);
         }
         removeUnusedPlaceHolders(sb, params.length);
     }
-    
+
     /** @return a lazily instantiated array of place holders like "{number}". */
     private static String[] getPlaceHolders() {
         if (placeHolders==null) {
@@ -227,8 +227,8 @@ public class InternalResources implements Serializable {
         }
         return placeHolders;
     }
-    
-    /** Replace any "{placeHolderIndex}" String that is present in the StringBuilder with 'replacementObject'. 
+
+    /** Replace any "{placeHolderIndex}" String that is present in the StringBuilder with 'replacementObject'.
      * @param sb StringBuilder buffer
      * @param placeHolderIndex Index
      * @param replacementObject Object */
@@ -260,7 +260,7 @@ public class InternalResources implements Serializable {
         }
     }
 
-    /** Remove any "{number}" string that is still present in the StringBuilder where number starts with 'startPlaceHolderIndex'. 
+    /** Remove any "{number}" string that is still present in the StringBuilder where number starts with 'startPlaceHolderIndex'.
      * @param sb StringBuilder buffer
      * @param startPlaceHolderIndex  index */
     private static void removeUnusedPlaceHolders(final StringBuilder sb, final int startPlaceHolderIndex) {

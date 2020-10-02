@@ -28,18 +28,18 @@ import org.cesecore.internal.InternalResources;
 
 /**
  * Implements a singleton serial number generator using SecureRandom. This generator generates random 8 octec (64 bits) serial numbers.
- * 
+ *
  * RFC3280 defines serialNumber be positive INTEGER, and X.690 defines INTEGER consist of one or more octets. X.690 also defines as follows:
- * 
+ *
  * If the contents octets of an integer value encoding consist of more than one octet, then the bits of the first octet and bit 8 of the second octet:
  * a) shall not all be ones; and b) shall not all be zero.
- * 
+ *
  * Therefore, minimum 8 octets value is 0080000000000000 and maximum value is 7FFFFFFFFFFFFFFF."
- * 
+ *
  * Therefore, minimum 4 octets value is 00800000 and maximum value is 7FFFFFFF."
- * 
+ *
  * X.690:
- * 
+ *
  * 8.3 Encoding of an integer value 8.3.1 The encoding of an integer value shall be primitive. The contents octets shall consist of one or more
  * octets. 8.3.2 If the contents octets of an integer value encoding consist of more than one octet, then the bits of the first octet and bit 8 of the
  * second octet: a) shall not all be ones; and b) shall not all be zero. NOTE – These rules ensure that an integer value is always encoded in the
@@ -50,7 +50,7 @@ import org.cesecore.internal.InternalResources;
  * value of 2N, where N is its position in the above numbering sequence. The value of the two's complement binary number is obtained by summing the
  * numerical values assigned to each bit for those bits which are set to one, excluding bit 8 of the first octet, and then reducing this value by the
  * numerical value assigned to bit 8 of the first octet if that bit is set to one.
- * 
+ *
  * @version $Id: SernoGeneratorRandom.java 31966 2019-03-25 10:19:57Z anatom $
  */
 public class SernoGeneratorRandom implements SernoGenerator {
@@ -59,10 +59,10 @@ public class SernoGeneratorRandom implements SernoGenerator {
     /** Internal localization of logs and errors */
     private static final InternalResources intres = InternalResources.getInstance();
 
-    /** RFC5280, section 4.1.2.2, specifies using max 20 octets for serial number */ 
+    /** RFC5280, section 4.1.2.2, specifies using max 20 octets for serial number */
     private static final int SERNO_MAX_LENGTH = 20;
 
-    /** random generator algorithm, defaults to FIPS approve SHA1PRNG in constructor 
+    /** random generator algorithm, defaults to FIPS approve SHA1PRNG in constructor
      * The algorithm is specified globally in CesecoreConfiguration.getCaSerialNumberAlgorithm() */
     private String algorithm;
 
@@ -104,7 +104,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
         if ((noOctets > SERNO_MAX_LENGTH || noOctets < 0)) { // We allow 0 octets for testing
             throw new IllegalArgumentException("ca.serialnumberoctetsize must be between 0 and " + SERNO_MAX_LENGTH + " bytes for this serial number generator.");
         }
-        this.noOctets = noOctets;        
+        this.noOctets = noOctets;
         init();
         if (log.isTraceEnabled()) {
             log.trace("<SernoGenerator()");
@@ -112,7 +112,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
     }
 
     private void init() {
-        // Init random number generator for random serial numbers. 
+        // Init random number generator for random serial numbers.
         // SecureRandom provides a cryptographically strong random number generator (CSPRNG).
         try {
             // Use a specified algorithm if ca.rngalgorithm is provided and it's not set to default
@@ -121,7 +121,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
                 log.info("Using "+algorithm+" serialNumber RNG algorithm.");
             } else if (!StringUtils.isEmpty(algorithm) && StringUtils.equalsIgnoreCase(algorithm, "defaultstrong")) {
                 // If defaultstrong is specified and we use >=JDK8 try the getInstanceStrong to get a guaranteed strong random number generator.
-                // Note that this may give you a generator that takes >30 seconds to create a single random number. 
+                // Note that this may give you a generator that takes >30 seconds to create a single random number.
                 // On JDK8/Linux this gives you a NativePRNGBlocking, while SecureRandom.getInstance() gives a NativePRNG.
                 try {
                     final Method methodGetInstanceStrong = SecureRandom.class.getDeclaredMethod("getInstanceStrong");
@@ -164,7 +164,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
                 - Serial numbers previously assigned to other certificates (filtered later, not here).
                 So the real entropy provided for generated serial numbers is always less than initBitsOfEntropy.
                  */
-            // initBitsOfEntropy is 1 less than octet size, because we always use positive integers, which in 
+            // initBitsOfEntropy is 1 less than octet size, because we always use positive integers, which in
             // two complements representation always has the most significant bit 0, making 63 bits random
             int initBitsOfEntropy = noOctets * 8 - 1;
             // SecureRanom is thread safe. This will generate from (0 to 2^initBitsOfEntropy -1)

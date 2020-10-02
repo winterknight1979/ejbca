@@ -24,28 +24,28 @@ import org.cesecore.keys.token.p11.exception.P11RuntimeException;
  * functionality is not needed by the CESeCore library but there are some
  * functionality that the library needs. This class will be used to access such
  * functions.
- * 
+ *
  * Functionalities of the Sun PKCS#11 implementation are used but this class is not
  * using this implementation directly - the class sun.security.pkcs11.CESeCoreUtils
  * is used to provide the interface to the Sun PKCS#11 implementation.
- * 
+ *
  * Since non public resources of the Sun PKCS#11 implementation is used the
  * CESeCoreUtils class must be located in the sun.security.pkcs11 package.
- * The class must also be deployed as an installed extension 
+ * The class must also be deployed as an installed extension
  * (see https://docs.oracle.com/javase/tutorial/ext/basics/install.html) in order
  * to use parts of the sun implementation.
- * 
+ *
  * To deploy it, copy the jar $EJBCA_HOME/dist/ext/primekey-sunP11.jar to one of
  * the directories defined by the 'java.ext.dirs' system property. But when running
  * clientToolBox this deployment is not needed since the start script takes care
  * of this.
- * 
+ *
  * If CESeCoreUtils is not in the classpath then this class will work as a
  * dummy and just return each call without doing anything.
- * 
+ *
  * When CESeCoreUtils is not in the classpath a warning will be written
  * to {@link Logger}.
- * 
+ *
  * @version $Id: PKCS11Utils.java 25864 2017-05-17 13:46:10Z anatom $
  */
 public class PKCS11Utils {

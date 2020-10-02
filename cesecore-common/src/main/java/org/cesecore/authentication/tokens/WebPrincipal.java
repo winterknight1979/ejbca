@@ -17,7 +17,7 @@ import java.security.Principal;
 
 /**
  * Represents any type of web user, can be public web or a servlet.
- * 
+ *
  * @version $Id: WebPrincipal.java 22811 2016-02-15 16:48:23Z samuellb $
  */
 public class WebPrincipal implements Principal, Serializable {
@@ -26,7 +26,7 @@ public class WebPrincipal implements Principal, Serializable {
 
     final String moduleName;
     final String clientIPAddress;
-    
+
     /**
      * @param moduleName Arbitrary identifier of the page or module, e.g. "AutoEnrollServlet"
      * @param clientIPAddress Remote IP address
@@ -35,7 +35,7 @@ public class WebPrincipal implements Principal, Serializable {
         this.clientIPAddress = clientIPAddress;
         this.moduleName = moduleName;
     }
-    
+
     @Override
     public String getName() {
         return clientIPAddress;
@@ -45,11 +45,11 @@ public class WebPrincipal implements Principal, Serializable {
     public String toString() {
         return moduleName + ": " + clientIPAddress;
     }
-    
+
     public String getModuleName() {
         return moduleName;
     }
-    
+
     public String getClientIPAddress() {
         return clientIPAddress;
     }

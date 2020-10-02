@@ -49,7 +49,7 @@ public class SHA1DigestCalculator implements DigestCalculator {
 
         return bytes;
     }
-    
+
     public static SHA1DigestCalculator buildSha1Instance() {
         try {
             return new SHA1DigestCalculator(MessageDigest.getInstance("SHA1"));

@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import javax.ejb.ApplicationException;
@@ -25,7 +25,7 @@ import org.cesecore.ErrorCode;
  */
 @ApplicationException(rollback=true)
 public class CANameChangeRenewalException extends CesecoreException {
-    
+
     private static final long serialVersionUID = 1542504214401684378L;
 
     /**
@@ -34,7 +34,7 @@ public class CANameChangeRenewalException extends CesecoreException {
     public CANameChangeRenewalException() {
         super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR);
     }
-        
+
     /**
      * Constructs an instance of <code>CANameChangeRenewalException</code> with the specified detail message.
      * @param msg the detail message.

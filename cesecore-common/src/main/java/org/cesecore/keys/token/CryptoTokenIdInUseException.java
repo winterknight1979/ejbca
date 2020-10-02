@@ -14,7 +14,7 @@ package org.cesecore.keys.token;
 
 /**
  * Thrown when trying to create a crypto token with a specific ID that is already in use.
- * 
+ *
  * @version $Id: CryptoTokenIdInUseException.java 19902 2014-09-30 14:32:24Z anatom $
  *
  */

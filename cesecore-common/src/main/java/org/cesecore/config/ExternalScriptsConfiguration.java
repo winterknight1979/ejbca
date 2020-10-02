@@ -19,10 +19,10 @@ package org.cesecore.config;
  */
 public interface ExternalScriptsConfiguration {
 
-	/**
-	 * Sets if external scripts on the local are allowed to be called.
-	 * @param value the value.
-	 */
+    /**
+     * Sets if external scripts on the local are allowed to be called.
+     * @param value the value.
+     */
     void setEnableExternalScripts(boolean value);
 
     /**

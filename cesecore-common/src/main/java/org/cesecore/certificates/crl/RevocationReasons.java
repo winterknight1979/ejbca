@@ -17,9 +17,9 @@ import java.util.Map;
 
 /**
  * An enum for revocation reasons, with a numerical database value and a String value for CLI applications.
- * 
+ *
  * Based on RFC 5280 Section 5.3.1
- * 
+ *
  * @version $Id: RevocationReasons.java 28485 2018-03-14 12:59:48Z anatom $
  */
 public enum RevocationReasons {
@@ -34,7 +34,7 @@ public enum RevocationReasons {
     REMOVEFROMCRL(8, "REMOVE_FROM_CRL", "Remove from CRL"),
     PRIVILEGESWITHDRAWN(9, "PRIVILEGES_WITHDRAWN", "Privileges Withdrawn"),
     AACOMPROMISE(10, "AA_COMPROMISE", "AA Compromise");
-    
+
     private final int databaseValue;
     private final String stringValue;
     private final String humanReadable;
@@ -42,7 +42,7 @@ public enum RevocationReasons {
     private static final Map<Integer, RevocationReasons> databaseLookupMap = new HashMap<Integer, RevocationReasons>();
     private static final Map<String, RevocationReasons> cliLookupMap = new HashMap<String, RevocationReasons>();
 
-    
+
     static {
         for(RevocationReasons reason : RevocationReasons.values()) {
             databaseLookupMap.put(reason.getDatabaseValue(), reason);
@@ -55,32 +55,32 @@ public enum RevocationReasons {
         this.stringValue = stringValue;
         this.humanReadable = humanReadable;
     }
-    
+
     public int getDatabaseValue() {
         return databaseValue;
     }
-    
+
     public String getHumanReadable() {
         return humanReadable;
     }
-    
+
     public String getStringValue() {
         return stringValue;
     }
-    
+
     /**
-     * 
+     *
      * @param databaseValue the database value
-     * @return the relevant RevocationReasons object, null if none found. 
+     * @return the relevant RevocationReasons object, null if none found.
      */
     public static RevocationReasons getFromDatabaseValue(int databaseValue) {
         return databaseLookupMap.get(databaseValue);
     }
-    
+
     /**
-     * 
+     *
      * @param cliValue the database value
-     * @return the relevant RevocationReasons object, null if none found. 
+     * @return the relevant RevocationReasons object, null if none found.
      */
     public static RevocationReasons getFromCliValue(String cliValue) {
         if(cliValue == null) {

@@ -16,25 +16,25 @@ import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.internal.InternalResources;
 
 /**
- * Handles global CESeCore configuration values. 
- * 
+ * Handles global CESeCore configuration values.
+ *
  * @version $Id: GlobalCesecoreConfiguration.java 23515 2016-05-20 10:08:20Z jeklund $
  *
  */
 public class GlobalCesecoreConfiguration extends ConfigurationBase {
-    
+
     private static final long serialVersionUID = 1L;
-    
+
     private static final InternalResources intres = InternalResources.getInstance();
-    
+
     /** A fixed maximum value to ensure that  */
     private static final int FIXED_MAXIMUM_QUERY_COUNT = 25_000;
-    
+
     public static final String CESECORE_CONFIGURATION_ID = "CESECORE_CONFIGURATION";
-    
+
     private static final String MAXIMUM_QUERY_COUNT_KEY = "maximum.query.count";
     private static final String MAXIMUM_QUERY_TIMEOUT_KEY = "maximum.query.timeout";
-    
+
     @Override
     public void upgrade() {
 
@@ -44,7 +44,7 @@ public class GlobalCesecoreConfiguration extends ConfigurationBase {
     public String getConfigurationId() {
         return CESECORE_CONFIGURATION_ID;
     }
-    
+
     /** @return the maximum size of the result from SQL select queries */
     public int getMaximumQueryCount() {
         Object num = data.get(MAXIMUM_QUERY_COUNT_KEY);
@@ -54,14 +54,14 @@ public class GlobalCesecoreConfiguration extends ConfigurationBase {
             return ((Integer) num).intValue();
         }
     }
-    
+
     /**
      * Set's the maximum query count
-     * 
+     *
      * @param maximumQueryCount the maximum query count
      * @throws InvalidConfigurationException if value was negative or above the limit set by {@link GlobalCesecoreConfiguration#MAXIMUM_QUERY_COUNT_KEY}
      */
-    public void setMaximumQueryCount(int maximumQueryCount) throws InvalidConfigurationException { 
+    public void setMaximumQueryCount(int maximumQueryCount) throws InvalidConfigurationException {
         if (maximumQueryCount > FIXED_MAXIMUM_QUERY_COUNT) {
             throw new InvalidConfigurationException(intres.getLocalizedMessage("globalconfig.error.querysizetoolarge", maximumQueryCount, FIXED_MAXIMUM_QUERY_COUNT));
         }
@@ -77,10 +77,10 @@ public class GlobalCesecoreConfiguration extends ConfigurationBase {
         return num==null ? 10000L : ((Long) num).longValue();
     }
 
-    /** Set's the database dependent query timeout hint in milliseconds or 0 if this is disabled. 
-     * @param maximumQueryTimeoutMs Max timeout 
+    /** Set's the database dependent query timeout hint in milliseconds or 0 if this is disabled.
+     * @param maximumQueryTimeoutMs Max timeout
      * @throws InvalidConfigurationException on error */
-    public void setMaximumQueryTimeout(final long maximumQueryTimeoutMs) throws InvalidConfigurationException { 
+    public void setMaximumQueryTimeout(final long maximumQueryTimeoutMs) throws InvalidConfigurationException {
         data.put(MAXIMUM_QUERY_TIMEOUT_KEY, Long.valueOf(maximumQueryTimeoutMs < 0L ? 0L : maximumQueryTimeoutMs));
     }
 }

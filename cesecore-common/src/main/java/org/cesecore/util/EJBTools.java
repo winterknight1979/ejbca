@@ -23,17 +23,17 @@ import org.cesecore.keys.util.KeyPairWrapper;
 
 /**
  * Helper methods for EJB calls, currently only wrapping and unwrapping certificates in a way such that they can always be deserialized.
- * 
+ *
  * @see CertificateWrapper
  * @see KeyPairWrapper
- * 
+ *
  * @version $Id: EJBTools.java 26210 2017-08-03 10:12:32Z samuellb $
  */
 public final class EJBTools {
 
     /** May not be instantiated */
     private EJBTools() { }
-    
+
     /**
      * Wraps a Certificate object in a CertificateWrapper, which can be sent over Remote EJB even if it's supported only by the BC provider.
      * @param cert Certificate or null.
@@ -46,7 +46,7 @@ public final class EJBTools {
             return new CertificateSerializableWrapper(cert);
         }
     }
-    
+
     /**
      * Unwraps a Certificate from a CertificateWrapper.
      * @param certWrapper Wrapped certificate or null.
@@ -59,7 +59,7 @@ public final class EJBTools {
             return certWrapper.getCertificate();
         }
     }
-    
+
     /**
      * Wraps certificate objects in a collection.
      * @param certs List of certificates or null. The list may contain null values, which will simply be copied as null values.
@@ -77,7 +77,7 @@ public final class EJBTools {
             return list;
         }
     }
-    
+
     /**
      * Unwraps wrapped certificates in a collection.
      * @param wrappedCerts List of wrapped certificates or null. The list may contain null values, which will simply be copied as null values.
@@ -95,7 +95,7 @@ public final class EJBTools {
             return list;
         }
     }
-    
+
     /**
      * Wraps a KeyPair object in a KeyPairWrapper, which can be sent over Remote EJB even if it's supported only by the BC provider.
      * @param keyPair KeyPair or null.
@@ -108,7 +108,7 @@ public final class EJBTools {
             return new KeyPairWrapper(keyPair);
         }
     }
-    
+
     /**
      * Unwraps a KeyPair from a KeyPairWrapper.
      * @param keyPairWrapper Wrapped KeyPair or null.

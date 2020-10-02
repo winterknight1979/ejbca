@@ -157,7 +157,7 @@ public final class StringTools {
      * @return the stripped version of the input string.
      */
     public static String strip(final String str) {
-    	return strip(str, CharSet.INSTANCE);
+        return strip(str, CharSet.INSTANCE);
     }
 
     /**
@@ -261,7 +261,7 @@ public final class StringTools {
      * @see #strip
      */
     public static  Set<String> hasSqlStripChars(final String str) {
-    	return hasStripChars(str, stripSqlChars);
+        return hasStripChars(str, stripSqlChars);
     }
 
     /**
@@ -284,7 +284,7 @@ public final class StringTools {
      * @see #strip
      */
     public static  Set<String> hasStripChars(final String str) {
-    	return hasStripChars(str, CharSet.INSTANCE);
+        return hasStripChars(str, CharSet.INSTANCE);
     }
 
     /**
@@ -468,7 +468,7 @@ public final class StringTools {
      * @return Base64 encoded string, or original string if it was null or empty
      */
     public static String putBase64String(final String s) {
-    	return putBase64String(s, false);
+        return putBase64String(s, false);
     }
 
     /**
@@ -487,7 +487,7 @@ public final class StringTools {
             return s;
         }
         if (dontEncodeAsciiPrintable && StringUtils.isAsciiPrintable(s)) {
-        	return s;
+            return s;
         }
         // Since we used getBytes(s, "UTF-8") in this method, we must use UTF-8 when doing the reverse in another method
         return "B64:" + new String(Base64.encode(s.getBytes(StandardCharsets.UTF_8), false));
@@ -693,7 +693,7 @@ public final class StringTools {
      * @param in string
      * @return encrypted string
      * @throws InvalidKeyException if key invalid
-     * @throws InvalidAlgorithmParameterException if algo invalid 
+     * @throws InvalidAlgorithmParameterException if algo invalid
      * @throws IllegalBlockSizeException if block size invalid
      * @throws BadPaddingException if padding invalid
      * @throws InvalidKeySpecException if spec invalis
@@ -767,7 +767,7 @@ public final class StringTools {
        char[] p = ConfigurationHolder.getString("password.encryption.key").toCharArray();
        return pbeDecryptStringWithSha256Aes192(in, p);
    }
-    
+
     /**
      *
      * @param in hex encoded encrypted string in form "encryption_version:salt:count:encrypted_data", or just "encrypted_data" for older versions
@@ -822,7 +822,7 @@ public final class StringTools {
     }
 
     /** Method to handle different versions of password encryption transparently
-     * 
+     *
      * @param in The encrypted or clear text password to try to decrypt
      * @param sDebug A message to put in the debug log indicating where the password came from, for example 'autoactivation pin', do NOT put the password itself here
      * @return The decrypted password, or same as input if it was not encrypted
@@ -1209,7 +1209,7 @@ public final class StringTools {
     public static String normalizeNewlines(final String s) {
         return s != null ? windowsOrMacNewlines.matcher(s).replaceAll("\n") : null;
     }
-    
+
     /**
      * Splits a string by newlines (may be \n, \r\n or \r).
      * @param s Input string. May <b>not</b> be null.

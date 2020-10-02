@@ -16,14 +16,14 @@ import javax.ejb.ApplicationException;
 
 /**
  * Error during export of secure audit log events.
- * 
+ *
  * @version $Id: AuditLogExporterException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 @ApplicationException(rollback=true)
 public class AuditLogExporterException extends Exception {
 
     private static final long serialVersionUID = -4260121156919588354L;
-   
+
     public AuditLogExporterException() {
         super();
     }

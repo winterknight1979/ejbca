@@ -30,8 +30,8 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-/** Can be used instead of ObjectInputStream to safely deserialize(readObject) unverified serialized java object. 
- * 
+/** Can be used instead of ObjectInputStream to safely deserialize(readObject) unverified serialized java object.
+ *
  * Simple usage:
  * LookAheadObjectInputStream lookAheadObjectInputStream = new LookAheadObjectInputStream(new ByteArrayInputStream(someByteArray);
  * HashSet&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses = new HashSet&lt;Class&lt;? extends Serializable&gt;&gt;(3);
@@ -39,9 +39,9 @@ import org.apache.log4j.Logger;
             lookAheadObjectInputStream.setAcceptedClasses(acceptedClasses);
  * lookAheadObjectInputStream.setMaxObjects(1);
  * X509Certificate certificate = (X509Certificate) lookAheadObjectInputStream.readObject(); //If serialized object is not of the type X509Certificate SecurityException will be thrown
- * 
+ *
  * See "LookAheadObjectInputStreamTest" in the test code for more examples
- * 
+ *
  * @version $Id: LookAheadObjectInputStream.java 34325 2020-01-17 15:40:23Z jekaterina_b_helmes $
  */
 public class LookAheadObjectInputStream extends ObjectInputStream {
@@ -49,7 +49,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
     private static final Logger log = Logger.getLogger(LookAheadObjectInputStream.class);
     private Set<Class<? extends Serializable>> acceptedClasses = null;
     private Set<Class<? extends Serializable>> acceptedClassesDynamically = null;
-    
+
     private boolean enabledSubclassing = false;
     private boolean enabledInterfaceImplementations = false;
     private int maxObjects = 1;
@@ -125,7 +125,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
 
     /**
      * NOTE: If you want to re-use the same Set of accepted classes, you should use {@link #setAcceptedClasses(Set)}
-     * 
+     *
      * Set accepted classes that can be deserialized using this LookAheadObjectInputStream.
      * Primitive types (boolean, char, int,...), their wrappers (Boolean, Character, Integer,...) and String class
      * are always accepted. All other classes have to be specified with setAcceptedClassName*
@@ -139,7 +139,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
 
     /**
      * Get maximum amount of objects that can be read with this LookAheadObjectInputStream.
-     * @return 
+     * @return
      *      maximum amount of objects that can be read. Default: 1
      */
     public int getMaxObjects() {
@@ -149,7 +149,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
     /**
      * Set maximum amount of objects that can be read with this LookAheadObjectInputStream.
      * This method will also reset internal counter for read objects.
-     * @param 
+     * @param
      *      maxObjects maximum amount of objects that can be read. Default: 1
      */
     public void setMaxObjects(int maxObjects) {
@@ -175,7 +175,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
      *      1) a String
      *      2) a java primitive data type or its corresponding class wrapper
      *      3) in the list of accepted classes
-     *      4) extends class from the list of accepted classes (if enabledSubclassing==true) 
+     *      4) extends class from the list of accepted classes (if enabledSubclassing==true)
      */
     @Override
     protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
@@ -247,14 +247,14 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
         log.info(msg);
         throw new SecurityException(msg);
     }
-    
+
     public static boolean isClassAlwaysWhiteListed(final Class<?> c) {
         final Class<?> classType = c.isArray() ? c.getComponentType() : c;
         return classType.equals(String.class) || classType.isPrimitive() || Boolean.class.isAssignableFrom(classType) ||
                 Number.class.isAssignableFrom(classType) || Character.class.isAssignableFrom(classType);
     }
-    
-    /** Add the provided class and all its dependencies needed for deserialization to this instance's accept class white list. 
+
+    /** Add the provided class and all its dependencies needed for deserialization to this instance's accept class white list.
      * @param resolvedClassType type*/
     @SuppressWarnings("unchecked")
     private void whitelistImplementation(final Class<?> resolvedClassType) {
@@ -272,7 +272,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
     }
 
     /** @param clazz class
-     * @return a Set of all classes declared as non-transient, non-static field in the class and its superclasses if such is defined 
+     * @return a Set of all classes declared as non-transient, non-static field in the class and its superclasses if such is defined
      * @throws NoClassDefFoundError if class not found */
     @SuppressWarnings("unchecked")
     public static Set<Class<? extends Serializable>> getRequiredClassesToSerialize(final Class<?> clazz) throws NoClassDefFoundError {

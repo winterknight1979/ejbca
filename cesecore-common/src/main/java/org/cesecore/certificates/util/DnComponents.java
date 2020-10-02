@@ -31,12 +31,12 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.cesecore.util.CeSecoreNameStyle;
 
 /** Class holding information and utilities for handling different DN components, CN, O etc
- * 
- * This is a very complex class with lots of maps and stuff. It is because it is a first step of refactoring the DN/AltName/DirAttr handling. 
+ *
+ * This is a very complex class with lots of maps and stuff. It is because it is a first step of refactoring the DN/AltName/DirAttr handling.
  * This previously consisted of lots of different arrays spread out all over the place, now it's gathered here in order to be able to get a view of it.
  * The underlying implementations have not changed much though, in order to still have things working, therefore there are lots of different maps and arrays, with
- * seemingly similar contents. 
- * 
+ * seemingly similar contents.
+ *
  * @version $Id: DnComponents.java 27374 2017-12-01 12:37:30Z anatom $
  */
 public class DnComponents {
@@ -45,8 +45,8 @@ public class DnComponents {
     /** This class should be instantiated immediately */
     private static DnComponents obj = new DnComponents();
 
-    /** BC X500Name contains some lookup tables that could maybe be used here. 
-     * 
+    /** BC X500Name contains some lookup tables that could maybe be used here.
+     *
      * This map is used in CertTools so sort and order DN strings so they all look the same in the database.
      * */
     private static HashMap<String, ASN1ObjectIdentifier> oids = new HashMap<String, ASN1ObjectIdentifier>();
@@ -71,7 +71,7 @@ public class DnComponents {
         oids.put("emailaddress", CeSecoreNameStyle.EmailAddress);
         oids.put("e", CeSecoreNameStyle.EmailAddress);
         oids.put("email", CeSecoreNameStyle.EmailAddress);
-        oids.put("unstructuredname", CeSecoreNameStyle.UnstructuredName); //unstructuredName 
+        oids.put("unstructuredname", CeSecoreNameStyle.UnstructuredName); //unstructuredName
         oids.put("unstructuredaddress", CeSecoreNameStyle.UnstructuredAddress); //unstructuredAddress
         oids.put("postalcode", CeSecoreNameStyle.POSTAL_CODE);
         oids.put("businesscategory", CeSecoreNameStyle.BUSINESS_CATEGORY);
@@ -88,20 +88,20 @@ public class DnComponents {
 
     }
     /** Default values used when constructing DN strings that are put in the database
-     * 
+     *
      */
     private static String[] dNObjectsForward = { "description", "jurisdictioncountry", "jurisdictionstate", "jurisdictionlocality", "street", "pseudonym",
             "telephonenumber", "postaladdress", "businesscategory", "postalcode", "unstructuredaddress", "unstructuredname", "emailaddress", "e",
             "email", "dn", "uid", "cn", "name", "sn", "serialnumber", "gn", "givenname", "initials", "surname", "t", "ou", "organizationidentifier", "o", "l", "st", "dc", "c" };
-    // Default values    
+    // Default values
     private static String[] dNObjectsReverse = null;
 
     /**
      * These maps and constants are used in the admin-GUI and in End Entity profiles
      */
 
-    /** These constants can be used when referring to standard, build in components 
-     * 
+    /** These constants can be used when referring to standard, build in components
+     *
      */
     // DN components
     public static final String DNEMAILADDRESS = "EMAILADDRESS";
@@ -133,7 +133,7 @@ public class DnComponents {
     public static final String JURISDICTIONSTATE = "JURISDICTIONSTATE";
     public static final String JURISDICTIONCOUNTRY = "JURISDICTIONCOUNTRY";
     public static final String ORGANIZATIONIDENTIFIER = "ORGANIZATIONIDENTIFIER";
-    
+
     // AltNames
     public static final String RFC822NAME = "RFC822NAME";
     public static final String DNSNAME = "DNSNAME";
@@ -196,15 +196,15 @@ public class DnComponents {
     static {
         DnComponents.load();
     }
-    
+
     public static Integer getDnIdFromDnName(final String dnName) {
         return dnNameToIdMap.get(dnName.toUpperCase(Locale.ROOT));
     }
-    
+
     public static Integer getDnIdFromAltName(final String altName) {
         return altNameToIdMap.get(altName.toUpperCase(Locale.ROOT));
     }
-    
+
     public static Integer getDnIdFromDirAttr(final String dirAttr) {
         return dirAttrToIdMap.get(dirAttr.toUpperCase(Locale.ROOT));
     }
@@ -356,8 +356,8 @@ public class DnComponents {
     }
 
     /**
-     * Returns the dnObjects (forward or reverse). 
-     * ldaporder = true is the default order in EJBCA. 
+     * Returns the dnObjects (forward or reverse).
+     * ldaporder = true is the default order in EJBCA.
      * @param ldaporder boolean
      * @return objects
      */
@@ -391,7 +391,7 @@ public class DnComponents {
     /**
      * Load DN ordering used in CertTools.stringToBCDNString etc.
      * Loads from file placed in src/dncomponents.properties
-     * 
+     *
      * A line is:
      * DNName;DNid;ProfileName;ProfileId,ErrorString,LanguageConstant
      *
@@ -400,18 +400,18 @@ public class DnComponents {
         loadProfileMappingsFromFile("/profilemappings.properties");
         loadProfileMappingsFromFile("/profilemappings_enterprise.properties");
     }
-    
+
     public static boolean enterpriseMappingsExist() {
         return obj.getClass().getResourceAsStream("/profilemappings_enterprise.properties") != null;
     }
-    
+
     /**
-     * Reads properties from a properties file. Fails nicely if file wasn't found. 
-     * 
+     * Reads properties from a properties file. Fails nicely if file wasn't found.
+     *
      * @param propertiesFile File
      */
     private static void loadProfileMappingsFromFile(String propertiesFile) {
-        // Read the file to an array of lines 
+        // Read the file to an array of lines
         String line;
 
         BufferedReader in = null;
@@ -519,7 +519,7 @@ public class DnComponents {
      *
      */
     private static void loadOrdering() {
-        // Read the file to an array of lines 
+        // Read the file to an array of lines
         String line;
         LinkedHashMap<String, ASN1ObjectIdentifier> map = new LinkedHashMap<String, ASN1ObjectIdentifier>();
         BufferedReader in = null;

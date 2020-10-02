@@ -22,7 +22,7 @@ import javax.net.ssl.TrustManagerFactorySpi;
 import javax.net.ssl.X509TrustManager;
 
 /**
- * 
+ *
  * @version $Id: TrustManagerFactoryImpl.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {

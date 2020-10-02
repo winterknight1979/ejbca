@@ -39,7 +39,7 @@ public class PublicKeyWrapperTest {
         CryptoProviderTools.installBCProviderIfNotAvailable();
         testKey = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA).getPublic();
     }
-    
+
     @Test
     public void testGetPublicKey() {
         PublicKeyWrapper testWrapper = new PublicKeyWrapper(testKey);

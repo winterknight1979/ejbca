@@ -28,7 +28,7 @@ public class InternalResourcesTest {
     private static final String TEST_RESOURCE_LOCATION = "/intresources";
     // Classpath issues, use "src/intresources" when running from within eclipse
     //private static final String TEST_RESOURCE_LOCATION = "src/intresources";
-	
+
     @Before
     public void before() {
         ConfigurationHolder.backupConfiguration();
@@ -36,9 +36,9 @@ public class InternalResourcesTest {
     }
     @After
     public void after() {
-        ConfigurationHolder.restoreConfiguration();     
+        ConfigurationHolder.restoreConfiguration();
     }
-    
+
     @Test
     public void testGetLocalizedMessageString() {
         InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);
@@ -57,7 +57,7 @@ public class InternalResourcesTest {
         String result = intres.getLocalizedMessage("foo", "a", "b");
         assertEquals("foo, a, b", result);
     }
-    
+
     @Test
     public void testNonExistingLocalizedMessageString() {
         InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);

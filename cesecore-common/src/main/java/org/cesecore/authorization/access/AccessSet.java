@@ -76,7 +76,7 @@ public final class AccessSet implements Serializable {
         this.set = new HashSet<>(legacySet);
     }
 
-    /** Creates an access set merged from two access sets. 
+    /** Creates an access set merged from two access sets.
      * @param a Set a
      * @param b Set b */
     public AccessSet(final AccessSet a, final AccessSet b) {

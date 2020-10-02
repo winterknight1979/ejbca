@@ -27,14 +27,14 @@ import org.cesecore.util.CertTools;
 import org.cesecore.util.provider.EkuPKIXCertPathChecker;
 
 /**
- * 
+ *
  * @version $Id: ClientX509TrustManager.java 27582 2017-12-19 10:43:30Z anatom $
  */
 public class ClientX509TrustManager implements X509TrustManager {
 
     private List<Collection<X509Certificate> > trustedCertificatesChains = null;
     private List<X509Certificate> encounteredServerCertificateChain = null;
-    
+
     public ClientX509TrustManager(final List< Collection<X509Certificate>> trustedCertificates) {
         if (trustedCertificates!=null) {
             trustedCertificatesChains = new ArrayList<>(trustedCertificates);
@@ -49,7 +49,7 @@ public class ClientX509TrustManager implements X509TrustManager {
             String subjectdn = CertTools.getSubjectDN(cert);
             String issuerdn = CertTools.getIssuerDN(cert);
             String sn = CertTools.getSerialNumberAsString(cert);
-            String errmsg = "Client certificate with SubjectDN '" + subjectdn + "', IssuerDN '" + issuerdn + 
+            String errmsg = "Client certificate with SubjectDN '" + subjectdn + "', IssuerDN '" + issuerdn +
                     "' and serialnumber '" + sn + "' is NOT trusted.";
             throw new CertificateException(errmsg);
         }
@@ -64,7 +64,7 @@ public class ClientX509TrustManager implements X509TrustManager {
             String subjectdn = CertTools.getSubjectDN(cert);
             String issuerdn = CertTools.getIssuerDN(cert);
             String sn = CertTools.getSerialNumberAsString(cert);
-            String errmsg = "Server certificate with SubjectDN '" + subjectdn + "', IssuerDN '" + issuerdn + 
+            String errmsg = "Server certificate with SubjectDN '" + subjectdn + "', IssuerDN '" + issuerdn +
                     "' and serialnumber '" + sn + "' is NOT trusted.";
             throw new CertificateException(errmsg);
         }
@@ -75,7 +75,7 @@ public class ClientX509TrustManager implements X509TrustManager {
         if(trustedCertificatesChains == null) {
             return new X509Certificate[0];
         }
-        
+
         ArrayList<X509Certificate> acceptedIssuers = new ArrayList<X509Certificate>();
         for(Collection<X509Certificate> certChain : trustedCertificatesChains) {
             Iterator<X509Certificate> itr = certChain.iterator();

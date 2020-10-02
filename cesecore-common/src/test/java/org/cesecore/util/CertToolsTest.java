@@ -102,7 +102,7 @@ import com.novell.ldap.LDAPDN;
 
 /**
  * Tests the CertTools class .
- * 
+ *
  * @version $Id: CertToolsTest.java 30002 2018-10-04 11:06:08Z henriks $
  */
 public class CertToolsTest {
@@ -198,7 +198,7 @@ public class CertToolsTest {
                     +"otClag9bfSQrFqFStQkzrdMcT2RMQFXz/TNSUkHREBDM+gFoaar6+O5I0+pDrWya"
                     +"6Q5uP6jRra4WeOWt3ylEYl9R8AGm2gEnGPyEGV7CDeM3+QHa8dFnBcMpXfXkjT6X"
                     +"DAJPWF9uCqBxkH/fhnJTs64qn0zVB8zs").getBytes());
-    
+
     /** The reference certificate from RFC3739 */
     private static byte[] qcRefCert = Base64.decode(("MIIDEDCCAnmgAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADBIMQswCQYDVQQGEwJE"
             + "RTE5MDcGA1UECgwwR01EIC0gRm9yc2NodW5nc3plbnRydW0gSW5mb3JtYXRpb25z" + "dGVjaG5payBHbWJIMB4XDTA0MDIwMTEwMDAwMFoXDTA4MDIwMTEwMDAwMFowZTEL"
@@ -283,7 +283,7 @@ public class CertToolsTest {
                     + "iHP9biEmqcqELWQcUL5Ylf+/JYxg1kBnk2ZtALgt0adi0ZiZPbM2F5Oq9ZxxB2nY"
                     + "Alat0RwZIY8wAR0DRNXiEs4TMu5LqzvD1U6+vaHYraePBLExo2oxG9TI7gQjj2X+"
                     + "KSxEzOf3+npWo/G7ooDvKpN+w3J//kF4vdM3SQtHQaBkIuCU05Jy16AhvIkLQzq5"
-                    + "+a1UI5lIKun3C6NWCSZrE5fFuoax7D+Ofw1Bdxkhvk7DUlHVPdmxb/0hpx8aO64D" 
+                    + "+a1UI5lIKun3C6NWCSZrE5fFuoax7D+Ofw1Bdxkhvk7DUlHVPdmxb/0hpx8aO64D"
                     + "J626d8c1b25g9hSYslbo2geP2ohV40WW/R1ZjwX6Pd/ip5KuSSzv")
                     .getBytes());
 
@@ -485,10 +485,10 @@ public class CertToolsTest {
      * 8c:a5:14:a2:40:83:d6:52:75 Exponent: 65537 (0x10001) X509v3 extensions: X509v3 Subject Key Identifier:
      * 8F:23:26:05:9D:03:57:4F:66:08:F5:E3:34:D3:AA:70:76:9C:99:B2 X509v3 Basic Constraints: critical CA:FALSE X509v3 Authority Key Identifier:
      * keyid:90:FD:A7:F6:EC:98:47:56:4C:10:96:C2:AD:85:2F:50:EB:26:E9:34
-     * 
+     *
      * X509v3 CRL Distribution Points:
      * URI:http://vmserver1:8080/ejbca/publicweb/webdist/certdist?cmd=crl&issuer=CN=DemoSubCA11,O=Demo%20Organization%2010,C=SE
-     * 
+     *
      * X509v3 Key Usage: critical Digital Signature Signature Algorithm: sha1WithRSAEncryption 6e:f0:b9:26:b8:7d:eb:b2:ab:ec:e7:1b:a5:97:5c:5b:88:fe:
      * 8a:ec:bb:3d:7a:f5:00:4c:72:38:36:19:53:d4:47:21:30:4c: 62:7c:02:69:00:8c:ac:57:3c:f2:bf:38:57:13:0b:4b:7e:92:
      * 74:56:4c:1b:9c:04:9d:08:e8:8e:20:4d:bc:ec:bc:13:c7:55: 80:da:1a:01:9f:9f:be:96:11:d4:7c:64:f2:37:91:01:9f:c0:
@@ -518,10 +518,10 @@ public class CertToolsTest {
      * ca:78:20:44:5c:3c:54:64:f1:ea:a2:30:19:9f:ea: 4c:06:4d:06:78:4b:5e:92:df:22:d2:c9:67:b3:7a: d2:01 Exponent: 65537 (0x10001) X509v3 extensions:
      * Netscape Cert Type: SSL CA, S/MIME CA, Object Signing CA X509v3 CRL Distribution Points: DirName:/C=US/O=Adobe Systems Incorporated/OU=Adobe
      * Trust Services/CN=Adobe Root CA/CN=CRL1
-     * 
+     *
      * X509v3 Private Key Usage Period: Not Before: Jan 8 23:37:23 2003 GMT, Not After: Jan 9 00:07:23 2023 GMT X509v3 Key Usage: Certificate Sign,
      * CRL Sign X509v3 Authority Key Identifier: keyid:82:B7:38:4A:93:AA:9B:10:EF:80:BB:D9:54:E2:F1:0F:FB:80:9C:DE
-     * 
+     *
      * X509v3 Subject Key Identifier: 82:B7:38:4A:93:AA:9B:10:EF:80:BB:D9:54:E2:F1:0F:FB:80:9C:DE X509v3 Basic Constraints: CA:TRUE
      * 1.2.840.113533.7.65.0: 0...V6.0:4.0.... Signature Algorithm: sha1WithRSAEncryption 32:da:9f:43:75:c1:fa:6f:c9:6f:db:ab:1d:36:37:3e:bc:61:
      * 19:36:b7:02:3c:1d:23:59:98:6c:9e:ee:4d:85:e7:54:c8:20: 1f:a7:d4:bb:e2:bf:00:77:7d:24:6b:70:2f:5c:c1:3a:76:49:
@@ -548,16 +548,16 @@ public class CertToolsTest {
             + "pkiw176SaU2k9ilXxXgRGNyHUcoTsmKdTysyvTGlwfpSqwWIyA==" + "\n-----END CERTIFICATE-----";
 
     private static byte[] testcrl = Base64.decode(("MIHGMHICAQEwDQYJKoZIhvcNAQELBQAwDzENMAsGA1UEAwwEVEVTVBcNMTEwMTMx"
-    		+"MTMzOTE3WhcNMTEwMTMxMTMzOTE3WqAvMC0wHwYDVR0jBBgwFoAUt39s38+I8fP0"
-    		+"diUs8Y8TYtCar8gwCgYDVR0UBAMCAQEwDQYJKoZIhvcNAQELBQADQQBcr4CF0sy3"
-    		+"5sVvEafzh67itIasqcv/PwUT6DwQxoiX85h53cFtvXQxi/2Xqn+PaNBOqWShByX7"
-    		+"TQlMX0Bmoz9/").getBytes());
+            +"MTMzOTE3WhcNMTEwMTMxMTMzOTE3WqAvMC0wHwYDVR0jBBgwFoAUt39s38+I8fP0"
+            +"diUs8Y8TYtCar8gwCgYDVR0UBAMCAQEwDQYJKoZIhvcNAQELBQADQQBcr4CF0sy3"
+            +"5sVvEafzh67itIasqcv/PwUT6DwQxoiX85h53cFtvXQxi/2Xqn+PaNBOqWShByX7"
+            +"TQlMX0Bmoz9/").getBytes());
 
     private static byte[] testdeltacrl = Base64.decode(("MIHWMIGBAgEBMA0GCSqGSIb3DQEBCwUAMA8xDTALBgNVBAMMBFRFU1QXDTExMDEz"
-    		+"MTEzNDcxOFoXDTExMDEzMTEzNDcxOFqgPjA8MB8GA1UdIwQYMBaAFJ5BHYGqJr3K"
-    		+"j9IMQxmMP6ad8gDdMAoGA1UdFAQDAgEDMA0GA1UdGwEB/wQDAgECMA0GCSqGSIb3"
-    		+"DQEBCwUAA0EAP8CIPLll5m/wmhcLL5SXlb+aYrPGsUlBFNBKYKO0iV1QjBHeDMp5"
-    		+"z70nU3g2tIfiEX4IKNFyzFvn5m6e8m0JQQ==").getBytes());
+            +"MTEzNDcxOFoXDTExMDEzMTEzNDcxOFqgPjA8MB8GA1UdIwQYMBaAFJ5BHYGqJr3K"
+            +"j9IMQxmMP6ad8gDdMAoGA1UdFAQDAgEDMA0GA1UdGwEB/wQDAgECMA0GCSqGSIb3"
+            +"DQEBCwUAA0EAP8CIPLll5m/wmhcLL5SXlb+aYrPGsUlBFNBKYKO0iV1QjBHeDMp5"
+            +"z70nU3g2tIfiEX4IKNFyzFvn5m6e8m0JQQ==").getBytes());
 
     static byte[] chainRootCA = Base64.decode( ("MIIFIzCCAwugAwIBAgIIDZIKPU4lBGQwDQYJKoZIhvcNAQELBQAwHzEQMA4GA1UE" +
             "AwwHM0dQUENBMjELMAkGA1UEBhMCU0UwHhcNMTcwNjE0MjIyODU0WhcNMzcwNjA5" +
@@ -638,7 +638,7 @@ public class CertToolsTest {
 
     /**
      * DOCUMENT ME!
-     * 
+     *
      * @throws Exception
      *             DOCUMENT ME!
      */
@@ -814,7 +814,7 @@ public class CertToolsTest {
 
         String dn26 = "CN=user\\+name, C=CN";
         assertEquals("CN=user\\+name,C=CN", CertTools.stringToBCDNString(dn26));
-        
+
         String dn27 = "CN=test123456, O=\\\"foo+b\\+ar\\, C=SE\\\"";
         assertEquals("CN=test123456,O=\\\"foo\\+b\\+ar\\, C\\=SE\\\"", CertTools.stringToBCDNString(dn27));
         String dn27_1 = "CN=test123456, O=\\\"foo+b\\+ar\\, C=SE\\";
@@ -823,7 +823,7 @@ public class CertToolsTest {
         String dn28 = "jurisdictionCountry=SE,jurisdictionState=Stockholm,SURNAME=Json,=fff,CN=oid,jurisdictionLocality=Solna,SN=12345,unstructuredname=foo.bar.com,unstructuredaddress=1.2.3.4,NAME=name,C=se";
         assertEquals("JurisdictionCountry=SE,JurisdictionState=Stockholm,JurisdictionLocality=Solna,unstructuredAddress=1.2.3.4,unstructuredName=foo.bar.com,CN=oid,Name=name,SN=12345,SURNAME=Json,C=se",
                 CertTools.stringToBCDNString(dn28));
-        
+
         String dn29 = "CN=hexencoded SN,SN=1234";
         assertEquals("CN=hexencoded SN,SN=1234", CertTools.stringToBCDNString(dn29));
         String dn30 = "CN=hexencoded SN,SN=\\#CNJB";
@@ -895,7 +895,7 @@ public class CertToolsTest {
         assertFalse(altName.contains("foobar"));
         GeneralNames gns = CertTools.getGeneralNamesFromAltName(altName);
         assertNotNull(gns);
-        
+
         // Test cert containing permanentIdentifier
         cert = CertTools.getCertfromByteArray(permanentIdentifierCert, Certificate.class);
         upn = CertTools.getUPNAltName(cert);
@@ -976,7 +976,7 @@ public class CertToolsTest {
 
     /**
      * Tests string coding/decoding international (swedish characters)
-     * 
+     *
      * @throws Exception
      *             if error...
      */
@@ -995,7 +995,7 @@ public class CertToolsTest {
 
     /**
      * Tests some of the other methods of CertTools
-     * 
+     *
      * @throws Exception
      *             if error...
      */
@@ -1024,7 +1024,7 @@ public class CertToolsTest {
 
     /**
      * Tests the handling of DC components
-     * 
+     *
      * @throws Exception
      *             if error...
      */
@@ -1049,7 +1049,7 @@ public class CertToolsTest {
 
     /**
      * Tests the handling of unstructuredName/Address
-     * 
+     *
      * @throws Exception
      *             if error...
      */
@@ -1068,7 +1068,7 @@ public class CertToolsTest {
 
     /**
      * Tests the reversing of a DN
-     * 
+     *
      * @throws Exception
      *             if error...
      */
@@ -1093,7 +1093,7 @@ public class CertToolsTest {
         String dn3 = "cn=toto,cn=titi,dc=domain,dc=tld";
         String revdn3 = CertTools.reverseDN(dn3);
         assertEquals("dc=tld,dc=domain,cn=titi,cn=toto", revdn3);
-        
+
         X500Name dn4 = CertTools.stringToBcX500Name(dn3, new CeSecoreNameStyle(), true);
         assertEquals("CN=toto,CN=titi,DC=domain,DC=tld", dn4.toString());
         X500Name dn5 = CertTools.stringToBcX500Name(dn3, new CeSecoreNameStyle(), false);
@@ -1152,7 +1152,7 @@ public class CertToolsTest {
 
     /**
      * Tests the handling of DC components
-     * 
+     *
      * @throws Exception
      *             if error...
      */
@@ -1182,7 +1182,7 @@ public class CertToolsTest {
 
     /**
      * Tests the insertCNPostfix function
-     * 
+     *
      * @throws Exception
      *             if error...
      */
@@ -1224,7 +1224,7 @@ public class CertToolsTest {
 
     /**
      * @throws Exception fail
-	 */
+     */
     @Test
     public void test12GetPartsFromDN() throws Exception {
         log.trace(">test01GetPartFromDN()");
@@ -1263,11 +1263,11 @@ public class CertToolsTest {
         assertEquals(2, CertTools.getPartsFromDN(dn3, "dNSName").size());
         assertEquals("", CertTools.getPartsFromDN(dn3, "dNSName").get(0));
         assertEquals("", CertTools.getPartsFromDN(dn3, "dNSName").get(1));
-        
+
         String dn4 = "CN=test\\+with\\,escaped=characters";
         assertEquals(1, CertTools.getPartsFromDN(dn4, "CN").size());
         assertEquals("test+with,escaped=characters", CertTools.getPartsFromDN(dn4, "CN").get(0));
-        
+
         log.trace("<test12GetPartsFromDN()");
     }
 
@@ -1477,7 +1477,7 @@ public class CertToolsTest {
 
     }
 
-    
+
 
     @Test
     public void test20cvcCert() throws Exception {
@@ -1503,30 +1503,30 @@ public class CertToolsTest {
         byte[] sign = CertTools.getSignature(cert);
         assertEquals(128, sign.length);
         // Check validity dates
-        final long MAY5_0000_2008_GMT = 1209945600000L; 
-        final long MAY5_0000_2008_GMT_MINUS1MS = 1209945599999L; 
-        final long MAY5_2359_2010_GMT = 1273103999000L; 
+        final long MAY5_0000_2008_GMT = 1209945600000L;
+        final long MAY5_0000_2008_GMT_MINUS1MS = 1209945599999L;
+        final long MAY5_2359_2010_GMT = 1273103999000L;
         final long MAY5_2359_2010_GMT_PLUS1MS = 1273103999001L;
-        
-    	assertEquals(MAY5_0000_2008_GMT, CertTools.getNotBefore(cert).getTime());
-    	assertEquals(MAY5_2359_2010_GMT, CertTools.getNotAfter(cert).getTime());
-    	assertTrue(CertTools.isCA(cert));
+
+        assertEquals(MAY5_0000_2008_GMT, CertTools.getNotBefore(cert).getTime());
+        assertEquals(MAY5_2359_2010_GMT, CertTools.getNotAfter(cert).getTime());
+        assertTrue(CertTools.isCA(cert));
         CardVerifiableCertificate cvcert = (CardVerifiableCertificate) cert;
         assertEquals("CVCA", cvcert.getCVCertificate().getCertificateBody().getAuthorizationTemplate().getAuthorizationField().getAuthRole().name());
-    	CertTools.checkValidity(cert, new Date(MAY5_0000_2008_GMT));
-    	CertTools.checkValidity(cert, new Date(MAY5_2359_2010_GMT));
-    	try {
-    		CertTools.checkValidity(cert, new Date(MAY5_0000_2008_GMT_MINUS1MS));
-    		fail("Should throw");
-    	} catch (CertificateNotYetValidException e) {
-    		// NOPMD
-    	}
-    	try {
-    		CertTools.checkValidity(cert, new Date(MAY5_2359_2010_GMT_PLUS1MS));
-    		fail("Should throw");
-    	} catch (CertificateExpiredException e) {
-    		// NOPMD
-    	}    	
+        CertTools.checkValidity(cert, new Date(MAY5_0000_2008_GMT));
+        CertTools.checkValidity(cert, new Date(MAY5_2359_2010_GMT));
+        try {
+            CertTools.checkValidity(cert, new Date(MAY5_0000_2008_GMT_MINUS1MS));
+            fail("Should throw");
+        } catch (CertificateNotYetValidException e) {
+            // NOPMD
+        }
+        try {
+            CertTools.checkValidity(cert, new Date(MAY5_2359_2010_GMT_PLUS1MS));
+            fail("Should throw");
+        } catch (CertificateExpiredException e) {
+            // NOPMD
+        }
 
         // Serialization, CVC provider is installed by CryptoProviderTools.installBCProvider
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -1567,9 +1567,9 @@ public class CertToolsTest {
             fail();
         } catch (Exception e) {
         }
-        
+
         // IS cert
-    	KeyPair keyPair = KeyTools.genKeys("prime192v1", "ECDSA");
+        KeyPair keyPair = KeyTools.genKeys("prime192v1", "ECDSA");
         CAReferenceField caRef = new CAReferenceField("SE", "CAREF001", "00000");
         HolderReferenceField holderRef = new HolderReferenceField("SE", "HOLDERRE", "00000");
         CVCertificate cv = CertificateGenerator.createTestCertificate(keyPair.getPublic(), keyPair.getPrivate(), caRef, holderRef, "SHA1WithECDSA", AuthorizationRoleEnum.IS);
@@ -1598,7 +1598,7 @@ public class CertToolsTest {
         assertEquals("CN=foo1", subjectdn);
         String issuerdn = CertTools.getIssuerDN(cert);
         assertEquals("CN=foo1", issuerdn);
-        
+
         // Get signature field
         byte[] sign = CertTools.getSignature(cert);
         assertEquals(128, sign.length);
@@ -1687,7 +1687,7 @@ public class CertToolsTest {
 
         log.trace("<test24GetCrlDistributionPoint()");
     }
-    
+
     @Test
     public void test25AiaCaIssuerUri() throws Exception {
         // Only 1 CA Issuer in static aiaCert: "http://localhost:8080/caIssuer"!
@@ -1731,7 +1731,7 @@ public class CertToolsTest {
         assertEquals(names.length, 3);
         assertEquals(RFC4683Tools.SUBJECTIDENTIFICATIONMETHOD +"=2.16.840.1.101.3.4.2.1::CB3AE7FBFFFD9C85A3FB234E51FFFD2190B1F8F161C0A2873B998EFAC067B03A::6D9E6264DDBD0FC997B9B40524247C8BC319D02A583F4B499DD3ECAF06C786DF", ret);
     }
-    
+
     @Test
     public void testPseudonymAndName() throws Exception {
         String dn1 = "c=SE,O=Prime,OU=Tech,TelephoneNumber=555-666,Name=Kalle,PostalAddress=footown,PostalCode=11122,Pseudonym=Shredder,cn=Tomas Gustavsson";
@@ -1798,90 +1798,90 @@ public class CertToolsTest {
         assertEquals(0, CertTools.getPartsFromDN(null, null).size());
         assertEquals(0, CertTools.getCustomOids(null).size());
         try {
-        	assertNull(CertTools.getSerialNumber(null));
-        	assertTrue("Should throw", false);
+            assertNull(CertTools.getSerialNumber(null));
+            assertTrue("Should throw", false);
         } catch (IllegalArgumentException e) {
-        	// NOPMD
+            // NOPMD
         }
         try {
             assertNull(CertTools.getSerialNumberAsString(null));
-        	assertTrue("Should throw", false);
+            assertTrue("Should throw", false);
         } catch (IllegalArgumentException e) {
-        	// NOPMD
+            // NOPMD
         }
         try {
             assertNull(CertTools.getSerialNumberFromString(null));
-        	assertTrue("Should throw", false);
+            assertTrue("Should throw", false);
         } catch (IllegalArgumentException e) {
-        	// NOPMD
+            // NOPMD
         }
     }
-    
+
     @Test
     public void testCertCollectionFromArray() throws Exception {
-    	Certificate[] certarray = new Certificate[3];
-    	certarray[0] = CertTools.getCertfromByteArray(testcert, Certificate.class);
-    	certarray[1] = CertTools.getCertfromByteArray(guidcert, Certificate.class);
-    	certarray[2] = CertTools.getCertfromByteArray(altNameCert, Certificate.class);
-    	Collection<Certificate> certs = CertTools.getCertCollectionFromArray(certarray, BouncyCastleProvider.PROVIDER_NAME);
-    	assertEquals(3, certs.size());
-    	Iterator<Certificate> iter = certs.iterator();
-    	assertEquals("CN=p12test,O=PrimeTest,C=SE", CertTools.getSubjectDN(iter.next()));
-    	assertEquals("UID=guid,CN=Guid,C=SE", CertTools.getSubjectDN(iter.next()));
-    	assertEquals("CN=foo,O=AnaTom,C=SE", CertTools.getSubjectDN(iter.next()));
-    	byte[] bytes = CertTools.getPemFromCertificateChain(certs);
-    	String str = new String(bytes);
-    	assertTrue(str.contains("BEGIN CERTIFICATE"));
+        Certificate[] certarray = new Certificate[3];
+        certarray[0] = CertTools.getCertfromByteArray(testcert, Certificate.class);
+        certarray[1] = CertTools.getCertfromByteArray(guidcert, Certificate.class);
+        certarray[2] = CertTools.getCertfromByteArray(altNameCert, Certificate.class);
+        Collection<Certificate> certs = CertTools.getCertCollectionFromArray(certarray, BouncyCastleProvider.PROVIDER_NAME);
+        assertEquals(3, certs.size());
+        Iterator<Certificate> iter = certs.iterator();
+        assertEquals("CN=p12test,O=PrimeTest,C=SE", CertTools.getSubjectDN(iter.next()));
+        assertEquals("UID=guid,CN=Guid,C=SE", CertTools.getSubjectDN(iter.next()));
+        assertEquals("CN=foo,O=AnaTom,C=SE", CertTools.getSubjectDN(iter.next()));
+        byte[] bytes = CertTools.getPemFromCertificateChain(certs);
+        String str = new String(bytes);
+        assertTrue(str.contains("BEGIN CERTIFICATE"));
     }
 
     @Test
     public void testCheckValidity() throws Exception {
-    	// NotBefore: Wed Sep 24 08:48:04 CEST 2003 (1064386084000)
-    	// NotAfter: Fri Sep 23 08:58:04 CEST 2005 (1127458684000)
-    	//
-    	Certificate cert = CertTools.getCertfromByteArray(testcert, Certificate.class);
-    	assertEquals(1064386084000L, CertTools.getNotBefore(cert).getTime());
-    	assertEquals(1127458684000L, CertTools.getNotAfter(cert).getTime());
-    	CertTools.checkValidity(cert, new Date(1064386084001L));
-    	CertTools.checkValidity(cert, new Date(1127458683999L));
-    	try {
-    		CertTools.checkValidity(cert, new Date(1064386083999L));
-    		assertTrue("Should throw", false);
-    	} catch (CertificateNotYetValidException e) {
-    		// NOPMD
-    	}
-    	try {
-    		CertTools.checkValidity(cert, new Date(1127458684001L));
-    		assertTrue("Should throw", false);
-    	} catch (CertificateExpiredException e) {
-    		// NOPMD
-    	}    	
+        // NotBefore: Wed Sep 24 08:48:04 CEST 2003 (1064386084000)
+        // NotAfter: Fri Sep 23 08:58:04 CEST 2005 (1127458684000)
+        //
+        Certificate cert = CertTools.getCertfromByteArray(testcert, Certificate.class);
+        assertEquals(1064386084000L, CertTools.getNotBefore(cert).getTime());
+        assertEquals(1127458684000L, CertTools.getNotAfter(cert).getTime());
+        CertTools.checkValidity(cert, new Date(1064386084001L));
+        CertTools.checkValidity(cert, new Date(1127458683999L));
+        try {
+            CertTools.checkValidity(cert, new Date(1064386083999L));
+            assertTrue("Should throw", false);
+        } catch (CertificateNotYetValidException e) {
+            // NOPMD
+        }
+        try {
+            CertTools.checkValidity(cert, new Date(1127458684001L));
+            assertTrue("Should throw", false);
+        } catch (CertificateExpiredException e) {
+            // NOPMD
+        }
     }
-    
+
     @Test
     public void testFingerprint() throws Exception {
-    	Certificate cert = CertTools.getCertfromByteArray(testcert, Certificate.class);
-    	assertEquals("4d66df0017deb32f669346c51c80600964816c84", CertTools.getFingerprintAsString(cert));
-    	assertEquals("4d66df0017deb32f669346c51c80600964816c84", CertTools.getFingerprintAsString(testcert));
-    	assertEquals("c61bfaa15d733532c5e795756c8001d4", new String(Hex.encode(CertTools.generateMD5Fingerprint(testcert))));
+        Certificate cert = CertTools.getCertfromByteArray(testcert, Certificate.class);
+        assertEquals("4d66df0017deb32f669346c51c80600964816c84", CertTools.getFingerprintAsString(cert));
+        assertEquals("4d66df0017deb32f669346c51c80600964816c84", CertTools.getFingerprintAsString(testcert));
+        assertEquals("c61bfaa15d733532c5e795756c8001d4", new String(Hex.encode(CertTools.generateMD5Fingerprint(testcert))));
     }
 
     @Test
     public void testCRLs() throws Exception {
-    	X509CRL crl = CertTools.getCRLfromByteArray(testcrl);
-    	assertEquals("CN=TEST", CertTools.getIssuerDN(crl));
-    	byte[] pembytes = CertTools.getPEMFromCrl(testcrl);
-    	String pem = new String(pembytes);
-    	assertTrue(pem.contains("BEGIN X509 CRL"));
-    	assertEquals(1, CrlExtensions.getCrlNumber(crl).intValue());
-    	assertEquals(-1, CrlExtensions.getDeltaCRLIndicator(crl).intValue());
+        X509CRL crl = CertTools.getCRLfromByteArray(testcrl);
+        assertEquals("CN=TEST", CertTools.getIssuerDN(crl));
+        byte[] pembytes = CertTools.getPEMFromCrl(testcrl);
+        String pem = new String(pembytes);
+        assertTrue(pem.contains("BEGIN X509 CRL"));
+        assertEquals(1, CrlExtensions.getCrlNumber(crl).intValue());
+        assertEquals(-1, CrlExtensions.getDeltaCRLIndicator(crl).intValue());
 
-    	X509CRL deltacrl = CertTools.getCRLfromByteArray(testdeltacrl);
-    	assertEquals(3, CrlExtensions.getCrlNumber(deltacrl).intValue());
-    	assertEquals(2, CrlExtensions.getDeltaCRLIndicator(deltacrl).intValue());
+        X509CRL deltacrl = CertTools.getCRLfromByteArray(testdeltacrl);
+        assertEquals(3, CrlExtensions.getCrlNumber(deltacrl).intValue());
+        assertEquals(2, CrlExtensions.getDeltaCRLIndicator(deltacrl).intValue());
 
     }
-    
+
     private DERSequence permanentIdentifier(String identifierValue, String assigner) {
         DERSequence result;
         ASN1EncodableVector v = new ASN1EncodableVector(); // this is the OtherName
@@ -1897,24 +1897,24 @@ public class CertToolsTest {
         }
         v.add(new DERTaggedObject(true, 0, new DERSequence(piSeq)));
         result = new DERSequence(v);
-        
+
         log.info(ASN1Dump.dumpAsString(result));
         return result;
     }
-    
+
     @Test
     public void testGetPermanentIdentifierStringFromSequence() throws Exception {
         assertEquals("abc123/1.2.3.4", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier("abc123", "1.2.3.4")));
         assertEquals("defg456/", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier("defg456", null)));
         assertEquals("/1.2.3.5", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier(null, "1.2.3.5")));
         assertEquals("/", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier(null, null)));
-        
+
         assertEquals("ident with \\/ slash/1.2.3.4", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier("ident with / slash", "1.2.3.4")));
         assertEquals("ident with \\/ slash/", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier("ident with / slash", null)));
         assertEquals("ident with \\\\/ slash/1.2.3.6", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier("ident with \\/ slash", "1.2.3.6")));
         assertEquals("ident with \\\\/ slash/", CertTools.getPermanentIdentifierStringFromSequence(permanentIdentifier("ident with \\/ slash", null)));
     }
-    
+
     @Test
     public void testGetPermanentIdentifierValues() throws Exception {
         assertEquals("[abc123, 1.2.3.7]", Arrays.toString(CertTools.getPermanentIdentifierValues("abc123/1.2.3.7")));
@@ -1924,23 +1924,23 @@ public class CertToolsTest {
         assertEquals("[null, null]", Arrays.toString(CertTools.getPermanentIdentifierValues("/")));
         assertEquals("[null, null]", Arrays.toString(CertTools.getPermanentIdentifierValues("")));
     }
-    
+
     @Test
     public void testGetGeneralNamesFromAltName4permanentIdentifier() throws Exception {
         // One permanentIdentifier
         String altName = "permanentIdentifier=def321/1.2.5, upn=upn@u.com";
         GeneralNames gn = CertTools.getGeneralNamesFromAltName(altName);
         assertNotNull("getGeneralNamesFromAltName failed for " + altName, gn);
-        String[] result = new String[] { 
-            CertTools.getGeneralNameString(0, gn.getNames()[0].getName()), 
+        String[] result = new String[] {
+            CertTools.getGeneralNameString(0, gn.getNames()[0].getName()),
             CertTools.getGeneralNameString(0, gn.getNames()[1].getName())
         };
         Arrays.sort(result);
         assertEquals("[permanentIdentifier=def321/1.2.5, upn=upn@u.com]", Arrays.toString(result));
-        
+
         // Two permanentIdentifiers
-        gn = CertTools.getGeneralNamesFromAltName("permanentIdentifier=def321/1.2.5, upn=upn@example.com, permanentIdentifier=abcd 456/1.2.7");    
-        result = new String[] { 
+        gn = CertTools.getGeneralNamesFromAltName("permanentIdentifier=def321/1.2.5, upn=upn@example.com, permanentIdentifier=abcd 456/1.2.7");
+        result = new String[] {
             CertTools.getGeneralNameString(0, gn.getNames()[0].getName()),
             CertTools.getGeneralNameString(0, gn.getNames()[1].getName()),
             CertTools.getGeneralNameString(0, gn.getNames()[2].getName())
@@ -1955,32 +1955,32 @@ public class CertToolsTest {
         String altName = "directoryName=CN=Tomas\\,O=PrimeKey\\,C=SE";
         GeneralNames gn = CertTools.getGeneralNamesFromAltName(altName);
         assertNotNull("getGeneralNamesFromAltName failed for " + altName, gn);
-        String[] result = new String[] { 
-            CertTools.getGeneralNameString(4, gn.getNames()[0].getName()), 
+        String[] result = new String[] {
+            CertTools.getGeneralNameString(4, gn.getNames()[0].getName()),
         };
         Arrays.sort(result);
         assertEquals("[directoryName=CN=Tomas,O=PrimeKey,C=SE]", Arrays.toString(result));
-        
+
         // Test UTF-8
         altName = "directoryName=CN=اتمنى لك يوما طيبا";
         gn = CertTools.getGeneralNamesFromAltName(altName);
         assertNotNull("getGeneralNamesFromAltName failed for " + altName, gn);
-        result = new String[] { 
-            CertTools.getGeneralNameString(4, gn.getNames()[0].getName()), 
+        result = new String[] {
+            CertTools.getGeneralNameString(4, gn.getNames()[0].getName()),
         };
         Arrays.sort(result);
         assertEquals("[directoryName=CN=اتمنى لك يوما طيبا]", Arrays.toString(result));
-        
+
     }
 
     @Test
     public void testStringToBcX500WithIncompleteLoneValue() {
         //Legal as a name even if it won't be legal as a DN
         X500Name result = CertTools.stringToBcX500Name("O=");
-        assertNotNull(result);    
+        assertNotNull(result);
         assertEquals("O=", result.toString());
     }
-    
+
     @Test
     public void testStringToBcX500WithTrailingComma() {
         X500Name result = CertTools.stringToBcX500Name("CN=,");
@@ -1995,7 +1995,7 @@ public class CertToolsTest {
         assertNotNull(result);
         assertEquals("CN=,O=foo", result.toString());
     }
-    
+
     @Test
     public void testStringToBcX500WithValueAndTrailingComma() {
         X500Name result = CertTools.stringToBcX500Name("CN=f,");
@@ -2007,15 +2007,15 @@ public class CertToolsTest {
     public void testStringToBcX500WithEmpty() {
         // Legacy behavior
         X500Name result = CertTools.stringToBcX500Name("");
-        assertNotNull(result);    
+        assertNotNull(result);
         assertEquals("", result.toString());
     }
- 
+
     @Test
     public void testStringToBcX500WithEscapedComma() {
         try {
             assertNotNull(CertTools.stringToBcX500Name("O=\\,"));
-            assertNotNull(CertTools.stringToBcX500Name("O=f\\,b"));          
+            assertNotNull(CertTools.stringToBcX500Name("O=f\\,b"));
         } catch (IllegalArgumentException e) {
             fail("Exception " + e.getClass() + " should not been thrown.");
         }
@@ -2028,7 +2028,7 @@ public class CertToolsTest {
                 "telephonenumber", "postaladdress", "postalcode", "unstructuredaddress", "unstructuredname", "emailaddress", "e",
                 "email", "dn", "uid", "cn", "name", "sn", "gn", "givenname", "initials", "surname", "t", "ou", "o", "l", "st", "dc", "c", "serialnumber", "businesscategory", "jurisdictioncountry", "jurisdictionstate", "jurisdictionlocality"};
             final X500NameStyle nameStyle = CeSecoreNameStyle.INSTANCE;
-            final String dn = "JurisdictionCountry=NL,JurisdictionState=State,JurisdictionLocality=Åmål,BusinessCategory=Private Organization,CN=evssltest6.test.lan,SN=1234567890,OU=XY,O=MyOrg B.V.,L=Åmål,ST=Norrland,C=SE"; 
+            final String dn = "JurisdictionCountry=NL,JurisdictionState=State,JurisdictionLocality=Åmål,BusinessCategory=Private Organization,CN=evssltest6.test.lan,SN=1234567890,OU=XY,O=MyOrg B.V.,L=Åmål,ST=Norrland,C=SE";
             X500Name name = CertTools.stringToBcX500Name(dn, nameStyle, false, order1);
             assertNotNull(name);
             String desiredDN = "JurisdictionLocality=Åmål,JurisdictionState=State,JurisdictionCountry=NL,BusinessCategory=Private Organization,C=SE,ST=Norrland,L=Åmål,O=MyOrg B.V.,OU=XY,SN=1234567890,CN=evssltest6.test.lan";
@@ -2040,7 +2040,7 @@ public class CertToolsTest {
             String desiredDNNoLap = "CN=evssltest6.test.lan,OU=XY,O=MyOrg B.V.,L=Åmål,ST=Norrland,C=SE,SN=1234567890,BusinessCategory=Private Organization,JurisdictionLocality=Åmål,JurisdictionState=State,JurisdictionCountry=NL";
             assertEquals("Name order should be as defined in order string array", desiredDNNoLap, name.toString());
             name = CertTools.stringToBcX500Name(dn, nameStyle, true, order2);
-            String desiredDNWithLDAP = "JurisdictionCountry=NL,JurisdictionState=State,JurisdictionLocality=Åmål,BusinessCategory=Private Organization,SN=1234567890,C=SE,ST=Norrland,L=Åmål,O=MyOrg B.V.,OU=XY,CN=evssltest6.test.lan"; 
+            String desiredDNWithLDAP = "JurisdictionCountry=NL,JurisdictionState=State,JurisdictionLocality=Åmål,BusinessCategory=Private Organization,SN=1234567890,C=SE,ST=Norrland,L=Åmål,O=MyOrg B.V.,OU=XY,CN=evssltest6.test.lan";
             assertEquals("Name order should be as defined in order string array", desiredDNWithLDAP, name.toString());
             // Ignore LDAP DN order (do not apply)
             name = CertTools.stringToBcX500Name(dn, nameStyle, true, order2, false);
@@ -2052,7 +2052,7 @@ public class CertToolsTest {
             assertEquals("Name order should be as defined in order string array", desiredDNWithLDAP, name.toString());
             name = CertTools.stringToBcX500Name(dn, nameStyle, false, order2, true);
             assertEquals("Name order should be as defined in order string array", desiredDNNoLap, name.toString());
-            
+
             // If the ordering string is missing some components that exist in the DN, these will just be added to the beginning of the resulting DN
             final String[] orderWithMissing = { "street", "pseudonym",
                     "telephonenumber", "postaladdress", "postalcode", "unstructuredaddress", "unstructuredname", "emailaddress", "e",
@@ -2083,22 +2083,22 @@ public class CertToolsTest {
     @Test
     public void testPrintableStringDN() throws Exception {
         log.trace(">testPrintableStringDN()");
-        
+
         final String dnstr = "C=SE,O=Test,CN=Test";
-        
+
         final X500Name xn1 = CertTools.stringToBcX500Name(dnstr, new CeSecoreNameStyle(), false);
         assertTrue("When using CeSecoreNameStyle, C was not of PrintableString type", xn1.getRDNs()[0].getFirst().getValue() instanceof DERPrintableString);
         assertTrue("When using CeSecoreNameStyle, O was not of UTF8String type", xn1.getRDNs()[1].getFirst().getValue() instanceof DERUTF8String);
         assertTrue("When using CeSecoreNameStyle, CN was not of UTF8String type", xn1.getRDNs()[2].getFirst().getValue() instanceof DERUTF8String);
-        
+
         final X500Name xn2 = CertTools.stringToBcX500Name(dnstr, new PrintableStringNameStyle(), false);
         assertTrue("When using PrintableStringNameStyle, C was not of PrintableString type", xn2.getRDNs()[0].getFirst().getValue() instanceof DERPrintableString);
         assertTrue("When using PrintableStringNameStyle, O was not of PrintableString type", xn2.getRDNs()[1].getFirst().getValue() instanceof DERPrintableString);
         assertTrue("When using PrintableStringNameStyle, CN was not of PrintableString type", xn2.getRDNs()[2].getFirst().getValue() instanceof DERPrintableString);
-        
+
         log.trace("<testPrintableStringDN()");
     }
-    
+
     /**
      * Tests the following methods:
      * <ul>
@@ -2120,18 +2120,18 @@ public class CertToolsTest {
                                 "postmaster@mail.example\n" +
                                 "10.1.0.0/16\n" +
                                 "::/0"; // IPv6
-        
+
         final List<Extension> extensions = new ArrayList<Extension>();
         GeneralSubtree[] permittedSubtrees = NameConstraint.toGeneralSubtrees(NameConstraint.parseNameConstraintsList(permitted));
         GeneralSubtree[] excludedSubtrees = NameConstraint.toGeneralSubtrees(NameConstraint.parseNameConstraintsList(excluded));
         byte[] extdata = new NameConstraints(permittedSubtrees, excludedSubtrees).toASN1Primitive().getEncoded();
         extensions.add(new Extension(Extension.nameConstraints, false, extdata));
-        
+
         final KeyPair testkeys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
         X509Certificate cacert = CertTools.genSelfCertForPurpose("C=SE,CN=Test Name Constraints CA", 365, null,
                 testkeys.getPrivate(), testkeys.getPublic(), AlgorithmConstants.SIGALG_SHA1_WITH_RSA, true,
                 X509KeyUsage.keyCertSign + X509KeyUsage.cRLSign, null, null, "BC", true, extensions);
-        
+
         // Allowed subject DNs
         final X500Name validDN = new X500Name("C=SE,O=PrimeKey,CN=example.com"); // re-used below
         CertTools.checkNameConstraints(cacert, validDN, null);
@@ -2155,11 +2155,11 @@ public class CertToolsTest {
         CertTools.checkNameConstraints(cacert, validDN, new GeneralNames(new GeneralName(GeneralName.rfc822Name, "user@host.com")));
         CertTools.checkNameConstraints(cacert, validDN, new GeneralNames(new GeneralName(GeneralName.iPAddress, new DEROctetString(InetAddress.getByName("10.0.0.1").getAddress()))));
         CertTools.checkNameConstraints(cacert, validDN, new GeneralNames(new GeneralName(GeneralName.iPAddress, new DEROctetString(InetAddress.getByName("10.255.255.255").getAddress()))));
-        
+
         // Disallowed subject DN
         checkNCException(cacert, new X500Name("C=DK,CN=example.com"), null, "Disallowed DN (wrong field value) was accepted");
         checkNCException(cacert, new X500Name("C=SE,O=Company,CN=example.com"), null, "Disallowed DN (extra field) was accepted");
-        
+
         // Disallowed SAN
         // The commented out lines are allowed by BouncyCastle but disallowed by the RFC
         checkNCException(cacert, validDN, new GeneralName(GeneralName.dNSName, "bad.com"), "Disallowed SAN (wrong DNS name) was accepted");
@@ -2169,7 +2169,7 @@ public class CertToolsTest {
         checkNCException(cacert, validDN, new GeneralName(GeneralName.iPAddress, new DEROctetString(InetAddress.getByName("192.0.2.1").getAddress())), "Disallowed SAN (wrong IPv4 address) was accepted");
         checkNCException(cacert, validDN, new GeneralName(GeneralName.iPAddress, new DEROctetString(InetAddress.getByName("2001:DB8::").getAddress())), "Disallowed SAN (IPv6 address) was accepted");
     }
-    
+
     @Test
     public void testCertificateWithEmptyOU() throws CertificateParsingException {
         byte[] customerCertificate = ("-----BEGIN CERTIFICATE-----\n"
@@ -2255,7 +2255,7 @@ public class CertToolsTest {
         String dn = CertTools.getSubjectDN(cert);
         assertEquals("JurisdictionCountry=BR,STREET=Avenida Paraiba,BusinessCategory=Private Organization,CN=morenarosagroup.com,SN=\\#CNPJ:15.095.271/0001-45,OU=Morena Rosa Group,O=Morena Rosa Industria e Comercio de Confeccoes S.A.,L=Cianorte,ST=Parana,C=BR", dn);
     }
-    
+
     /**
      * Tests preventing heap overflow during getCertsFromPEM()
      * @throws Exception fail
@@ -2263,7 +2263,7 @@ public class CertToolsTest {
     @Test
     public void testPreventingHeapOverflowDuringGetCertsFromPEM() throws Exception {
         log.trace(">testPreventingHeapOverflowDuringGetCertsFromPEM()");
-        
+
         ObjectInputStream objectInputStream = null;
         ByteArrayOutputStream byteArrayOutputStream = null;
         try {
@@ -2285,10 +2285,10 @@ public class CertToolsTest {
                 objectInputStream.close();
             }
         }
-        
+
         log.trace("<testPreventingHeapOverflowDuringGetCertsFromPEM()");
     }
-    
+
     /**
      * Tests preventing heap overflow during getCertsFromByteArray for X509Certificate.class
      * @throws Exception fail
@@ -2296,7 +2296,7 @@ public class CertToolsTest {
     @Test
     public void testPreventingHeapOverflowDuringGetCertsFromByteArray() throws Exception {
         log.trace(">testPreventingHeapOverflowDuringgetCertsFromByteArray()");
-        
+
         ObjectInputStream objectInputStream = null;
         ByteArrayOutputStream byteArrayOutputStream = null;
         try {
@@ -2318,7 +2318,7 @@ public class CertToolsTest {
                 objectInputStream.close();
             }
         }
-        
+
         log.trace("<testPreventingHeapOverflowDuringgetCertsFromByteArray()");
     }
 
@@ -2333,7 +2333,7 @@ public class CertToolsTest {
         List<ASN1ObjectIdentifier> oids = CertTools.getCertificatePolicyIds(certwithnone);
         assertEquals("Should be no Cert Policy OIDs", 0, oids.size());
         // This policy test cert have 4 oids with different contents
-        //X509v3 Certificate Policies: 
+        //X509v3 Certificate Policies:
         //    Policy: 1.1.1.2
         //      CPS: https://ejbca.org/2
         //    Policy: 1.1.1.3
@@ -2370,7 +2370,7 @@ public class CertToolsTest {
         // id-qt          OBJECT IDENTIFIER ::=  { id-pkix 2 }
         // id-qt-cps      OBJECT IDENTIFIER ::=  { id-qt 1 }
         // id-qt-unotice  OBJECT IDENTIFIER ::=  { id-qt 2 }
-        
+
         // The first Policy object has a CPS URI
         ASN1Encodable qualifier = pi.get(0).getPolicyQualifiers().getObjectAt(0);
         //System.out.println(ASN1Dump.dumpAsString(qualifier));
@@ -2380,7 +2380,7 @@ public class CertToolsTest {
         // When the qualifiedID is id_qt_cps, we know this is a DERIA5String
         DERIA5String str = DERIA5String.getInstance(pqi.getQualifier());
         assertEquals("https://ejbca.org/2", str.getString());
-        
+
         // The second Policy object has a CPS URI
         qualifier = pi.get(1).getPolicyQualifiers().getObjectAt(0);
         //System.out.println(ASN1Dump.dumpAsString(qualifier));
@@ -2390,11 +2390,11 @@ public class CertToolsTest {
         // When the qualifiedID is id_qt_cps, we know this is a DERIA5String
         str = DERIA5String.getInstance(pqi.getQualifier());
         assertEquals("https://ejbca.org/3", str.getString());
-        
+
         // The third Policy object has only an OID
         qualifier = pi.get(2).getPolicyQualifiers();
         assertNull(qualifier);
-        
+
         // The fourth Policy object has a User Notice
         qualifier = pi.get(3).getPolicyQualifiers().getObjectAt(0);
         //System.out.println(ASN1Dump.dumpAsString(qualifier));
@@ -2404,7 +2404,7 @@ public class CertToolsTest {
         // When the qualifiedID is id_qt_unutice, we know this is a UserNotice
         UserNotice un = UserNotice.getInstance(pqi.getQualifier());
         assertEquals("My User Notice Text", un.getExplicitText().getString());
-        
+
         // The fifth Policy object has both a CPS URI and a User Notice
         qualifier = pi.get(4).getPolicyQualifiers().getObjectAt(0);
         //System.out.println(ASN1Dump.dumpAsString(qualifier));
@@ -2423,7 +2423,7 @@ public class CertToolsTest {
         str = DERIA5String.getInstance(pqi.getQualifier());
         assertEquals("https://ejbca.org/CPS", str.getString());
     }
-    
+
     @Test
     public void testOrderCertChain() throws CertificateParsingException, CertPathValidatorException {
         X509Certificate root = CertTools.getCertfromByteArray(chainRootCA, X509Certificate.class);
@@ -2449,7 +2449,7 @@ public class CertToolsTest {
         assertEquals("EE cert should be first", CertTools.getSubjectDN(ee), CertTools.getSubjectDN(list.get(0)));
         assertEquals("SubCA cert should be second", CertTools.getSubjectDN(sub), CertTools.getSubjectDN(list.get(1)));
         assertEquals("RootCA cert should be third", CertTools.getSubjectDN(root), CertTools.getSubjectDN(list.get(2)));
-        
+
         List<X509Certificate> order3 = new ArrayList<X509Certificate>();
         order3.add(sub);
         order3.add(ee);
@@ -2459,7 +2459,7 @@ public class CertToolsTest {
         assertEquals("EE cert should be first", CertTools.getSubjectDN(ee), CertTools.getSubjectDN(list.get(0)));
         assertEquals("SubCA cert should be second", CertTools.getSubjectDN(sub), CertTools.getSubjectDN(list.get(1)));
         assertEquals("RootCA cert should be third", CertTools.getSubjectDN(root), CertTools.getSubjectDN(list.get(2)));
-        
+
         // Skip root, should order anyway up to sub
         List<X509Certificate> order4 = new ArrayList<X509Certificate>();
         order4.add(sub);
@@ -2477,7 +2477,7 @@ public class CertToolsTest {
         assertEquals("EE cert should be first", CertTools.getSubjectDN(ee), CertTools.getSubjectDN(list.get(0)));
         assertEquals("SubCA cert should be second", CertTools.getSubjectDN(sub), CertTools.getSubjectDN(list.get(1)));
     }
-    
+
     @Test
     public void testEscapeFieldValue() {
         assertEquals(null, CertTools.escapeFieldValue(null));
@@ -2488,7 +2488,7 @@ public class CertToolsTest {
         assertEquals("CN=abc\\\"def", CertTools.escapeFieldValue("CN=abc\"def"));
         assertEquals("CN=abc\\>def", CertTools.escapeFieldValue("CN=abc>def"));
     }
-    
+
     @Test
     public void testUnescapeFieldValue() {
         assertEquals(null, CertTools.unescapeFieldValue(null));
@@ -2509,7 +2509,7 @@ public class CertToolsTest {
         assertEquals("1.12.123.1234", CertTools.getOidFromString("1.12.123.1234.value3"));
         assertEquals("1.2.3.4", CertTools.getOidFromString("1.2.3.4.foobar"));
     }
-    
+
     @Test
     public void testGetOidWildcardPattern() {
         // Base cases
@@ -2524,11 +2524,11 @@ public class CertToolsTest {
         // Verify that dots aren't interpreted as regex wild cards
         assertFalse("1.2.3.4".matches(CertTools.getOidWildcardPattern("1.2a3.4")));
     }
-    
+
     private void checkNCException(X509Certificate cacert, X500Name subjectDNName, GeneralName subjectAltName, String message) {
         try {
             CertTools.checkNameConstraints(cacert, subjectDNName, new GeneralNames(subjectAltName));
             fail(message);
         } catch (IllegalNameException e) { /* NOPMD expected */ }
-    }    
+    }
 }

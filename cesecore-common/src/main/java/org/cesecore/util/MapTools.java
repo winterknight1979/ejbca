@@ -19,22 +19,22 @@ import java.util.Map.Entry;
 
 /**
  * Utility functions to work with maps.
- * 
+ *
  * @version $Id: MapTools.java 28328 2018-02-20 11:46:09Z samuellb $
  */
 public final class MapTools {
-    
+
     /** Utility class, cannot be instantiated */
     private MapTools() { }
-    
+
     /**
      * Adds an item to a map, and returns it. Useful for initialization:
      * <code>
      * doWorkWithMapExample(addToMap(new HashMap&lt;Integer,String&gt;(), 0, "none"));
      * </code>
-     * 
+     *
      * <p>Unlike the <code>new HashMap&lt;&gt;() {{ put(x,y); }}</code> pattern, this does not create a new class (which can create problems with de-serialization)
-     * 
+     *
      * @param map Map to use.
      * @param key1 First key.
      * @param value1 Value of first key.
@@ -48,7 +48,7 @@ public final class MapTools {
         map.put(key1, value1);
         return map;
     }
-    
+
     /**
      * Adds two items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
      * @param map Map
@@ -67,7 +67,7 @@ public final class MapTools {
         map.put(key2, value2);
         return map;
     }
-    
+
     /**
      * Adds three items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
      * @param map Map
@@ -89,15 +89,15 @@ public final class MapTools {
         map.put(key3, value3);
         return map;
     }
-    
+
     /**
      * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order. Useful for initialization:
      * <code>
      * doWorkWithMapExample(unmodifiableMap(0, "none"));
      * </code>
-     * 
+     *
      * <p>Unlike the <code>new HashMap&lt;&gt;() {{ put(x,y); }}</code> pattern, this does not create a new class (which can create problems with de-serialization)
-     * 
+     *
      * @param key1 First key.
      * @param value1 Value of first key.
      * @param <K> Key type
@@ -109,8 +109,8 @@ public final class MapTools {
     public static <K,V> Map<K,V> unmodifiableMap(final K key1, final V value1) {
         return Collections.unmodifiableMap(addToMap(new LinkedHashMap<K,V>(), key1, value1));
     }
-    
-    
+
+
     /**
      * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
      * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
@@ -128,7 +128,7 @@ public final class MapTools {
     public static <K,V> Map<K,V> unmodifiableMap(final K key1, final V value1, final K key2, final V value2) {
         return Collections.unmodifiableMap(addToMap(new LinkedHashMap<K,V>(), key1, value1, key2, value2));
     }
-    
+
     /**
      * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
      * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
@@ -149,7 +149,7 @@ public final class MapTools {
     }
 
     /**
-     * Returns a human readable string representation for a map, based on toString() from the keys and values. 
+     * Returns a human readable string representation for a map, based on toString() from the keys and values.
      * @param map Map of any type. May contain keys and values that are null.
      * @return The string, for example <code>{'key 1': 'value 1', 'key 2': null}</code>
      */
@@ -176,5 +176,5 @@ public final class MapTools {
             sb.append('\'');
         }
     }
-    
+
 }

@@ -42,11 +42,11 @@ public final class CertificateProfileConstants {
     public static final int CERTPROFILE_FIXED_ENDUSER         = 1;
     public static final int CERTPROFILE_FIXED_SUBCA           = 2;
     public static final int CERTPROFILE_FIXED_ROOTCA          = 3;
-	public static final int CERTPROFILE_FIXED_OCSPSIGNER      = 4;
-	public static final int CERTPROFILE_FIXED_HARDTOKENAUTH   = 5;
-	public static final int CERTPROFILE_FIXED_HARDTOKENAUTHENC= 6;
-	public static final int CERTPROFILE_FIXED_HARDTOKENENC    = 7;
-	public static final int CERTPROFILE_FIXED_HARDTOKENSIGN   = 8;
+    public static final int CERTPROFILE_FIXED_OCSPSIGNER      = 4;
+    public static final int CERTPROFILE_FIXED_HARDTOKENAUTH   = 5;
+    public static final int CERTPROFILE_FIXED_HARDTOKENAUTHENC= 6;
+    public static final int CERTPROFILE_FIXED_HARDTOKENENC    = 7;
+    public static final int CERTPROFILE_FIXED_HARDTOKENSIGN   = 8;
     public static final int CERTPROFILE_FIXED_SERVER          = 9;
 
     /**
@@ -60,16 +60,16 @@ public final class CertificateProfileConstants {
      * @return true is certificate profile identified by profileId is fixed
      */
     public static boolean isFixedCertificateProfile(final int profileId) {
-    	return (
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER ||
-    			profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER );
+        return (
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER ||
+                profileId == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER );
     }
 
     /**
@@ -78,7 +78,7 @@ public final class CertificateProfileConstants {
      * @see "org.ejbca.ui.web.pub.ApplyBean (in publicweb-gui)"
      */
     public static final int[] DEFAULT_KEY_LENGTHS = new int[] {512, 1024, 2048};
-    
+
     /** QC ETSI Type OID: Electronic Signature */
     public static final String QC_ETSI_TYPE_ESIGN = "0.4.0.1862.1.6.1";
     /** QC ETSI Type OID: Electronic Seal */

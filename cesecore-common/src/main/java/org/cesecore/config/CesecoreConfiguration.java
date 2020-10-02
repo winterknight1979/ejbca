@@ -78,7 +78,7 @@ public final class CesecoreConfiguration {
      * @return The length in octets of certificate serial numbers generated for new CAs.
      */
     public static int getSerialNumberOctetSizeForNewCa() {
-        String value = ConfigurationHolder.getConfiguredString("ca.serialnumberoctetsize"); 
+        String value = ConfigurationHolder.getConfiguredString("ca.serialnumberoctetsize");
         if (value == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Using default value of " + DEFAULT_SERIAL_NUMBER_OCTET_SIZE_NEWCA + " for new CA's ca.serialnumberoctetsize");
@@ -87,8 +87,8 @@ public final class CesecoreConfiguration {
         }
         return Integer.parseInt(value);
     }
-    
-        
+
+
     /**
      * @return The algorithm that should be used to generate random numbers (Random Number Generator Algorithm)
      */
@@ -259,7 +259,7 @@ public final class CesecoreConfiguration {
 
     /**
      * @return Regular Expression to fetch the NTP offset from an NTP client output
-     * 
+     *
      */
     public static Pattern getTrustedTimeNtpPattern() {
         String regex = ConfigurationHolder.getString("time.ntp.pattern");
@@ -289,17 +289,17 @@ public final class CesecoreConfiguration {
      * @return ID
      */
     public static String getNodeIdentifier() {
-    	final String PROPERTY_NAME = "cluster.nodeid";
-    	final String PROPERTY_VALUE = "undefined";
+        final String PROPERTY_NAME = "cluster.nodeid";
+        final String PROPERTY_VALUE = "undefined";
         String value = ConfigurationHolder.getString(PROPERTY_NAME);
         if (value == null) {
-        	try {
-				value = InetAddress.getLocalHost().getHostName();
-			} catch (UnknownHostException e) {
-				log.warn(PROPERTY_NAME + " is undefined on this host and was not able to resolve hostname. Using " + PROPERTY_VALUE + " which is fine if use a single node.");
-				value = PROPERTY_VALUE;
-			}
-			// Update configuration, so we don't have to make a hostname lookup each time we call this method.
+            try {
+                value = InetAddress.getLocalHost().getHostName();
+            } catch (UnknownHostException e) {
+                log.warn(PROPERTY_NAME + " is undefined on this host and was not able to resolve hostname. Using " + PROPERTY_VALUE + " which is fine if use a single node.");
+                value = PROPERTY_VALUE;
+            }
+            // Update configuration, so we don't have to make a hostname lookup each time we call this method.
             ConfigurationHolder.updateConfigurationWithoutBackup(PROPERTY_NAME, value);
         }
         return value;

@@ -182,10 +182,10 @@ public abstract class AlgorithmTools {
         }
         return processedCurveNames;
     }
-    
+
     /**
      * Get unique available named elliptic curves and their aliases.
-     *  
+     *
      * @param hasToBeKnownByDefaultProvider if the curve name needs to be known by the default provider (e.g. so Sun PKCS#11 can use it)
      * @return a Map with elliptic curve names as key and the list of alias separated by '/' as the value.
      */
@@ -199,15 +199,15 @@ public abstract class AlgorithmTools {
         }
         return result;
     }
-    
+
     /**
      * Gets a list of allowed curves (@see <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf">NIST curves</a>).
-     * 
+     *
      * @return the list of allowed curves.
      */
     public static List<String> getNistCurves() {
         // Only apply most important conditions (sequence is Root-CA, Sub-CA, User-Certificate)!
-        // But this is not required at the time, because certificate validity conditions are before 
+        // But this is not required at the time, because certificate validity conditions are before
         // 2014 (now 2017). Allowed curves by NIST are NIST P 256, P 384, P 521
         // See http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf chapter 1.2
         final List<String> list = new ArrayList<String>();
@@ -324,7 +324,7 @@ public abstract class AlgorithmTools {
         }
         return ret;
     }
-    
+
     /**
      * Gets the key specification from a public key. Example: "2048" for a RSA
      * or DSA key or "secp256r1" for EC key. The EC curve is only detected

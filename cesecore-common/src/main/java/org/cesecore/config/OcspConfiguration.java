@@ -28,7 +28,7 @@ import org.cesecore.util.CertTools;
 
 /**
  * Parses configuration bundled in conf/ocsp.properties, both for the internal and external OCSP responder.
- * 
+ *
  * @version $Id: OcspConfiguration.java 28629 2018-04-04 11:32:55Z henriks $
  */
 public class OcspConfiguration {
@@ -61,10 +61,10 @@ public class OcspConfiguration {
     public static final String REVOKED_MAX_AGE = "ocsp.revoked.maxAge";
     public static final String INCLUDE_SIGNING_CERT = "ocsp.includesignercert";
     public static final String INCLUDE_CERT_CHAIN = "ocsp.includecertchain";
-    
+
     @Deprecated //Remove this value once upgrading to 6.7.0 has been dropped
     public static final String RESPONDER_ID_TYPE = "ocsp.responderidtype";
-    
+
     @Deprecated //Remove this value once upgrading VAs to EJBCA 6 has been dropped
     public static final int RESTRICTONISSUER = 0;
     @Deprecated //Remove this value once upgrading VAs to EJBCA 6 has been dropped
@@ -76,10 +76,10 @@ public class OcspConfiguration {
     public static final int RESPONDERIDTYPE_KEYHASH = 2;
 
     public static Set<String> acceptedSignatureAlgorithms = new HashSet<>();
-    
+
     /**
      * @return Algorithm used by server to generate signature on OCSP responses
-     * 
+     *
      */
     public static String getSignatureAlgorithm() {
         return ConfigurationHolder.getString("ocsp.signaturealgorithm");
@@ -87,10 +87,10 @@ public class OcspConfiguration {
 
     /**
      * Returns if the specified signature algorithm is among the signature algorithms accepted by EJBCA.
-     * 
-     * The signatures algorithms that are accepted by EJBCA are specified in 'ocsp.signaturealgorithm' in the 
+     *
+     * The signatures algorithms that are accepted by EJBCA are specified in 'ocsp.signaturealgorithm' in the
      * EJBCA_HOME/conf/ocsp.properties file.
-     * 
+     *
      * @param sigAlg Algorithm name
      * @return 'true' if sigAlg is accepted by EJBCA, and 'false' otherwise
      */
@@ -110,23 +110,23 @@ public class OcspConfiguration {
     public static void clearAcceptedSignatureAlgorithmCache() {
         acceptedSignatureAlgorithms = new HashSet<>();
     }
-    
+
     /**
-     * 
+     *
      * @return How often the standalone OCSP certificate cache should be checked for expiring certificates. Default value i 1 hour
      */
     public static long getRekeyingUpdateTimeInSeconds() {
         return Long.parseLong(ConfigurationHolder.getString(REKEYING_UPDATE_TIME_IN_SECONDS));
     }
-    
+
     /**
-     * 
+     *
      * @return How long from true expiry time that a certificate should be renewed. Default value is 1 day
      */
     public static long getRekeyingSafetyMarginInSeconds() {
         return Long.parseLong(ConfigurationHolder.getString(REKEYING_SAFETY_MARGIN_IN_SECONDS));
     }
-    
+
     /**
      * @return The interval on which new OCSP signing certificates are loaded in milliseconds
      */
@@ -176,7 +176,7 @@ public class OcspConfiguration {
 
     /**
      * Set this to issuer or signer depending on how you want to restrict allowed signatures for OCSP request signing.
-     * 
+     *
      * @return one of OcspConfiguration.RESTRICTONISSUER and OcspConfiguration.RESTRICTONSIGNER
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
@@ -202,7 +202,7 @@ public class OcspConfiguration {
         String value = ConfigurationHolder.getString(INCLUDE_CERT_CHAIN);
         return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
     }
-    
+
     /**
      *@return If set to true the signature certificate will be included the OCSP response.
      */
@@ -213,9 +213,9 @@ public class OcspConfiguration {
 
     /**
      * If set to name the OCSP responses will use the Name ResponseId type, if set to keyhash the KeyHash type will be used.
-     * 
+     *
      * @return one of OCSPUtil.RESPONDERIDTYPE_NAME and OCSPUtil.RESPONDERIDTYPE_KEYHASH
-     * 
+     *
      * @deprecated no longer used, as responder ID type is instead set individually for each keybinding and CA
      */
     @Deprecated
@@ -233,7 +233,7 @@ public class OcspConfiguration {
         String value = ConfigurationHolder.getString(NON_EXISTING_IS_GOOD);
         return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
     }
-    
+
     /**
      * @return true if a certificate that does not exist in the database, but is issued by a CA the responder handles will be treated as revoked.
      */
@@ -241,11 +241,11 @@ public class OcspConfiguration {
         String value = ConfigurationHolder.getString(NON_EXISTING_IS_REVOKED);
         return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
     }
-    
+
     /**
-     * 
+     *
      * @return true if a certificate that does not exist in the database, but is issued by a CA the responder handles will be responded to with an
-     * unsigned "Unauthorized" response. 
+     * unsigned "Unauthorized" response.
      */
     public static boolean getNonExistingIsUnauthorized() {
         String value = ConfigurationHolder.getString(NON_EXISTING_IS_UNAUTHORIZED);
@@ -253,26 +253,26 @@ public class OcspConfiguration {
     }
 
     private static String getRegex(String prefix) {
-    	int i=1;
-    	final StringBuffer regex = new StringBuffer();
-    	while( true ) {
-    		final String key = prefix+i;
-    		final String value = ConfigurationHolder.getString(key);
-    		if ( value==null ) {
-    			break;
-    		}
-    		if ( i>1 ) {
-    			regex.append('|');
-    		}
-    		regex.append('(');
-    		regex.append(value);
-    		regex.append(')');
-    		i++;
-    	}
-    	if ( regex.length()<1 ) {
-    		return null;
-    	}
-    	return regex.toString();
+        int i=1;
+        final StringBuffer regex = new StringBuffer();
+        while( true ) {
+            final String key = prefix+i;
+            final String value = ConfigurationHolder.getString(key);
+            if ( value==null ) {
+                break;
+            }
+            if ( i>1 ) {
+                regex.append('|');
+            }
+            regex.append('(');
+            regex.append(value);
+            regex.append(')');
+            i++;
+        }
+        if ( regex.length()<1 ) {
+            return null;
+        }
+        return regex.toString();
     }
 
     /**
@@ -281,7 +281,7 @@ public class OcspConfiguration {
      * @return the regex
      */
     public static String getNonExistingIsGoodOverideRegex() {
-    	return getRegex(NON_EXISTING_IS_GOOD_URI);
+        return getRegex(NON_EXISTING_IS_GOOD_URI);
     }
 
     /**
@@ -290,9 +290,9 @@ public class OcspConfiguration {
      * @return the regex
      */
     public static String getNonExistingIsBadOverideRegex() {
-    	return getRegex(NON_EXISTING_IS_BAD_URI);
+        return getRegex(NON_EXISTING_IS_BAD_URI);
     }
-    
+
     /**
      * Calls from client fulfilling this regex returns "revoked" for non existing certificates
      * even if {@link #getNonExistingIsGood()} return true.
@@ -307,8 +307,8 @@ public class OcspConfiguration {
      * the request. This is used to generate 'unknown' responses when a request is received for a certificate that is not signed by any CA on this
      * server.
      * @return the name configured in ocsp.defaultresponder, reordered to EJBCA normalized ordering.
-     * 
-     * @deprecated This value is deprecated since 6.2.4, and only remains in order to allow migration. Default responder is now set in global configuration instead. 
+     *
+     * @deprecated This value is deprecated since 6.2.4, and only remains in order to allow migration. Default responder is now set in global configuration instead.
      */
     @Deprecated
     public static String getDefaultResponderId() {
@@ -322,9 +322,9 @@ public class OcspConfiguration {
     /**
      * Specifies OCSP extension OIDs that will result in a call to an extension class, separate multiple entries with ';'.
      * For any entry that should be always used, preface with '*' (e.g. *2.16.578.1.16.3.2)
-     * 
+     *
      * Deprecated: May still be required for 6.12 upgrades
-     * 
+     *
      * @return a List&lt;String&gt; of extension OIDs, an empty list if none are found.
      */
     @Deprecated
@@ -338,9 +338,9 @@ public class OcspConfiguration {
 
     /**
      * Specifies classes implementing OCSP extensions matching OIDs in getExtensionOid(), separate multiple entries with ';'.
-     * 
+     *
      * @deprecated since 6.12. May still be required for upgrades.
-     * 
+     *
      * @return a List&lt;String&gt; of extension classes
      */
     @Deprecated
@@ -387,7 +387,7 @@ public class OcspConfiguration {
         }
         return false;
     }
-    
+
     /**
      *@return When true, an audit log will be created.
      */
@@ -472,29 +472,29 @@ public class OcspConfiguration {
         return value;
     }
 
-    
+
     /**
      *@return The default number of milliseconds a response is valid, or -1 to disable. See RFC5019.
      */
     public static long getExpiredArchiveCutoff() {
         Configuration config = ConfigurationHolder.instance();
-        
+
         if(StringUtils.equals(config.getString(EXPIREDCERT_RETENTIONPERIOD), "-1")) {
             return -1;
         }
-        
+
         long value = 31536000;
         try {
             value = config.getLong(EXPIREDCERT_RETENTIONPERIOD, value) * 1000;
         } catch (ConversionException e) {
             log.warn("\"ocsp.expiredcert.retentionperiod\" is not a decimal integer. Using default value: " + value);
         }
-        
-        
+
+
         return value;
     }
-    
-    
+
+
     /**
      *@param certProfileId profile ID
      * @return The default number of milliseconds a response is valid, or 0 to disable. See RFC5019.
@@ -513,7 +513,7 @@ public class OcspConfiguration {
         }
         return value;
     }
-    
+
     /** @param certificateProfileId Profile ID
      * @return true if Until Next Update is explicitly configured for the requested certificate profile */
     public static boolean isUntilNextUpdateConfigured(final int certificateProfileId) {
@@ -523,7 +523,7 @@ public class OcspConfiguration {
             return ConfigurationHolder.instance().containsKey("ocsp." + certificateProfileId + ".untilNextUpdate");
         }
     }
-    
+
     /**
      * @param certProfileId profile ID
      * @return The default number of milliseconds a response of a revoked certificate is valid, or 0 to disable. See RFC5019.
@@ -542,7 +542,7 @@ public class OcspConfiguration {
         }
         return value;
     }
-    
+
     /** @param certificateProfileId Profile ID
      * @return true if Until Next Update is explicitly configured for the requested certificate profile in case of a revoked certificate */
     public static boolean isRevokedUntilNextUpdateConfigured(final int certificateProfileId) {
@@ -553,7 +553,7 @@ public class OcspConfiguration {
         }
     }
 
-    /** 
+    /**
      *@param certProfileId profile ID
      * @return The default number of milliseconds a HTTP-response should be cached. See RFC5019.
      */
@@ -583,7 +583,7 @@ public class OcspConfiguration {
             return ConfigurationHolder.instance().containsKey("ocsp." + certificateProfileId + ".maxAge");
         }
     }
-    
+
     /**
      * @param certProfileId Profile ID
      * @return The default number of milliseconds a HTTP-response for a revoked certificater should be cached. See RFC5019.
@@ -629,7 +629,7 @@ public class OcspConfiguration {
 
     /**
      * The password for the all the soft keys of the OCSP responder.
-     * 
+     *
      * @return {@link #getStorePassword()} if property isn't set.
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
@@ -643,7 +643,7 @@ public class OcspConfiguration {
 
     /**
      * The password to all soft keystores.
-     * 
+     *
      * @return the value of getKeyPassword() if property isn't set.
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
@@ -692,7 +692,7 @@ public class OcspConfiguration {
     public static String getRekeyingTriggingPassword() {
         return ConfigurationHolder.getString(REKEYING_TRIGGERING_PASSWORD);
     }
-   
+
 
     /**
      * @return EJBCA web service URL
@@ -703,7 +703,7 @@ public class OcspConfiguration {
 
     /**
      * P11 shared library path name.
-     * 
+     *
      * @return The value;
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
@@ -713,7 +713,7 @@ public class OcspConfiguration {
 
     /**
      * P11 password.
-     * 
+     *
      * @return The value
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
@@ -723,7 +723,7 @@ public class OcspConfiguration {
 
     /**
      * P11 slot number.
-     * 
+     *
      * @return The value.
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
@@ -733,9 +733,9 @@ public class OcspConfiguration {
 
     /**
      * Should passwords be stored in memory.
-     * 
+     *
      * Default value is true.
-     * 
+     *
      * @return True if password should not be stored in memory.
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped

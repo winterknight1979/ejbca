@@ -19,7 +19,7 @@ import javax.persistence.Query;
 
 /**
  * Helper class to cope with Hibernates JPA 1.0 Provider implementation.
- * 
+ *
  * @version $Id: QueryResultWrapper.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public abstract class QueryResultWrapper {
@@ -28,11 +28,11 @@ public abstract class QueryResultWrapper {
      * Query.getSingleResult that on with older Hibernate JPA 1.0 provider bundled with EJBCA returns null and on newer JPA implementations throws
      * NoResultException (as it should according to the specifications) is not suitable for EJBCA. We always want to return null when an object does
      * not exist, since exceptions will mess with the garbage collection and lead to worse performance.
-     * 
+     *
      * We still throws NonUniqueResultException and IllegalStateException, just as getSingleResult would.
      * @param query query
      * @param <T> response type
-     * 
+     *
      * @return single result or null
      */
     public static <T> T getSingleResult(final Query query) {
@@ -47,12 +47,12 @@ public abstract class QueryResultWrapper {
      * Query.getSingleResult that on with older Hibernate JPA 1.0 provider bundled with EJBCA returns null and on newer JPA implementations throws
      * NoResultException (as it should according to the specifications) is not suitable for EJBCA. We always want to return null when an object does
      * not exist, since exceptions will mess with the garbage collection and lead to worse performance.
-     * 
+     *
      * We still throws NonUniqueResultException and IllegalStateException, just as getSingleResult would.
      * @param query Query
-     * @param defaultValue default value 
+     * @param defaultValue default value
      * @param <T> response type
-     * 
+     *
      * @return single result or defaultValue
      */
     public static <T> T getSingleResult(final Query query, final T defaultValue) {

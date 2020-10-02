@@ -37,7 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Tests LookAheadObjectInputStream class that can be used to prevent java deserialization issue
- * 
+ *
  * @version $Id: LookAheadObjectInputStreamTest.java 34262 2020-01-13 12:27:31Z jeklund $
  */
 public class LookAheadObjectInputStreamTest {
@@ -96,7 +96,7 @@ public class LookAheadObjectInputStreamTest {
     private static class GoodExtendedExtendedClass extends GoodExtendedClass {
         private static final long serialVersionUID = 6L;
     }
-    
+
     private static interface AnimalInterface extends Serializable {
         String getValue();
     }
@@ -116,16 +116,16 @@ public class LookAheadObjectInputStreamTest {
 
     private static class ExternalizableClass implements Externalizable {
         private final boolean writeExploitObject;
-        
+
         @SuppressWarnings("unused")
         public ExternalizableClass() {
             this(false);
         }
-        
+
         public ExternalizableClass(final boolean writeExploitObject) {
             this.writeExploitObject = writeExploitObject;
         }
-        
+
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
             out.writeObject(writeExploitObject ? new ExploitClass() : new GoodClass1(123));
@@ -136,7 +136,7 @@ public class LookAheadObjectInputStreamTest {
             final GoodClass1 obj = (GoodClass1) in.readObject();
             assertEquals("Got wrong data in nested object.", 123, obj.getData());
         }
-        
+
     }
 
     /**
@@ -283,7 +283,7 @@ public class LookAheadObjectInputStreamTest {
         }
         log.trace("<testDeserializeExternalizable");
     }
-    
+
     /**
      * Test limiting maximum count of objects that can be deserialized
      * @throws Exception fail
@@ -578,8 +578,8 @@ public class LookAheadObjectInputStreamTest {
         }
         log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
     }
-    
-    /** Test commonly serialized class combo 
+
+    /** Test commonly serialized class combo
      * @throws Exception fail*/
     @Test
     public void testAuthenticationToken() throws Exception {
@@ -596,7 +596,7 @@ public class LookAheadObjectInputStreamTest {
         }
         log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
     }
-    
+
     private byte[] getEncoded(final Object...objects) throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (final ObjectOutputStream oos = new ObjectOutputStream(baos);) {

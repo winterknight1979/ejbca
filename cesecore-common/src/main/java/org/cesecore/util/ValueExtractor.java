@@ -18,19 +18,19 @@ import java.math.BigInteger;
 import org.apache.log4j.Logger;
 
 /**
- * Helper object to convert from JDBC driver specific objects to a unified form. 
+ * Helper object to convert from JDBC driver specific objects to a unified form.
  *
  * @version $Id: ValueExtractor.java 18045 2013-11-02 08:23:07Z anatom $
  */
 public abstract class ValueExtractor {
-    
+
     private static final Logger LOG = Logger.getLogger(ValueExtractor.class);
 
     /**
      * Return the intValue if the supplied object has a "intValue" method.
      * Since different JDBC driver will return different types of objects like
      * Integer, BigInteger or BigDecimal (Oracle) this is convenient.
-     * 
+     *
      * As a sad little bonus, DB2 native queries returns a pair of {BigInteger, Integer}
      * where the first value is row and the second is the value.
      * As another sad little bonus, Oracle native queries returns a pair of {BigDecimal, BigDecimal}
@@ -68,9 +68,9 @@ public abstract class ValueExtractor {
             throw new RuntimeException(e);
         }
     }
-    
-       /** 
-     * 
+
+       /**
+     *
      * @param object to check if it is an array type and in that case extract the BigInteger, BigDecimal or Integer object
      * @param clazz only used for logging
      * @return the object to get value from
@@ -96,9 +96,9 @@ public abstract class ValueExtractor {
                 ret = objects[0];
             } else {
                 if (objects.length > 1) {
-                    throw new RuntimeException("Unsupported object type to convert to "+clazz.getSimpleName() + ". Was: objects.length="+objects.length+", objects[0] is a "+objects[0].getClass().getName()+": "+objects[0]+", objects[1] is a "+objects[1].getClass().getName()+": "+objects[1]);                    
+                    throw new RuntimeException("Unsupported object type to convert to "+clazz.getSimpleName() + ". Was: objects.length="+objects.length+", objects[0] is a "+objects[0].getClass().getName()+": "+objects[0]+", objects[1] is a "+objects[1].getClass().getName()+": "+objects[1]);
                 } else {
-                    throw new RuntimeException("Unsupported object type to convert to "+clazz.getSimpleName() + ". Was: objects.length="+objects.length+", objects[0] is a "+objects[0].getClass().getName()+": "+objects[0]);                    
+                    throw new RuntimeException("Unsupported object type to convert to "+clazz.getSimpleName() + ". Was: objects.length="+objects.length+", objects[0] is a "+objects[0].getClass().getName()+": "+objects[0]);
                 }
             }
         }

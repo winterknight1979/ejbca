@@ -302,23 +302,23 @@ public class StringToolsTest {
 
     @Test
     public void testParseCertData() {
-    	String certdata = "0000AAAA : DN : \"CN=foo,O=foo,C=SE\" : SubjectDN : \"CN=foo2,C=SE\"";
-    	String res[] = StringTools.parseCertData(certdata);
-    	assertNotNull(res);
-    	assertEquals("Failed to find the administrator certificate serialnumber", res[0],"0000AAAA");
-    	assertEquals("Failed to find the administrator certificate issuerDN", res[1], "CN=foo,O=foo,C=SE");
+        String certdata = "0000AAAA : DN : \"CN=foo,O=foo,C=SE\" : SubjectDN : \"CN=foo2,C=SE\"";
+        String res[] = StringTools.parseCertData(certdata);
+        assertNotNull(res);
+        assertEquals("Failed to find the administrator certificate serialnumber", res[0],"0000AAAA");
+        assertEquals("Failed to find the administrator certificate issuerDN", res[1], "CN=foo,O=foo,C=SE");
 
-    	certdata = "0000AAAA,CN=foo,O=foo,C=SE";
-    	res = StringTools.parseCertData(certdata);
-    	assertNotNull(res);
-    	assertEquals("Failed to find the client certificate serialnumber", res[0], "0000AAAA");
-    	assertEquals("Failed to find the client certificate issuerDN", res[1], "CN=foo,O=foo,C=SE");
+        certdata = "0000AAAA,CN=foo,O=foo,C=SE";
+        res = StringTools.parseCertData(certdata);
+        assertNotNull(res);
+        assertEquals("Failed to find the client certificate serialnumber", res[0], "0000AAAA");
+        assertEquals("Failed to find the client certificate issuerDN", res[1], "CN=foo,O=foo,C=SE");
 
-    	certdata = "0000AAAA, CN=foo,O=foo,C=SE";
-    	res = StringTools.parseCertData(certdata);
-    	assertNotNull(res);
-    	assertEquals("Failed to find the client certificate serialnumber", res[0], "0000AAAA");
-    	assertEquals("Failed to find the client certificate issuerDN", res[1], "CN=foo,O=foo,C=SE");
+        certdata = "0000AAAA, CN=foo,O=foo,C=SE";
+        res = StringTools.parseCertData(certdata);
+        assertNotNull(res);
+        assertEquals("Failed to find the client certificate serialnumber", res[0], "0000AAAA");
+        assertEquals("Failed to find the client certificate issuerDN", res[1], "CN=foo,O=foo,C=SE");
 
         certdata = "0000AAAA, CN=foo,SN=123456,O=foo,C=SE";
         res = StringTools.parseCertData(certdata);
@@ -339,54 +339,54 @@ public class StringToolsTest {
         assertEquals("Failed to find the client certificate issuerDN", "1.2.3.4.5=Test,CN=foo,1.2.345678=Hello,O=foo,ORGANIZATIONIDENTIFIER=OrgIdent,C=SE", res[1]);
     }
 
-	@Test
-	public void testSplitURIs() throws Exception {
-		assertEquals(Arrays.asList("aa;a", "bb;;;b", "cc"), StringTools.splitURIs("\"aa;a\";\"bb;;;b\";\"cc\""));
-		assertEquals(Arrays.asList("aa", "bb;;;b", "cc"), StringTools.splitURIs("aa;\"bb;;;b\";\"cc\""));
-		assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa;bb;cc"));
-		assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa;bb;cc;"));
-		assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa   ;  bb;cc  "));	// Extra white-spaces
-		assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("  aa;bb ;cc;  "));	// Extra white-spaces
-		assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa;bb;;;;cc;"));
-		assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs(";;;;;aa;bb;;;;cc;"));
-		assertEquals(Arrays.asList("aa", "b", "c", "d", "e"), StringTools.splitURIs(";;\"aa\";;;b;c;;;;d;\"e\";;;"));
-		assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("http://example.com"));
-		assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("\"http://example.com\""));
-		assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("\"http://example.com\";"));
-		assertEquals(Collections.EMPTY_LIST, StringTools.splitURIs(""));
-		assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("\"http://example.com")); 	// No ending quote
-		assertEquals(Arrays.asList("aa;a", "bb;;;b", "cc"), StringTools.splitURIs("\"aa;a\";\"bb;;;b\";\"cc")); 	// No ending quote
-	}
+    @Test
+    public void testSplitURIs() throws Exception {
+        assertEquals(Arrays.asList("aa;a", "bb;;;b", "cc"), StringTools.splitURIs("\"aa;a\";\"bb;;;b\";\"cc\""));
+        assertEquals(Arrays.asList("aa", "bb;;;b", "cc"), StringTools.splitURIs("aa;\"bb;;;b\";\"cc\""));
+        assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa;bb;cc"));
+        assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa;bb;cc;"));
+        assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa   ;  bb;cc  "));    // Extra white-spaces
+        assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("  aa;bb ;cc;  "));    // Extra white-spaces
+        assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs("aa;bb;;;;cc;"));
+        assertEquals(Arrays.asList("aa", "bb", "cc"), StringTools.splitURIs(";;;;;aa;bb;;;;cc;"));
+        assertEquals(Arrays.asList("aa", "b", "c", "d", "e"), StringTools.splitURIs(";;\"aa\";;;b;c;;;;d;\"e\";;;"));
+        assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("http://example.com"));
+        assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("\"http://example.com\""));
+        assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("\"http://example.com\";"));
+        assertEquals(Collections.EMPTY_LIST, StringTools.splitURIs(""));
+        assertEquals(Arrays.asList("http://example.com"), StringTools.splitURIs("\"http://example.com"));     // No ending quote
+        assertEquals(Arrays.asList("aa;a", "bb;;;b", "cc"), StringTools.splitURIs("\"aa;a\";\"bb;;;b\";\"cc"));     // No ending quote
+    }
 
-	@Test
-	public void testB64() {
-		assertNull(StringTools.getBase64String(null));
-		assertEquals("", StringTools.getBase64String(""));
-		assertEquals("B64:", StringTools.getBase64String("B64:"));
-		assertEquals("b64:", StringTools.getBase64String("b64:"));
-		assertEquals("test", StringTools.getBase64String(StringTools.putBase64String("test")));
-		assertEquals("test~!\"#%&/()", StringTools.putBase64String("test~!\"#%&/()", true));
-		assertEquals("test~!\"#%&/()", StringTools.getBase64String(StringTools.putBase64String("test~!\"#%&/()", true)));
-		assertEquals("test~!\"#%&/()", StringTools.getBase64String(StringTools.putBase64String("test~!\"#%&/()", false)));
-		assertEquals("B64:w6XDpMO2w7zDqA==", StringTools.putBase64String("åäöüè"));
-		assertEquals("B64:w6XDpMO2w7zDqA==", StringTools.putBase64String("åäöüè", true));
-		assertEquals("åäöüè", StringTools.getBase64String(StringTools.putBase64String("åäöüè", true)));
+    @Test
+    public void testB64() {
+        assertNull(StringTools.getBase64String(null));
+        assertEquals("", StringTools.getBase64String(""));
+        assertEquals("B64:", StringTools.getBase64String("B64:"));
+        assertEquals("b64:", StringTools.getBase64String("b64:"));
+        assertEquals("test", StringTools.getBase64String(StringTools.putBase64String("test")));
+        assertEquals("test~!\"#%&/()", StringTools.putBase64String("test~!\"#%&/()", true));
+        assertEquals("test~!\"#%&/()", StringTools.getBase64String(StringTools.putBase64String("test~!\"#%&/()", true)));
+        assertEquals("test~!\"#%&/()", StringTools.getBase64String(StringTools.putBase64String("test~!\"#%&/()", false)));
+        assertEquals("B64:w6XDpMO2w7zDqA==", StringTools.putBase64String("åäöüè"));
+        assertEquals("B64:w6XDpMO2w7zDqA==", StringTools.putBase64String("åäöüè", true));
+        assertEquals("åäöüè", StringTools.getBase64String(StringTools.putBase64String("åäöüè", true)));
         assertEquals("åäöüè", StringTools.getBase64String(StringTools.putBase64String("åäöüè", false)));
-		// Check against unicodes as well, just to be sure encodiings are not messed up by eclipse of anything else
+        // Check against unicodes as well, just to be sure encodiings are not messed up by eclipse of anything else
         assertEquals("B64:w6XDpMO2w7zDqA==", StringTools.putBase64String("\u00E5\u00E4\u00F6\u00FC\u00E8"));
         assertEquals("B64:w6XDpMO2w7zDqA==", StringTools.putBase64String("\u00E5\u00E4\u00F6\u00FC\u00E8", true));
         assertEquals("\u00E5\u00E4\u00F6\u00FC\u00E8", StringTools.getBase64String(StringTools.putBase64String("åäöüè", true)));
-		assertEquals("\u00E5\u00E4\u00F6\u00FC\u00E8", StringTools.getBase64String(StringTools.putBase64String("åäöüè", false)));
-	}
+        assertEquals("\u00E5\u00E4\u00F6\u00FC\u00E8", StringTools.getBase64String(StringTools.putBase64String("åäöüè", false)));
+    }
 
-	@Test
-	public void testStripXss() {
-		final String str = "foo<tag>tag</tag>!";
-		String ret = StringTools.strip(str);
-		assertEquals("<> should not have been stripped, but ! should have: ", "foo<tag>tag</tag>/", ret);
-		ret = StringTools.stripUsername(str);
-		assertEquals("<> should have been stripped and so should !", "foo/tag/tag//tag//", ret);
-	}
+    @Test
+    public void testStripXss() {
+        final String str = "foo<tag>tag</tag>!";
+        String ret = StringTools.strip(str);
+        assertEquals("<> should not have been stripped, but ! should have: ", "foo<tag>tag</tag>/", ret);
+        ret = StringTools.stripUsername(str);
+        assertEquals("<> should have been stripped and so should !", "foo/tag/tag//tag//", ret);
+    }
 
     @Test
     public void testCleanXForwardedFor() {

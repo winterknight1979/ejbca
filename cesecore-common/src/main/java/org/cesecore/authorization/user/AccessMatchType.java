@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * @version $Id: AccessMatchType.java 26811 2017-10-15 03:29:26Z anatom $
- * 
+ *
  */
 public enum AccessMatchType {
 
@@ -31,7 +31,7 @@ public enum AccessMatchType {
     TYPE_NOT_EQUALCASEINS(1003),
     @Deprecated
     TYPE_NONE(1999),
-    /** Type 2000-2005 are old types used from before EJBCA 4, we must expect to find these in the database in old installations, even though we don't want to use them. 
+    /** Type 2000-2005 are old types used from before EJBCA 4, we must expect to find these in the database in old installations, even though we don't want to use them.
      * These have no meaning whatsoever in newer installations of EJBCA, and can safely be removed from the database if found (unless we need to run an old installation in parallel). */
     @Deprecated
     SPECIALADMIN_PUBLICWEBUSER(2000),
@@ -57,7 +57,7 @@ public enum AccessMatchType {
     public static AccessMatchType matchFromDatabase(int numericValue) {
         return databaseLookup.get(numericValue);
     }
-    
+
     public static AccessMatchType matchFromName(String name) {
         return nameLookup.get(name);
     }

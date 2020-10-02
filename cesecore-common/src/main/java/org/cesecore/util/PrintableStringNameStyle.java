@@ -26,20 +26,20 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 /**
  * Like CeSecoreNameStyle, but uses PrintableStrings to encode most attributes
  * (the default encoding is UTF-8)
- * 
+ *
  * @version $Id: PrintableStringNameStyle.java 23629 2016-06-08 11:53:37Z mikekushner $
  */
 public class PrintableStringNameStyle extends CeSecoreNameStyle {
 
     public static final X500NameStyle INSTANCE = new PrintableStringNameStyle();
-    
+
     protected PrintableStringNameStyle() { }
-    
+
     /**
      * @return true if the passed in String can be represented without
      * loss as a PrintableString, false otherwise.
      * @param str String
-     * 
+     *
      */
     private boolean canBePrintable(
         String  str)
@@ -73,12 +73,12 @@ public class PrintableStringNameStyle extends CeSecoreNameStyle {
         {
             return new ASN1GeneralizedTime(value);
         }
-        else if (canBePrintable(value))  
+        else if (canBePrintable(value))
         {
             return new DERPrintableString(value);
         }
 
         return new DERUTF8String(value);
     }
-    
+
 }

@@ -21,11 +21,11 @@ import org.cesecore.certificates.ocsp.extension.OCSPExtension;
 
 /**
  * Enum based singleton to contain a Map of OCSP extensions.
- * 
- * Note that this class is currently not thread safe, and use of the reloadCache()-method should be extremely limited. 
- * 
+ *
+ * Note that this class is currently not thread safe, and use of the reloadCache()-method should be extremely limited.
+ *
  * @version $Id: OcspExtensionsCache.java 28566 2018-03-27 14:59:55Z henriks $
- * 
+ *
  */
 public enum OcspExtensionsCache {
     INSTANCE;
@@ -38,22 +38,22 @@ public enum OcspExtensionsCache {
         initializeLogger();
         reloadCache(buildExtensionsMap());
     }
-    
+
     /** Helper method to assign the log, which can't be done directly from the constructor */
     private static void initializeLogger() {
         log = Logger.getLogger(OcspExtensionsCache.class);
     }
 
     /**
-     * 
-     * @return a map containing all loaded extensions. 
+     *
+     * @return a map containing all loaded extensions.
      */
     public Map<String, OCSPExtension> getExtensions() {
         return extensionMap;
     }
 
     /**
-     * Method to manually reload the cache. 
+     * Method to manually reload the cache.
      * @param newExtensionMap new cache
      */
     private void reloadCache(Map<String, OCSPExtension> newExtensionMap) {
@@ -61,12 +61,12 @@ public enum OcspExtensionsCache {
     }
 
     /**
-     * Reloads the cache manually, reading configuration anew. 
+     * Reloads the cache manually, reading configuration anew.
      */
     public void reloadCache() {
         reloadCache(buildExtensionsMap());
     }
-    
+
     private static Map<String, OCSPExtension> buildExtensionsMap() {
         Map<String, OCSPExtension> result = new HashMap<String, OCSPExtension>();
         ServiceLoader<OCSPExtension> extensionLoader = ServiceLoader.load(OCSPExtension.class);

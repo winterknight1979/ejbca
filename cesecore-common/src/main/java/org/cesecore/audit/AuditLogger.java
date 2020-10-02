@@ -24,13 +24,13 @@ import org.cesecore.time.TrustedTime;
 
 /**
  * Interface for writing secure audit events.
- * 
+ *
  * @version $Id: AuditLogger.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface AuditLogger {
     /**
      * Creates a signed log, stored in the database.
-     * 
+     *
      * @param trustedTime TrustedTime instance will be used to get a trusted timestamp.
      * @param eventType The event log type.
      * @param eventStatus The status of the operation to log.
@@ -42,9 +42,9 @@ public interface AuditLogger {
      * @param searchDetail2  Search 2
      * @param additionalDetails Additional details to be logged.
      * @param properties properties to be passed on the device
-     * 
+     *
      * @throws AuditRecordStorageException if unable to store the log record
      */
     void log(TrustedTime trustedTime, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String authToken,
-    		String customId, String searchDetail1, String searchDetail2, Map<String, Object> additionalDetails, Properties properties) throws AuditRecordStorageException;
+            String customId, String searchDetail1, String searchDetail2, Map<String, Object> additionalDetails, Properties properties) throws AuditRecordStorageException;
 }

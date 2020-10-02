@@ -19,7 +19,7 @@ import org.cesecore.jndi.JndiHelper;
 
 /**
  * Helper methods to get EJB session interfaces.
- * 
+ *
  * @version $Id: EjbRemoteHelper.java 29630 2018-08-14 08:55:21Z mikekushner $
  */
 public enum EjbRemoteHelper {
@@ -27,26 +27,26 @@ public enum EjbRemoteHelper {
 
     /** The main EJBCA EJB jar. */
     public final static String MODULE_EJBCA = "ejbca-ejb";
-    
+
     /** The main CESeCore EJB jar. */
     public final static String MODULE_CESECORE = "cesecore-ejb";
-    
+
     /** The additional CESeCore EJB jar. */
     public final static String MODULE_CESECORE_OTHER = "cesecore-other-ejb";
-    
+
     /** The EJB used by system tests. */
     public final static String MODULE_TEST = "systemtests-ejb";
-    
+
     /** The EJB used by system test ProtocolLookupServerHttpTest. */
     public final static String MODULE_UNIDFNR = "unidfnr-ejb";
-    
+
     public final static String MODULE_EDITION_SPECIFIC= "edition-specific-ejb";
-    
-    private Map<Class<?>, Object> interfaceCache; 
-    
+
+    private Map<Class<?>, Object> interfaceCache;
+
     /**
      * Returns a cached remote session bean.
-     * 
+     *
      * @param key the @Remote-appended interface for this session bean
      * @param <T> type
      * @return the sought interface, or null if it doesn't exist in JNDI context.
@@ -57,7 +57,7 @@ public enum EjbRemoteHelper {
 
     /**
      * Returns a cached remote session bean.
-     * 
+     *
      * @param key the @Remote-appended interface for this session bean
      * @param <T> type
      * @param module the module where the bean is deployed, i.e. systemtests-ejb or cesecore-other-ejb, if null defaults to cesecore-ejb for packages under org.cesecore, otherwise ejbca-ejb.

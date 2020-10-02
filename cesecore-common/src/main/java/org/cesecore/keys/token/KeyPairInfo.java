@@ -16,7 +16,7 @@ import java.io.Serializable;
 
 /**
  * Representation of a KeyPair in a CryptoToken. Does not contain the actual keys.
- * 
+ *
  * @version $Id: KeyPairInfo.java 24844 2016-12-06 15:18:05Z samuellb $
  */
 public class KeyPairInfo implements Serializable, Comparable<KeyPairInfo> {
@@ -47,16 +47,16 @@ public class KeyPairInfo implements Serializable, Comparable<KeyPairInfo> {
     @Override
     public int compareTo(final KeyPairInfo o) {
         int c;
-        
+
         c = alias.compareTo(o.alias);
         if (c != 0) { return c; }
-        
+
         // There shouldn't be multiple aliases with the same name, but we compare the other fields just to be sure.
         c = keyAlgorithm.compareTo(o.keyAlgorithm);
         if (c != 0) { return c; }
         c = keySpecification.compareTo(o.keySpecification);
         if (c != 0) { return c; }
-        
+
         return 0;
     }
 }

@@ -15,7 +15,7 @@ package org.cesecore.authorization.user.matchvalues;
 /**
  * This runtime exception is thrown to signify that an attempt of an enum to extend the AccessMatchValue
  * interface failed and could not be recovered.
- * 
+ *
  * @version $Id: InvalidMatchValueException.java 17625 2013-09-20 07:12:06Z netmackan $
  *
  */

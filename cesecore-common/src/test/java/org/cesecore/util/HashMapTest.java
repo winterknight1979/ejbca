@@ -24,20 +24,20 @@ import java.util.HashMap;
 import org.junit.Test;
 
 /** Tests Base64 HashMap XML encoding and decoding
- * 
+ *
  * @version $Id: HashMapTest.java 34163 2020-01-02 15:00:17Z samuellb $
  */
 public class HashMapTest {
 
     @SuppressWarnings("rawtypes")
     @Test
-	public void testHashMapNormal() throws Exception {
+    public void testHashMapNormal() throws Exception {
         HashMap<String, Comparable> a = new HashMap<String, Comparable>();
         a.put("foo0", Boolean.FALSE);
         a.put("foo1", "fooString");
         a.put("foo2", Integer.valueOf(2));
         a.put("foo3", Boolean.TRUE);
-        
+
         // Write to XML
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         XMLEncoder encoder = new XMLEncoder(baos);
@@ -45,7 +45,7 @@ public class HashMapTest {
         encoder.close();
         String data = baos.toString("UTF8");
         //log.error(data);
-        
+
         SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(data.getBytes("UTF8")));
         HashMap<?, ?> b = (HashMap<?, ?>) decoder.readObject();
         decoder.close();
@@ -54,8 +54,8 @@ public class HashMapTest {
         assertEquals(((String)b.get("foo1")),"fooString");
         assertEquals(((Integer)b.get("foo2")).intValue(),2);
 
-	}
-	
+    }
+
     @SuppressWarnings("rawtypes")
     @Test
     public void testHashMapStrangeChars() throws Exception {
@@ -64,7 +64,7 @@ public class HashMapTest {
         a.put("foo1", "\0001\0002fooString");
         a.put("foo2", Integer.valueOf(2));
         a.put("foo3", Boolean.TRUE);
-        
+
         // Write to XML
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         XMLEncoder encoder = new XMLEncoder(baos);
@@ -76,7 +76,7 @@ public class HashMapTest {
         try {
             SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(data.getBytes("UTF8")));
             HashMap<?, ?> b = (HashMap<?, ?>) decoder.readObject();
-            decoder.close();         
+            decoder.close();
             assertEquals(((Boolean)b.get("foo0")).booleanValue(),false);
         // We can get two different errors, I don't know if it is different java versions or what...
         // The important thing is that we do expect an error to occur here
@@ -88,28 +88,28 @@ public class HashMapTest {
         String javaver = System.getProperty("java.version");
         System.out.println(javaver);
         if (getVersion() >= 6) {
-        	// In java 1.6 the above does work because it encodes the special characters
-        	//   <string><char code="#0"/>1<char code="#0"/>2fooString</string> 
-            assertTrue(true);        	
+            // In java 1.6 the above does work because it encodes the special characters
+            //   <string><char code="#0"/>1<char code="#0"/>2fooString</string>
+            assertTrue(true);
         } else {
-        	// In java 1.5 the above does not work, because it will insert bad xml-characters 
-        	// so the test will fail if we got here.
-            assertTrue(false);        	        	
+            // In java 1.5 the above does not work, because it will insert bad xml-characters
+            // so the test will fail if we got here.
+            assertTrue(false);
         }
     }
-    
+
     /* from stack xchange, to work around the Java Versioning system change between Java 8 and Java 9 */
     private static int getVersion() {
-    	String version = System.getProperty("java.version");
-    	if (version.startsWith("1.")) {
-    		version = version.substring(2,3);
-    	} else {
-    		int dot = version.indexOf(".");
-    		if (dot != -1) { version = version.substring(0, dot); }
-    	}
-    	return Integer.parseInt(version);
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.")) {
+            version = version.substring(2,3);
+        } else {
+            int dot = version.indexOf(".");
+            if (dot != -1) { version = version.substring(0, dot); }
+        }
+        return Integer.parseInt(version);
     }
-    
+
     @SuppressWarnings("rawtypes")
     @Test
     public void testHashMapStrangeCharsSafe() throws Exception {
@@ -121,7 +121,7 @@ public class HashMapTest {
         h.put("foo4", "");
         HashMap<Object, Object> a = new Base64PutHashMap();
         a.putAll(h);
-        
+
         // Write to XML
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         XMLEncoder encoder = new XMLEncoder(baos);
@@ -133,7 +133,7 @@ public class HashMapTest {
         try {
             SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(data.getBytes("UTF8")));
             HashMap<?, ?> b = (HashMap<?, ?>) decoder.readObject();
-            decoder.close();    
+            decoder.close();
             @SuppressWarnings("unchecked")
             HashMap<Object, Object> c = new Base64GetHashMap(b);
             assertEquals(((Boolean)c.get("foo0")).booleanValue(),false);
@@ -141,7 +141,7 @@ public class HashMapTest {
             assertEquals(((String)c.get("foo1")),"\0001\0002fooString");
             assertEquals(((String)c.get("foo4")),"");
             assertEquals(((Integer)c.get("foo2")).intValue(),2);
-            
+
         } catch (ClassCastException e) {
             assertTrue(false);
         }
@@ -157,7 +157,7 @@ public class HashMapTest {
         h.put("foo4", "");
         HashMap<Object, Object> a = new Base64PutHashMap();
         a.putAll(h);
-        
+
         // Write to XML
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         XMLEncoder encoder = new XMLEncoder(baos);
@@ -169,7 +169,7 @@ public class HashMapTest {
         try {
             SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(data.getBytes("UTF8")));
             HashMap<?, ?> b = (HashMap<?, ?>) decoder.readObject();
-            decoder.close();    
+            decoder.close();
             @SuppressWarnings("unchecked")
             HashMap<Object, Object> c = new Base64GetHashMap(b);
             assertEquals(((Boolean)c.get("foo0")).booleanValue(),false);
@@ -177,7 +177,7 @@ public class HashMapTest {
             assertEquals(((String)c.get("foo4")),"");
             assertEquals(((String)c.get("foo1")),"fooString");
             assertEquals(((Integer)c.get("foo2")).intValue(),2);
-            
+
         } catch (ClassCastException e) {
             assertTrue(false);
         }

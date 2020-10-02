@@ -16,15 +16,15 @@ import java.io.Serializable;
 
 /**
  * POJO for a set of radio buttons in a Dynamic UI Property
- * 
+ *
  * @version $Id: RadioButton.java 34324 2020-01-17 12:22:39Z henriks $
  *
  */
 public class RadioButton implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
     private String label;
-    
+
     public RadioButton(final String label) {
         this.label = label;
     }
@@ -44,7 +44,7 @@ public class RadioButton implements Serializable {
         return label;
     }
 
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;

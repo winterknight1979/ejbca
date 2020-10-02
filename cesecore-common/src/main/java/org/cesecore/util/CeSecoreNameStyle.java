@@ -58,10 +58,10 @@ public class CeSecoreNameStyle extends BCStyle {
     public static final ASN1ObjectIdentifier ORGANIZATION_IDENTIFIER = new ASN1ObjectIdentifier("2.5.4.97");
 
     /**
-     * 
+     *
      */
     public static final ASN1ObjectIdentifier DESCRIPTION = new ASN1ObjectIdentifier("2.5.4.13");
-    
+
     /**
      * default look up table translating OID values into their common symbols following
      * the convention in RFC 2253 with a few extras

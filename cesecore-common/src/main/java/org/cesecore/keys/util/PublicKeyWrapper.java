@@ -23,8 +23,8 @@ import java.security.spec.X509EncodedKeySpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * Wrapper class for serializing PublicKey objects. 
- * 
+ * Wrapper class for serializing PublicKey objects.
+ *
  * @version $Id: PublicKeyWrapper.java 22566 2016-01-13 08:49:18Z mikekushner $
  *
  */
@@ -42,9 +42,9 @@ public class PublicKeyWrapper implements Serializable {
     }
 
     /**
-     * 
+     *
      * @return the decoded PublicKey object wrapped in this class.
-     * 
+     *
      */
     public PublicKey getPublicKey() {
         if (publicKey == null) {

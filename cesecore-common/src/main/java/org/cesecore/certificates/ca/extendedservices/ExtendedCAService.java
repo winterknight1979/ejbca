@@ -24,7 +24,7 @@ import org.cesecore.keys.token.CryptoToken;
 
 /**
  * ExtendedCAService base class. An implementing class MUST have a constructor taking a ExtendedCAServiceInfo as argument.
- * 
+ *
  * @version $Id: ExtendedCAService.java 21842 2015-09-12 20:54:36Z aveen4711 $
  */
 public abstract class ExtendedCAService extends UpgradeableDataHashMap implements java.io.Serializable {
@@ -43,7 +43,7 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap implement
     // Overriding classes needs this constructor
     public ExtendedCAService(ExtendedCAServiceInfo info) {
     }
-    
+
     // Overriding classes needs this constructor
     public ExtendedCAService(HashMap<?, ?> data) {
     }
@@ -59,7 +59,7 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap implement
     /**
      * Method called by the CA before using the service with #extendedService. Used to (temporarily) give the service access to CA keys, certificates
      * etc that might be needed for the service to run perform its service.
-     * 
+     *
      * @param ca
      *            the CA from which the service can use private keys to generate service certificates etc.
      */
@@ -75,7 +75,7 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap implement
      * Initializes the ExtendedCAService the first time it is created. Only used when the CA service is created the first time, usually this is when
      * the CA is created, or the service of the CA is renewed.
      * @param cryptoToken token
-     * 
+     *
      * @param ca the CA from which the service can use private keys to generate service certificates etc. This must not be stored.
      * @param cceConfig containing a list of available custom certificate extensions
      * @throws Exception on error
@@ -85,11 +85,11 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap implement
     /**
      * Update the ExtendedCAService data
      * @param cryptoToken token
-     * 
+     *
      * @param info
      *            contains information used to activate the service.
      * @param ca CA
-     * @param cceConfig config 
+     * @param cceConfig config
      */
     public abstract void update(final CryptoToken cryptoToken, ExtendedCAServiceInfo info, CA ca, AvailableCustomCertificateExtensionsConfiguration cceConfig);
 

@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions;
 
 import java.io.IOException;
@@ -29,36 +29,36 @@ import org.cesecore.configuration.ConfigurationBase;
 
 /**
  * This file handles configuration of available Custom Certificate Extensions
- * 
+ *
  * @version $Id: AvailableCustomCertificateExtensionsConfiguration.java 30583 2018-11-22 17:32:11Z samuellb $
  */
 public class AvailableCustomCertificateExtensionsConfiguration extends ConfigurationBase implements Serializable{
 
     private static final long serialVersionUID = 7798273820046510706L;
     private static final Logger log = Logger.getLogger(AvailableCustomCertificateExtensionsConfiguration.class);
-    
+
     public static final String CONFIGURATION_ID = "AVAILABLE_CUSTOM_CERT_EXTENSIONS";
-    
+
     public AvailableCustomCertificateExtensionsConfiguration() {
         super();
         if(!isConfigurationInitialized()) {
             addAvailableCustomCertExtensionsFromFile();
         }
     }
-    
+
     public AvailableCustomCertificateExtensionsConfiguration(Serializable dataobj) {
         @SuppressWarnings("unchecked")
         LinkedHashMap<Object, Object> d = (LinkedHashMap<Object, Object>) dataobj;
         data = d;
     }
-    
+
     @Override
     public String getConfigurationId() {
         return CONFIGURATION_ID;
     }
-    
+
     /**
-     * @return true if there is at least one supported Custom Certificate Extension. False otherwize 
+     * @return true if there is at least one supported Custom Certificate Extension. False otherwize
      */
     public boolean isConfigurationInitialized() {
         return data.size() > 1;
@@ -67,16 +67,16 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
     public boolean isCustomCertExtensionSupported(int id) {
         return data.containsKey(id);
     }
-    
+
     public CustomCertificateExtension getCustomCertificateExtension(int id) {
         return (CustomCertificateExtension) data.get(id);
     }
-    
+
     public void addCustomCertExtension(CertificateExtension ce) {
         data.put(ce.getId(), ce);
     }
-    
-    public void addCustomCertExtension(int id, String oid, String displayName, String classPath, boolean critical, 
+
+    public void addCustomCertExtension(int id, String oid, String displayName, String classPath, boolean critical,
             final boolean required, Properties properties) throws CertificateExtentionConfigurationException {
         try {
             Class<?> implClass = Class.forName(classPath);
@@ -91,15 +91,15 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
             throw new CertificateExtentionConfigurationException("Cannot add custom certificate extension. " + e.getLocalizedMessage());
         } catch (InvocationTargetException e) {
             throw new CertificateExtentionConfigurationException("Cannot add custom certificate extension. " + e.getLocalizedMessage());
-		} catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             throw new CertificateExtentionConfigurationException("Cannot add custom certificate extension. " + e.getLocalizedMessage());
-		} 
+        }
     }
-    
+
     public void removeCustomCertExtension(int id) {
         data.remove(id);
     }
-    
+
     public List<CertificateExtension> getAllAvailableCustomCertificateExtensions() {
         List<CertificateExtension> ret = new ArrayList<CertificateExtension>();
         for(Entry<Object, Object> entry : data.entrySet()) {
@@ -111,9 +111,9 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
         }
         return ret;
     }
-    
+
     /**
-     * Returns a list of the available CertificateExtensions as Properties. Each property contains the extension OID 
+     * Returns a list of the available CertificateExtensions as Properties. Each property contains the extension OID
      * as its 'key' and the extension's label as its 'value'
      * @return Properties
      */
@@ -127,25 +127,25 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
         }
         return properties;
     }
-    
+
     /*
-     * Returns a new AvailableCustomCertificateExtensionsConfiguration object containing only extensions from the properties  
-     * file certextensions.properties 
-     * 
-     * This method is called only when upgrading CertificateProfile to EJBCA 6.4.0 where the CustomCertExtensions are 
-     * redefined to be referenced by their OIDs instead of IDs. 
-     * 
+     * Returns a new AvailableCustomCertificateExtensionsConfiguration object containing only extensions from the properties
+     * file certextensions.properties
+     *
+     * This method is called only when upgrading CertificateProfile to EJBCA 6.4.0 where the CustomCertExtensions are
+     * redefined to be referenced by their OIDs instead of IDs.
+     *
      * TODO Remove this method when support for EJBCA 6.4.0 is dropped.
      */
     @Deprecated
     public static AvailableCustomCertificateExtensionsConfiguration getAvailableCustomCertExtensionsFromFile() {
         return new AvailableCustomCertificateExtensionsConfiguration();
     }
-    
-    
+
+
     /*
      * Imports CustomCertExtensions from certextensions.properties into the database.
-     * 
+     *
      * TODO Remove this method when support for EJBCA 6.4.0 is dropped.
      */
     @Deprecated
@@ -155,7 +155,7 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
         if(is == null) {
             return;
         }
-        
+
         try{
             Properties props = new Properties();
             try {
@@ -163,7 +163,7 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
             } finally {
                 is.close();
             }
-            
+
             int count = 0;
             for(int i=1;i<255;i++){
                 if(props.get("id" + i +".oid")!=null){
@@ -184,14 +184,14 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
             log.error(e.getMessage(),e);
         }
     }
-    
+
     /**
      * Used for upgrading from old certextensions.properties files.
      * Package-internal to allow for testing.
      * @param id ID
      * @param propertiesInFile Properties
      * @return Certificate extension
-     * @throws CertificateExtentionConfigurationException on fail 
+     * @throws CertificateExtentionConfigurationException on fail
      */
     static CertificateExtension getCertificateExtensionFromFile(int id, Properties propertiesInFile) throws CertificateExtentionConfigurationException {
         String PROPERTY_ID           = "id";
@@ -201,7 +201,7 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
         String PROPERTY_USED         = ".used";
         String PROPERTY_TRANSLATABLE = ".translatable";
         String PROPERTY_CRITICAL     = ".critical";
-        
+
         try{
             String oid = StringUtils.trim(propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_OID));
             String classPath = StringUtils.trim(propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_CLASSPATH));
@@ -210,7 +210,7 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
             boolean used = propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_USED).trim().equalsIgnoreCase("TRUE");
             boolean translatable = propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_TRANSLATABLE).trim().equalsIgnoreCase("TRUE");
             boolean critical = propertiesInFile.getProperty(PROPERTY_ID + id + PROPERTY_CRITICAL).trim().equalsIgnoreCase("TRUE");
-            log.debug(id + ", " + used + ", " +oid + ", " +critical+ ", " +translatable +  ", " + displayName);   
+            log.debug(id + ", " + used + ", " +oid + ", " +critical+ ", " +translatable +  ", " + displayName);
             if(used){
                 if(oid != null && classPath != null && displayName != null){
                     Class<?> implClass = Class.forName(classPath);
@@ -226,29 +226,29 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
                     throw new CertificateExtentionConfigurationException("Certificate Extension " + Integer.valueOf(id) + " seems to be misconfigured in the certextensions.properties");
                 }
             }
-            
+
         }catch(Exception e){
             throw new CertificateExtentionConfigurationException("Certificate Extension " + Integer.valueOf(id) + " seems to be misconfigured in the certextensions.properties",e);
         }
         return null;
     }
-    
+
     private static Properties getExtensionProperties(int id, Properties propertiesInFile) {
         Properties extProps = new Properties();
         Iterator<Object> keyIter = propertiesInFile.keySet().iterator();
-        String matchString = "id" + id + ".property."; 
+        String matchString = "id" + id + ".property.";
         while(keyIter.hasNext()){
             String nextKey = (String) keyIter.next();
             if(nextKey.startsWith(matchString)){
                 if(nextKey.length() > matchString.length()){
-                  extProps.put(nextKey.substring(matchString.length()), propertiesInFile.get(nextKey));               
+                  extProps.put(nextKey.substring(matchString.length()), propertiesInFile.get(nextKey));
                 }
-            }           
+            }
         }
         return extProps;
     }
- 
-    
+
+
     @Override
     public void upgrade() { }
 

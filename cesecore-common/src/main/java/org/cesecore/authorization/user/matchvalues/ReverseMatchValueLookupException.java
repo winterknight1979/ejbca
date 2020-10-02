@@ -14,7 +14,7 @@ package org.cesecore.authorization.user.matchvalues;
 
 /**
  * Thrown if an error occurs during reverse lookup
- * 
+ *
  * @version $Id: ReverseMatchValueLookupException.java 17625 2013-09-20 07:12:06Z netmackan $
  *
  */

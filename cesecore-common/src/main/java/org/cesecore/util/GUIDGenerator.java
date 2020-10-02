@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 
 /**
  * Shamelessly ripped from generated XDoclet source, because I don't want to generate util classes.
- * 
+ *
  * @version $Id: GUIDGenerator.java 20325 2014-11-25 19:22:49Z samuellb $
  */
 public class GUIDGenerator {
@@ -35,7 +35,7 @@ public class GUIDGenerator {
      * A 32 byte GUID generator (Globally Unique ID). These artificial keys SHOULD <strong>NOT </strong> be seen by the user, not even touched by the
      * DBA but with very rare exceptions, just manipulated by the database and the programs.
      * NOTE: This guid is not cryptographically secure, and should not be used as such.
-     * 
+     *
      * Usage: Add an id field (type java.lang.String) to your EJB, and add setId(XXXUtil.generateGUID(this)); to the ejbCreate method.
      * @param o object
      * @return guid

@@ -338,7 +338,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
     /**
      * Sets the CA/B Forum requirements chapter 6.1.6 for RSA public keys.
      * @see <a href="https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf"> CA/B-Forum Baseline Requirements </a>
-    
+
      */
     private void setCertProfileSettings() {
         setBitLengths(new ArrayList<String>());
@@ -357,7 +357,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
     /**
      * Sets the CA/B Forum requirements chapter 6.1.6 for RSA public keys.
      * @see <a href="https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf"> CA/B-Forum Baseline Requirements </a>
-     * 
+     *
      */
     public void setCABForumBaseLineRequirements142Settings() {
         // Only apply most important conditions (sequence is Root-CA, Sub-CA, User-Certificate)!

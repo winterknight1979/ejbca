@@ -20,22 +20,22 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
  * Meta data definition and ServiceLoader marker for {@link org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken}.
- * 
+ *
  * @version $Id: AlwaysAllowLocalAuthenticationTokenMetaData.java 25615 2017-03-24 18:44:19Z samuellb $
  */
 public class AlwaysAllowLocalAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
 
     private static String TOKEN_TYPE = "AlwaysAllowLocalAuthenticationToken";
-    
+
     private static enum InternalMatchValue implements AccessMatchValue {
         INSTANCE(0), DEFAULT(Integer.MAX_VALUE);
 
         private final int numericValue;
-        
+
         private InternalMatchValue(final int numericValue) {
             this.numericValue = numericValue;
         }
-        
+
         @Override
         public int getNumericValue() {
             return numericValue;
@@ -60,13 +60,13 @@ public class AlwaysAllowLocalAuthenticationTokenMetaData extends AuthenticationT
         public List<AccessMatchType> getAvailableAccessMatchTypes() {
             return Arrays.asList();
         }
-        
+
         @Override
         public String normalizeMatchValue(final String value) {
             return null; // does not have a value
         }
     }
-    
+
     public AlwaysAllowLocalAuthenticationTokenMetaData() {
         super(TOKEN_TYPE, Arrays.asList(InternalMatchValue.values()), false);
     }

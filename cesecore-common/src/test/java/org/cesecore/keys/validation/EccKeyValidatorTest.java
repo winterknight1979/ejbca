@@ -13,7 +13,7 @@
 
 /**
  * Test class fot RSA key validator functional methods, see {@link RsaKeyValidator}.
- * 
+ *
  * @version $Id: EccKeyValidatorTest.java 27832 2018-01-10 14:34:42Z mikekushner $
  */
 package org.cesecore.keys.validation;
@@ -35,7 +35,7 @@ import org.junit.Test;
 
 /**
  * Tests ECC key validator functions.
- * 
+ *
  * @version $Id: EccKeyValidatorTest.java 27832 2018-01-10 14:34:42Z mikekushner $
  */
 public class EccKeyValidatorTest {
@@ -85,7 +85,7 @@ public class EccKeyValidatorTest {
         // TODO: create some failed EC key to test validation on
         log.trace("<testPublicKeyValidation()");
     }
-    
+
     @Test
     public void testPublicKeyValidationWithAlgorithmEC() throws Exception {
         log.trace(">testPublicKeyValidation()");

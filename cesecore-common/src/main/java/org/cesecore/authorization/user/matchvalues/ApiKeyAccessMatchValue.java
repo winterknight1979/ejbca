@@ -22,7 +22,7 @@ package org.cesecore.authorization.user.matchvalues;
 //import org.cesecore.authorization.user.AccessMatchType;
 //
 ///**
-// * 
+// *
 // * @version $Id: ApiKeyAccessMatchValue.java 29044 2018-05-29 07:20:54Z henriks $
 // *
 // */
@@ -30,11 +30,11 @@ package org.cesecore.authorization.user.matchvalues;
 //    API_KEY(0);
 //
 //    private final int numericValue;
-//    
+//
 //    private ApiKeyAccessMatchValue(int numericValue) {
 //        this.numericValue = numericValue;
 //    }
-//    
+//
 //    @Override
 //    public int getNumericValue() {
 //        return numericValue;

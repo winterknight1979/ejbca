@@ -144,7 +144,7 @@ public final class ConfigurationHolder {
         }
         return config;
     }
-    
+
     private static synchronized void addConfiguration(final PropertiesConfiguration pc) {
         // The try/catch is needed with commons-configuration 1.10 (but not with 1.06)
 //        try {
@@ -208,7 +208,7 @@ public final class ConfigurationHolder {
      * @return the configuration as a regular Properties object
      */
     @SuppressWarnings("unchecked")
-	public static Properties getAsProperties() {
+    public static Properties getAsProperties() {
         final Properties properties = new Properties();
         final Iterator<String> i = instance().getKeys();
         while (i.hasNext()) {
@@ -264,7 +264,7 @@ public final class ConfigurationHolder {
         }
         return ret;
     }
-    
+
     public static String getDefaultValue(final String property) {
         instance();
         return defaultValues.getString(property);
@@ -325,7 +325,7 @@ public final class ConfigurationHolder {
      * @return list of properties
      */
     @SuppressWarnings("unchecked")
-	public static List<String> getPrefixedPropertyNames(String prefix) {
+    public static List<String> getPrefixedPropertyNames(String prefix) {
         Set<String> algs = new HashSet<String>();
         // Just get the keys from configuration that starts with prefix, we assume below that it has a . following the prefix
         Iterator<String> iterator = config.getKeys(prefix);

@@ -39,7 +39,7 @@ public class P11Slot {
 
     /** Used for library key map when a sun configuration file is used to specify a token (slot). In this case only one lib could be used. */
     private static final String ONLY_ONE = "onlyOne";
-    
+
     private final static Map<String,P11Slot> slotMap = new HashMap<String, P11Slot>();
     private final Map<Integer, P11SlotUser> p11SlotUserMap = new HashMap<Integer, P11SlotUser>();
     private final Pkcs11SlotLabelType slotLabelType;
@@ -48,7 +48,7 @@ public class P11Slot {
     private final String sunP11ConfigFileName;
     private Provider provider;
     private final String libraryFileName;
-    
+
     private P11Slot(final Pkcs11SlotLabelType slotLabelType, final String slotLabel, final String sharedLibrary, final String attributesFile,
             final String friendlyName, boolean addProvider) throws NoSuchSlotException {
         this.slotLabelType = slotLabelType;
@@ -77,21 +77,21 @@ public class P11Slot {
     }
 
     /** Add a PKCS11 Crypto Provider to Java Security.addProvider, if it is not already added, and add==true.
-     * The add parameter can seem redundant, but it is here in order to centralize control of what is added as a 
+     * The add parameter can seem redundant, but it is here in order to centralize control of what is added as a
      * Crypto Provider, instead if distributing it to multiple places in the code.
      * @param add default value should be true, set to false to create a P11 slot without actually adding the P11 provider to Java Security
      */
     private void addProviderIfNotExisting(boolean add) {
         // If we already have a provider installed, it means there is another Crypto Token already using this slot
         // It can potentially be a Database Integrity Protection Crypto Token
-        // We can't remove the already existing provider as that will cause the existing one to stop working. 
-        // A classic error message when that happens is: 
+        // We can't remove the already existing provider as that will cause the existing one to stop working.
+        // A classic error message when that happens is:
         // java.security.InvalidKeyException: Private key must be instance of RSAPrivate(Crt)Key or have PKCS#8 encoding
         // Some HSMs (like Thales) only have one slot so in many cases it is a must to be able to use the same slot for
         // database integrity protection and a Crypto Token for CAs
         if (Security.getProvider(provider.getName()) != null) {
             // Because of the above, and how Sun P11 Provider works, we can re-use the existing provider
-            // Of course, of this provider is not working (disconnected to HSM was disconnected or similar), this 
+            // Of course, of this provider is not working (disconnected to HSM was disconnected or similar), this
             // P11Slot will also just not work, while a remove and re-add might have caused it to start working
             provider = Security.getProvider(provider.getName());
             log.info("Found an existing PKCS#11 Provider while activating Crypto Token, re-using that instead of a new one: "+provider);
@@ -166,7 +166,7 @@ public class P11Slot {
 
     /**
      * Get P11 slot instance. Only one instance (provider) will ever be created for each slot regardless of how many times this method is called.
-     * @param slotLabel the labeling of the slot, regardless of label type. 
+     * @param slotLabel the labeling of the slot, regardless of label type.
      * @param sharedLibrary file path of shared
      * @param slotLabelType The type of the label. May be a slot number [0...9]*, slot index i[0...9]* or a label.
      * @param attributesFile Attributes file. Optional. Set to null if not used
@@ -177,8 +177,8 @@ public class P11Slot {
      * @throws CryptoTokenOfflineException if token can not be activated
      * @throws NoSuchSlotException if no slot with the label defined by slotLabel could be found
      */
-    public static P11Slot getInstance(final String slotLabel, final String sharedLibrary, final Pkcs11SlotLabelType slotLabelType, 
-            final String attributesFile, final P11SlotUser token, final int id, boolean addProvider) throws CryptoTokenOfflineException, NoSuchSlotException {       
+    public static P11Slot getInstance(final String slotLabel, final String sharedLibrary, final Pkcs11SlotLabelType slotLabelType,
+            final String attributesFile, final P11SlotUser token, final int id, boolean addProvider) throws CryptoTokenOfflineException, NoSuchSlotException {
         final String friendlyName = slotLabel + sharedLibrary + slotLabelType.toString();
         return getInstance(friendlyName, slotLabel, sharedLibrary, slotLabelType, attributesFile, token, id, addProvider);
     }
@@ -186,9 +186,9 @@ public class P11Slot {
     /**
      * Get P11 slot instance. Only one instance (provider) will ever be created for each slot regardless of how many times this method is called.
      * @param friendlyName name to identify the instance
-     * @param slotLabel the labeling of the slot, regardless of label type. 
+     * @param slotLabel the labeling of the slot, regardless of label type.
      * @param sharedLibrary file path of shared
-     * @param slotLabelType The type of the label. May be a slot number [0...9]*, slot index i[0...9]* or a label. 
+     * @param slotLabelType The type of the label. May be a slot number [0...9]*, slot index i[0...9]* or a label.
      * @param attributesFile Attributes file. Optional. Set to null if not used
      * @param p11SlotUser Token that should use this object
      * @param id unique ID of the user of the token. For EJBCA this is the caid. For the OCSP responder this is fixed since then there is only one user.
@@ -197,7 +197,7 @@ public class P11Slot {
      * @throws CryptoTokenOfflineException if token can not be activated
      * @throws NoSuchSlotException if no slot by the given label could be found
      */
-    public static P11Slot getInstance(final String friendlyName, final String slotLabel, final String sharedLibrary, final Pkcs11SlotLabelType slotLabelType, 
+    public static P11Slot getInstance(final String friendlyName, final String slotLabel, final String sharedLibrary, final Pkcs11SlotLabelType slotLabelType,
             final String attributesFile, final P11SlotUser p11SlotUser, final int id, boolean addProvider) throws NoSuchSlotException, CryptoTokenOfflineException {
         if (log.isDebugEnabled()) {
             log.debug("P11Slot.getInstance(): "+String.valueOf(slotLabelType)+"'"+slotLabel+"', '"+sharedLibrary+"', "+", '"+attributesFile+"', "+id);

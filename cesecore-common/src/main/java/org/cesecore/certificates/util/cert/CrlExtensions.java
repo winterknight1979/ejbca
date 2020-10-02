@@ -45,44 +45,44 @@ public class CrlExtensions {
 
     /** Returns the CRL number if it exists as a CRL extension
      * @param crl CRL
-     * 
+     *
      * @return the CRLnumber, or 0 if no CRL number extension was found or an error reading it occurred. Never return null.
      */
     public static BigInteger getCrlNumber(X509CRL crl) {
-    	BigInteger ret = BigInteger.valueOf(0);
+        BigInteger ret = BigInteger.valueOf(0);
         try {
-			ASN1Primitive obj = CrlExtensions.getExtensionValue(crl, Extension.cRLNumber.getId());
-			if (obj != null) {
-				CRLNumber crlnum = CRLNumber.getInstance(obj);
-				if (crlnum != null) {
-					ret = crlnum.getCRLNumber();
-				}
-			}
-		} catch (IOException e) {
-			log.error("Error reading CRL number extension: ", e);
-		}
-		return ret;
+            ASN1Primitive obj = CrlExtensions.getExtensionValue(crl, Extension.cRLNumber.getId());
+            if (obj != null) {
+                CRLNumber crlnum = CRLNumber.getInstance(obj);
+                if (crlnum != null) {
+                    ret = crlnum.getCRLNumber();
+                }
+            }
+        } catch (IOException e) {
+            log.error("Error reading CRL number extension: ", e);
+        }
+        return ret;
     }
 
     /** Returns the delta crl indicator number if it exists as a CRL extension
      * @param crl CRL
-     * 
+     *
      * @return the BaseCRLNumber, or -1 if no delta crl indicator extension was found or an error reading it occurred. Never return null.
      */
     public static BigInteger getDeltaCRLIndicator(X509CRL crl) {
-    	BigInteger ret = BigInteger.valueOf(-1);
+        BigInteger ret = BigInteger.valueOf(-1);
         try {
-			ASN1Primitive obj = CrlExtensions.getExtensionValue(crl, Extension.deltaCRLIndicator.getId());
-			if (obj != null) {
-			    CRLNumber crlnum = CRLNumber.getInstance(obj);
-	            if (crlnum != null) {
-	                ret = crlnum.getCRLNumber();            	
-	            }				
-			}
-		} catch (IOException e) {
-			log.error("Error reading CRL number extension: ", e);
-		}
-		return ret;
+            ASN1Primitive obj = CrlExtensions.getExtensionValue(crl, Extension.deltaCRLIndicator.getId());
+            if (obj != null) {
+                CRLNumber crlnum = CRLNumber.getInstance(obj);
+                if (crlnum != null) {
+                    ret = crlnum.getCRLNumber();
+                }
+            }
+        } catch (IOException e) {
+            log.error("Error reading CRL number extension: ", e);
+        }
+        return ret;
     }
 
     /**
@@ -94,9 +94,9 @@ public class CrlExtensions {
      */
     protected static ASN1Primitive getExtensionValue(X509CRL crl, String oid)
       throws IOException {
-    	if (crl == null) {
-    		return null;
-    	}
+        if (crl == null) {
+            return null;
+        }
         byte[] bytes = crl.getExtensionValue(oid);
         if (bytes == null) {
             return null;
@@ -146,7 +146,7 @@ public class CrlExtensions {
         }
         return freshestCdpUrls;
     }
-    
+
     /** @param bytes bytes
      * @param clazz class
      * @param <T> type

@@ -37,12 +37,12 @@ import org.cesecore.certificates.ca.internal.SernoGeneratorRandom;
 import org.cesecore.certificates.util.DnComponents;
 
 /**
- * Helper class to handle operations for RFC4683 certificate extension Subject Identification method (SIM) for 
- * including a privacy-sensitive identifier in the subjectAltName extension of a certificate. The SIM is 
- * an optional feature that may be used by relying parties to determine whether the subject of a particular 
- * certificate is also the person corresponding to a particular sensitive identifier 
+ * Helper class to handle operations for RFC4683 certificate extension Subject Identification method (SIM) for
+ * including a privacy-sensitive identifier in the subjectAltName extension of a certificate. The SIM is
+ * an optional feature that may be used by relying parties to determine whether the subject of a particular
+ * certificate is also the person corresponding to a particular sensitive identifier
  * (@see <a href="https://tools.ietf.org/html/rfc4683">RFC4683</a>.)
- * 
+ *
  * @version $Id: RFC4683Tools.java 31882 2019-03-18 13:50:56Z anatom $
  */
 public final class RFC4683Tools {
@@ -80,10 +80,10 @@ public final class RFC4683Tools {
         return result;
     }
 
-    /** This method reads the internal storage format for SAN. 
-     * If the SAN contains SIM parameters (list of 4 tokens, separated by '::'), the parameters are replaced by 
+    /** This method reads the internal storage format for SAN.
+     * If the SAN contains SIM parameters (list of 4 tokens, separated by '::'), the parameters are replaced by
      * the generated SIM strings (list of 3 tokens, separated by '::') {@link RFC4683Tools#generateInternalSimString(String, String, String, String)}
-     * 
+     *
      * @param san the SAN string in internal storage format with SIM as user parameters.
      * @return SAN string in internal storage format with generated SIM strings.
      * @throws IllegalArgumentException on illegal request
@@ -116,14 +116,14 @@ public final class RFC4683Tools {
     }
 
     /**
-     * Creates a '::' separated string of hashAlogrithmOidString, Authority Random (R) and Privacy-Enhanced Protected Subject Information (PEPSI). 
-     * Note: RFC4683 Subject Identification Method (SIM = R || PEPSI), and PEPSI = H(H( P || R || SIItype || SII)). The resulting String is used 
+     * Creates a '::' separated string of hashAlogrithmOidString, Authority Random (R) and Privacy-Enhanced Protected Subject Information (PEPSI).
+     * Note: RFC4683 Subject Identification Method (SIM = R || PEPSI), and PEPSI = H(H( P || R || SIItype || SII)). The resulting String is used
      * for internal storage.
-     * 
+     *
      * Where R is the Authority Random hash and PEPSI the Privacy-Enhanced Protected Subject Information:
      * PEPSI = H(H( P || R || SIItype || SII))
      * Where P is the user chosen password, SSI the Sensitive Identification Information and SIIType its type.
-     * 
+     *
      * @param hashAlogrithmOidString i.e '1.3.14.3.2.26' for SHA-1
      * @param userChosenPassword (P) FIPS 112 and FIPS 180-1 compliant password up to 28 characters (see https://tools.ietf.org/html/rfc4683#section-4.2)
      * @param ssiType OID string of an SSI type (see https://tools.ietf.org/html/rfc4683#section-4.1).
@@ -200,7 +200,7 @@ public final class RFC4683Tools {
         final ASN1EncodableVector otherName = new ASN1EncodableVector();
         otherName.add(new ASN1ObjectIdentifier(SUBJECTIDENTIFICATIONMETHOD_OBJECTID));
         final ASN1EncodableVector simVector = new ASN1EncodableVector();
-        simVector.add(new AlgorithmIdentifier(new ASN1ObjectIdentifier(hashAlgorithmIdentifier))); // new DERTaggedObject(true, 0, 
+        simVector.add(new AlgorithmIdentifier(new ASN1ObjectIdentifier(hashAlgorithmIdentifier))); // new DERTaggedObject(true, 0,
         simVector.add(new DEROctetString((authorityRandom).getBytes()));
         simVector.add(new DEROctetString((pepsi).getBytes()));
         otherName.add(new DERTaggedObject(true, 0, new DERSequence(simVector)));
@@ -213,7 +213,7 @@ public final class RFC4683Tools {
 
     /**
      * Helper method for getting the SIM name from SAN ASN.1 sequence.
-     * 
+     *
      * @param sequence the OtherName sequence
      * @return the SIM string by the otherName.
      */
@@ -252,7 +252,7 @@ public final class RFC4683Tools {
     }
 
     /**
-     * The method generates the HEX string by digestResult. 
+     * The method generates the HEX string by digestResult.
      * @param digestResult the resulting byte[] of the digester.
      * @return the HEX string.
      */

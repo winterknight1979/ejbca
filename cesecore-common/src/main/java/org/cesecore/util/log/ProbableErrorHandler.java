@@ -24,7 +24,7 @@ import org.apache.log4j.spi.LoggingEvent;
 /**
  * The purpose of this errorhandler is that we can still respond with InternalServer error if and error occurs, but repeated errors will only be
  * logged once.
- * 
+ *
  * @version $Id: ProbableErrorHandler.java 17647 2013-09-20 14:02:02Z netmackan $
  */
 
@@ -37,7 +37,7 @@ public class ProbableErrorHandler implements ErrorHandler {
     boolean firstTime = true;
 
     static PrintStream output = System.err;
-    
+
     @Override
     public void error(String arg0) {
         if (firstTime) {
@@ -65,7 +65,7 @@ public class ProbableErrorHandler implements ErrorHandler {
 
     /**
      * Returns true if an error writing to the log files have happened since 'date'.
-     * 
+     *
      * @param date see if an error happened later than this date
      * @return true if an error has happened, false if logging works fine.
      */
@@ -87,7 +87,7 @@ public class ProbableErrorHandler implements ErrorHandler {
     @Override
     public void activateOptions() {
     }
-    
+
     /** Does not do anything. */
     @Override
     public void setAppender(Appender appender) {

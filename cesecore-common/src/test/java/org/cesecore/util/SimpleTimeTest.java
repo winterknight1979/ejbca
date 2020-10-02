@@ -19,13 +19,13 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-/** 
+/**
  * Test of the SimpleTime helper class.
- *  
+ *
  * @version $Id: SimpleTimeTest.java 24748 2016-11-16 08:21:27Z samuellb $
  */
 public class SimpleTimeTest {
-    
+
     /**
      * Test parsing without default value.
      * @throws Exception fail
@@ -58,7 +58,7 @@ public class SimpleTimeTest {
         simpeTimeHelper(" 1d2h3m4s5ms ", null, false, 93784005, 0, 0, 1, 2, 3, 4, 5);
         simpeTimeHelper("1d 2h 3m 4s 5ms", null, false, 93784005, 0, 0, 1, 2, 3, 4, 5);
     }
-    
+
     /**
      * Test parsing with default value.
      * @throws Exception fail
@@ -90,7 +90,7 @@ public class SimpleTimeTest {
         simpeTimeHelper("", " 1d2h3m4s5ms ", false, 93784005, 0, 0, 1, 2, 3, 4, 5);
         simpeTimeHelper("", "1d 2h 3m 4s 5ms", false, 93784005, 0, 0, 1, 2, 3, 4, 5);
     }
-    
+
     /**
      * Test formatting.
      * @throws Exception fail
@@ -105,7 +105,7 @@ public class SimpleTimeTest {
         assertEquals("10d", SimpleTime.getInstance(864000000L).toString());
         assertEquals("1d2h3m4s5ms", SimpleTime.getInstance(93784005L).toString().replaceAll("\\s", ""));
     }
-    
+
     /**
      * Tests the constructor that takes an argument of type long
      * @throws Exception fail
@@ -114,29 +114,29 @@ public class SimpleTimeTest {
     public void test04ConstructorLong() throws Exception {
         assertEquals(4711, SimpleTime.getInstance(4711).getLong());
     }
-    
+
     /**
      * Helper for tests that we expect to fail.
      * @param time time
-     * @param defaultTime defaulr 
+     * @param defaultTime defaulr
      */
     private void failHelper(String time, String defaultTime) {
         simpeTimeHelper(time, defaultTime, true, 0, 0, 0, 0, 0, 0, 0, 0);
     }
-    
+
     /**
      * Get a new SimpleTime object and verify that it was created correctly.
      * @param time time
-     * @param defaultTime default 
+     * @param defaultTime default
      * @param fail fail
      * @param longTime long
      * @param years Y
      * @param months M
      * @param days D
      * @param hours h
-     * @param minutes m 
+     * @param minutes m
      * @param seconds s
-     * @param milliSeconds ms 
+     * @param milliSeconds ms
      */
     private void simpeTimeHelper(String time, String defaultTime, boolean fail, long longTime, long years, long months, long days, long hours, long minutes, long seconds, long milliSeconds) {
         SimpleTime simpleTime;

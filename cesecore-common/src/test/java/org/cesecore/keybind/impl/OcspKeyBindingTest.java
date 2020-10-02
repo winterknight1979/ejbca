@@ -54,7 +54,7 @@ import org.junit.runner.Description;
 
 /**
  * Test of OcspKeyBinding implementation.
- * 
+ *
  * @version $Id: OcspKeyBindingTest.java 30189 2018-10-25 13:51:44Z samuellb $
  */
 public class OcspKeyBindingTest {
@@ -133,10 +133,10 @@ public class OcspKeyBindingTest {
 
     /** @param keyUsage usage
      * @param extensions ext
-     * @return A self-signed certificate. 
+     * @return A self-signed certificate.
      * @throws InvalidAlgorithmParameterException fail
      * @throws InvalidKeyException fail
-     * @throws NoSuchAlgorithmException fail 
+     * @throws NoSuchAlgorithmException fail
      * @throws SignatureException fail
      * @throws IllegalStateException fail
      * @throws NoSuchProviderException fail
@@ -150,14 +150,14 @@ public class OcspKeyBindingTest {
                 keyUsage, null, null, BouncyCastleProvider.PROVIDER_NAME, true, extensions);
     }
 
-    /** @return An extended key usage extension with id_kp_OCSPSigning set. 
+    /** @return An extended key usage extension with id_kp_OCSPSigning set.
      * @throws IOException fail*/
     private static Extension getExtendedKeyUsageExtension() throws IOException {
         final ASN1Encodable usage = KeyPurposeId.getInstance(KeyPurposeId.id_kp_OCSPSigning);
         final ASN1Sequence seq = ASN1Sequence.getInstance(new DERSequence(usage));
         return new Extension(Extension.extendedKeyUsage, true, seq.getEncoded());
     }
-    
+
     @Test
     public void testProperties() {
         final OcspKeyBinding keybind = new OcspKeyBinding();

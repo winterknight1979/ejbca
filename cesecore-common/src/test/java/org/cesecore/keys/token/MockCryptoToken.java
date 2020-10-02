@@ -24,15 +24,15 @@ import java.security.spec.AlgorithmParameterSpec;
 import java.util.Properties;
 
 /** This class is used only for testing.
- * 
+ *
  * @version $Id: MockCryptoToken.java 22132 2015-11-02 13:52:46Z mikekushner $
  */
 public class MockCryptoToken extends BaseCryptoToken {
 
     private static final long serialVersionUID = -6136504057204777472L;
-    
+
     private int id;
-   
+
 
     @Override
     public void init(Properties properties, byte[] data, int id) throws Exception {
@@ -44,30 +44,30 @@ public class MockCryptoToken extends BaseCryptoToken {
     public int getId() {
         return this.id;
     }
-    
+
     @Override
     public Properties getProperties(){
         return new Properties();
     }
-   
+
     @Override
     public PrivateKey getPrivateKey(String alias){
-      return null;        
+      return null;
     }
 
     @Override
-    public PublicKey getPublicKey(String alias){    
-      return null;        
+    public PublicKey getPublicKey(String alias){
+      return null;
     }
 
     @Override
-    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {     
+    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
     }
 
     @Override
     public void generateKeyPair( final String keySpec, final String alias) throws InvalidAlgorithmParameterException {
     }
-    
+
     @Override
     public void generateKeyPair( final AlgorithmParameterSpec spec, final String alias) throws InvalidAlgorithmParameterException, CertificateException, IOException, CryptoTokenOfflineException {
     }
@@ -78,7 +78,7 @@ public class MockCryptoToken extends BaseCryptoToken {
 
     @Override
     public void activate(char[] authenticationcode) {
-        // Do Nothing       
+        // Do Nothing
     }
 
     @Override

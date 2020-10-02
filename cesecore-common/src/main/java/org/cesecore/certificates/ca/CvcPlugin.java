@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import java.security.PublicKey;
@@ -29,16 +29,16 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 
 
 /**
- * CvcPlugin is an interface for CVC CA implementation. There can be different types of CVCCAs.  
+ * CvcPlugin is an interface for CVC CA implementation. There can be different types of CVCCAs.
  *
  * @version $Id: CvcPlugin.java 27346 2017-11-28 16:14:30Z samuellb $
  */
 public interface CvcPlugin {
 
-    /** @return A string representing the type of CVC CA this is */ 
+    /** @return A string representing the type of CVC CA this is */
     String getCvcType();
-    
-    /** 
+
+    /**
      * @param cryptoToken Token
      * @param attributes Attrs
      * @param signAlg Algorithm
@@ -47,35 +47,35 @@ public interface CvcPlugin {
      * @param certificateProfile Profile
      * @param cceConfig Config
      * @return Request
-     * @throws CryptoTokenOfflineException if offline 
+     * @throws CryptoTokenOfflineException if offline
      * @throws CertificateExtensionException if certificate has invalid extensions
-     * @see org.cesecore.certificates.ca.CA#createRequest(CryptoToken, Collection, String, Certificate, int, CertificateProfile, AvailableCustomCertificateExtensionsConfiguration) 
+     * @see org.cesecore.certificates.ca.CA#createRequest(CryptoToken, Collection, String, Certificate, int, CertificateProfile, AvailableCustomCertificateExtensionsConfiguration)
      */
     byte[] createRequest(CryptoToken cryptoToken, Collection<ASN1Encodable> attributes, String signAlg, Certificate cacert, int signatureKeyPurpose,
             CertificateProfile certificateProfile, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws CryptoTokenOfflineException, CertificateExtensionException;
 
-    /** 
+    /**
      * @param cryptoToken Token
      * @param request Request
      * @return Response
-     * @throws CryptoTokenOfflineException if offline 
-     * @see org.cesecore.certificates.ca.CA#createAuthCertSignRequest(CryptoToken, byte[]) 
+     * @throws CryptoTokenOfflineException if offline
+     * @see org.cesecore.certificates.ca.CA#createAuthCertSignRequest(CryptoToken, byte[])
      */
     byte[] createAuthCertSignRequest(CryptoToken cryptoToken, byte[] request) throws CryptoTokenOfflineException;
-    
-    /** 
+
+    /**
      * @param cryptoToken Token
-     * @param createLinkCertificate bool 
+     * @param createLinkCertificate bool
      * @param certProfile Profile
      * @param cceConfig Config
      * @param oldCaCert Old certificate
      * @throws CryptoTokenOfflineException if offline
-     * @see org.cesecore.certificates.ca.CA#createOrRemoveLinkCertificate(CryptoToken, boolean, CertificateProfile, AvailableCustomCertificateExtensionsConfiguration, Certificate) 
+     * @see org.cesecore.certificates.ca.CA#createOrRemoveLinkCertificate(CryptoToken, boolean, CertificateProfile, AvailableCustomCertificateExtensionsConfiguration, Certificate)
      */
-    void createOrRemoveLinkCertificate(final CryptoToken cryptoToken, final boolean createLinkCertificate, final CertificateProfile certProfile, 
-            AvailableCustomCertificateExtensionsConfiguration cceConfig, Certificate oldCaCert) throws CryptoTokenOfflineException;   
+    void createOrRemoveLinkCertificate(final CryptoToken cryptoToken, final boolean createLinkCertificate, final CertificateProfile certProfile,
+            AvailableCustomCertificateExtensionsConfiguration cceConfig, Certificate oldCaCert) throws CryptoTokenOfflineException;
 
-    /** 
+    /**
      * @param cryptoToken Token
      * @param subject Subject
      * @param request Request
@@ -89,16 +89,16 @@ public interface CvcPlugin {
      * @param cceConfig config
      * @return certificate
      * @throws Exception on error
-     * @see org.cesecore.certificates.ca.CA#generateCertificate(CryptoToken, EndEntityInformation, RequestMessage, PublicKey, int, Date, Date, CertificateProfile, Extensions, String, CertificateGenerationParams, AvailableCustomCertificateExtensionsConfiguration) 
+     * @see org.cesecore.certificates.ca.CA#generateCertificate(CryptoToken, EndEntityInformation, RequestMessage, PublicKey, int, Date, Date, CertificateProfile, Extensions, String, CertificateGenerationParams, AvailableCustomCertificateExtensionsConfiguration)
      */
-    Certificate generateCertificate(CryptoToken cryptoToken, EndEntityInformation subject, 
+    Certificate generateCertificate(CryptoToken cryptoToken, EndEntityInformation subject,
             RequestMessage request,
-            PublicKey publicKey, 
-            int keyusage, 
+            PublicKey publicKey,
+            int keyusage,
             Date notBefore,
             Date notAfter,
             CertificateProfile certProfile,
             Extensions extensions,
-            String sequence, 
+            String sequence,
             AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception;
 }

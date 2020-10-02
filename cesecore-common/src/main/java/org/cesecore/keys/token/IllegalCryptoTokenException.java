@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
@@ -20,9 +20,9 @@ import org.cesecore.CesecoreException;
  * @version $Id: IllegalCryptoTokenException.java 18868 2014-05-02 06:12:20Z mikekushner $
  */
 public class IllegalCryptoTokenException extends CesecoreException {
-   
+
     private static final long serialVersionUID = 7059969615144222041L;
-  
+
     /**
      * Constructor used to create exception with an errormessage. Calls the same constructor in
      * baseclass <code>Exception</code>.

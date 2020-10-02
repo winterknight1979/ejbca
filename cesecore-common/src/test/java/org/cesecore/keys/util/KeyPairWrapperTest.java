@@ -33,7 +33,7 @@ public class KeyPairWrapperTest {
     public static void beforeClass() {
         CryptoProviderTools.installBCProviderIfNotAvailable();
     }
-        
+
     @Test
     public void testGetKeyPair() throws InvalidAlgorithmParameterException, InvalidKeySpecException {
         KeyPair testKeys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
@@ -41,5 +41,5 @@ public class KeyPairWrapperTest {
         assertEquals("Decoded public key was not identical to encoded.", testKeys.getPublic(), testWrapper.getKeyPair().getPublic());
         assertEquals("Decoded private key was not identical to encoded.", testKeys.getPrivate(), testWrapper.getKeyPair().getPrivate());
     }
-    
+
 }

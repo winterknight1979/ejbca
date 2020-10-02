@@ -23,7 +23,7 @@ import java.io.Serializable;
  *     System.out.println("Error verifying signature (popp) of request");
  * }
  * </pre>
- * 
+ *
  * @version $Id: ErrorCode.java 30470 2018-11-12 11:02:11Z samuellb $
  */
 public class ErrorCode implements Serializable {
@@ -73,12 +73,12 @@ public class ErrorCode implements Serializable {
     private static final String _CERT_PATH_INVALID ="CERT_PATH_INVALID"; // A certificate path was invalid/could not be constructed
     private static final String _CERT_COULD_NOT_BE_PARSED = "CERT_COULD_NOT_BE_PARSED"; // Certificates in a PEM or DER file could not be parsed.
     private static final String _CERTIFICATE_FOR_THIS_KEY_ALREADY_EXISTS_FOR_ANOTHER_USER="CERTIFICATE_FOR_THIS_KEY_ALREADY_EXISTS_FOR_ANOTHER_USER";
-	private static final String _CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER = "CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER";
-	private static final String _SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS = "SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS";
-	private static final String _FIELD_VALUE_NOT_VALID = "_FIELD_VALUE_NOT_VALID";
-	private static final String _REVOKE_BACKDATE_NOT_ALLOWED = "REVOKE_BACKDATE_NOT_ALLOWED";
-	private static final String _DATE_NOT_VALID = "DATE_NOT_VALID";
-	private static final String _CRYPTOTOKEN_NAME_IN_USE = "CRYPTOTOKEN_NAME_IN_USE"; // A CryptoToken with the name already exists
+    private static final String _CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER = "CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER";
+    private static final String _SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS = "SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS";
+    private static final String _FIELD_VALUE_NOT_VALID = "_FIELD_VALUE_NOT_VALID";
+    private static final String _REVOKE_BACKDATE_NOT_ALLOWED = "REVOKE_BACKDATE_NOT_ALLOWED";
+    private static final String _DATE_NOT_VALID = "DATE_NOT_VALID";
+    private static final String _CRYPTOTOKEN_NAME_IN_USE = "CRYPTOTOKEN_NAME_IN_USE"; // A CryptoToken with the name already exists
     private static final String _INTERNAL_KEY_BINDING_NAME_IN_USE = "INTERNAL_KEY_BINDING_NAME_IN_USE"; // An InternalKeyBinding with the name already exists
     private static final String _CERTIFICATE_IMPORT = "CERTIFICATE_IMPORT"; // Failure during import of a certificate
     private static final String _NAMECONSTRAINT_VIOLATION = "NAMECONSTRAINT_VIOLATION"; // End-entity does not satisfy name constraints of CA
@@ -91,7 +91,7 @@ public class ErrorCode implements Serializable {
     private static final String _CA_NAME_CHANGE_RENEWAL_ERROR = "CA_NAME_CHANGE_RENEWAL_ERROR"; // CA Name Change Renewal could not be completed
     private static final String _USER_DOESNT_FULFILL_END_ENTITY_PROFILE = "USER_DOESNT_FULFILL_END_ENTITY_PROFILE"; // User could not be added cause it doesn't fulfill end entity profile
     private static final String _CUSTOM_CERTIFICATE_EXTENSION_ERROR = "CUSTOM_CERTIFICATE_EXTENSION_ERROR";
-    private static final String _REFERENCES_TO_ITEM_EXIST = "REFERENCES_TO_ITEM_EXIST"; 
+    private static final String _REFERENCES_TO_ITEM_EXIST = "REFERENCES_TO_ITEM_EXIST";
 
     /** Default constructor. */
     private ErrorCode() {}
@@ -181,11 +181,11 @@ public class ErrorCode implements Serializable {
     public static final ErrorCode CERT_PATH_INVALID = new ErrorCode(_CERT_PATH_INVALID);
     public static final ErrorCode CERT_COULD_NOT_BE_PARSED = new ErrorCode(_CERT_COULD_NOT_BE_PARSED);
     public static final ErrorCode CERTIFICATE_FOR_THIS_KEY_ALLREADY_EXISTS_FOR_ANOTHER_USER = new ErrorCode(_CERTIFICATE_FOR_THIS_KEY_ALREADY_EXISTS_FOR_ANOTHER_USER);
-	public static final ErrorCode CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER = new ErrorCode(_CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER);
-	public static final ErrorCode SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS = new ErrorCode(_SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS);
-	public static final ErrorCode FIELD_VALUE_NOT_VALID = new ErrorCode(_FIELD_VALUE_NOT_VALID);
-	public static final ErrorCode REVOKE_BACKDATE_NOT_ALLOWED = new ErrorCode(_REVOKE_BACKDATE_NOT_ALLOWED);
-	public static final ErrorCode DATE_NOT_VALID = new ErrorCode(_DATE_NOT_VALID);
+    public static final ErrorCode CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER = new ErrorCode(_CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER);
+    public static final ErrorCode SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS = new ErrorCode(_SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS);
+    public static final ErrorCode FIELD_VALUE_NOT_VALID = new ErrorCode(_FIELD_VALUE_NOT_VALID);
+    public static final ErrorCode REVOKE_BACKDATE_NOT_ALLOWED = new ErrorCode(_REVOKE_BACKDATE_NOT_ALLOWED);
+    public static final ErrorCode DATE_NOT_VALID = new ErrorCode(_DATE_NOT_VALID);
     public static final ErrorCode CRYPTOTOKEN_NAME_IN_USE = new ErrorCode(_CRYPTOTOKEN_NAME_IN_USE);
     public static final ErrorCode INTERNAL_KEY_BINDING_NAME_IN_USE = new ErrorCode(_INTERNAL_KEY_BINDING_NAME_IN_USE);
     public static final ErrorCode CERTIFICATE_IMPORT = new ErrorCode(_CERTIFICATE_IMPORT);
@@ -203,13 +203,13 @@ public class ErrorCode implements Serializable {
     /** Trying to delete an item when references exist. For example, a deleting publisher when it's used by profiles. */
     public static final ErrorCode REFERENCES_TO_ITEM_EXIST = new ErrorCode(_REFERENCES_TO_ITEM_EXIST);
 
-    /** Get the internal error code. 
+    /** Get the internal error code.
      * @return Error code*/
     public String getInternalErrorCode() {
         return internalErrorCode;
     }
 
-    /** Set the internal error code. 
+    /** Set the internal error code.
      * @param internalErrorCode Error code*/
     public void setInternalErrorCode(String internalErrorCode) {
         this.internalErrorCode = internalErrorCode;

@@ -22,22 +22,22 @@ import java.util.Random;
 
 /**
  * Represents an individual RA Style Archive. May or may not contain logo files, mulitple CSS files
- * and identifiers. 
+ * and identifiers.
  * @version $Id: RaStyleInfo.java 26914 2017-10-27 10:10:32Z henriks $
  *
  */
 public class RaStyleInfo implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
     private static final Random random = new Random();
-    
+
     private int archiveId;
     private Map<String, RaCssInfo> raCssInfos;
     private byte[] logoBytes;
     private String logoName;
     private String logoContentType;
     private String archiveName;
-    
+
     /**
      * Creates a RA CSS Info object to hold information and CSS data to be stored
      * in database for deployment on RA-web
@@ -57,17 +57,17 @@ public class RaStyleInfo implements Serializable {
         this.archiveName = fileName;
         this.logoName = logoName;
     }
-    
+
     @SuppressWarnings("serial")
     public static class RaCssInfo implements Serializable {
         private byte[] cssBytes;
         private String cssName;
-        
+
         public RaCssInfo(byte[] cssBytes, String cssName) {
             this.cssBytes = cssBytes;
             this.cssName = cssName;
         }
-        
+
         public byte[] getCssBytes() {
             return cssBytes;
         }
@@ -84,33 +84,33 @@ public class RaStyleInfo implements Serializable {
             this.cssName = cssName;
         }
     }
-    
+
     /** @return unique id for RaCssInfo object*/
     public int getArchiveId() {
         return archiveId;
     }
 
-    /** Should not be used normally! 
+    /** Should not be used normally!
      * @param archiveId  ID*/
     public void setArchiveId(int archiveId) {
         this.archiveId = archiveId;
     }
-    
+
     /** @param raCssInfo CSS info added to archive */
     public void addRaCssInfo(RaCssInfo raCssInfo) {
         this.raCssInfos.put(raCssInfo.getCssName(), raCssInfo);
     }
-    
+
     /** @return Map of all CSS infos in archive*/
     public Map<String, RaCssInfo> getRaCssInfos() {
         return raCssInfos;
     }
-    
+
     /** @return List of all CSS infos in the archive*/
     public List<RaCssInfo> getRaCssValues() {
         return new ArrayList<RaCssInfo>(getRaCssInfos().values());
     }
-    
+
     /** @param raCssInfos sets a list of CSS infos to archive */
     public void setRaCssInfos(HashMap<String, RaCssInfo> raCssInfos) {
         this.raCssInfos = raCssInfos;
@@ -120,12 +120,12 @@ public class RaStyleInfo implements Serializable {
     public byte[] getLogoBytes() {
         return logoBytes;
     }
-    
+
     /** @param logoBytes logoBytes of logo image*/
     public void setLogoBytes(byte[] logoBytes) {
         this.logoBytes = logoBytes;
     }
-    
+
     /** @return file name associated with CSS */
     public String getArchiveName() {
         return archiveName;
@@ -135,27 +135,27 @@ public class RaStyleInfo implements Serializable {
     public void setArchiveName(String fileName) {
         this.archiveName = fileName;
     }
-    
+
     /** @return name of logo */
     public String getLogoName() {
         return logoName;
     }
-    
+
     /** @param logoName sets logo name */
     public void setLogoName(String logoName) {
         this.logoName = logoName;
     }
-    
+
     /** @return content type of logo, e.g 'image/png' */
     public String getLogoContentType() {
         return logoContentType;
     }
-    
+
     /** @param logoContentType e.g 'image/png' */
     public void setLogoContentType(String logoContentType) {
         this.logoContentType = logoContentType;
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -181,5 +181,5 @@ public class RaStyleInfo implements Serializable {
         }
         return true;
     }
-    
+
 }

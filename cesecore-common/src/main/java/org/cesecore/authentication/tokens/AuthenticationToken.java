@@ -27,12 +27,12 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 /**
  * A token returned by the act of authentication. Ownership of such a token denotes that the caller has previously authenticated herself via the
  * Authentication session bean.
- * 
+ *
  * The Sets of Principals and credentials contained within this class will correspond to the subset of those found in the Subject class submitted for
  * authentication used for that process.
- * 
+ *
  * @version $Id: AuthenticationToken.java 26983 2017-11-02 13:58:25Z samuellb $
- * 
+ *
  */
 public abstract class AuthenticationToken implements Serializable {
 
@@ -41,7 +41,7 @@ public abstract class AuthenticationToken implements Serializable {
     private final Set<? extends Principal> principals;
     private final Set<?> credentials;
     private transient String uniqueId = null;
-    
+
     public static final int NO_PREFERRED_MATCH_KEY = -1;
 
     public AuthenticationToken(Set<? extends Principal> principals, Set<?> credentials) {
@@ -58,21 +58,21 @@ public abstract class AuthenticationToken implements Serializable {
     }
 
     /**
-     * This method will take an <code>AccessUserAspectData</code> entity and return whether or not it matches to this AuthenticationToken. Will 
-     * specifically check for locality if required. 
-     * 
+     * This method will take an <code>AccessUserAspectData</code> entity and return whether or not it matches to this AuthenticationToken. Will
+     * specifically check for locality if required.
+     *
      * @param accessUser An <code>AccessUserAspectData</code> entity to match.
      * @return <code>true</code> if matching.
      * @throws AuthenticationFailedException if any authentication errors were encountered during process
      */
     public abstract boolean matches(AccessUserAspect accessUser) throws AuthenticationFailedException;
-        
+
     @Override
     public abstract boolean equals(Object authenticationToken);
-    
+
     @Override
     public abstract int hashCode();
-    
+
     public abstract AuthenticationTokenMetaData getMetaData();
 
     /**
@@ -82,19 +82,19 @@ public abstract class AuthenticationToken implements Serializable {
      */
     @Override
     public String toString() {
-    	final StringBuilder sb = new StringBuilder();
-    	final Set<? extends Principal> principals = getPrincipals();
-    	if (principals != null) {
-    		for (final Principal principal : principals) {
-    			if (sb.length() > 0) {
-        			sb.append(", ");
-    			}
-    			sb.append(principal.getName());
-    		}
-    	}
-    	return sb.toString();
+        final StringBuilder sb = new StringBuilder();
+        final Set<? extends Principal> principals = getPrincipals();
+        if (principals != null) {
+            for (final Principal principal : principals) {
+                if (sb.length() > 0) {
+                    sb.append(", ");
+                }
+                sb.append(principal.getName());
+            }
+        }
+        return sb.toString();
     }
-    
+
     /**
      * @param tokenType String a String from an AccessMatchValue derivative that matches this token type.
      * @return true if the given value matches this AuthenticationToken's inherent token type.
@@ -102,9 +102,9 @@ public abstract class AuthenticationToken implements Serializable {
     public boolean matchTokenType(String tokenType) {
         return getMetaData().getTokenType().equals(tokenType);
     }
-    
+
     /**
-     * 
+     *
      * @return the first available AccessMatchValue inherent to the implementing token type.
      */
     public AccessMatchValue getDefaultMatchValue() {
@@ -112,28 +112,28 @@ public abstract class AuthenticationToken implements Serializable {
     }
 
     /**
-     * 
+     *
      * @param databaseValue the numeric value from the database.
      * @return the enum implementing AccessMatchValue that matches the given numeric value from the database.
      */
     public AccessMatchValue getMatchValueFromDatabaseValue(Integer databaseValue) {
         return getMetaData().getAccessMatchValueIdMap().get(databaseValue);
     }
-    
+
     /**
      * Returns the preferred match key for this type of authentication token. E.g. serial number for X.509 tokens
      * If not applicable to this authentication token, then it returns {@link #NO_PREFERRED_MATCH_KEY}.
      * @return Key
      */
     public abstract int getPreferredMatchKey();
-    
+
     /**
      * Returns the preferred match value for this authentication token. E.g. the serial number of X.509 tokens.
      * <b>Note:</b> For performance reasons, this value must support case sensitive searching.
      * @return Value
      */
     public abstract String getPreferredMatchValue();
-    
+
     /** @return a String that is guaranteed to be unique across all AuthenticationTokens of this type. */
     protected abstract String generateUniqueId();
 
@@ -155,7 +155,7 @@ public abstract class AuthenticationToken implements Serializable {
             throw new IllegalStateException(e);
         }
     }
-    
+
     /** @return a String that is guaranteed to be unique across all AuthenticationTokens (and will be different if nested with different AuthenticationTokens). */
     public String getUniqueId() {
         if (uniqueId==null) {

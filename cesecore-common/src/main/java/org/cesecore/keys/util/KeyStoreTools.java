@@ -115,10 +115,10 @@ public class KeyStoreTools {
         getKeyStore().deleteEntry(alias);
     }
     /** Deletes an entry in the keystore
-     * 
+     *
      * @param alias is a reference to the entry in the KeyStore that should be deleted, if alias is null, all entries are deleted.
-     * 
-     * 
+     *
+     *
      * @throws KeyStoreException on error
      */
     public void deleteEntry(final String alias) throws KeyStoreException {
@@ -137,7 +137,7 @@ public class KeyStoreTools {
      * This has just been tested on pkcs#11 keystores. On other keystore it might
      * be that you will get two aliases for the same key (copy). But on p11
      * we know that the oldAlias is not existing after the method is called.
-     *  
+     *
      * @param oldAlias is the current name
      * @param newAlias is the new name
      */
@@ -243,7 +243,7 @@ public class KeyStoreTools {
                     throw new InvalidAlgorithmParameterException("Can not generate EC curve, no OID and no ECParameters found: "+ecNamedCurveBc);
                 }
                 keyParams = new org.bouncycastle.jce.spec.ECParameterSpec(
-                        ecP.getCurve(), ecP.getG(), ecP.getN(), ecP.getH(), ecP.getSeed()); 
+                        ecP.getCurve(), ecP.getG(), ecP.getN(), ecP.getH(), ecP.getSeed());
             }
         }
         try {
@@ -285,7 +285,7 @@ public class KeyStoreTools {
                 name, keyEntryName, AlgorithmConstants.KEYALGORITHM_ECGOST3410,
                 AlgorithmTools.SIG_ALGS_ECGOST3410);
     }
-    
+
     private void generateDSTU4145(final String name, final String keyEntryName) throws
             InvalidAlgorithmParameterException {
         generateExtraEC(
@@ -329,7 +329,7 @@ public class KeyStoreTools {
     }
 
     /** Generates asymmteric keys in the Keystore token.
-     * 
+     *
      * @param keySpec all decimal digits RSA key length, otherwise name of ECC curve or DSA key using syntax DSAnnnn
      * @param keyEntryName entry name
      * @throws InvalidAlgorithmParameterException if invalid params apssed
@@ -352,9 +352,9 @@ public class KeyStoreTools {
             }
         }
     }
-    
+
     /** Generates symmetric keys in the Keystore token.
-     * 
+     *
      * @param algorithm symmetric algorithm specified in http://download.oracle.com/javase/1.5.0/docs/api/index.html, suggest AES, DESede or DES
      * @param keysize keysize of symmetric key, suggest 128 or 256 for AES, 64 for 168 for DESede and 64 for DES
      * @param keyEntryName the alias the key will get in the keystore
@@ -371,7 +371,7 @@ public class KeyStoreTools {
     }
 
     /** Generates keys in the Keystore token.
-     * @param keyParams AlgorithmParameterSpec for the KeyPairGenerator. Can be anything like RSAKeyGenParameterSpec, DSAParameterSpec, ECParameterSpec or ECGenParameterSpec. 
+     * @param keyParams AlgorithmParameterSpec for the KeyPairGenerator. Can be anything like RSAKeyGenParameterSpec, DSAParameterSpec, ECParameterSpec or ECGenParameterSpec.
      * @param keyAlias Alias
      * @throws InvalidAlgorithmParameterException if params are invalid
      */
@@ -580,7 +580,7 @@ public class KeyStoreTools {
             throw new KeyUtilRuntimeException("Failed to install cert chain into keystore.", e);
         }
     }
-    
+
     /**
      * Install trusted root in trust store
      * @param fileName name of the trusted root.

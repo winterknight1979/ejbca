@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * Object and name to id lookup cache interface.
- * 
+ *
  * @version $Id: CommonCache.java 28332 2018-02-20 14:40:52Z anatom $
  * @param <T> Type
  */
@@ -35,7 +35,7 @@ public interface CommonCache<T> {
      * @return true when the cache for this object has expired or the token is non-existing. */
     boolean shouldCheckForUpdates(int id);
 
-    /** Update the cache with the current version read from the database. 
+    /** Update the cache with the current version read from the database.
      *
      * @param id id of the object, typically database id
      * @param digest typically getProtectString(0).hashCode() of the object;
@@ -53,11 +53,11 @@ public interface CommonCache<T> {
      */
     boolean willUpdate(int id, int digest);
 
-    /** Remove the specified entry from the cache and mapping if it exists. 
+    /** Remove the specified entry from the cache and mapping if it exists.
      * @param id ID*/
     void removeEntry(int id);
 
-    /** Provides functionality of an IdToNameMap. 
+    /** Provides functionality of an IdToNameMap.
      * @param id ID
      * @return return the name from the entry, given the id, or null if it does not exist.
      */
@@ -68,8 +68,8 @@ public interface CommonCache<T> {
 
     /** Remove all references from this cache */
     void flush();
-    
-    /** Replace cache with the entries referenced in keys 
+
+    /** Replace cache with the entries referenced in keys
      * @param keys keys*/
     void replaceCacheWith(List<Integer> keys);
 }

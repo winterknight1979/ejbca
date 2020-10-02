@@ -21,15 +21,15 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
- * Test the PatternLogger  
- * 
+ * Test the PatternLogger
+ *
  * @version $Id: PatternLoggerTest.java 17428 2013-08-14 10:50:16Z anatom $
  */
 public class PatternLoggerTest {
 
     private static final Logger log = Logger.getLogger(PatternLoggerTest.class);
 
-    /** Try out some interpolation with focus on different date formats. 
+    /** Try out some interpolation with focus on different date formats.
      * @throws Exception fail*/
     @SuppressWarnings("el-syntax")
     @Test
@@ -45,16 +45,16 @@ public class PatternLoggerTest {
         log.trace("<testPatternLogger");
     }
 
-    /** Helper method that replaces all ${VARx} where x={0..10} with "contentx" and asserts that the result is the expected using regexp. 
+    /** Helper method that replaces all ${VARx} where x={0..10} with "contentx" and asserts that the result is the expected using regexp.
      * @param pattern pattern
      * @param dateFormat format
      * @param timeZone TZ
      * @param expected expected
      * @throws Exception fail*/
-    private void testPatternLoggerInternal(String pattern, String dateFormat, String timeZone, String expected) throws Exception {  
+    private void testPatternLoggerInternal(String pattern, String dateFormat, String timeZone, String expected) throws Exception {
         log.trace(">testPatternLoggerInternal");
         final PatternLogger patternLogger = new TestPatternLogger("\\$\\{(.+?)\\}", pattern, dateFormat, timeZone);
-        
+
         for (int i = 0; i < 10; i++) {
             patternLogger.paramPut("VAR" + i, "content" + i);
         }
@@ -66,15 +66,15 @@ public class PatternLoggerTest {
         assertTrue("Result of interpolation operation did not match expected result.", result.matches(expected));
         log.trace("<testPatternLoggerInternal");
     }
-    
+
     private class TestPatternLogger extends PatternLogger {
 
         private static final long serialVersionUID = -8096112483409703781L;
 
         protected TestPatternLogger(String matchPattern, String matchString, String logDateFormat, String timeZone) {
             super(false, PatternLoggerTest.class, matchPattern, matchString, logDateFormat, timeZone);
-            
+
         }
-        
+
     }
 }

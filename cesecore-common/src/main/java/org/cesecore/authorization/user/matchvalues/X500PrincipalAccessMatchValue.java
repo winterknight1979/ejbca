@@ -21,12 +21,12 @@ import org.cesecore.authorization.user.AccessMatchType;
 
 /**
  * Match with constants. Observe that these constants are also used as a priority indicator for access rules. The higher values the higher priority.
- * 
+ *
  * @version $Id: X500PrincipalAccessMatchValue.java 25615 2017-03-24 18:44:19Z samuellb $
- * 
+ *
  */
 public enum X500PrincipalAccessMatchValue implements AccessMatchValue {
-    @Deprecated // Will never match anything which makes it rather useless keep around long term. (Deprecated in 6.8.0.) 
+    @Deprecated // Will never match anything which makes it rather useless keep around long term. (Deprecated in 6.8.0.)
     NONE(0),
     WITH_COUNTRY(1),
     WITH_DOMAINCOMPONENT(2),
@@ -43,9 +43,9 @@ public enum X500PrincipalAccessMatchValue implements AccessMatchValue {
     WITH_RFC822NAME(13),
     WITH_UPN(14),
     WITH_FULLDN(15);
-    
+
     private final int numericValue;
-    
+
     private X500PrincipalAccessMatchValue(int numericValue) {
         this.numericValue = numericValue;
     }
@@ -74,7 +74,7 @@ public enum X500PrincipalAccessMatchValue implements AccessMatchValue {
     public List<AccessMatchType> getAvailableAccessMatchTypes() {
         return Arrays.asList(AccessMatchType.TYPE_EQUALCASE);
     }
-    
+
     @Override
     public String normalizeMatchValue(final String value) {
         if (value == null) {

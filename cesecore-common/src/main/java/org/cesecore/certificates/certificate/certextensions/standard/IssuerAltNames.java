@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
@@ -28,9 +28,9 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
 
 /**
- * Class for standard X509 certificate extension. 
+ * Class for standard X509 certificate extension.
  * See rfc3280 or later for spec of this extension.
- * 
+ *
  * @version $Id: IssuerAltNames.java 24542 2016-10-18 15:32:48Z samuellb $
  */
 public class IssuerAltNames extends StandardCertificateExtension {
@@ -42,7 +42,7 @@ public class IssuerAltNames extends StandardCertificateExtension {
         super.setOID(Extension.issuerAlternativeName.getId());
         super.setCriticalFlag(certProf.getIssuerAlternativeNameCritical());
     }
-    
+
     @Override
     public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
             final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
@@ -74,5 +74,5 @@ public class IssuerAltNames extends StandardCertificateExtension {
             }
         }
         return ret;
-    }   
+    }
 }

@@ -41,10 +41,10 @@ import org.apache.log4j.Logger;
 
 /**
  * Wrapper of a Java KeyStore to speed up key operations by caching key references.
- * 
+ *
  * Aliases and certificates are read when the class is initiated from the underlying key store.
  * PrivateKey and SecretKey objects are read and cached when the key specific protection is available (when used).
- * 
+ *
  * @version $Id: CachingKeyStoreWrapper.java 22480 2015-12-17 21:23:11Z primelars $
  */
 public class CachingKeyStoreWrapper {
@@ -224,10 +224,10 @@ public class CachingKeyStoreWrapper {
 
     @Deprecated // Should only be used from OcspResponseGeneratorSessionBean.adhocUpgradeFromPre60
     public KeyStore getKeyStore() { return this.keyStore; }
-    
+
     /**
      * Wrap the key store object with optional caching of all entries.
-     * 
+     *
      * @param keyStore the key store to wrap
      * @param cachingEnabled true will cache a list of all aliases, certificates and lazily cache private and secret keys when accessed
      * @throws KeyStoreException if the underlying key store cannot be accessed
@@ -246,7 +246,7 @@ public class CachingKeyStoreWrapper {
 
     /** @param alias alias
      * @return certificate
-     * @throws KeyStoreException on fail 
+     * @throws KeyStoreException on fail
      * @see java.security.KeyStore#getCertificate(String) */
     public Certificate getCertificate(final String alias) throws KeyStoreException {
         if (this.keyStoreCache==null) {
@@ -284,7 +284,7 @@ public class CachingKeyStoreWrapper {
     }
 
     /** @return aliases
-     * @throws KeyStoreException on fail 
+     * @throws KeyStoreException on fail
      * @see java.security.KeyStore#aliases() */
     public Enumeration<String> aliases() throws KeyStoreException {
         if (this.keyStoreCache==null) {
@@ -295,7 +295,7 @@ public class CachingKeyStoreWrapper {
 
     /** @param outputStream stream
      * @param password password
-     * @throws KeyStoreException if store fails 
+     * @throws KeyStoreException if store fails
      * @throws NoSuchAlgorithmException if algo not found
      * @throws CertificateException if certificate invalid
      * @throws IOException on I/O error
@@ -306,9 +306,9 @@ public class CachingKeyStoreWrapper {
 
     /** @param alias alias
      * @param key key
-     * @param password password 
+     * @param password password
      * @param chain certs
-     * @throws KeyStoreException on failure 
+     * @throws KeyStoreException on failure
      * @see java.security.KeyStore#setKeyEntry(String, Key, char[], Certificate[]) */
     public void setKeyEntry(final String alias, final Key key, final char[] password, final Certificate[] chain) throws KeyStoreException {
         this.keyStore.setKeyEntry(alias, key, password, chain);
@@ -349,7 +349,7 @@ public class CachingKeyStoreWrapper {
     /** @param alias alias
      * @param protParam params
      * @return entry
-     * @throws NoSuchAlgorithmException if algo not found 
+     * @throws NoSuchAlgorithmException if algo not found
      * @throws UnrecoverableEntryException if corrupt
      * @throws KeyStoreException on failure
      * @see java.security.KeyStore#getEntry(String, ProtectionParameter) */
@@ -410,7 +410,7 @@ public class CachingKeyStoreWrapper {
     /** @param alias alias
      * @param password password
      * @return key
-     * @throws UnrecoverableKeyException if key is unrecoverable 
+     * @throws UnrecoverableKeyException if key is unrecoverable
      * @throws KeyStoreException on failure
      * @throws NoSuchAlgorithmException if algo not found
      * @see java.security.KeyStore#getKey(String, char[]) */

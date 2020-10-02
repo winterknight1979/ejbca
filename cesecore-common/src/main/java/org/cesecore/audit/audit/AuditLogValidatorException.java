@@ -14,7 +14,7 @@ package org.cesecore.audit.audit;
 
 /**
  * An error during validation of secure audit log data.
- * 
+ *
  * @version $Id: AuditLogValidatorException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class AuditLogValidatorException extends Exception{

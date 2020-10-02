@@ -34,15 +34,15 @@ import org.apache.log4j.Logger;
 
 /**
  * Special Collection that compresses all the added objects to a in memory byte array.
- * 
+ *
  * Objects are read from the collection by using a iterator over a decompression InputStream.
  * To avoid memory leaks, the .clear() call should be used when the collection is no longer needed.
- * 
+ *
  * The implementation is not thread safe.
- * 
+ *
  * Example use-case: a RevokedCertInfo takes 248 bytes in serialized form, but averages at only 48
  * bytes in compressed serialized form.
- * 
+ *
  * @version $Id: CompressedCollection.java 34193 2020-01-07 15:18:15Z samuellb $
  * @param <T> type
  */
@@ -59,14 +59,14 @@ public class CompressedCollection<T extends Serializable> implements Collection<
     private final Set<Class<? extends Serializable>> acceptedClasses;
 
     @SuppressWarnings("unchecked")
-	@SafeVarargs
+    @SafeVarargs
     public CompressedCollection(final Class<T> elementClass, final Class<? extends Serializable>... nestedClasses) {
         acceptedClasses = SetUtils.typedSet(new HashSet<>(nestedClasses.length + 1), Serializable.class); // generic fireworks are not type safe
         acceptedClasses.add(elementClass);
         acceptedClasses.addAll(Arrays.asList(nestedClasses));
         clear();
     }
-    
+
     @Override
     public boolean add(final T object) {
         if (compressedData!=null) {
@@ -85,7 +85,7 @@ public class CompressedCollection<T extends Serializable> implements Collection<
         return ret;
     }
 
-    /** Lazy initialization of our in memory object storage 
+    /** Lazy initialization of our in memory object storage
      * @return stream
      * @throws IOException on error */
     private ObjectOutputStream getObjectOutputStream() throws IOException {
@@ -202,7 +202,7 @@ public class CompressedCollection<T extends Serializable> implements Collection<
         }
         return new Iterator<T>() {
             private T next = null;
-            
+
             @Override
             public boolean hasNext() {
                 try {

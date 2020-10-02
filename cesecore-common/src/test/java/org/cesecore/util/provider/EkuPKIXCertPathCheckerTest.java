@@ -42,7 +42,7 @@ import org.junit.Test;
 
 /**
  * Test EKU validation.
- * 
+ *
  * @version $Id: EkuPKIXCertPathCheckerTest.java 21415 2015-05-29 14:00:56Z anatom $
  */
 public class EkuPKIXCertPathCheckerTest {
@@ -51,7 +51,7 @@ public class EkuPKIXCertPathCheckerTest {
     private static KeyPair keyPair;
     private static final boolean CA = true;
     private static final boolean LEAF = false;
-    
+
     @BeforeClass
     public static void beforeClass() throws InvalidAlgorithmParameterException {
         CryptoProviderTools.installBCProvider();
@@ -131,10 +131,10 @@ public class EkuPKIXCertPathCheckerTest {
      * @param isCa CA
      * @param actualOids OIDs
      * @param requiredOids OIDs
-     * @return true if the extendedKeyUsage was accepted 
+     * @return true if the extendedKeyUsage was accepted
      * @throws Exception fail */
     private boolean validateCert(KeyPair keyPair, boolean isCa, List<String> actualOids, List<String> requiredOids) throws Exception {
-    	
+
         final long now = System.currentTimeMillis();
         final List<Extension> additionalExtensions = new ArrayList<Extension>();
         if (actualOids!=null) {

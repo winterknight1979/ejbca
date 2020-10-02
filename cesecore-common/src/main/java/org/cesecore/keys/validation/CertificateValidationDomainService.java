@@ -19,9 +19,9 @@ import org.cesecore.certificates.ca.CA;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * Functional domain service interface (should be implemented by separate domain service class, 
+ * Functional domain service interface (should be implemented by separate domain service class,
  * but is used temporarily to solve cyclic package dependency at compile time).
- * 
+ *
  * @version $Id: CertificateValidationDomainService.java 27643 2017-12-22 09:56:06Z mikekushner $
  *
  */
@@ -29,13 +29,13 @@ public interface CertificateValidationDomainService {
 
     /**
      * Validates a generated certificate during issuance.
-     * 
+     *
      * @param authenticationToken the authentication token of the administrator performing the action.
      * @param phase the certificate issuance life cycle phase ({@link IssuancePhase}.
      * @param ca the issuing CA
      * @param endEntityInformation the end entity object
      * @param certificate the certificate to validate
-     * @throws ValidationException if the validation failed. If the validation failed action is set to abort certificate issuance 
+     * @throws ValidationException if the validation failed. If the validation failed action is set to abort certificate issuance
      * {@link KeyValidationFailedActions#ABORT_CERTIFICATE_ISSUANCE} and validation fails, message is NOT null. Exception of any technical errors are
      *  stored in the cause, and message is null.
      */

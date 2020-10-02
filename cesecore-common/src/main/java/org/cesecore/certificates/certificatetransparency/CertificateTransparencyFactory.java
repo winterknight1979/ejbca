@@ -9,12 +9,12 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.certificatetransparency;
 
 /**
  * Loads and holds an instance of the Certificate Transparency implementation, if available.
- * 
+ *
  * @version $Id: CertificateTransparencyFactory.java 18484 2014-02-11 08:33:16Z samuellb $
  */
 public enum CertificateTransparencyFactory {
@@ -25,7 +25,7 @@ public enum CertificateTransparencyFactory {
 
 
     private final CertificateTransparency ct;
-    
+
     private CertificateTransparencyFactory() {
         CertificateTransparency instance;
         try {
@@ -37,7 +37,7 @@ public enum CertificateTransparencyFactory {
         }
         ct = instance;
     }
-    
+
     /**
      * Returns the implementation of the CertificateTransparency interface, or null if not available.
      * No exceptions can ever be thrown by this method, so it's safe to call from static-blocks and initializers.
@@ -46,9 +46,9 @@ public enum CertificateTransparencyFactory {
     public static CertificateTransparency getInstance() {
         return SINGLETON.ct;
     }
-    
+
     /**
-     * @return true if the implementation class is available. No exceptions can be thrown by this method. 
+     * @return true if the implementation class is available. No exceptions can be thrown by this method.
      */
     public static boolean isCTAvailable() {
         return getInstance() != null;

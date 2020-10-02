@@ -48,7 +48,7 @@ public class ExtendedInformationTest {
             +"PfoNI8s9NXa/fIfqp56llOPzDy3OcHc=";
 
 
-	@Test
+    @Test
     public void testExtendedInformationCSR() {
         // Test basic function, latest version->latest version
         ExtendedInformation ei = new ExtendedInformation();

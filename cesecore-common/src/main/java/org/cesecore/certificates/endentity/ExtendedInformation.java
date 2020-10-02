@@ -315,7 +315,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
     * @param reason issuance revocation code, a constant from RevokedCertInfo such as RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD.
     */
     public void setIssuanceRevocationReason(int reason) {
-    	setCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON, "" + reason);
+        setCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON, "" + reason);
     }
 
     /** @return Encoded name constraints to permit */
@@ -401,7 +401,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
      * @param value string representation of the data
      */
     public void setExtensionData(String key, String value) {
-    	data.put(EXTENSIONDATA + key, value);
+        data.put(EXTENSIONDATA + key, value);
     }
 
     /**
@@ -410,7 +410,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
      * @return The data or null if no such data have been set for the user
      */
     public String getExtensionData(String key){
-    	return  (String) data.get(EXTENSIONDATA + key);
+        return  (String) data.get(EXTENSIONDATA + key);
     }
 
     /**
@@ -429,7 +429,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
         }
         return oids;
     }
-    
+
     /**
      *
      * @param key defined key to store the data with
@@ -439,13 +439,13 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
         data.put(CUSTOMDATA + key, value);
     }
 
-    /** Function required by XMLEncoder to do a proper serialisation. 
+    /** Function required by XMLEncoder to do a proper serialisation.
      * @param hmData data*/
     public void setData(Object hmData) {
         loadData(hmData);
     }
 
-    /** Function required by XMLEncoder to do a proper serialization. 
+    /** Function required by XMLEncoder to do a proper serialization.
      * @return data*/
     public Object getData() {
         return saveData();
@@ -476,65 +476,65 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
                 setRemainingLoginAttempts(DEFAULT_REMAININGLOGINATTEMPTS);
             }
             // In EJBCA 4.0.0 we changed the date format
-        	if (getVersion() < 3) {
-        		final DateFormat oldDateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);
-        		final FastDateFormat newDateFormat = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
-        		try {
-        			final String oldCustomStartTime = getCustomData(ExtendedInformation.CUSTOM_STARTTIME);
-        			if ( !isEmptyOrRelative(oldCustomStartTime) ) {
-        				// We use an absolute time format, so we need to upgrade
-            			final String newCustomStartTime = newDateFormat.format(oldDateFormat.parse(oldCustomStartTime));
-    					setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newCustomStartTime);
-    					if (log.isDebugEnabled()) {
-    						log.debug("Upgraded " + ExtendedInformation.CUSTOM_STARTTIME + " from \"" + oldCustomStartTime + "\" to \"" + newCustomStartTime + "\" in ExtendedInformation.");
-    					}
-        			}
-				} catch (ParseException e) {
-					log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_STARTTIME + " in extended user information.", e);
-				}
-        		try {
-        			final String oldCustomEndTime = getCustomData(ExtendedInformation.CUSTOM_ENDTIME);
-        			if ( !isEmptyOrRelative(oldCustomEndTime) ) {
-        				// We use an absolute time format, so we need to upgrade
-            			final String newCustomEndTime = newDateFormat.format(oldDateFormat.parse(oldCustomEndTime));
-    					setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newCustomEndTime);
-    					if (log.isDebugEnabled()) {
-    						log.debug("Upgraded " + ExtendedInformation.CUSTOM_ENDTIME + " from \"" + oldCustomEndTime + "\" to \"" + newCustomEndTime + "\" in ExtendedInformation.");
-    					}
-        			}
-				} catch (ParseException e) {
-					log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_ENDTIME + " in extended user information.", e);
-				}
-        	}
-        	// In 4.0.2 we further specify the storage format by saying that UTC TimeZone is implied instead of local server time
-        	if (getVersion() < 4) {
-        		final String[] timePatterns = {"yyyy-MM-dd HH:mm"};
-    			final String oldStartTime = getCustomData(ExtendedInformation.CUSTOM_STARTTIME);
-    			if (!isEmptyOrRelative(oldStartTime)) {
-            		try {
-            			final String newStartTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldStartTime, timePatterns));
-    					setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
-    					if (log.isDebugEnabled()) {
-    						log.debug("Upgraded " + ExtendedInformation.CUSTOM_STARTTIME + " from \"" + oldStartTime + "\" to \"" + newStartTime + "\" in EndEntityProfile.");
-    					}
-					} catch (ParseException e) {
-						log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_STARTTIME + " to UTC in EndEntityProfile! Manual interaction is required (edit and verify).", e);
-					}
-    			}
-    			final String oldEndTime = getCustomData(ExtendedInformation.CUSTOM_ENDTIME);
-    			if (!isEmptyOrRelative(oldEndTime)) {
-    				// We use an absolute time format, so we need to upgrade
-					try {
-						final String newEndTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldEndTime, timePatterns));
-						setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
-						if (log.isDebugEnabled()) {
-							log.debug("Upgraded " + ExtendedInformation.CUSTOM_ENDTIME + " from \"" + oldEndTime + "\" to \"" + newEndTime + "\" in EndEntityProfile.");
-						}
-					} catch (ParseException e) {
-						log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_ENDTIME + " to UTC in EndEntityProfile! Manual interaction is required (edit and verify).", e);
-					}
-    			}
-        	}
+            if (getVersion() < 3) {
+                final DateFormat oldDateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);
+                final FastDateFormat newDateFormat = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
+                try {
+                    final String oldCustomStartTime = getCustomData(ExtendedInformation.CUSTOM_STARTTIME);
+                    if ( !isEmptyOrRelative(oldCustomStartTime) ) {
+                        // We use an absolute time format, so we need to upgrade
+                        final String newCustomStartTime = newDateFormat.format(oldDateFormat.parse(oldCustomStartTime));
+                        setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newCustomStartTime);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Upgraded " + ExtendedInformation.CUSTOM_STARTTIME + " from \"" + oldCustomStartTime + "\" to \"" + newCustomStartTime + "\" in ExtendedInformation.");
+                        }
+                    }
+                } catch (ParseException e) {
+                    log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_STARTTIME + " in extended user information.", e);
+                }
+                try {
+                    final String oldCustomEndTime = getCustomData(ExtendedInformation.CUSTOM_ENDTIME);
+                    if ( !isEmptyOrRelative(oldCustomEndTime) ) {
+                        // We use an absolute time format, so we need to upgrade
+                        final String newCustomEndTime = newDateFormat.format(oldDateFormat.parse(oldCustomEndTime));
+                        setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newCustomEndTime);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Upgraded " + ExtendedInformation.CUSTOM_ENDTIME + " from \"" + oldCustomEndTime + "\" to \"" + newCustomEndTime + "\" in ExtendedInformation.");
+                        }
+                    }
+                } catch (ParseException e) {
+                    log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_ENDTIME + " in extended user information.", e);
+                }
+            }
+            // In 4.0.2 we further specify the storage format by saying that UTC TimeZone is implied instead of local server time
+            if (getVersion() < 4) {
+                final String[] timePatterns = {"yyyy-MM-dd HH:mm"};
+                final String oldStartTime = getCustomData(ExtendedInformation.CUSTOM_STARTTIME);
+                if (!isEmptyOrRelative(oldStartTime)) {
+                    try {
+                        final String newStartTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldStartTime, timePatterns));
+                        setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Upgraded " + ExtendedInformation.CUSTOM_STARTTIME + " from \"" + oldStartTime + "\" to \"" + newStartTime + "\" in EndEntityProfile.");
+                        }
+                    } catch (ParseException e) {
+                        log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_STARTTIME + " to UTC in EndEntityProfile! Manual interaction is required (edit and verify).", e);
+                    }
+                }
+                final String oldEndTime = getCustomData(ExtendedInformation.CUSTOM_ENDTIME);
+                if (!isEmptyOrRelative(oldEndTime)) {
+                    // We use an absolute time format, so we need to upgrade
+                    try {
+                        final String newEndTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldEndTime, timePatterns));
+                        setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Upgraded " + ExtendedInformation.CUSTOM_ENDTIME + " from \"" + oldEndTime + "\" to \"" + newEndTime + "\" in EndEntityProfile.");
+                        }
+                    } catch (ParseException e) {
+                        log.error("Unable to upgrade " + ExtendedInformation.CUSTOM_ENDTIME + " to UTC in EndEntityProfile! Manual interaction is required (edit and verify).", e);
+                    }
+                }
+            }
             data.put(VERSION, LATEST_VERSION);
         }
     }
@@ -542,7 +542,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
     /** @param time time
      * @return true if argument is null, empty or in the relative time format. */
     private boolean isEmptyOrRelative(final String time) {
-    	return (time == null || time.length()==0 || time.matches("^\\d+:\\d?\\d:\\d?\\d$"));
+        return (time == null || time.length()==0 || time.matches("^\\d+:\\d?\\d:\\d?\\d$"));
     }
 
     /**

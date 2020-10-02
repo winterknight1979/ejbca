@@ -37,12 +37,12 @@ import org.cesecore.util.CertTools;
 
 /**
  * Hold information needed to create OCSP responses without database lookups.
- * 
+ *
  * @version $Id: OcspSigningCache.java 28643 2018-04-06 08:53:57Z samuellb $
  */
 public enum OcspSigningCache {
     INSTANCE;
-    
+
     private Map<Integer, OcspSigningCacheEntry> cache = new HashMap<Integer, OcspSigningCacheEntry>();
     private Map<Integer, OcspSigningCacheEntry> staging = new HashMap<Integer, OcspSigningCacheEntry>();
     private OcspSigningCacheEntry defaultResponderCacheEntry = null;
@@ -56,14 +56,14 @@ public enum OcspSigningCache {
     }
 
     /**
-     * 
+     *
      * @return the entry corresponding to the default responder, or null if it wasn't found.
      */
     public OcspSigningCacheEntry getDefaultEntry() {
         return defaultResponderCacheEntry;
     }
 
-    /** WARNING: This method potentially exports references to CAs private keys! 
+    /** WARNING: This method potentially exports references to CAs private keys!
      * @return entries*/
     public Collection<OcspSigningCacheEntry> getEntries() {
         return cache.values();
@@ -77,7 +77,7 @@ public enum OcspSigningCache {
     public void stagingAdd(OcspSigningCacheEntry ocspSigningCacheEntry) {
         List<CertificateID> certIDs = ocspSigningCacheEntry.getCertificateID();
         for (CertificateID certID : certIDs) {
-            staging.put(getCacheIdFromCertificateID(certID), ocspSigningCacheEntry);            
+            staging.put(getCacheIdFromCertificateID(certID), ocspSigningCacheEntry);
         }
     }
 
@@ -112,7 +112,7 @@ public enum OcspSigningCache {
                             defaultResponderCacheEntry.getOcspKeyBinding(), defaultResponderCacheEntry.getResponderIdType());
                     modifiedEntries.put(key, entry);
                 } else {
-                    //If no default responder is defined, remove placeholder. 
+                    //If no default responder is defined, remove placeholder.
                     removedEntries.add(key);
                 }
             }
@@ -143,7 +143,7 @@ public enum OcspSigningCache {
         lock.unlock();
     }
 
-    /** Log any change in default responder 
+    /** Log any change in default responder
      * @param currentEntry current entry
      * @param stagedEntry  staged entry
      * @param defaultResponderSubjectDn boolean */
@@ -196,7 +196,7 @@ public enum OcspSigningCache {
 
     /**
      * This method will add a single cache entry to the cache. It should only be used to solve temporary cache inconsistencies.
-     * 
+     *
      * @param ocspSigningCacheEntry the entry to add
      */
     public void addSingleEntry(OcspSigningCacheEntry ocspSigningCacheEntry) {

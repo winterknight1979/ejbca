@@ -24,7 +24,7 @@ import org.ietf.ldap.LDAPDN;
 
 /**
  * A class used to retrieve different fields from a Distinguished Name or Subject Alternate Name or Subject Directory Attributes strings.
- * 
+ *
  * @version $Id: DNFieldExtractor.java 28678 2018-04-12 10:06:36Z anatom $
  */
 public class DNFieldExtractor implements java.io.Serializable {
@@ -82,7 +82,7 @@ public class DNFieldExtractor implements java.io.Serializable {
     public static final int KRB5PRINCIPAL = 52;
     public static final int PERMANTIDENTIFIER = 56;
     public static final int SUBJECTIDENTIFICATIONMETHOD = 59;
-    
+
     // Subject Directory Attributes
     public static final int DATEOFBIRTH = 27;
     public static final int PLACEOFBIRTH = 28;
@@ -102,10 +102,10 @@ public class DNFieldExtractor implements java.io.Serializable {
     public int getType() {
         return type;
     }
-    
+
     /**
      * Creates a new instance of DNFieldExtractor
-     * 
+     *
      * @param dn
      *            DOCUMENT ME!
      * @param type
@@ -132,7 +132,7 @@ public class DNFieldExtractor implements java.io.Serializable {
             return new ArrayList<Integer>();
         }
     }
-    
+
     /**
      * Returns the valid components for the given DN type (Subject DN, Subject Alternative Name or Subject Directory Attributes)
      * @param dnType DNFieldExtractor.TYPE_*
@@ -175,9 +175,9 @@ public class DNFieldExtractor implements java.io.Serializable {
     }
 
     /**
-     * Fills the dnfields variable with dn (or altname or subject dir attrs) numerical ids and the value of the components 
+     * Fills the dnfields variable with dn (or altname or subject dir attrs) numerical ids and the value of the components
      * (i.e. the value of CN). Also populates fieldnumbers with number of occurances in dn
-     * 
+     *
      * @param dn
      *            DOCUMENT ME!
      * @param type
@@ -228,9 +228,9 @@ public class DNFieldExtractor implements java.io.Serializable {
                                 field = CertTools.URI1.toUpperCase(Locale.ENGLISH) + "=";
                             }
                         }
-                       
+
                         if (dnex.startsWith(field)) {
-                           
+
                             exists = true;
                             final String rdn;
                             final String tmp;
@@ -250,7 +250,7 @@ public class DNFieldExtractor implements java.io.Serializable {
                             // Same code for TYPE_SUBJECTDN, TYPE_SUBJECTALTNAME and TYPE_SUBJECTDIRATTR and we will never get here
                             // if it is not one of those types
                             dnfields.put(Integer.valueOf((id.intValue() * BOUNDRARY) + number.intValue()), rdn);
-                            
+
                             number = Integer.valueOf(number.intValue() + 1);
                             fieldnumbers.put(id, number);
                         }
@@ -275,12 +275,12 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     /**
      * Returns the value of a certain DN component.
-     * 
+     *
      * @param field
      *            the DN component, one of the constants DNFieldExtractor.CN, ...
      * @param number
      *            the number of the component if several entries for this component exists, normally 0 fir the first
-     * 
+     *
      * @return A String for example "PrimeKey" if DNFieldExtractor.O and 0 was passed, "PrimeKey" if DNFieldExtractor.DC and 0 was passed or "com" if
      *         DNFieldExtractor.DC and 1 was passed. Returns an empty String "", if no such field with the number exists.
      */
@@ -296,7 +296,7 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     /**
      * Returns a string representation of a certain DN component
-     * 
+     *
      * @param field
      *            the DN component, one of the constants DNFieldExtractor.CN, ...
      * @return A String for example "CN=Tomas Gustavsson" if DNFieldExtractor.CN was passed, "DC=PrimeKey,DC=com" if DNFieldExtractor.DC was passed.
@@ -321,7 +321,7 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     /**
      * Function that returns true if non standard DN field exists in dn string.
-     * 
+     *
      * @return true if non standard DN field exists, false otherwise
      */
     public boolean existsOther() {
@@ -330,10 +330,10 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     /**
      * Returns the number of one kind of dn field.
-     * 
+     *
      * @param field
      *            the DN component, one of the constants DNFieldExtractor.CN, ...
-     * 
+     *
      * @return number of components available for a field, for example 1 if DN is "dc=primekey" and 2 if DN is "dc=primekey,dc=com"
      */
     public int getNumberOfFields(final int field) {
@@ -347,9 +347,9 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     /**
      * Returns the complete array determining the number of DN components of the various types (i.e. if there are two CNs but 0 Ls etc)
-     * 
+     *
      * TODO: DOCUMENT
-     * 
+     *
      * @return DOCUMENT ME!
      */
     public HashMap<Integer, Integer> getNumberOfFields() {

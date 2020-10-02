@@ -188,7 +188,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
             }
         } else {
             this.values.add(defaultValue);
-        }  
+        }
         this.possibleValues = null;
         this.type = type;
         if (File.class.getName().equals(getType().getName()) || byte[].class.getName().equals(getType().getName())) {
@@ -742,10 +742,10 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
 
     private static <T extends Serializable> T getAsObject(final byte[] bytes, Class<T> type) {
         try (final LookAheadObjectInputStream lookAheadObjectInputStream = new LookAheadObjectInputStream(new ByteArrayInputStream(bytes))) {
-            lookAheadObjectInputStream.setAcceptedClasses(Arrays.asList(type, LinkedHashMap.class, HashMap.class, HashSet.class, DynamicUiPropertyCallback.class, 
+            lookAheadObjectInputStream.setAcceptedClasses(Arrays.asList(type, LinkedHashMap.class, HashMap.class, HashSet.class, DynamicUiPropertyCallback.class,
                   AccessMatchType.class, MultiLineString.class, String.class,
-                  PositiveIntegerValidator.class, RadioButton.class, ArrayList.class, Enum.class, 
-                  Collections.emptyList().getClass().asSubclass(Serializable.class), 
+                  PositiveIntegerValidator.class, RadioButton.class, ArrayList.class, Enum.class,
+                  Collections.emptyList().getClass().asSubclass(Serializable.class),
                   Class.forName("org.cesecore.roles.RoleInformation").asSubclass(Serializable.class),
                   Class.forName("org.cesecore.roles.RoleData").asSubclass(Serializable.class),
                   Class.forName("org.cesecore.authorization.user.AccessUserAspectData").asSubclass(Serializable.class)));
@@ -757,7 +757,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
             throw new IllegalStateException(e);
         }
     }
-    
+
     /**
      * Gets the action callback.
      * @return the callback.
@@ -810,7 +810,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
         return possibleValues != null;
     }
 
-    /** Returns the current value, like getValue, but has a workaround for JSF bug with ui:repeat and rendered. See ECA-5342 
+    /** Returns the current value, like getValue, but has a workaround for JSF bug with ui:repeat and rendered. See ECA-5342
      * @return value*/
     @SuppressWarnings("unchecked")
     public T getJsfBooleanValue() {
@@ -935,7 +935,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     public boolean isByteArrayType() {
         return byte[].class.getName().equals(getType().getName());
     }
-    
+
     /**
      * Returns true if a check box should be rendered.
      * @return true or false.
@@ -1003,7 +1003,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
                 + ", labelOnly=" + labelOnly + ", type=" + type + ", hasMultipleValues=" + hasMultipleValues + "]";
     }
 
-    /** Delegation method for {@link DynamicUiModel#addDynamicUiComponent}. 
+    /** Delegation method for {@link DynamicUiModel#addDynamicUiComponent}.
      * @param component component */
     public void addDynamicUiComponent(final DynamicUiComponent component) {
         getDynamicUiModel().addDynamicUiComponent(name, component);

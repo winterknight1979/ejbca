@@ -19,11 +19,11 @@ import java.util.Set;
 /**
  * This class represents a Subject for the purpose of authentication/authorization. javax.security.auth.Subject was not implemented due to being
  * overly coupled with the JAAS paradigm. In order to avoid confusion with the End Entity concept, the word 'user' is avoided in both contexts.
- * 
+ *
  * TODO: Make proper hashcode/compare methods.
- * 
+ *
  * @version $Id: AuthenticationSubject.java 18305 2013-12-16 13:59:56Z anatom $
- * 
+ *
  */
 public class AuthenticationSubject implements Serializable {
 
@@ -31,7 +31,7 @@ public class AuthenticationSubject implements Serializable {
 
     protected final Set<Principal> principals;
     protected final Set<?> credentials;
-    
+
     public AuthenticationSubject(Set<Principal> principals, Set<?> credentials) {
         this.principals = principals;
         this.credentials = credentials;

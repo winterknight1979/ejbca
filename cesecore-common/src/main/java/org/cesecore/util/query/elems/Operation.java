@@ -16,7 +16,7 @@ import org.cesecore.util.query.Elem;
 
 /**
  * Operation is a combination of Terms. Terms are logiclly related by logical operators @see LogicOperator
- * 
+ *
  * @version $Id: Operation.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public final class Operation implements Elem {
@@ -25,7 +25,7 @@ public final class Operation implements Elem {
     private final Term term;
     private final LogicOperator operator;
     private final Elem element;
-    
+
     public Operation(final LogicOperator operator, final Term term1, final Elem element) {
         super();
         this.operator = operator;
@@ -40,7 +40,7 @@ public final class Operation implements Elem {
     public LogicOperator getOperator() {
         return operator;
     }
-    
+
     public Elem getElement() {
         return element;
     }

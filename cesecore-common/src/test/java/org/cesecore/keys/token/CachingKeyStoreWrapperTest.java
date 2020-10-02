@@ -30,7 +30,7 @@ import org.junit.Test;
 
 /**
  * Stand alone test of CachingKeyStoreWrapper.
- * 
+ *
  * @version $Id: CachingKeyStoreWrapperTest.java 22132 2015-11-02 13:52:46Z mikekushner $
  */
 public class CachingKeyStoreWrapperTest {
@@ -109,7 +109,7 @@ public class CachingKeyStoreWrapperTest {
         final Certificate certificate = cachingKeyStoreWrapper.getCertificate(alias);
         Assert.assertNotNull("No certificate for generated key pair could be found.", certificate);
     }
-    
+
     private void testUse(final CachingKeyStoreWrapper cachingKeyStoreWrapper, final String alias) throws Exception {
         final Key key = cachingKeyStoreWrapper.getKey(alias, null);
         final Certificate certificate = cachingKeyStoreWrapper.getCertificate(alias);
@@ -127,7 +127,7 @@ public class CachingKeyStoreWrapperTest {
     }
 
     /** @param cachingKeyStoreWrapper wrapper
-     * @return the count of aliases the wrapped key store claims to exist 
+     * @return the count of aliases the wrapped key store claims to exist
      * @throws KeyStoreException fail*/
     private int getAliasCount(final CachingKeyStoreWrapper cachingKeyStoreWrapper) throws KeyStoreException {
         final Enumeration<String> aliasEnumeration = cachingKeyStoreWrapper.aliases();
@@ -141,7 +141,7 @@ public class CachingKeyStoreWrapperTest {
 
     /** @param cachingKeyStoreWrapper wrapper
      * @param alias alias
-     * @return true if the wrapped key store claims the alias exist 
+     * @return true if the wrapped key store claims the alias exist
      * @throws KeyStoreException fail */
     private boolean isContainsAlias(final CachingKeyStoreWrapper cachingKeyStoreWrapper, final String alias) throws KeyStoreException {
         final Enumeration<String> aliasEnumeration = cachingKeyStoreWrapper.aliases();

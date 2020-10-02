@@ -38,7 +38,7 @@ import org.cesecore.keys.util.KeyStoreTools;
 
 /**
  * Class implementing a keystore on PKCS11 tokens.
- * 
+ *
  * @version $Id: PKCS11CryptoToken.java 30548 2018-11-19 16:04:50Z anatom $
  */
 public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
@@ -60,23 +60,23 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
      * Can be used to create a crypto token without actually installing it in Java Security, so it
      * can be created temporarily */
     public static final String DO_NOT_ADD_P11_PROVIDER = "doNotAddP11Provider";
-    
+
     @Deprecated //Remove once upgrading from 5.0->6.0 is no longer supported
     public static final String SLOT_LIST_INDEX_KEY = "slotListIndex";
     @Deprecated //Remove once upgrading from 5.0->6.0 is no longer supported
     public static final String SLOT_LABEL_KEY = "slot";
 
-    
+
     /** A user defined name of the slot provider. Used in order to be able to have two different providers
      * (with different PKCS#11 attributes) for the same slot. If this is not set (null), the default
      * java provider name is used (SunPKCS11-pkcs11LibName-slotNr for example SunPKCS11-libcryptoki.so-slot1).
      */
     public final static String TOKEN_FRIENDLY_NAME = "tokenFriendlyName";
-    
+
     private transient P11Slot p11slot;
 
     private String sSlotLabel = null;
-    
+
     /**
      * @throws InstantiationException on error
      */
@@ -110,7 +110,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
         } else {
             // getInstance will run autoActivate()
             p11slot = P11Slot.getInstance(sSlotLabel, sharedLibrary, type, attributesFile, this, id, addProvider);
-            
+
         }
         final Provider provider = p11slot.getProvider();
         if (addProvider) {
@@ -190,7 +190,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
             throw new IllegalStateException("This should never happen.");
         }
         if (this.p11slot != null) {
-            this.p11slot.logoutFromSlotIfNoTokensActive();            
+            this.p11slot.logoutFromSlotIfNoTokensActive();
         } else {
             log.debug("p11slot was null, token was not active trying to deactivate.");
         }
@@ -230,7 +230,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
     }
 
     @Override
-    public void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws 
+    public void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws
             InvalidAlgorithmParameterException, CertificateException, IOException,
             CryptoTokenOfflineException {
         if (StringUtils.isNotEmpty(alias)) {
@@ -259,13 +259,13 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
     public byte[] getTokenData() {
         return null;
     }
-    
-    /** Used for testing 
+
+    /** Used for testing
      * @return slot*/
     protected P11Slot getP11slot() {
         return p11slot;
     }
-    
+
     /**
      * Extracts the slotLabel that is used for many tokens in construction of the provider
      *
@@ -283,18 +283,18 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
         }
         return ret;
     }
-    
+
     /**
-     * Will replace deprecated properties values with the new ones. 
-     * 
+     * Will replace deprecated properties values with the new ones.
+     *
      * @param properties a properties file of the old format.
      * @return a defensive copy of the submitted properties
      */
     @Deprecated
-    //Remove when we no longer support upgrading from 5.0.x -> 6.0.x 
+    //Remove when we no longer support upgrading from 5.0.x -> 6.0.x
     public static Properties upgradePropertiesFileFrom5_0_x(final Properties properties) {
         Properties returnValue = new Properties();
-        
+
         for (Object key : properties.keySet()) {
             final String keyString = (String) key;
             if (log.isDebugEnabled()) {
@@ -306,7 +306,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
                     log.debug(">upgradePropertiesFileFrom5_0_x, keyValue: "+keyValue);
                 }
                 // In 5.0.11, the "slot" value may contain just an integer, but may also encode an integer, an index
-                // a token label or a config file. 
+                // a token label or a config file.
                 final String oldLabelPrefix = "TOKEN_LABEL:";
                 final String oldIndexPrefix = "SLOT_LIST_IX:";
                 final String oldSlotNumberPrefix = "SLOT_ID:";
@@ -317,7 +317,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
                     returnValue.setProperty(SLOT_LABEL_VALUE, keyValue);
                     returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_NUMBER.getKey());
                 } else if(keyValue.startsWith(oldSlotNumberPrefix)) {
-                   //If not, check with the rest of the values 
+                   //If not, check with the rest of the values
                     returnValue.setProperty(SLOT_LABEL_VALUE, keyValue.split(delimiter, 2)[1]);
                     returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_NUMBER.getKey());
                 } else if(keyValue.startsWith(oldIndexPrefix)) {
@@ -329,7 +329,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
                 } else if(keyValue.startsWith(oldSunFilePrefix)) {
                     returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SUN_FILE.getKey());
                 }
-                
+
             } else if (keyString.equalsIgnoreCase(SLOT_LIST_INDEX_KEY)) {
                 String indexValue = properties.getProperty(keyString);
                 if (indexValue.charAt(0) != 'i') {

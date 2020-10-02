@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.io.ByteArrayInputStream;
@@ -54,69 +54,69 @@ import org.ejbca.cvc.exception.ParseException;
  * @version $Id: RequestMessageUtils.java 27126 2017-11-13 09:28:54Z anatom $
  */
 public abstract class RequestMessageUtils {
-	
-	private static final Logger log = Logger.getLogger(RequestMessageUtils.class);
 
-	/** Tries to parse the byte array to create a request message of the correct type.
-	 * Currently handles PKCS10 request messages and CVC request messages.
-	 * @param request byte array
-	 * 
-	 * @return IRequestMessage
-	 */
-	public static RequestMessage parseRequestMessage(byte[] request) {
-		RequestMessage ret = null;
-		try {
-			ret = genPKCS10RequestMessage(request);			
-		} catch (IllegalArgumentException e) {
-			log.debug("Can not parse PKCS10 request, trying CVC instead: "+ e.getMessage());
-			ret = genCVCRequestMessage(request);
-		}
-		return ret;
-	}
+    private static final Logger log = Logger.getLogger(RequestMessageUtils.class);
 
-	public static PKCS10RequestMessage genPKCS10RequestMessage(byte[] bytes) {
-		byte[] buffer = getDecodedBytes(bytes);
-		if (buffer == null) {
-			return null;
-		}		
-		return new PKCS10RequestMessage(buffer);
-	} // genPKCS10RequestMessageFromPEM
-	
+    /** Tries to parse the byte array to create a request message of the correct type.
+     * Currently handles PKCS10 request messages and CVC request messages.
+     * @param request byte array
+     *
+     * @return IRequestMessage
+     */
+    public static RequestMessage parseRequestMessage(byte[] request) {
+        RequestMessage ret = null;
+        try {
+            ret = genPKCS10RequestMessage(request);
+        } catch (IllegalArgumentException e) {
+            log.debug("Can not parse PKCS10 request, trying CVC instead: "+ e.getMessage());
+            ret = genCVCRequestMessage(request);
+        }
+        return ret;
+    }
 
-	public static CVCRequestMessage genCVCRequestMessage(byte[] bytes) { 
-		byte[] buffer = getDecodedBytes(bytes);
-		if (buffer == null) {
-			return null;
-		}		
-		return new CVCRequestMessage(buffer);
-	} // genCvcRequestMessageFromPEM
-	
-	/** Tries to get decoded, if needed, bytes from a certificate request or certificate
-	 * 
-	 * @param bytes pem (with headers), plain base64, or binary bytes with a CSR of certificate 
-	 * @return binary bytes
-	 */
-	public static byte[] getDecodedBytes(byte[] bytes) {
-		byte[] buffer = null;
-		try {
-			 buffer = getRequestBytes(bytes); 
-		} catch (IOException e) {
-			log.debug("Message not base64 encoded? Trying as binary: "+e.getMessage());
-			buffer = bytes;
-		}
-		return buffer;
-	}
+    public static PKCS10RequestMessage genPKCS10RequestMessage(byte[] bytes) {
+        byte[] buffer = getDecodedBytes(bytes);
+        if (buffer == null) {
+            return null;
+        }
+        return new PKCS10RequestMessage(buffer);
+    } // genPKCS10RequestMessageFromPEM
 
-	/** Tries to get decoded bytes from a certificate request or certificate
-	 * 
-	 * @param b64Encoded pem (with headers) or plain base64 with a CSR of certificate 
-	 * @return binary bytes
-	 * @throws IOException on error
-	 */
-	public static byte[] getRequestBytes(byte[] b64Encoded) throws IOException {
-		byte[] buffer = null;
-		if (b64Encoded != null && b64Encoded.length > 0) {
-		    String str = new String(b64Encoded);
+
+    public static CVCRequestMessage genCVCRequestMessage(byte[] bytes) {
+        byte[] buffer = getDecodedBytes(bytes);
+        if (buffer == null) {
+            return null;
+        }
+        return new CVCRequestMessage(buffer);
+    } // genCvcRequestMessageFromPEM
+
+    /** Tries to get decoded, if needed, bytes from a certificate request or certificate
+     *
+     * @param bytes pem (with headers), plain base64, or binary bytes with a CSR of certificate
+     * @return binary bytes
+     */
+    public static byte[] getDecodedBytes(byte[] bytes) {
+        byte[] buffer = null;
+        try {
+             buffer = getRequestBytes(bytes);
+        } catch (IOException e) {
+            log.debug("Message not base64 encoded? Trying as binary: "+e.getMessage());
+            buffer = bytes;
+        }
+        return buffer;
+    }
+
+    /** Tries to get decoded bytes from a certificate request or certificate
+     *
+     * @param b64Encoded pem (with headers) or plain base64 with a CSR of certificate
+     * @return binary bytes
+     * @throws IOException on error
+     */
+    public static byte[] getRequestBytes(byte[] b64Encoded) throws IOException {
+        byte[] buffer = null;
+        if (b64Encoded != null && b64Encoded.length > 0) {
+            String str = new String(b64Encoded);
             // A real PKCS10 PEM request
             String beginKey = CertTools.BEGIN_CERTIFICATE_REQUEST;
             String endKey = CertTools.END_CERTIFICATE_REQUEST;
@@ -142,18 +142,18 @@ public abstract class RequestMessageUtils {
                 }
             }
             if (buffer == null) {
-                buffer = FileTools.getBytesFromPEM(b64Encoded, beginKey, endKey);                
+                buffer = FileTools.getBytesFromPEM(b64Encoded, beginKey, endKey);
             }
-		} else {
-            throw new IOException("Base64 decode fails, message is empty");		    
-		}
-		return buffer;
-	}
+        } else {
+            throw new IOException("Base64 decode fails, message is empty");
+        }
+        return buffer;
+    }
 
     public static RequestMessage getRequestMessageFromType(final String username, final String password, final String req, final int reqType)
             throws SignRequestSignatureException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, IOException,
             SignatureException, InvalidKeySpecException, ParseException, ConstructionException, NoSuchFieldException {
-	    RequestMessage ret = null;
+        RequestMessage ret = null;
         if (reqType == CertificateConstants.CERT_REQ_TYPE_PKCS10) {
             final PKCS10RequestMessage pkcs10RequestMessage = RequestMessageUtils.genPKCS10RequestMessage(req.getBytes());
             pkcs10RequestMessage.setUsername(username);
@@ -186,7 +186,7 @@ public abstract class RequestMessageUtils {
                 }
                 PublicKey pubKey = nscr.getPublicKey();
                 ret = new SimpleRequestMessage(pubKey, username, password);
-            }       
+            }
         } else if (reqType == CertificateConstants.CERT_REQ_TYPE_CRMF) {
             final byte[] certificateRequestMessages = Base64.decode(req.getBytes());
             final CertReqMsg certReqMsg = CertReqMsg.getInstance(((ASN1Sequence)ASN1Sequence.fromByteArray(certificateRequestMessages)).getObjectAt(0));
@@ -304,6 +304,6 @@ public abstract class RequestMessageUtils {
             ret = reqmsg;
         }
         return ret;
-	}
+    }
 
 }

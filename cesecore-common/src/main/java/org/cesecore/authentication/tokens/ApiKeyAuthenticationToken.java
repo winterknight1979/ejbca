@@ -32,9 +32,9 @@ package org.cesecore.authentication.tokens;
 //public class ApiKeyAuthenticationToken extends AuthenticationToken {
 //
 //    private static final ApiKeyAuthenticationTokenMetaData metaData = new ApiKeyAuthenticationTokenMetaData();
-//    
+//
 //    private static final long serialVersionUID = 1L;
-//    
+//
 //    private final String apiKey;
 //    private String apiKeyHash;
 //
@@ -109,7 +109,7 @@ package org.cesecore.authentication.tokens;
 //    public String getApiKeyHash() {
 //        return apiKeyHash;
 //    }
-//    
+//
 //    private String generateSha256Hash(String input) {
 //        return KeyTools.getSha256Fingerprint(input);
 //    }

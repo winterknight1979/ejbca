@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 /**
  * @version $Id: ResponseStatus.java 27539 2017-12-14 08:38:56Z samuellb $
  */
@@ -37,7 +37,7 @@ public final class ResponseStatus implements Serializable {
      * The requester is responsible for ascertaining the differences.
      */
     public static final ResponseStatus GRANTED_WITH_MODS = new ResponseStatus(1);
-    
+
     /**
      * Request rejected
      */
@@ -66,21 +66,21 @@ public final class ResponseStatus implements Serializable {
     }
 
     public int getValue() {
-    	return value;
+        return value;
     }
 
     @Override
     public boolean equals(final Object o) {
-    	boolean ret = false;
+        boolean ret = false;
         if (this == o) {
-        	ret = true;
+            ret = true;
         } else {
             if (o instanceof ResponseStatus) {
                 final ResponseStatus status = (ResponseStatus) o;
                 if (value == status.getValue()) {
-                	ret = true;
+                    ret = true;
                 }
-            }      	
+            }
         }
         return ret;
     }

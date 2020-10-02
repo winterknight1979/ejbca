@@ -18,9 +18,9 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when a serious error happens creating a certificate. 
+ * An exception thrown when a serious error happens creating a certificate.
  * If this happens any transaction depending on this should be rolled back.
- * 
+ *
  * @version $Id: CertificateCreateException.java 26230 2017-08-07 12:36:32Z anatom $
  */
 @ApplicationException(rollback = true)
@@ -30,7 +30,7 @@ public class CertificateCreateException extends CesecoreException {
 
     /**
      * Creates a new instance of exception without detail message. Marked as rollback=true
-     * 
+     *
      * @see CertificateCreateException
      */
     public CertificateCreateException() {
@@ -39,7 +39,7 @@ public class CertificateCreateException extends CesecoreException {
 
     /**
      * Constructs an instance of exception with the specified detail message. Marked as rollback=true
-     * 
+     *
      * @see CertificateCreateException
      * @param msg the detail message.
      */
@@ -49,7 +49,7 @@ public class CertificateCreateException extends CesecoreException {
 
     /**
      * Marked as rollback=true
-     * 
+     *
      * @see CertificateCreateException
      * @param e causing exception that will be wrapped
      */
@@ -59,7 +59,7 @@ public class CertificateCreateException extends CesecoreException {
 
     /**
      * Marked as rollback=true
-     * 
+     *
      * @see CertificateCreateException
      * @param errorCode defines the cause of the exception.
      * @param e causing exception that will be wrapped
@@ -70,7 +70,7 @@ public class CertificateCreateException extends CesecoreException {
 
     /**
      * Marked as rollback=true
-     * 
+     *
      * @see CertificateCreateException
      * @param e causing exception that will be wrapped
      * @param msg the detail message.

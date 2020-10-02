@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.internal;
 
 import java.security.InvalidKeyException;
@@ -23,23 +23,23 @@ import org.cesecore.certificates.certificate.request.RequestMessageUtils;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 
 /** Class used to select which request message and public key to use to issue a certificate, by looking
- * at the various input in priority order. 
+ * at the various input in priority order.
  * 3. Request inside endEntityInformation has priority over providedPublicKey and providedRequestMessage
  * 2. providedPublicKey has priority over the public key in providedRequestMessage
  * 1. providedRequestMessage and it's public key is used
- * 
+ *
  * @version $Id: RequestAndPublicKeySelector.java 26392 2017-08-22 17:49:48Z anatom $
  */
 public class RequestAndPublicKeySelector {
 
-	/** Class logger. */
+    /** Class logger. */
     private static final Logger log = Logger.getLogger(RequestAndPublicKeySelector.class);
-    
+
     private PublicKey publicKey;
     private RequestMessage requestMessage;
     /** Constructor taking input needed to make decision on which public key and requets message to use. After construction caller can use the methods
      * {@link #getPublicKey()} and {@link #getRequestMessage()} to retrieve the selected objects.
-     * 
+     *
      * @param providedRequestMessage message
      * @param providedPublicKey key
      * @param endEntityInformation info

@@ -63,9 +63,9 @@ public abstract class AccessRulesHelper {
                 state = accessRules.get(subString + "/");
             }
             if (state!=null) {
-            	if (log.isTraceEnabled()) {
-            	    log.trace("hasAccessToResource: "+resource+", "+state.booleanValue());
-            	}
+                if (log.isTraceEnabled()) {
+                    log.trace("hasAccessToResource: "+resource+", "+state.booleanValue());
+                }
                 return state.booleanValue();
             }
         }
@@ -75,7 +75,7 @@ public abstract class AccessRulesHelper {
         return false;
     }
 
-    /** Normalize access rules tree (make sure rules always end with a '/') 
+    /** Normalize access rules tree (make sure rules always end with a '/')
      * @param accessRules rules */
     public static void normalizeResources(final HashMap<String, Boolean> accessRules) {
         // For each rule, check if there are higher level rules (e.g. shorter path) with the same access state
@@ -88,7 +88,7 @@ public abstract class AccessRulesHelper {
         }
     }
 
-    /** Normalize access rules (make sure rules always end with a '/') 
+    /** Normalize access rules (make sure rules always end with a '/')
      * @param resource rules
      * @return normalized string */
     public static String normalizeResource(final String resource) {
@@ -98,7 +98,7 @@ public abstract class AccessRulesHelper {
         return resource;
     }
 
-    /** Remove redundant rules. Assumes parameter is in normalized form. 
+    /** Remove redundant rules. Assumes parameter is in normalized form.
      * @param accessRules rules */
     public static void minimizeAccessRules(final HashMap<String, Boolean> accessRules) {
         // For each rule, check if there are higher level rules (e.g. shorter path) with the same access state
@@ -230,7 +230,7 @@ public abstract class AccessRulesHelper {
         return accessRules;
     }
 
-    /** Sort the provided access rules. (Useful for more readable persistence format.) 
+    /** Sort the provided access rules. (Useful for more readable persistence format.)
      * @param accessRules  rules */
     public static void sortAccessRules(final LinkedHashMap<String, Boolean> accessRules) {
         final List<Entry<String, Boolean>> sortEntryList = getAsListSortedByKey(accessRules);

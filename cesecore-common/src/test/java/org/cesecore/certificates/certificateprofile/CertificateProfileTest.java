@@ -47,23 +47,23 @@ import org.junit.Test;
 
 /**
  * Tests the CertificateProfile class.
- * 
+ *
  * @version $Id: CertificateProfileTest.java 28233 2018-02-09 15:57:21Z samuellb $
  */
 public class CertificateProfileTest {
 
     @Test
     public void test01DefaultValues() {
-    	final CertificateProfile prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    	
-    	// Check that default values are as they should be
-    	assertEquals(CertificateProfile.VERSION_X509V3, prof.getCertificateVersion());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	// ECA-5141: old setValidity methods are removed, getValidity only reads the old validity value from 
-    	// DB to display it on GUI. After post-upgrade the method is supposed not to be called anymore!
-//    	assertEquals(730, prof.getValidity());
-    	assertEquals("2y", prof.getEncodedValidity());
-    	assertNull(prof.getSignatureAlgorithm());
+        final CertificateProfile prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+
+        // Check that default values are as they should be
+        assertEquals(CertificateProfile.VERSION_X509V3, prof.getCertificateVersion());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        // ECA-5141: old setValidity methods are removed, getValidity only reads the old validity value from
+        // DB to display it on GUI. After post-upgrade the method is supposed not to be called anymore!
+//        assertEquals(730, prof.getValidity());
+        assertEquals("2y", prof.getEncodedValidity());
+        assertNull(prof.getSignatureAlgorithm());
         assertEquals(false, prof.getAllowValidityOverride());
         assertEquals(false, prof.getAllowExtensionOverride());
         assertEquals(false, prof.getAllowDNOverride());
@@ -99,7 +99,7 @@ public class CertificateProfileTest {
         final boolean[] ku = prof.getKeyUsage();
         assertEquals(9, ku.length);
         for (int i = 0; i < ku.length; i++) {
-        	assertEquals(false, ku[i]);
+            assertEquals(false, ku[i]);
         }
         assertEquals(false, prof.getAllowKeyUsageOverride());
         assertEquals(true, prof.getKeyUsageCritical());
@@ -127,7 +127,7 @@ public class CertificateProfileTest {
         assertEquals(0, asub.size());
         assertEquals(false, prof.getUsePathLengthConstraint());
         assertEquals(0, prof.getPathLengthConstraint());
-        
+
         assertEquals(false, prof.getUseQCStatement());
         assertEquals(false, prof.getUsePkixQCSyntaxV2());
         assertEquals(false, prof.getQCStatementCritical());
@@ -144,7 +144,7 @@ public class CertificateProfileTest {
         assertEquals(false, prof.getUseQCCustomString());
         assertEquals("", prof.getQCCustomStringOid());
         assertEquals("", prof.getQCCustomStringText());
-        
+
         assertEquals(false, prof.getUseSubjectDirAttributes());
         assertEquals(false, prof.getUseAuthorityInformationAccess());
         final Collection<String> cai = prof.getCaIssuers();
@@ -161,11 +161,11 @@ public class CertificateProfileTest {
 
     @Test
     public void test02ChangeValues() {
-    	final CertificateProfile prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    	prof.setUseCRLDistributionPoint(true);
-    	prof.setUseDefaultCRLDistributionPoint(true);
-    	prof.setCRLDistributionPointCritical(true);
-    	prof.setCRLDistributionPointURI("http://foo.bar/crl.crl");
+        final CertificateProfile prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+        prof.setUseCRLDistributionPoint(true);
+        prof.setUseDefaultCRLDistributionPoint(true);
+        prof.setCRLDistributionPointCritical(true);
+        prof.setCRLDistributionPointURI("http://foo.bar/crl.crl");
         assertEquals(true, prof.getUseCRLDistributionPoint());
         assertEquals(true, prof.getUseDefaultCRLDistributionPoint());
         assertEquals(true, prof.getCRLDistributionPointCritical());
@@ -174,7 +174,7 @@ public class CertificateProfileTest {
         final ArrayList<Integer> publishers = new ArrayList<Integer>();
         publishers.add(1);
         publishers.add(2);
-        
+
         prof.setPublisherList(publishers);
         final Collection<Integer> pub = prof.getPublisherList();
         assertEquals(2, pub.size());
@@ -186,13 +186,13 @@ public class CertificateProfileTest {
         final boolean[] ku = prof.getKeyUsage();
         assertEquals(9, ku.length);
         for (int i = 0; i < 8; i++) {
-        	assertEquals(false, ku[i]);
+            assertEquals(false, ku[i]);
         }
         assertEquals(true, ku[8]);
         assertNull(prof.getSignatureAlgorithm());
         prof.setSignatureAlgorithm("SHA256WithRSA");
         assertEquals("SHA256WithRSA", prof.getSignatureAlgorithm());
-        
+
         assertTrue(prof.isApplicableToAnyCA());
         ArrayList<Integer> cas = new ArrayList<Integer>();
         cas.add(1);
@@ -201,13 +201,13 @@ public class CertificateProfileTest {
         Collection<Integer> cas1 = prof.getAvailableCAs();
         assertEquals(1, cas1.size());
         assertEquals(Integer.valueOf(1), cas.iterator().next());
-        
-    	final CertificateProfile orgprof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+
+        final CertificateProfile orgprof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
         Map<Object, Object> diff = orgprof.diff(prof);
         Set<Map.Entry<Object, Object>> set = diff.entrySet();
         assertEquals(8, set.size());
         for (Map.Entry<Object, Object> entry : diff.entrySet()) {
-        	assertNotNull(entry.getKey()+" is empty", entry.getValue());
+            assertNotNull(entry.getKey()+" is empty", entry.getValue());
         }
 
         // Check for null when doing diff
@@ -216,198 +216,198 @@ public class CertificateProfileTest {
         set = diff.entrySet();
         assertEquals(8, set.size());
         for (Map.Entry<Object, Object> entry : diff.entrySet()) {
-        	assertNotNull(entry.getKey()+" is empty", entry.getValue());
+            assertNotNull(entry.getKey()+" is empty", entry.getValue());
         }
 
-    }    
-    
+    }
+
     @Test
     public void test03FixedProfiles() {
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.ROOTCAPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.SUBCAPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.ENDUSERPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.SERVERPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.OCSPSIGNERPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENAUTHENCPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENAUTHPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENENCPROFILENAME));
-    	assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENSIGNPROFILENAME));
-    	assertFalse(CertificateProfile.FIXED_PROFILENAMES.contains("MY_CUSTOM_PROFILE_NAME"));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.ROOTCAPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.SUBCAPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.ENDUSERPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.SERVERPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.OCSPSIGNERPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENAUTHENCPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENAUTHPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENENCPROFILENAME));
+        assertTrue(CertificateProfile.FIXED_PROFILENAMES.contains(CertificateProfile.HARDTOKENSIGNPROFILENAME));
+        assertFalse(CertificateProfile.FIXED_PROFILENAMES.contains("MY_CUSTOM_PROFILE_NAME"));
 
-    	CertificateProfile prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA);
-    	assertTrue(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertFalse(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ROOTCA, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.KEYCERTSIGN));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.CRLSIGN));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA);
-    	assertFalse(prof.isTypeRootCA());
-    	assertTrue(prof.isTypeSubCA());
-    	assertFalse(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_SUBCA, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.KEYCERTSIGN));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.CRLSIGN));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
-    	assertFalse(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertTrue(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.KEYCERTSIGN));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.CRLSIGN));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_SERVER);
-    	assertFalse(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertTrue(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER);
-    	assertFalse(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertTrue(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC);
-    	assertFalse(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertTrue(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC);
-    	assertFalse(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertTrue(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	assertFalse(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
-    	assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH);
-    	assertFalse(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertTrue(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
-    	prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN);
-    	assertFalse(prof.isTypeRootCA());
-    	assertFalse(prof.isTypeSubCA());
-    	assertTrue(prof.isTypeEndEntity());
-    	assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
-    	assertTrue(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
-    	assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        CertificateProfile prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA);
+        assertTrue(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertFalse(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ROOTCA, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertTrue(prof.getKeyUsage(CertificateConstants.KEYCERTSIGN));
+        assertTrue(prof.getKeyUsage(CertificateConstants.CRLSIGN));
+        assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA);
+        assertFalse(prof.isTypeRootCA());
+        assertTrue(prof.isTypeSubCA());
+        assertFalse(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_SUBCA, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertTrue(prof.getKeyUsage(CertificateConstants.KEYCERTSIGN));
+        assertTrue(prof.getKeyUsage(CertificateConstants.CRLSIGN));
+        assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
+        assertFalse(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertTrue(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        assertTrue(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
+        assertFalse(prof.getKeyUsage(CertificateConstants.KEYCERTSIGN));
+        assertFalse(prof.getKeyUsage(CertificateConstants.CRLSIGN));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_SERVER);
+        assertFalse(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertTrue(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER);
+        assertFalse(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertTrue(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC);
+        assertFalse(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertTrue(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC);
+        assertFalse(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertTrue(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        assertFalse(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
+        assertTrue(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH);
+        assertFalse(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertTrue(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
+        assertFalse(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
+        prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN);
+        assertFalse(prof.isTypeRootCA());
+        assertFalse(prof.isTypeSubCA());
+        assertTrue(prof.isTypeEndEntity());
+        assertEquals(CertificateConstants.CERTTYPE_ENDENTITY, prof.getType());
+        assertTrue(prof.getKeyUsage(CertificateConstants.NONREPUDIATION));
+        assertFalse(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
+        assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
     }
-    
+
     @Test
     public void test04createSubjectDNSubSet() throws Exception{
-    	CertificateProfile profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    	
-    	ArrayList<String> dnsubset = new ArrayList<String>();
-    	dnsubset.add(Integer.toString(DNFieldExtractor.CN));
-    	dnsubset.add(Integer.toString(DNFieldExtractor.UID));
-    	dnsubset.add(Integer.toString(DNFieldExtractor.GIVENNAME));
-    	dnsubset.add(Integer.toString(DNFieldExtractor.SURNAME));    	
-    	profile.setSubjectDNSubSet(dnsubset);
-    	
-    	String indn1 = "UID=PVE,CN=Philip Vendil,SN=123435,GIVENNAME=Philip,SURNAME=Vendil";
-    	String outdn1 = profile.createSubjectDNSubSet(indn1);
-    	String expecteddn1 = "UID=PVE,CN=Philip Vendil,GIVENNAME=Philip,SURNAME=Vendil";
-        assertTrue("createSubjectDNSubSet doesn't work" + outdn1 + " != "+ expecteddn1, expecteddn1.equalsIgnoreCase(outdn1)); 
-        
-    	String indn2 = "UID=PVE,CN=Philip Vendil,CN=SecondUsername,SN=123435,SN=54321,GIVENNAME=Philip,SURNAME=Vendil";
-    	String outdn2 = profile.createSubjectDNSubSet(indn2);
-    	String expecteddn2 = "UID=PVE,CN=Philip Vendil,CN=SecondUsername,GIVENNAME=Philip,SURNAME=Vendil";
+        CertificateProfile profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+
+        ArrayList<String> dnsubset = new ArrayList<String>();
+        dnsubset.add(Integer.toString(DNFieldExtractor.CN));
+        dnsubset.add(Integer.toString(DNFieldExtractor.UID));
+        dnsubset.add(Integer.toString(DNFieldExtractor.GIVENNAME));
+        dnsubset.add(Integer.toString(DNFieldExtractor.SURNAME));
+        profile.setSubjectDNSubSet(dnsubset);
+
+        String indn1 = "UID=PVE,CN=Philip Vendil,SN=123435,GIVENNAME=Philip,SURNAME=Vendil";
+        String outdn1 = profile.createSubjectDNSubSet(indn1);
+        String expecteddn1 = "UID=PVE,CN=Philip Vendil,GIVENNAME=Philip,SURNAME=Vendil";
+        assertTrue("createSubjectDNSubSet doesn't work" + outdn1 + " != "+ expecteddn1, expecteddn1.equalsIgnoreCase(outdn1));
+
+        String indn2 = "UID=PVE,CN=Philip Vendil,CN=SecondUsername,SN=123435,SN=54321,GIVENNAME=Philip,SURNAME=Vendil";
+        String outdn2 = profile.createSubjectDNSubSet(indn2);
+        String expecteddn2 = "UID=PVE,CN=Philip Vendil,CN=SecondUsername,GIVENNAME=Philip,SURNAME=Vendil";
         assertTrue("createSubjectDNSubSet doesn't work" + outdn2 + " != "+ expecteddn2, expecteddn2.equalsIgnoreCase(outdn2));
     }
 
     @Test
     public void test05createSubjectAltNameSubSet() throws Exception{
-    	CertificateProfile profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    	
-    	ArrayList<Integer> altnamesubset = new ArrayList<Integer>();
-    	altnamesubset.add(Integer.valueOf(DNFieldExtractor.RFC822NAME));
-    	altnamesubset.add(Integer.valueOf(DNFieldExtractor.UPN));    	
-    	profile.setSubjectAltNameSubSet(altnamesubset);
-    	
-    	String inaltname1 = "RFC822NAME=test@test.se,UPN=testacc@test.se,IPADDRESS=10.1.1.0";
-    	String outaltname1 = profile.createSubjectAltNameSubSet(inaltname1);
-    	String expectedaltname1 = "RFC822NAME=test@test.se,UPN=testacc@test.se";
-        assertTrue("createSubjectAltNameSubSet doesn't work" + outaltname1 + " != "+ expectedaltname1, expectedaltname1.equalsIgnoreCase(outaltname1)); 
-        
-    	String inaltname2 = "RFC822NAME=test@test.se,RFC822NAME=test2@test2.se,UPN=testacc@test.se,IPADDRESS=10.1.1.0,IPADDRESS=10.1.1.2";
-    	String outaltname2 = profile.createSubjectAltNameSubSet(inaltname2);
-    	String expectedaltname2 = "RFC822NAME=test@test.se,RFC822NAME=test2@test2.se,UPN=testacc@test.se";
+        CertificateProfile profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+
+        ArrayList<Integer> altnamesubset = new ArrayList<Integer>();
+        altnamesubset.add(Integer.valueOf(DNFieldExtractor.RFC822NAME));
+        altnamesubset.add(Integer.valueOf(DNFieldExtractor.UPN));
+        profile.setSubjectAltNameSubSet(altnamesubset);
+
+        String inaltname1 = "RFC822NAME=test@test.se,UPN=testacc@test.se,IPADDRESS=10.1.1.0";
+        String outaltname1 = profile.createSubjectAltNameSubSet(inaltname1);
+        String expectedaltname1 = "RFC822NAME=test@test.se,UPN=testacc@test.se";
+        assertTrue("createSubjectAltNameSubSet doesn't work" + outaltname1 + " != "+ expectedaltname1, expectedaltname1.equalsIgnoreCase(outaltname1));
+
+        String inaltname2 = "RFC822NAME=test@test.se,RFC822NAME=test2@test2.se,UPN=testacc@test.se,IPADDRESS=10.1.1.0,IPADDRESS=10.1.1.2";
+        String outaltname2 = profile.createSubjectAltNameSubSet(inaltname2);
+        String expectedaltname2 = "RFC822NAME=test@test.se,RFC822NAME=test2@test2.se,UPN=testacc@test.se";
         assertTrue("createSubjectAltNameSubSet doesn't work" + outaltname2 + " != "+ expectedaltname2, expectedaltname2.equalsIgnoreCase(outaltname2));
     }
 
     @Test
     public void test06CertificateExtensions() throws Exception{
-    	CertificateProfile profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    	
-    	// Check standard values for the certificate profile
-    	List<String> l = profile.getUsedStandardCertificateExtensions();
-    	assertEquals(6, l.size());
-    	assertTrue(l.contains(Extension.keyUsage.getId()));
-    	assertTrue(l.contains(Extension.basicConstraints.getId()));
-    	assertTrue(l.contains(Extension.subjectKeyIdentifier.getId()));
-    	assertTrue(l.contains(Extension.authorityKeyIdentifier.getId()));
-    	assertTrue(l.contains(Extension.subjectAlternativeName.getId()));
-    	assertTrue(l.contains(Extension.issuerAlternativeName.getId()));
+        CertificateProfile profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
 
-    	CertificateProfile eprofile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
-    	
-    	// Check standard values for the certificate profile
-    	l = eprofile.getUsedStandardCertificateExtensions();
-    	assertEquals(7, l.size());
-    	assertTrue(l.contains(Extension.keyUsage.getId()));
-    	assertTrue(l.contains(Extension.basicConstraints.getId()));
-    	assertTrue(l.contains(Extension.subjectKeyIdentifier.getId()));
-    	assertTrue(l.contains(Extension.authorityKeyIdentifier.getId()));
-    	assertTrue(l.contains(Extension.subjectAlternativeName.getId()));
-    	assertTrue(l.contains(Extension.issuerAlternativeName.getId()));
-    	assertTrue(l.contains(Extension.extendedKeyUsage.getId()));
+        // Check standard values for the certificate profile
+        List<String> l = profile.getUsedStandardCertificateExtensions();
+        assertEquals(6, l.size());
+        assertTrue(l.contains(Extension.keyUsage.getId()));
+        assertTrue(l.contains(Extension.basicConstraints.getId()));
+        assertTrue(l.contains(Extension.subjectKeyIdentifier.getId()));
+        assertTrue(l.contains(Extension.authorityKeyIdentifier.getId()));
+        assertTrue(l.contains(Extension.subjectAlternativeName.getId()));
+        assertTrue(l.contains(Extension.issuerAlternativeName.getId()));
 
-    	profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    	profile.setUseAuthorityInformationAccess(true);
-    	profile.setUseCertificatePolicies(true);
-    	profile.setUseCRLDistributionPoint(true);
-    	profile.setUseFreshestCRL(true);
-    	profile.setUseMicrosoftTemplate(true);
-    	profile.setUseOcspNoCheck(true);
-    	profile.setUseQCStatement(true);
-    	profile.setUseExtendedKeyUsage(true);
-    	profile.setUseSubjectDirAttributes(true);
-    	l = profile.getUsedStandardCertificateExtensions();
-    	assertEquals(15, l.size());
-    	assertTrue(l.contains(Extension.keyUsage.getId()));
-    	assertTrue(l.contains(Extension.basicConstraints.getId()));
-    	assertTrue(l.contains(Extension.subjectKeyIdentifier.getId()));
-    	assertTrue(l.contains(Extension.authorityKeyIdentifier.getId()));
-    	assertTrue(l.contains(Extension.subjectAlternativeName.getId()));
-    	assertTrue(l.contains(Extension.issuerAlternativeName.getId()));
-    	assertTrue(l.contains(Extension.extendedKeyUsage.getId()));
-    	assertTrue(l.contains(Extension.authorityInfoAccess.getId()));
-    	assertTrue(l.contains(Extension.certificatePolicies.getId()));
-    	assertTrue(l.contains(Extension.cRLDistributionPoints.getId()));
-    	assertTrue(l.contains(Extension.freshestCRL.getId()));
-    	assertTrue(l.contains(OCSPObjectIdentifiers.id_pkix_ocsp_nocheck.getId()));
-    	assertTrue(l.contains(Extension.qCStatements.getId()));
-    	assertTrue(l.contains(Extension.subjectDirectoryAttributes.getId()));
-    	assertTrue(l.contains(CertTools.OID_MSTEMPLATE));    	
+        CertificateProfile eprofile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
+
+        // Check standard values for the certificate profile
+        l = eprofile.getUsedStandardCertificateExtensions();
+        assertEquals(7, l.size());
+        assertTrue(l.contains(Extension.keyUsage.getId()));
+        assertTrue(l.contains(Extension.basicConstraints.getId()));
+        assertTrue(l.contains(Extension.subjectKeyIdentifier.getId()));
+        assertTrue(l.contains(Extension.authorityKeyIdentifier.getId()));
+        assertTrue(l.contains(Extension.subjectAlternativeName.getId()));
+        assertTrue(l.contains(Extension.issuerAlternativeName.getId()));
+        assertTrue(l.contains(Extension.extendedKeyUsage.getId()));
+
+        profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+        profile.setUseAuthorityInformationAccess(true);
+        profile.setUseCertificatePolicies(true);
+        profile.setUseCRLDistributionPoint(true);
+        profile.setUseFreshestCRL(true);
+        profile.setUseMicrosoftTemplate(true);
+        profile.setUseOcspNoCheck(true);
+        profile.setUseQCStatement(true);
+        profile.setUseExtendedKeyUsage(true);
+        profile.setUseSubjectDirAttributes(true);
+        l = profile.getUsedStandardCertificateExtensions();
+        assertEquals(15, l.size());
+        assertTrue(l.contains(Extension.keyUsage.getId()));
+        assertTrue(l.contains(Extension.basicConstraints.getId()));
+        assertTrue(l.contains(Extension.subjectKeyIdentifier.getId()));
+        assertTrue(l.contains(Extension.authorityKeyIdentifier.getId()));
+        assertTrue(l.contains(Extension.subjectAlternativeName.getId()));
+        assertTrue(l.contains(Extension.issuerAlternativeName.getId()));
+        assertTrue(l.contains(Extension.extendedKeyUsage.getId()));
+        assertTrue(l.contains(Extension.authorityInfoAccess.getId()));
+        assertTrue(l.contains(Extension.certificatePolicies.getId()));
+        assertTrue(l.contains(Extension.cRLDistributionPoints.getId()));
+        assertTrue(l.contains(Extension.freshestCRL.getId()));
+        assertTrue(l.contains(OCSPObjectIdentifiers.id_pkix_ocsp_nocheck.getId()));
+        assertTrue(l.contains(Extension.qCStatements.getId()));
+        assertTrue(l.contains(Extension.subjectDirectoryAttributes.getId()));
+        assertTrue(l.contains(CertTools.OID_MSTEMPLATE));
     } // test09CertificateExtensions
 
     @Test
@@ -437,7 +437,7 @@ public class CertificateProfileTest {
         assertEquals(clonemap2.size(), clonemap.size()-1);
         assertEquals(clonemap2.size(), profmap.size()-1);
     }
-    
+
     @Test
     public void test09ManyValues() {
         CertificateProfile profile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
@@ -456,7 +456,7 @@ public class CertificateProfileTest {
         assertTrue(profile.getAllowExtensionOverride());
         profile.setAllowExtensionOverride(false);
         assertFalse(profile.getAllowExtensionOverride());
-        
+
         assertEquals("", profile.getCRLDistributionPointURI());
         profile.setCRLDistributionPointURI("http://foo");
         assertEquals("http://foo", profile.getCRLDistributionPointURI());
@@ -514,7 +514,7 @@ public class CertificateProfileTest {
         CertificatePolicy p2 = new CertificatePolicy("1.1.1.2", "1.1.2.1", "qualifiertext");
         profile.addCertificatePolicy(p2);
         l = profile.getCertificatePolicies();
-        assertEquals(2, l.size());        
+        assertEquals(2, l.size());
         policy = l.get(1);
         assertEquals("1.1.1.2", policy.getPolicyID());
         assertEquals("1.1.2.1", policy.getQualifierId());
@@ -523,7 +523,7 @@ public class CertificateProfileTest {
         assertEquals(1, l.size());
         policy = l.get(0);
         assertEquals("1.1.1.1", policy.getPolicyID());
-        
+
         assertNull(profile.getQCEtsiType());
         assertNull(profile.getQCEtsiPds());
         // Setting an empty list causes it to be changed into null
@@ -582,11 +582,11 @@ public class CertificateProfileTest {
         assertEquals("", cp.getQCSemanticsId());
         cp.setQCSemanticsId("1.1.1.2");
         assertEquals("1.1.1.2", cp.getQCSemanticsId());
-        
+
         assertNull(cp.getSignatureAlgorithm()); // default value null = inherit from CA
         cp.setSignatureAlgorithm(AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA);
         assertEquals(AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA, cp.getSignatureAlgorithm());
-    } 
+    }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
@@ -601,7 +601,7 @@ public class CertificateProfileTest {
         assertEquals("2.5.29.32.0", pol.getPolicyID() );
         assertNull(pol.getQualifier());
         assertNull(pol.getQualifierId());
-        
+
         // Add policy as if we had run an old EJBCA 4 installation, now running in this version.
         // The class name of CertificatePolicy changed from EJBCA 4 to EJBCA 5.
         List list = new ArrayList();
@@ -627,7 +627,7 @@ public class CertificateProfileTest {
         assertNull(pol.getQualifier());
         assertEquals("foo", pol.getQualifierId());
     }
-    
+
     @SuppressWarnings({ "unchecked", "deprecation" })
     @Test
     public void testCertificateProfileUpgradeDefaults() {
@@ -639,19 +639,19 @@ public class CertificateProfileTest {
         data.put(CertificateProfile.QCETSIPDSURL, "");
         final CertificateProfile cp = new CertificateProfile();
         cp.loadData(data);
-        
+
         Map<String,Object> res = (Map<String, Object>) cp.saveData();
         assertTrue("Old property should still exist, so 100% uptime upgrades work", res.containsKey(CertificateProfile.QCETSIPDSLANG));
         assertTrue("Old property should still exist, so 100% uptime upgrades work", res.containsKey(CertificateProfile.QCETSIPDSURL));
         assertTrue("New property should have been added", res.containsKey(CertificateProfile.QCETSIPDS));
         assertNull(res.get(CertificateProfile.QCETSIPDS));
-        
+
         cp.setQCEtsiPds(Arrays.asList(new PKIDisclosureStatement("https://example.com/pds", "en")));
         res = (Map<String, Object>) cp.saveData();
         assertFalse("Old property should have been removed after profile modification", res.containsKey(CertificateProfile.QCETSIPDSLANG));
         assertFalse("Old property should have been removed after profile modification", res.containsKey(CertificateProfile.QCETSIPDSURL));
     }
-    
+
     @SuppressWarnings({ "unchecked", "deprecation" })
     @Test
     public void testCertificateProfileUpgradeNonDefaults() {
@@ -673,7 +673,7 @@ public class CertificateProfileTest {
         assertEquals("https://example.com/pds.pdf", pdsList.get(0).getUrl());
     }
 
-    /** Initializes a data hash map. This does not (yet) initialize the full data hashmap from "v1", so it might be necessary to add additional properties in the future. 
+    /** Initializes a data hash map. This does not (yet) initialize the full data hashmap from "v1", so it might be necessary to add additional properties in the future.
      * @param data data*/
     private void initDataMap(final Map<String, Object> data) {
         data.put(UpgradeableDataHashMap.VERSION, 1.0F);
@@ -734,8 +734,8 @@ public class CertificateProfileTest {
                 new String[]{"secp256r1"}, new int[]{});
     }
 
-    
-    private void testInvalidKeySpecsInternal(final boolean expectedNoIllegalKeyException, final PublicKey publicKey, final String[] availableKeyAlgorithms, 
+
+    private void testInvalidKeySpecsInternal(final boolean expectedNoIllegalKeyException, final PublicKey publicKey, final String[] availableKeyAlgorithms,
             final String[] availableEcCurves, final int[] availableBitLengths) {
         final CertificateProfile certificateProfile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
         certificateProfile.setAvailableKeyAlgorithms(availableKeyAlgorithms);
@@ -752,7 +752,7 @@ public class CertificateProfileTest {
             }
         }
     }
-    
+
     @Test
     public void testIsKeyTypeAllowed() {
         final CertificateProfile certificateProfile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
@@ -764,7 +764,7 @@ public class CertificateProfileTest {
         assertTrue(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_RSA, "2048"));
         assertFalse(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_ECDSA, "secp256r1"));
         assertFalse(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_ECDSA, "secp256k1"));
-        
+
         certificateProfile.setAvailableKeyAlgorithms(new String[] {AlgorithmConstants.KEYALGORITHM_ECDSA});
         certificateProfile.setAvailableEcCurves(new String[] {"secp256r1"});
         certificateProfile.setAvailableBitLengths(new int[] {});
@@ -773,7 +773,7 @@ public class CertificateProfileTest {
         assertFalse(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_RSA, "2048"));
         assertTrue(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_ECDSA, "secp256r1"));
         assertFalse(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_ECDSA, "secp256k1"));
-        
+
         certificateProfile.setAvailableKeyAlgorithms(new String[] {AlgorithmConstants.KEYALGORITHM_ECDSA});
         certificateProfile.setAvailableEcCurves(new String[] {CertificateProfile.ANY_EC_CURVE});
         certificateProfile.setAvailableBitLengths(new int[] {});
@@ -783,5 +783,5 @@ public class CertificateProfileTest {
         assertTrue(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_ECDSA, "secp256r1"));
         assertTrue(certificateProfile.isKeyTypeAllowed(AlgorithmConstants.KEYALGORITHM_ECDSA, "secp256k1"));
     }
-  
+
 }

@@ -18,7 +18,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for the AccessMatchType enums.
- * 
+ *
  * @version $Id: AccessMatchTypeTest.java 26812 2017-10-15 03:30:26Z anatom $
  *
  */
@@ -41,7 +41,7 @@ public class AccessMatchTypeTest {
         assertEquals("name is incorrect", "TYPE_UNUSED", type0.name());
         assertEquals("name is incorrect", "TYPE_EQUALCASE", type1000.name());
         assertEquals("name is incorrect", "TYPE_EQUALCASEINS", type1001.name());
-        // Types before the role rewrite in EJBCA 6.9, must be kept for upgrade reasons, 
+        // Types before the role rewrite in EJBCA 6.9, must be kept for upgrade reasons,
         // these types are bound to be hanging around in the database
         assertEquals("name is incorrect", "TYPE_NOT_EQUALCASE", type1002.name());
         assertEquals("name is incorrect", "TYPE_NOT_EQUALCASEINS", type1003.name());

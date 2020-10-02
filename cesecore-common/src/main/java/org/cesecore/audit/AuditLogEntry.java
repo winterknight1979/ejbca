@@ -21,58 +21,58 @@ import org.cesecore.audit.enums.ServiceType;
 
 /**
  * Stored log dta that should be searchable should implement this interface.
- * 
+ *
  * @version $Id: AuditLogEntry.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface AuditLogEntry {
 
-	/* Database column names that AuditLogDevices might implement. Used to build custom queries. */
-	public static final String FIELD_TIMESTAMP            = "timeStamp";
-	public static final String FIELD_EVENTTYPE            = "eventType";
-	public static final String FIELD_EVENTSTATUS          = "eventStatus";
-	public static final String FIELD_AUTHENTICATION_TOKEN = "authToken";
-	public static final String FIELD_SERVICE              = "service";
-	public static final String FIELD_MODULE               = "module";
-	public static final String FIELD_CUSTOM_ID            = "customId";
-	public static final String FIELD_SEARCHABLE_DETAIL1   = "searchDetail1";
-	public static final String FIELD_SEARCHABLE_DETAIL2   = "searchDetail2";
-	public static final String FIELD_ADDITIONAL_DETAILS   = "additionalDetails";
-	public static final String FIELD_SEQUENCENUMBER        = "sequenceNumber";
-	public static final String FIELD_NODEID               = "nodeId";
-	
-	/** @return epoch GMT timestamp when log was created. */
-	Long getTimeStamp();
+    /* Database column names that AuditLogDevices might implement. Used to build custom queries. */
+    public static final String FIELD_TIMESTAMP            = "timeStamp";
+    public static final String FIELD_EVENTTYPE            = "eventType";
+    public static final String FIELD_EVENTSTATUS          = "eventStatus";
+    public static final String FIELD_AUTHENTICATION_TOKEN = "authToken";
+    public static final String FIELD_SERVICE              = "service";
+    public static final String FIELD_MODULE               = "module";
+    public static final String FIELD_CUSTOM_ID            = "customId";
+    public static final String FIELD_SEARCHABLE_DETAIL1   = "searchDetail1";
+    public static final String FIELD_SEARCHABLE_DETAIL2   = "searchDetail2";
+    public static final String FIELD_ADDITIONAL_DETAILS   = "additionalDetails";
+    public static final String FIELD_SEQUENCENUMBER        = "sequenceNumber";
+    public static final String FIELD_NODEID               = "nodeId";
 
-	/** @return event type. @see EventTypes */
-	EventType getEventTypeValue();
+    /** @return epoch GMT timestamp when log was created. */
+    Long getTimeStamp();
 
-	/** @return event status. @see EventStatus */
-	EventStatus getEventStatusValue();
+    /** @return event type. @see EventTypes */
+    EventType getEventTypeValue();
 
-	/** @return the authentication token that triggered the creation of a log. */
-	String getAuthToken();
+    /** @return event status. @see EventStatus */
+    EventStatus getEventStatusValue();
 
-	/** @return service type. @see ServiceTypes */
-	ServiceType getServiceTypeValue();
+    /** @return the authentication token that triggered the creation of a log. */
+    String getAuthToken();
 
-	/** @return module type. @see ModuleTypes */
-	ModuleType getModuleTypeValue();
+    /** @return service type. @see ServiceTypes */
+    ServiceType getServiceTypeValue();
 
-	/** @return a custom identifier (e.g. CA Id) */
-	String getCustomId();
+    /** @return module type. @see ModuleTypes */
+    ModuleType getModuleTypeValue();
 
-	/** @return searchable detail1 (e.g. certificate serialnumber)*/
-	String getSearchDetail1();
+    /** @return a custom identifier (e.g. CA Id) */
+    String getCustomId();
 
-	/** @return searchable detail2 (e.g. username) */
-	String getSearchDetail2();
+    /** @return searchable detail1 (e.g. certificate serialnumber)*/
+    String getSearchDetail1();
 
-	/** @return map of additional (non-searchable) details. */
-	Map<String, Object> getMapAdditionalDetails();
+    /** @return searchable detail2 (e.g. username) */
+    String getSearchDetail2();
 
-	/** @return log sequence number. */
-	Long getSequenceNumber();
+    /** @return map of additional (non-searchable) details. */
+    Map<String, Object> getMapAdditionalDetails();
 
-	/** @return node identifier to be used together with sequenceNumber. */
-	String getNodeId();
+    /** @return log sequence number. */
+    Long getSequenceNumber();
+
+    /** @return node identifier to be used together with sequenceNumber. */
+    String getNodeId();
 }

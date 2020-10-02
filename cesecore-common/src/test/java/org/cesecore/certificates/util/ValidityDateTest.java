@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.util;
 
 import java.text.ParseException;
@@ -30,8 +30,8 @@ public class ValidityDateTest {
     private static final Logger LOG = Logger.getLogger(ValidityDateTest.class);
     private static final String RELATIVE = "relative";
     private static final String ABSOLUTE = "absolute";
-    
-    /** Since the test will run in different time zones we will test combined operations. 
+
+    /** Since the test will run in different time zones we will test combined operations.
      * @throws ParseException fail */
     @Test
     public void testParseFormat() throws ParseException {
@@ -42,7 +42,7 @@ public class ValidityDateTest {
         Assert.assertEquals(zero, ValidityDate.parseAsIso8601(ValidityDate.formatAsISO8601(zero, ValidityDate.TIMEZONE_SERVER)));
         LOG.trace("<testParseFormat");
     }
-    
+
     @Test
     @Deprecated
     public void testEncodeRelativeBeforePostUpdateOfVersion661() {
@@ -62,7 +62,7 @@ public class ValidityDateTest {
         encodeBeforePostUpdateOfVersion661(RELATIVE, "+0y-0mo+1d ii", ERROR_CODE);
         LOG.trace("<testEncodeRelativeBeforePostUpdateOfVersion661");
     }
-    
+
     @Test
     @Deprecated
     public void testEncodeAbsoluteBeforePostUpdateOfVersion661() {
@@ -73,7 +73,7 @@ public class ValidityDateTest {
         encodeBeforePostUpdateOfVersion661(ABSOLUTE, "2011-05-09 16:58:00+00:00", 1304960280000L);
         LOG.trace("<testEncodeAbsoluteBeforePostUpdateOfVersion661");
     }
-    
+
     @Deprecated
     private void encodeBeforePostUpdateOfVersion661(final String type, final String subject, final long result) {
         Assert.assertEquals("Test of " + type + " date " + subject + " failed.", result, ValidityDate.encodeBeforeVersion661(subject));
@@ -103,7 +103,7 @@ public class ValidityDateTest {
     private void getStringInternalAbsBeforeVersion661(final long subject, final String result) throws ParseException {
         Assert.assertEquals("Failed to fetch absolute time for " + subject, ValidityDate.parseAsIso8601(result), ValidityDate.parseAsIso8601(ValidityDate.getStringBeforeVersion661(subject)));
     }
-    
+
     @Test
     @Deprecated
     public void testGetDateBeforeVersion661() {

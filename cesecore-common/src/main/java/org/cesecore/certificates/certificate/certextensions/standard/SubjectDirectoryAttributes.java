@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
@@ -30,9 +30,9 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
 
 /**
- * Class for standard X509 certificate extension. 
+ * Class for standard X509 certificate extension.
  * See rfc3280 or later for spec of this extension.
- * 
+ *
  * @version $Id: SubjectDirectoryAttributes.java 26461 2017-08-29 23:09:05Z anatom $
  */
 public class SubjectDirectoryAttributes extends StandardCertificateExtension {
@@ -40,34 +40,34 @@ public class SubjectDirectoryAttributes extends StandardCertificateExtension {
     private static final Logger log = Logger.getLogger(SubjectDirectoryAttributes.class);
 
     @Override
-	public void init(final CertificateProfile certProf) {
-		super.setOID(Extension.subjectDirectoryAttributes.getId());
-		// Subject Directory Attributes must always be non-critical
-		super.setCriticalFlag(false);
-	}
-    
+    public void init(final CertificateProfile certProf) {
+        super.setOID(Extension.subjectDirectoryAttributes.getId());
+        // Subject Directory Attributes must always be non-critical
+        super.setCriticalFlag(false);
+    }
+
     @Override
     public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
             final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
-		ASN1Encodable ret = null;
-		final String dirAttrString  = subject.getExtendedInformation() != null ? subject.getExtendedInformation().getSubjectDirectoryAttributes() : null;
-		if (StringUtils.isNotEmpty(dirAttrString)) {
-			// Subject Directory Attributes is a sequence of Attribute
-			final Collection<Attribute> attr = SubjectDirAttrExtension.getSubjectDirectoryAttributes(dirAttrString);
-			final ASN1EncodableVector vec = new ASN1EncodableVector();
-			final Iterator<Attribute> iter = attr.iterator();
-			while (iter.hasNext()) {
-				vec.add(iter.next());
-			}        
-			if (vec.size() > 0) {
-				ret = new DERSequence(vec);				
-			}
-		}			
-		if (ret == null) {
-			if (log.isDebugEnabled()) {
-				log.debug("No directory attributes trying to create SubjectDirectoryAttributes extension: "+dirAttrString);
-			}
-		}
-		return ret;
-	}	
+        ASN1Encodable ret = null;
+        final String dirAttrString  = subject.getExtendedInformation() != null ? subject.getExtendedInformation().getSubjectDirectoryAttributes() : null;
+        if (StringUtils.isNotEmpty(dirAttrString)) {
+            // Subject Directory Attributes is a sequence of Attribute
+            final Collection<Attribute> attr = SubjectDirAttrExtension.getSubjectDirectoryAttributes(dirAttrString);
+            final ASN1EncodableVector vec = new ASN1EncodableVector();
+            final Iterator<Attribute> iter = attr.iterator();
+            while (iter.hasNext()) {
+                vec.add(iter.next());
+            }
+            if (vec.size() > 0) {
+                ret = new DERSequence(vec);
+            }
+        }
+        if (ret == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No directory attributes trying to create SubjectDirectoryAttributes extension: "+dirAttrString);
+            }
+        }
+        return ret;
+    }
 }

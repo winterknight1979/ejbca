@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ca.internal;
 
 import java.math.BigInteger;
@@ -45,14 +45,14 @@ public interface SernoGenerator {
      * @param seed the seed used to initilize the serno generator.
      */
     void setSeed(long seed);
-    
-    /** 
+
+    /**
      * Set the algorithm used for the serial number generator, if needed to set.
-     * Usually a default value is provided for your serial number generator. 
-     * This can be used to override/change default values. Usage must consider multi-threaded behavior. 
+     * Usually a default value is provided for your serial number generator.
+     * This can be used to override/change default values. Usage must consider multi-threaded behavior.
      * @param algo an (optional) algorithm for a serial number generator implementation
      * @throws NoSuchAlgorithmException if the requesed algorithm cannot be found
      */
      void setAlgorithm(final String algo) throws NoSuchAlgorithmException;
-     
+
 }

@@ -19,9 +19,9 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * (JavaBean-) XML Serializable representation of a trust anchor (CA Id) or trusted certificate (CA Id and certificate serialnumber)
- * 
+ *
  * An undefined (null) serialnumber means ANY serialnumber.
- * 
+ *
  * @version $Id: InternalKeyBindingTrustEntry.java 28587 2018-03-28 11:33:09Z henriks $
  */
 public class InternalKeyBindingTrustEntry implements Serializable {
@@ -31,9 +31,9 @@ public class InternalKeyBindingTrustEntry implements Serializable {
     private int caId = 0;
     private String certificateSerialNumberDecimal = null;
     private String trustEntryDescription = null;
-    
+
     public InternalKeyBindingTrustEntry() {}
-    
+
     public InternalKeyBindingTrustEntry(int caId, BigInteger certificateSerialNumber) {
         setCaId(caId);
         putCertificateSerialNumber(certificateSerialNumber);
@@ -47,7 +47,7 @@ public class InternalKeyBindingTrustEntry implements Serializable {
             this.trustEntryDescription = description;
         }
     }
-    
+
     public int getCaId() { return caId; }
     public void setCaId(int caId) { this.caId = caId; }
     public String getCertificateSerialNumberDecimal() { return certificateSerialNumberDecimal; }
@@ -55,7 +55,7 @@ public class InternalKeyBindingTrustEntry implements Serializable {
     public String getTrustEntryDescription() {return trustEntryDescription;}
     public void setTrustEntryDescription(String description) {this.trustEntryDescription = description;}
 
-    /* NOTE: The getter and setter for a BigInteger must not comply with the JavaBean spec for this to work with java.beans.XMLEncoder 
+    /* NOTE: The getter and setter for a BigInteger must not comply with the JavaBean spec for this to work with java.beans.XMLEncoder
      * NO_NOT_RENAME_TO get */
     public BigInteger fetchCertificateSerialNumber() {
         if (certificateSerialNumberDecimal == null) {
@@ -65,7 +65,7 @@ public class InternalKeyBindingTrustEntry implements Serializable {
         }
     }
 
-    /* NOTE: The getter and setter for a BigInteger must not comply with the JavaBean spec for this to work with java.beans.XMLEncoder 
+    /* NOTE: The getter and setter for a BigInteger must not comply with the JavaBean spec for this to work with java.beans.XMLEncoder
      * NO_NOT_RENAME_TO set */
     public void putCertificateSerialNumber(BigInteger certificateSerialNumber) {
         if (certificateSerialNumber == null) {
@@ -74,7 +74,7 @@ public class InternalKeyBindingTrustEntry implements Serializable {
             this.certificateSerialNumberDecimal = certificateSerialNumber.toString();
         }
     }
-    
+
     @Override
     public String toString() {
         final BigInteger certificateSerialNumber = fetchCertificateSerialNumber();

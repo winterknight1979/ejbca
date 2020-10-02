@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.certificatetransparency;
 
 import org.cesecore.CesecoreException;
@@ -24,7 +24,7 @@ import org.cesecore.CesecoreException;
 public class CTLogException extends CesecoreException {
 
     private static final long serialVersionUID = 1L;
-    
+
     /**
      * Constructor used to create exception with an error message. Calls the same constructor in
      * baseclass <code>Exception</code>.

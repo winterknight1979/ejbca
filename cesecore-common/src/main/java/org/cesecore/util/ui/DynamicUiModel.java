@@ -39,7 +39,7 @@ public class DynamicUiModel {
     public static final String SUBCLASS_PREFIX = "SUBCLASS_";
 
     public static final String LIST_SEPARATOR = ";";
-    
+
     /** Class logger. */
     private static final Logger log = Logger.getLogger(DynamicUiModel.class);
 
@@ -165,7 +165,7 @@ public class DynamicUiModel {
         }
     }
 
-    /** Store data in the underlying map. Encourages use of String valued keys. 
+    /** Store data in the underlying map. Encourages use of String valued keys.
      * @param key key
      * @param value value */
     private void putData(final String key, final Object value) {

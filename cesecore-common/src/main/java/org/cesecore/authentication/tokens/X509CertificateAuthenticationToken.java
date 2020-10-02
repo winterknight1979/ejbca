@@ -36,17 +36,17 @@ import org.cesecore.util.CertTools;
  * This is an implementation of the AuthenticationToken concept, based on using an {@link X509Certificate} as it's single credential, and that
  * certificate's {@link X500Principal} as its principle, but as the X500Principle is contained in the X509Certificate, this remains little more than a
  * formality. This AuthenticationToken is the default used in EJBCA.
- * 
+ *
  * The implementation of the <code>matches(...)</code> method is based on <code>AdminEntity.java 10832 2010-12-13 13:54:25Z anatom</code> from EJBCA.
- * 
- * 
+ *
+ *
  * @version $Id: X509CertificateAuthenticationToken.java 31393 2019-02-05 11:07:23Z samuellb $
- * 
+ *
  */
 public class X509CertificateAuthenticationToken extends NestableAuthenticationToken {
 
     public static final X509CertificateAuthenticationTokenMetaData metaData = new X509CertificateAuthenticationTokenMetaData();
-    
+
     private static final Logger log = Logger.getLogger(X509CertificateAuthenticationToken.class);
     private static final long serialVersionUID = 1097165653913865515L;
 
@@ -62,7 +62,7 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
 
     /**
      * Standard constructor for X509CertificateAuthenticationToken
-     * 
+     *
      * @param principals
      *            A set of X500Principals. Should contain one and only one value.
      * @param credentials
@@ -94,7 +94,7 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
                     cert = certificateArray[0];
                 }
                 certificate = cert;
-            } 
+            }
         }
         String certstring = CertTools.getSubjectDN(certificate).toString();
         adminCaId = CertTools.getIssuerDN(certificate).hashCode();
@@ -107,7 +107,7 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
 
     /**
      * Standard simplified constructor for X509CertificateAuthenticationToken
-     * 
+     *
      * @param certificate A X509Certificate that will be used as principal and credential.
      * @throws NullPointerException if the provided certificate is null
      */
@@ -116,12 +116,12 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
     }
 
     @SuppressWarnings("deprecation")
-	@Override
+    @Override
     public boolean matches(AccessUserAspect accessUser) {
         // Protect against spoofing by checking if this token was created locally
         if (!super.isCreatedInThisJvm()) {
             return false;
-        } 
+        }
         boolean returnvalue = false;
         int parameter;
         int size = 0;
@@ -130,7 +130,7 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
             // First check that issuers match.
             if (accessUser.getCaId() == adminCaId) {
                 // Check if we actually have some value to match against, null is not an allowed match value
-                if (accessUser.getMatchValue() != null) {                    
+                if (accessUser.getMatchValue() != null) {
                     // Determine part of certificate to match with.
                     DNFieldExtractor usedExtractor = dnExtractor;
                     X500PrincipalAccessMatchValue matchValue = (X500PrincipalAccessMatchValue) getMatchValueFromDatabaseValue(accessUser.getMatchWith());
@@ -272,17 +272,17 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
         } else {
             if (log.isTraceEnabled()) {
                 log.trace("Token type does not match. Required="+getMetaData().getTokenType()+", actual was "+accessUser.getTokenType());
-            }            
+            }
         }
 
         return returnvalue;
     }
-    
+
     @Override
     public int getPreferredMatchKey() {
         return X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue();
     }
-    
+
     /** Returns the serial number as a decimal string */
     @Override
     public String getPreferredMatchValue() {
@@ -292,7 +292,7 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
     /** Returns user information of the user this authentication token belongs to. */
     @Override
     public String toString() {
-    	return super.toString();
+        return super.toString();
     }
 
     /** Override the default X500Principal.getName() when doing toString on this object. */
@@ -341,7 +341,7 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
     public X509Certificate getCertificate() {
         return certificate;
     }
-    
+
     @Override
     protected String generateUniqueId() {
         byte[] encodedCertificate = null;

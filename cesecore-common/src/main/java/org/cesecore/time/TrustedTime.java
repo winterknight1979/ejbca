@@ -19,7 +19,7 @@ import java.util.Date;
  * This class encapsulates a Date object that represents a trusted time. It also
  * provides information related to thhe trusted time source: accuracy and
  * stratum
- * 
+ *
  * @version $Id: TrustedTime.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class TrustedTime implements Serializable {
@@ -44,13 +44,13 @@ public class TrustedTime implements Serializable {
 
     public void setNextUpdate(Integer when, Integer poll) {
         Long nextUpdate = Long.valueOf(((poll - when) + delta)*1000);
-        if(nextUpdate.longValue() <= 0) { 
-            nextUpdate = Long.valueOf(1); 
+        if(nextUpdate.longValue() <= 0) {
+            nextUpdate = Long.valueOf(1);
         }
 
         if(this.nextUpdate != null) {
             this.previousUpdate = this.nextUpdate;
-        } 
+        }
 
         this.nextUpdate = nextUpdate;
     }

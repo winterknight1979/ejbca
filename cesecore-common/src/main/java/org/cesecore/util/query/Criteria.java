@@ -23,7 +23,7 @@ import org.cesecore.util.query.elems.Term;
 
 /**
  * This class is a DSL sugar to all possible Criterias.
- * 
+ *
  * @version $Id: Criteria.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class Criteria implements Serializable {
@@ -83,34 +83,34 @@ public class Criteria implements Serializable {
                 new  AbstractMap.SimpleEntry<Object, Object>(after, before));
 
     }
-    
+
     public static Elem like(final String name, final Object value) {
         return new Term(RelationalOperator.LIKE, name, value);
     }
-    
+
     public static Elem isNull(final String name) {
         return new Term(RelationalOperator.NULL, name, null);
     }
-    
+
     public static Elem isNotNull(final String name) {
         return new Term(RelationalOperator.NOTNULL, name, null);
     }
-    
+
     public static Elem and(final Elem first, final Elem second) {
         return new Operation(LogicOperator.AND, (Term)first, second);
     }
-    
+
     public static Elem or(final Elem first, final Elem second) {
         return new Operation(LogicOperator.OR, (Term)first, second);
     }
-    
+
     public static Elem orderAsc(final String name) {
         return new Order(name, Order.Value.ASC);
     }
-        
+
     public static Elem orderDesc(final String name) {
         return new Order(name, Order.Value.DESC);
     }
 
-    
+
 }

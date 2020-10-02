@@ -55,39 +55,39 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
 
     @Test
     public void testCryptoTokenRSA() throws Exception {
-    	CryptoToken catoken = createPKCS11Token();
+        CryptoToken catoken = createPKCS11Token();
         doCryptoTokenRSA(catoken);
     }
 
-	@Test
+    @Test
     public void testCryptoTokenECC() throws Exception {
-    	CryptoToken catoken = createPKCS11Token();
+        CryptoToken catoken = createPKCS11Token();
         doCryptoTokenECC(catoken, "secp256r1", 256, "secp384r1", 384);
     }
 
-	@Test
+    @Test
     public void testActivateDeactivate() throws Exception {
-    	CryptoToken catoken = createPKCS11Token();
+        CryptoToken catoken = createPKCS11Token();
         doActivateDeactivate(catoken);
     }
 
-	@Test
+    @Test
     public void testAutoActivate() throws Exception {
-    	CryptoToken catoken = createPKCS11Token();
-    	doAutoActivate(catoken);
+        CryptoToken catoken = createPKCS11Token();
+        doAutoActivate(catoken);
     }
 
-	@Test
+    @Test
     public void testStoreAndLoad() throws Exception {
-    	CryptoToken token = createPKCS11Token();
-    	doStoreAndLoad(token);
-	}
+        CryptoToken token = createPKCS11Token();
+        doStoreAndLoad(token);
+    }
 
-	@Test
+    @Test
     public void testGenerateSymKey() throws Exception {
-    	CryptoToken token = createPKCS11Token();
-    	doGenerateSymKey(token);
-	}
+        CryptoToken token = createPKCS11Token();
+        doGenerateSymKey(token);
+    }
 
     @Test
     public void testPKCS11TokenCreation() throws Exception {
@@ -139,21 +139,21 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
         assertEquals(Pkcs11SlotLabelType.SLOT_LABEL.getKey(), newSlotPropertiesWithLabel.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE));
     }
 
-	@Override
-	String getProvider() {
-		return PKCS11TestUtils.getHSMProvider();
-	}
+    @Override
+    String getProvider() {
+        return PKCS11TestUtils.getHSMProvider();
+    }
 
-	public static CryptoToken createPKCS11Token() throws NoSuchSlotException {
-		return createPKCS11TokenWithAttributesFile(null, null, true);
-	}
+    public static CryptoToken createPKCS11Token() throws NoSuchSlotException {
+        return createPKCS11TokenWithAttributesFile(null, null, true);
+    }
 
     public static CryptoToken createPKCS11Token(String name, boolean extractable) throws NoSuchSlotException{
         return createPKCS11TokenWithAttributesFile(null, name, extractable);
     }
 
-	public static CryptoToken createPKCS11TokenWithAttributesFile(String file, String tokenName, boolean extractable) throws NoSuchSlotException {
-		Properties prop = new Properties();
+    public static CryptoToken createPKCS11TokenWithAttributesFile(String file, String tokenName, boolean extractable) throws NoSuchSlotException {
+        Properties prop = new Properties();
         String hsmlib = PKCS11TestUtils.getHSMLibrary();
         assertNotNull(hsmlib);
         prop.setProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY, hsmlib);
@@ -171,8 +171,8 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
             prop.setProperty(CryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY, "False");
         }
         CryptoToken catoken = CryptoTokenFactory.createCryptoToken(PKCS11CryptoToken.class.getName(), prop, null, 111, "P11 CryptoToken");
-		return catoken;
-	}
+        return catoken;
+    }
 
 
 }

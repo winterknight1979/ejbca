@@ -91,7 +91,7 @@ public abstract class CAInfo implements Serializable {
     protected boolean finishuser;
     protected Collection<ExtendedCAServiceInfo> extendedcaserviceinfos;
     protected boolean useNoConflictCertificateData = false; // By Default we use normal certificate data table.
-    
+
     /**
      * @deprecated since 6.8.0, where approval settings and profiles became interlinked.
      */
@@ -146,7 +146,7 @@ public abstract class CAInfo implements Serializable {
         this.name = name;
     }
 
-    /** CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when editing CA) 
+    /** CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when editing CA)
      * @return status code*/
     public int getStatus() {
         return status;
@@ -336,7 +336,7 @@ public abstract class CAInfo implements Serializable {
 
     public Collection<Integer> getValidators() {
         if (validators == null) {
-        	// Make sure we never return null for upgraded CAs, avoiding possible NPE
+            // Make sure we never return null for upgraded CAs, avoiding possible NPE
             return new ArrayList<Integer>();
         }
         return validators;
@@ -458,7 +458,7 @@ public abstract class CAInfo implements Serializable {
     public void setUseNoConflictCertificateData(final boolean useNoConflictCertificateData) {
         this.useNoConflictCertificateData = useNoConflictCertificateData;
     }
-    
+
     /**
      * @return true if the UserData used to issue a certificate should be kept in the database.
      */

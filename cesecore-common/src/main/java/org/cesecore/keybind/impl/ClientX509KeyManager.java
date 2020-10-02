@@ -25,13 +25,13 @@ import org.apache.log4j.Logger;
 
 /**
  * Simple implementation for providing a private key and a certificate chain in SSL/TLS negotiations from the client.
- * 
+ *
  * @version $Id: ClientX509KeyManager.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class ClientX509KeyManager implements X509KeyManager {
-    
+
     private static final Logger log = Logger.getLogger(ClientX509KeyManager.class);
-    
+
     private final String alias;
     private final PrivateKey privateKey;
     private final X509Certificate[] certificateChain;
@@ -45,13 +45,13 @@ public class ClientX509KeyManager implements X509KeyManager {
             this.certificateChain = null;
         }
     }
-    
+
     @Override
     public String chooseClientAlias(final String[] keyTypes, final Principal[] issuers, final Socket socket) {
         logDebugIfEnabled(null, keyTypes, issuers, socket);
         return alias;
     }
-    
+
     @Override
     public String chooseServerAlias(final String keyType, final Principal[] issuers, final Socket socket) {
         logDebugIfEnabled(null, new String[] {keyType}, issuers, socket);
@@ -88,9 +88,9 @@ public class ClientX509KeyManager implements X509KeyManager {
         logDebugIfEnabled(null, new String[] {keyType}, issuers, null);
         log.warn("Got a request for server aliases, but implementation only supports client side of TLS negotiations.");
         return null;    // We are not server side
-    }  
+    }
 
-    /** Write debug log if enabled for any of the provided nullable arguments 
+    /** Write debug log if enabled for any of the provided nullable arguments
      * @param alias Alias
      * @param keyTypes Types
      * @param issuers Issuers

@@ -64,7 +64,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
     private String mJcaProviderName = null;
     /** Used for encrypt/decrypt, can be same as for signatures for example for pkcs#11 */
     private String mJceProviderName = null;
-    
+
     private char[] mAuthCode;
 
     private Properties properties;
@@ -129,7 +129,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
         return getProperties().containsKey(CryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY) &&
                Boolean.parseBoolean(getProperties().getProperty(CryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY));
     }
-    
+
     /** Similar to the method above, but only applies for internal testing of keys. This method is called during testKeyPair to verify that a key
      * that is extractable can never be used, unless we allow extractable private keys. Used for PKCS#11 (HSMs) to ensure that they are configured
      * correctly. On a PKCS11 Crypto Token, this should return the same as doPermitExtractablePrivateKey(), on a Soft Crypto Token this should always return true.
@@ -137,7 +137,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
      * @return false if the key must not be extractable, this will throw an error if the key is extractable when crypto token tries to test it.
      */
     public abstract boolean permitExtractablePrivateKeyForTest();
-    
+
     @Override
     public void testKeyPair(final String alias) throws InvalidKeyException, CryptoTokenOfflineException { // NOPMD:this is not a junit test
         final PrivateKey privateKey = getPrivateKey(alias);
@@ -209,7 +209,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
         // Set basic properties that are of dynamic nature
         setProperties(properties);
         // Set properties that can not change dynamically
-        
+
         if (doAutoActivate) {
             autoActivate();
         }
@@ -239,7 +239,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
         }
         properties.setProperty(CryptoToken.TOKENNAME_PROPERTY, tokenName);
     }
-    
+
     @Override
     public Properties getProperties() {
         return properties;
@@ -331,7 +331,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
      * @throws IllegalAccessException if the default constructor for the class specified by jcaProviderClassName was not public
      * @throws InstantiationException if the class specified by jcaProviderClassName was an abstract class, an interface, an array class, a primitive
      *             type, or void; or if it has no nullary constructor; or if the instantiation fails for some other reason.
-     * 
+     *
      * @throws NoSuchMethodException in constructor not found
      * @throws InvocationTargetException If the underlying constructor throws an exception
      * @see #setJCAProvider(Provider)
@@ -353,7 +353,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
             this.mJceProviderName = null;
         }
     }
-    
+
     @Override
     public void storeKey(String alias, Key key, Certificate[] chain, char[] password) throws KeyStoreException {
         // Removal of old key is only needed for sun-p11 with none ASCII chars in the alias.
@@ -397,7 +397,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
                 prov.put("Alg.Alias.Cipher.1.2.840.113549.3.7", "DES3/CBC/PKCS5Padding");
             }
             // The provider will typically not be installed here. The BC provider (for soft crypto tokens)
-            // is installed during startup, as a generally used provider, 
+            // is installed during startup, as a generally used provider,
             // and the P11 provider for a specific slot is installed in #P11Slot
             if (Security.getProvider(pName) == null) {
                 log.info("Adding Provider from BaseCryptoToken: "+pName);
@@ -448,17 +448,17 @@ public abstract class BaseCryptoToken implements CryptoToken {
         }
         return aliasInUse;
     }
-    
+
     @Override
     public PrivateKey getPrivateKey(final String alias) throws CryptoTokenOfflineException {
         return getPrivateKey(alias, true);
     }
 
     /** @param alias Alias
-     * @see #getPrivateKey(String) 
+     * @see #getPrivateKey(String)
      * @param warn if we should log a warning if the key does not exist
      * @return Private key
-     * @throws CryptoTokenOfflineException if offline 
+     * @throws CryptoTokenOfflineException if offline
      */
     private PrivateKey getPrivateKey(final String alias, boolean warn) throws CryptoTokenOfflineException {
         // Auto activate is done in the call to getKeyStore below
@@ -494,12 +494,12 @@ public abstract class BaseCryptoToken implements CryptoToken {
     public PublicKey getPublicKey(final String alias) throws CryptoTokenOfflineException {
         return getPublicKey(alias, true);
     }
-    
+
     /** @param alias alias
      * @see #getPublicKey(String)
-     * @param warn if we should log a warning if the key does not exist 
+     * @param warn if we should log a warning if the key does not exist
      * @return Public key
-     * @throws CryptoTokenOfflineException if offline 
+     * @throws CryptoTokenOfflineException if offline
      */
     private PublicKey getPublicKey(final String alias, boolean warn) throws CryptoTokenOfflineException {
         // Auto activate is done in the call to getKeyStore below (from readPublicKey)
@@ -536,7 +536,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
 
     /** see {@link #getKey(String)}
      * @param alias alias
-     * @param warn if we should log a warning if the key does not exist 
+     * @param warn if we should log a warning if the key does not exist
      * @return key
      * @throws CryptoTokenOfflineException if offline
      */
@@ -618,7 +618,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
             // NOPMD, ignore status is offline
         }
         return ret;
-    }    
+    }
 
     @Override
     public List<String> getAliases() throws KeyStoreException, CryptoTokenOfflineException {

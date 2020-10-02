@@ -13,8 +13,8 @@
 package org.cesecore.util.ui;
 
 /**
- * Thrown to show that a set property failed validation. 
- * 
+ * Thrown to show that a set property failed validation.
+ *
  * @version $Id: PropertyValidationException.java 24964 2017-01-02 08:15:35Z mikekushner $
  *
  */

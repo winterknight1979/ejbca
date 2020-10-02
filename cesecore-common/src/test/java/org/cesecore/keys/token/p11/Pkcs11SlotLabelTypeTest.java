@@ -30,7 +30,7 @@ public class Pkcs11SlotLabelTypeTest {
         assertFalse("Validator falsely validated a label", type.validate("foo"));
         assertFalse("Validator falsely validated an index", type.validate("i7"));
     }
-    
+
     @Test
     public void testIndexTypeValidator() {
         Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_INDEX;
@@ -38,7 +38,7 @@ public class Pkcs11SlotLabelTypeTest {
         assertFalse("Validator falsely validated a label", type.validate("foo"));
         assertTrue("Validator did not correctly validate an index", type.validate("i7"));
     }
-    
+
     @Test
     public void testLabelTypeValidator() {
         Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_LABEL;
@@ -52,5 +52,5 @@ public class Pkcs11SlotLabelTypeTest {
         assertFalse("Label of >32 characters validated.",
                 Pkcs11SlotLabelType.SLOT_LABEL.validate("YeahbutIcantusethewordsoberbecausethatsatermfromthosepeopleandIhavecleansedmyself"));
     }
-    
+
 }

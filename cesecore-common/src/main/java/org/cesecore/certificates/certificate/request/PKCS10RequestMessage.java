@@ -50,7 +50,7 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: PKCS10RequestMessage.java 28214 2018-02-08 10:16:53Z anatom $
  */
-public class PKCS10RequestMessage implements RequestMessage {  
+public class PKCS10RequestMessage implements RequestMessage {
     /**
      * Determines if a de-serialized file is compatible with this class.
      *
@@ -92,14 +92,14 @@ public class PKCS10RequestMessage implements RequestMessage {
     private String errorText = null;
 
     private List<Certificate> additionalCaCertificates = new ArrayList<Certificate>();
-    
+
     private List<Certificate> additionalExtraCertsCertificates = new ArrayList<Certificate>();
-    
+
     /**
      * Constructs a new empty PKCS#10 message handler object.
      */
     public PKCS10RequestMessage() {
-    	// No constructor
+        // No constructor
     }
 
     /**
@@ -108,14 +108,14 @@ public class PKCS10RequestMessage implements RequestMessage {
      * @param msg The DER encoded PKCS#10 request.
      */
     public PKCS10RequestMessage(byte[] msg) {
-    	if (log.isTraceEnabled()) {
-    		log.trace(">PKCS10RequestMessage(byte[])");
-    	}
+        if (log.isTraceEnabled()) {
+            log.trace(">PKCS10RequestMessage(byte[])");
+        }
         this.p10msg = msg;
         init();
-    	if (log.isTraceEnabled()) {
-    		log.trace("<PKCS10RequestMessage(byte[])");
-    	}
+        if (log.isTraceEnabled()) {
+            log.trace("<PKCS10RequestMessage(byte[])");
+        }
     }
 
     /**
@@ -125,14 +125,14 @@ public class PKCS10RequestMessage implements RequestMessage {
      * @throws IOException on fail
      */
     public PKCS10RequestMessage(JcaPKCS10CertificationRequest p10) throws IOException {
-    	if (log.isTraceEnabled()) {
-    		log.trace(">PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
-    	}
+        if (log.isTraceEnabled()) {
+            log.trace(">PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
+        }
         p10msg = p10.getEncoded();
         pkcs10 = p10;
-    	if (log.isTraceEnabled()) {
-    		log.trace("<PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
-    	}
+        if (log.isTraceEnabled()) {
+            log.trace("<PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
+        }
     }
 
     private void init() {
@@ -190,7 +190,7 @@ public class PKCS10RequestMessage implements RequestMessage {
                 return null;
             }
             if (log.isDebugEnabled()) {
-            	log.debug("got extension request");
+                log.debug("got extension request");
             }
             ASN1Set values = attributes[0].getAttrValues();
             if (values.size() == 0) {
@@ -200,7 +200,7 @@ public class PKCS10RequestMessage implements RequestMessage {
             Extension ext = exts.getExtension(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
             if (ext == null) {
                 if (log.isDebugEnabled()) {
-                	log.debug("no challenge password extension");
+                    log.debug("no challenge password extension");
                 }
                 return null;
             }
@@ -214,7 +214,7 @@ public class PKCS10RequestMessage implements RequestMessage {
         if (obj != null) {
             ASN1String str = null;
             try {
-            	// Should be any DirectoryString according to RFC2985, preferably a PrintableString or UTF8String
+                // Should be any DirectoryString according to RFC2985, preferably a PrintableString or UTF8String
                 str = DirectoryString.getInstance((obj));
             } catch (IllegalArgumentException ie) {
                 // This was not a DirectoryString type, it could then be IA5string, breaking pkcs#9 v2.0
@@ -261,11 +261,11 @@ public class PKCS10RequestMessage implements RequestMessage {
         X500Name xname = getRequestX500Name();
         String ret = null;
         if (xname == null) {
-        	log.info("No requestDN in request, probably we could not read/parse/decrypt request.");
+            log.info("No requestDN in request, probably we could not read/parse/decrypt request.");
         } else {
             RDN[] cnValues = xname.getRDNs(CeSecoreNameStyle.CN);
             if (cnValues.length == 0) {
-            	log.info("No CN in DN: "+xname.toString());
+                log.info("No CN in DN: "+xname.toString());
             } else {
                 AttributeTypeAndValue[] tavs = cnValues[0].getTypesAndValues();
                 for(AttributeTypeAndValue tav : tavs) {
@@ -276,14 +276,14 @@ public class PKCS10RequestMessage implements RequestMessage {
                 }
                 // If we have a CN with a normal name like "Test Testsson" we only want to
                 // use the first part as the username
-            	int index = ret.indexOf(' ');
-            	if (index > 0) {
-            		ret = ret.substring(0, index);
-            	}
+                int index = ret.indexOf(' ');
+                if (index > 0) {
+                    ret = ret.substring(0, index);
+                }
             }
         }
         if (log.isDebugEnabled()) {
-        	log.debug("UserName='" + ret + "'");
+            log.debug("UserName='" + ret + "'");
         }
         return ret;
     }
@@ -295,7 +295,7 @@ public class PKCS10RequestMessage implements RequestMessage {
 
     @Override
     public BigInteger getSerialNo() {
-    	return null;
+        return null;
     }
 
     @Override
@@ -310,21 +310,21 @@ public class PKCS10RequestMessage implements RequestMessage {
 
     @Override
     public String getRequestDN() {
-    	String ret = null;
-    	X500Name name = getRequestX500Name();
-    	if (name != null) {
-    		String dn = name.toString();
-    		// We have to make special handling again for Cisco devices.
-    		// they will submit requests like: SN=FFFFFF+unstructuredName=Router
-    		// EJBCA does not handle this very well so we will change it to: SN=FFFFFF,unstructuredName=Router
-    		dn = dn.replace("+unstructuredName=", ",unstructuredName=");
-    		dn = dn.replace(" + unstructuredName=", ",unstructuredName=");
-    		dn = dn.replace("+unstructuredAddress=", ",unstructuredAddress=");
-    		dn = dn.replace(" + unstructuredAddress=", ",unstructuredAddress=");
-    		ret = dn;
-    	}
+        String ret = null;
+        X500Name name = getRequestX500Name();
+        if (name != null) {
+            String dn = name.toString();
+            // We have to make special handling again for Cisco devices.
+            // they will submit requests like: SN=FFFFFF+unstructuredName=Router
+            // EJBCA does not handle this very well so we will change it to: SN=FFFFFF,unstructuredName=Router
+            dn = dn.replace("+unstructuredName=", ",unstructuredName=");
+            dn = dn.replace(" + unstructuredName=", ",unstructuredName=");
+            dn = dn.replace("+unstructuredAddress=", ",unstructuredAddress=");
+            dn = dn.replace(" + unstructuredAddress=", ",unstructuredAddress=");
+            ret = dn;
+        }
         if (log.isDebugEnabled()) {
-        	log.debug("getRequestDN: "+ret);
+            log.debug("getRequestDN: "+ret);
         }
         return ret;
     }
@@ -346,38 +346,38 @@ public class PKCS10RequestMessage implements RequestMessage {
     public String getRequestAltNames() {
         String ret = null;
         try {
-        	Extensions exts = getRequestExtensions();
-        	if (exts != null) {
-        		Extension ext = exts.getExtension(Extension.subjectAlternativeName);
+            Extensions exts = getRequestExtensions();
+            if (exts != null) {
+                Extension ext = exts.getExtension(Extension.subjectAlternativeName);
                 if (ext != null) {
                     // Finally read the value
-            		ret = CertTools.getAltNameStringFromExtension(ext);
+                    ret = CertTools.getAltNameStringFromExtension(ext);
                 } else {
                     if (log.isDebugEnabled()) {
-                    	log.debug("no subject altName extension");
+                        log.debug("no subject altName extension");
                     }
                 }
-        	}
+            }
         } catch (IllegalArgumentException e) {
             if (log.isDebugEnabled()) {
-            	log.debug("pkcs_9_extensionRequest does not contain Extensions that it should, ignoring invalid encoded extension request.");
+                log.debug("pkcs_9_extensionRequest does not contain Extensions that it should, ignoring invalid encoded extension request.");
             }
         }
         return ret;
     }
 
     @Override
-	public Date getRequestValidityNotBefore() {
+    public Date getRequestValidityNotBefore() {
         return notBefore;
-	}
+    }
 
     @Override
-	public Date getRequestValidityNotAfter() {
+    public Date getRequestValidityNotAfter() {
         return notAfter;
-	}
+    }
 
     @Override
-	public Extensions getRequestExtensions() {
+    public Extensions getRequestExtensions() {
         try {
             if (pkcs10 == null) {
                 init();
@@ -410,7 +410,7 @@ public class PKCS10RequestMessage implements RequestMessage {
         }
 
         return ret;
-	}
+    }
 
     /**
      * Gets the underlying BC <code>PKCS10CertificationRequest</code> object.
@@ -436,10 +436,10 @@ public class PKCS10RequestMessage implements RequestMessage {
     }
 
     public boolean verify(PublicKey pubKey) throws InvalidKeyException, NoSuchAlgorithmException {
-    	if (log.isTraceEnabled()) {
-    		log.trace(">verify()");
-    	}
-    	 if (pkcs10 == null) {
+        if (log.isTraceEnabled()) {
+            log.trace(">verify()");
+        }
+         if (pkcs10 == null) {
              init();
          }
 
@@ -501,22 +501,22 @@ public class PKCS10RequestMessage implements RequestMessage {
 
     @Override
     public String getPreferredDigestAlg() {
-    	return preferredDigestAlg;
+        return preferredDigestAlg;
     }
 
     @Override
     public boolean includeCACert() {
-    	return includeCACert;
+        return includeCACert;
     }
 
     @Override
     public int getRequestType() {
-    	return 0;
+        return 0;
     }
 
     @Override
     public int getRequestId() {
-    	return 0;
+        return 0;
     }
 
     @Override
@@ -533,7 +533,7 @@ public class PKCS10RequestMessage implements RequestMessage {
     public void setAdditionalCaCertificates(final List<Certificate> certificates) {
         this.additionalCaCertificates = certificates;
     }
-    
+
     @Override
     public List<Certificate> getAdditionalExtraCertsCertificates() {
         return additionalExtraCertsCertificates;

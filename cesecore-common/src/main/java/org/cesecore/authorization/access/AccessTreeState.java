@@ -15,9 +15,9 @@ package org.cesecore.authorization.access;
 
 /**
  * Enum adapted from the constants in AccessTreeNode in EJBCA. Represents the state of an accessTree node.
- * 
+ *
  * @version $Id: AccessTreeState.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ *
  */
 
 public enum AccessTreeState {

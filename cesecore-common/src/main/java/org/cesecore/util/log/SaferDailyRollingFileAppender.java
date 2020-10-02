@@ -23,7 +23,7 @@ import org.apache.log4j.spi.LoggingEvent;
 
 /**
  * The purpose of this extension is to notify the client of the this log appender that it isn't possible to log anymore.
- * 
+ *
  * @version $Id: SaferDailyRollingFileAppender.java 18195 2013-11-25 08:51:43Z mikekushner $
  */
 public class SaferDailyRollingFileAppender extends DailyRollingFileAppender {
@@ -49,7 +49,7 @@ public class SaferDailyRollingFileAppender extends DailyRollingFileAppender {
         }
     }
 
-    /** Sets the SaferAppenderListener that will be informed if a logging error occurs. 
+    /** Sets the SaferAppenderListener that will be informed if a logging error occurs.
      * @param pSubscriber subscriber*/
     public static void addSubscriber(SaferAppenderListener pSubscriber) {
         subscriber = pSubscriber;

@@ -25,7 +25,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for the AccessMatchValueReverseLookupRegistry class.
- * 
+ *
  * @version $Id: AccessMatchValueReverseLookupRegistryTest.java 25615 2017-03-24 18:44:19Z samuellb $
  *
  */
@@ -68,7 +68,7 @@ public class AccessMatchValueReverseLookupRegistryTest {
             super(TOKEN_TYPE, Arrays.asList(VanillaAccessMatchValueMock.values()), false);
         }
     }
-    
+
     private enum VanillaAccessMatchValueMock implements AccessMatchValue {
         FOO;
         @Override

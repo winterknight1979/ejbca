@@ -20,26 +20,26 @@ import org.bouncycastle.asn1.x509.PolicyQualifierId;
 
 /** NOTE! This class is only kept for upgrade and backwards compatibility purposes.
  * Replaced by org.cesecore.certificates.certificateprofile.CertificatePolicy
- * 
+ *
  * @version $Id: CertificatePolicy.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CertificatePolicy implements Serializable, Cloneable {
 
-	/** Warning changing this value will cause upgrades to fail, because
-	 * it has been serialized in the database (in XML).
-	 * DONT CHANGE THIS!
-	 */
+    /** Warning changing this value will cause upgrades to fail, because
+     * it has been serialized in the database (in XML).
+     * DONT CHANGE THIS!
+     */
     private static final long serialVersionUID = -6384137742329979249L;
 
     // Policy qualifier Ids are taken from BC classes
     public static final String id_qt_cps = PolicyQualifierId.id_qt_cps.getId();
     public static final String id_qt_unotice = PolicyQualifierId.id_qt_unotice.getId();
-    
+
     /**
      * The special <code>anyPolicy</code> policy OID.
      */
     public static final String ANY_POLICY_OID = "2.5.29.32.0";
-    
+
     private String policyID;
     /** CPS uri */
     private String qualifierId;
@@ -51,7 +51,7 @@ public class CertificatePolicy implements Serializable, Cloneable {
     }
 
     /**
-     * 
+     *
      * @param policyID ID
      * @param qualifierId QUD
      * @param qualifier qualifier
@@ -76,7 +76,7 @@ public class CertificatePolicy implements Serializable, Cloneable {
         this.policyID = policyID;
     }
 
-    
+
     /**
      * @return the qualifier string
      */
@@ -84,7 +84,7 @@ public class CertificatePolicy implements Serializable, Cloneable {
         return this.qualifier;
     }
 
-    
+
     /**
      * @param qualifier the uri to set
      */
@@ -99,14 +99,14 @@ public class CertificatePolicy implements Serializable, Cloneable {
         return this.qualifierId;
     }
 
-    
+
     /**
      * @param qualifierId the QualifierId to set
      */
     public void setQualifierId(final String qualifierId) {
         this.qualifierId = qualifierId;
     }
-    
+
     /**
      * @see java.lang.Object#clone()
      */
@@ -140,23 +140,23 @@ public class CertificatePolicy implements Serializable, Cloneable {
         // Simply because, especially in gui code, it is somewhat tricky to trust which is a non-existant value
         boolean policyeq = false;
         if (StringUtils.isEmpty(policy.getPolicyID()) && StringUtils.isEmpty(this.policyID)) {
-        	policyeq = true;
+            policyeq = true;
         } else if (StringUtils.equals(policy.getPolicyID(), this.policyID)) {
-        	policyeq = true;
+            policyeq = true;
         }
         boolean qualifierideq = false;
         if (StringUtils.isEmpty(policy.getQualifierId()) && StringUtils.isEmpty(this.qualifierId)) {
-        	qualifierideq = true;
+            qualifierideq = true;
         } else if (StringUtils.equals(policy.getQualifierId(), this.qualifierId)) {
-        	qualifierideq = true;
+            qualifierideq = true;
         }
         boolean qualifier = false;
         if (StringUtils.isEmpty(policy.getQualifier()) && StringUtils.isEmpty(this.qualifier)) {
-        	qualifier = true;
+            qualifier = true;
         } else if (StringUtils.equals(policy.getQualifier(), this.qualifier)) {
-        	qualifier = true;
+            qualifier = true;
         }
-        return policyeq && qualifierideq && qualifier; 
+        return policyeq && qualifierideq && qualifier;
     }
 
     /**

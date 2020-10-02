@@ -26,13 +26,13 @@ import org.cesecore.certificates.certificate.CertificateWrapper;
  * because Java will always deserialize Certificate objects using the first security provider
  * configured on the system. That does not work with Certificates that use other signature
  * algorithms than the ones that are built into Java.</p>
- * 
+ *
  * <p>This class encodes and decodes the Certificate objects lazily only when serializing or
  * deserializing. So it should have a minimal performance impact.</p>
- * 
+ *
  * <p>This implementation shouldn't be used directly, and is package-internal.
  * You can create an instance of this class through {@link org.cesecore.util.EJBTools}.</p>
- * 
+ *
  * @version $Id: CertificateSerializableWrapper.java 23173 2016-04-12 14:54:52Z samuellb $
  */
 final class CertificateSerializableWrapper implements CertificateWrapper, Serializable {
@@ -53,7 +53,7 @@ final class CertificateSerializableWrapper implements CertificateWrapper, Serial
         this.certificate = certificate;
         this.certificateBytes = null;
     }
-    
+
     @Override
     public Certificate getCertificate() {
         if (certificate == null && certificateBytes != null) {
@@ -66,7 +66,7 @@ final class CertificateSerializableWrapper implements CertificateWrapper, Serial
         }
         return certificate;
     }
-    
+
     private void writeObject(ObjectOutputStream stream) throws IOException {
         // Lazy encode before serialization
         if (certificateBytes == null) {

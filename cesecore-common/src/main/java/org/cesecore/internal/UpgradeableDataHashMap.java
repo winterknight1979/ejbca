@@ -42,14 +42,14 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
      * /serialization/spec/version.doc.html> details. </a>
      *
      */
-	private static final long serialVersionUID = -1766329888474901945L;
+    private static final long serialVersionUID = -1766329888474901945L;
 
     // Use LinkedHashMap because we want to have consistent serializing of the hashmap in order to be able to sign/verify data
     protected LinkedHashMap<Object, Object> data;
     private boolean upgraded = false;
     public static final String VERSION = "version";
 
-	/**
+    /**
      * Creates a new UpgradeableDataHashMap object.
      */
     public UpgradeableDataHashMap() {
@@ -89,14 +89,14 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
     @Override
     @SuppressWarnings("unchecked")
     public void loadData(final Object data) {
-    	// By creating a new LinkedHashMap (Base64GetHashMap) here we slip through a possible upgrade issue when upgrading
-    	// from older implementation that used a plain HashMap instead.
-    	// Both newer and older versions can be casted to HashMap.
-    	this.data = new Base64GetHashMap((HashMap<?, ?>)data);
-    	if(Float.compare(getLatestVersion(), getVersion()) > 0) {
-    		upgrade();
-    		upgraded = true;
-    	}
+        // By creating a new LinkedHashMap (Base64GetHashMap) here we slip through a possible upgrade issue when upgrading
+        // from older implementation that used a plain HashMap instead.
+        // Both newer and older versions can be casted to HashMap.
+        this.data = new Base64GetHashMap((HashMap<?, ?>)data);
+        if(Float.compare(getLatestVersion(), getVersion()) > 0) {
+            upgrade();
+            upgraded = true;
+        }
     }
 
     /** So you can poll to see if the data has been upgraded
@@ -104,8 +104,8 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
      * @return true if data has been upgraded, false otherwise
      */
     public boolean isUpgraded() {
-		return upgraded;
-	}
+        return upgraded;
+    }
 
     /**
      * Function that should handle the update if of the data in the class so it's up to date with
@@ -126,9 +126,9 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
      * @return Map object with difference as described above
      */
     public Map<Object, Object> diff(UpgradeableDataHashMap newobj) {
-    	@SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked")
         Map<Object, Object> newmap = (Map<Object, Object>)newobj.saveData();
-    	return diffMaps(data, newmap);
+        return diffMaps(data, newmap);
     }
 
     /** Create a Map with the differences between the two input objects.
@@ -139,58 +139,58 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
      * added:key, addedvalue
      * </pre>
      *
-	 * @param oldmap Old map
-	 * @param newmap New map
-	 * @return Map&lt;Object, Object&gt; with difference
-	 */
-	public static Map<Object, Object> diffMaps(Map<Object, Object> oldmap, Map<Object, Object> newmap) {
-		Map<Object, Object> result = new LinkedHashMap<Object, Object>();
-    	for (Object key : oldmap.keySet()) {
-			if (newmap.containsKey(key)) {
-				// Check if the value is the same
-				Object value = oldmap.get(key);
-				if (value == null) {
-					if (newmap.get(key) != null) {
-						result.put("addedvalue:"+key, newmap.get(key));
-					}
-				} else if (!value.equals(newmap.get(key))) {
-					Object val = newmap.get(key);
-					if (val == null) {
-						val = "";
-					}
-					result.put("changed:"+key, getVal(val));
-				}
-			} else {
-				// Value removed
-				Object val = oldmap.get(key);
-				if (val == null) {
-					val = "";
-				}
-				result.put("removed:"+key, getVal(val));
-			}
-		}
-    	// look for added properties
-    	for (Object key : newmap.keySet()) {
-    		if (!oldmap.containsKey(key)) {
-				Object val = newmap.get(key);
-				if (val == null) {
-					val = "";
-				}
-				result.put("added:"+key, getVal(val));
-    		}
-    	}
-    	return result;
-	}
+     * @param oldmap Old map
+     * @param newmap New map
+     * @return Map&lt;Object, Object&gt; with difference
+     */
+    public static Map<Object, Object> diffMaps(Map<Object, Object> oldmap, Map<Object, Object> newmap) {
+        Map<Object, Object> result = new LinkedHashMap<Object, Object>();
+        for (Object key : oldmap.keySet()) {
+            if (newmap.containsKey(key)) {
+                // Check if the value is the same
+                Object value = oldmap.get(key);
+                if (value == null) {
+                    if (newmap.get(key) != null) {
+                        result.put("addedvalue:"+key, newmap.get(key));
+                    }
+                } else if (!value.equals(newmap.get(key))) {
+                    Object val = newmap.get(key);
+                    if (val == null) {
+                        val = "";
+                    }
+                    result.put("changed:"+key, getVal(val));
+                }
+            } else {
+                // Value removed
+                Object val = oldmap.get(key);
+                if (val == null) {
+                    val = "";
+                }
+                result.put("removed:"+key, getVal(val));
+            }
+        }
+        // look for added properties
+        for (Object key : newmap.keySet()) {
+            if (!oldmap.containsKey(key)) {
+                Object val = newmap.get(key);
+                if (val == null) {
+                    val = "";
+                }
+                result.put("added:"+key, getVal(val));
+            }
+        }
+        return result;
+    }
 
-	/** helper method to get nice output from types that do
-	 * not work nicely with Object.toString()
-	 * @param o Object
-	 * @return String
-	 */
-	private static String getVal(Object o) {
-	    StringBuilder b = new StringBuilder();
-	    if (o instanceof String[]) {
-	        b.append('[');
+    /** helper method to get nice output from types that do
+     * not work nicely with Object.toString()
+     * @param o Object
+     * @return String
+     */
+    private static String getVal(Object o) {
+        StringBuilder b = new StringBuilder();
+        if (o instanceof String[]) {
+            b.append('[');
             String[] arr = (String[]) o;
             for (String s: arr) {
                 if (b.length() > 1) {
@@ -202,10 +202,10 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
         } else {
             b.append(o);
         }
-	    return b.toString();
-	}
+        return b.toString();
+    }
 
-	// Helper methods for interacting with the stored data
+    // Helper methods for interacting with the stored data
 
     /**
      * Retrieve a boolean value from the data map in a safe manner.
@@ -239,7 +239,7 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
         return (String) object;
     }
 
-    /** Set the value for the specified key as a primitive (never null) boolean 
+    /** Set the value for the specified key as a primitive (never null) boolean
      * @param key key
      * @param value value */
     protected void putBoolean(final String key, final boolean value) {

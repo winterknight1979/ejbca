@@ -37,9 +37,9 @@ import org.cesecore.certificates.ocsp.SHA1DigestCalculator;
 import org.cesecore.util.CertTools;
 
 /**
- * 
+ *
  * Class for standard X509 certificate extension. See rfc3280 or later for spec of this extension.
- * 
+ *
  * @version $Id: AuthorityKeyIdentifier.java 22618 2016-01-20 15:00:45Z marko $
  */
 public class AuthorityKeyIdentifier extends StandardCertificateExtension {

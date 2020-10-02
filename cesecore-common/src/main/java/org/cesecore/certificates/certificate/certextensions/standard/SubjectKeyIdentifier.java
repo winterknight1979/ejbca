@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
@@ -25,11 +25,11 @@ import org.cesecore.certificates.certificate.certextensions.CertificateExtension
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
-/** 
- * 
- * Class for standard X509 certificate extension. 
- * See rfc3280 or later for spec of this extension.      
- * 
+/**
+ *
+ * Class for standard X509 certificate extension.
+ * See rfc3280 or later for spec of this extension.
+ *
  * @version $Id: SubjectKeyIdentifier.java 23698 2016-06-20 13:54:29Z mikekushner $
  */
 public class SubjectKeyIdentifier extends StandardCertificateExtension {
@@ -37,11 +37,11 @@ public class SubjectKeyIdentifier extends StandardCertificateExtension {
     private static final long serialVersionUID = 1L;
 
     @Override
-	public void init(final CertificateProfile certProf) {
-		super.setOID(Extension.subjectKeyIdentifier.getId());
-		super.setCriticalFlag(certProf.getSubjectKeyIdentifierCritical());
-	}
-    
+    public void init(final CertificateProfile certProf) {
+        super.setOID(Extension.subjectKeyIdentifier.getId());
+        super.setCriticalFlag(certProf.getSubjectKeyIdentifierCritical());
+    }
+
     @Override
     public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
             final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {

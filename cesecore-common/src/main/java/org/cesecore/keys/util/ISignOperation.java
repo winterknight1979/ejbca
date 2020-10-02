@@ -19,7 +19,7 @@ import java.util.List;
  * An object of a class implementing this interface must be constructed
  * before using {@link SignWithWorkingAlgorithm}.
  * @version $Id: ISignOperation.java 22408 2015-12-08 20:19:48Z primelars $
- * 
+ *
  */
 public interface ISignOperation {
     /**

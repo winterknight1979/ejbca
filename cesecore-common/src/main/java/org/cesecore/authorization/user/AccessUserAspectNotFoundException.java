@@ -14,7 +14,7 @@ package org.cesecore.authorization.user;
 
 /**
  * Thrown when an AccessUserAspect is not found.
- * 
+ *
  * @version $Id: AccessUserAspectNotFoundException.java 25461 2017-03-14 00:10:54Z jeklund $
  *
  */
@@ -36,8 +36,8 @@ public class AccessUserAspectNotFoundException extends RuntimeException {
 
     public AccessUserAspectNotFoundException(Throwable cause) {
         super(cause);
-    } 
+    }
 
-    
+
 
 }

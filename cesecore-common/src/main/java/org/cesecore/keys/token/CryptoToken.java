@@ -51,7 +51,7 @@ public interface CryptoToken extends Serializable {
     static final String KEYPLACEHOLDERS_PROPERTY = "statedump.keytemplates";
     static final String KEYPLACEHOLDERS_OUTER_SEPARATOR = "|";
     static final String KEYPLACEHOLDERS_INNER_SEPARATOR = ";";
-    /** Boolean indicating if explicit ECC parameters should be used, instead of named curves which is standard. 
+    /** Boolean indicating if explicit ECC parameters should be used, instead of named curves which is standard.
      *  Explicit parameters are only used by ICAO CSCA and DS certificates as defined in ICAO 9303.
      */
     static final String EXPLICIT_ECC_PUBLICKEY_PARAMETERS = "explicit.ecc.publickey.parameters";
@@ -98,7 +98,7 @@ public interface CryptoToken extends Serializable {
 
     /** Checks if an alias is in use by a Crypto Token
      * @param alias the alias that we want to check
-     * @return true if there is a private, public or symmetric entry with this alias in the CryptoToken 
+     * @return true if there is a private, public or symmetric entry with this alias in the CryptoToken
      */
     boolean isAliasUsed(String alias);
 
@@ -160,7 +160,7 @@ public interface CryptoToken extends Serializable {
      * @throws InvalidAlgorithmParameterException On invalid parameters
      * @throws CertificateException On invalid certificate
      * @throws IOException On IO error
-     * @throws CryptoTokenOfflineException if offline 
+     * @throws CryptoTokenOfflineException if offline
      */
     void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws InvalidAlgorithmParameterException, CertificateException,
             IOException, CryptoTokenOfflineException;
@@ -179,7 +179,7 @@ public interface CryptoToken extends Serializable {
      * @throws SignatureException if signature is invalid
      * @throws CertificateException if cert is invalid
      * @throws IOException on IO fail
-     * @throws NoSuchPaddingException if padding is invalid 
+     * @throws NoSuchPaddingException if padding is invalid
      * @throws IllegalBlockSizeException if block size is incorrect
      */
     void generateKey(final String algorithm, final int keysize, final String alias) throws NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException, CryptoTokenOfflineException,
@@ -205,10 +205,10 @@ public interface CryptoToken extends Serializable {
 
     /** @return user friendly identifier */
     String getTokenName();
-    /** Set user friendly identifier 
+    /** Set user friendly identifier
      * @param tokenName name*/
     void setTokenName(String tokenName);
-    
+
     /**
      *  Method that returns the current status of the crypto token.
      *
@@ -230,8 +230,8 @@ public interface CryptoToken extends Serializable {
     void setProperties(Properties properties);
 
     /**
-     * Stores a new key in this crypto token's keystore. 
-     * 
+     * Stores a new key in this crypto token's keystore.
+     *
      * @param alias The alias for the key
      * @param key The key to be stored
      * @param chain The associated key chain
@@ -239,17 +239,17 @@ public interface CryptoToken extends Serializable {
      * @throws KeyStoreException if keystore for this crypto token has not been initialized
      */
     void storeKey(String alias, Key key, Certificate chain[], char[] password) throws KeyStoreException;
-    
+
     /** Stores keystore data (if any) to be used when initializing a new (existing) token with the init method
      *
      * @return byte[] with keystore data, can be null if not needed for initialization
      */
-	byte[] getTokenData();
+    byte[] getTokenData();
 
     /** Testing a keypair to see that it is usable
      *
      * @param alias the alias of the key pair to test
-     * @throws InvalidKeyException if the public key can not be used to verify a string signed by the private key, because the key is wrong or the 
+     * @throws InvalidKeyException if the public key can not be used to verify a string signed by the private key, because the key is wrong or the
      * signature operation fails for other reasons such as a NoSuchAlgorithmException or SignatureException.
      * @throws CryptoTokenOfflineException if the crypto token is offline
      */
@@ -260,7 +260,7 @@ public interface CryptoToken extends Serializable {
     * @param alias the alias of the key pair to test
     * @param publicKey the public key of the key pair
     * @param privateKey the private key of the key pair
-    * @throws InvalidKeyException if the public key can not be used to verify a string signed by the private key, because the key is wrong or the 
+    * @throws InvalidKeyException if the public key can not be used to verify a string signed by the private key, because the key is wrong or the
     * signature operation fails for other reasons such as a NoSuchAlgorithmException or SignatureException.
     */
     void testKeyPair(final String alias, PublicKey publicKey, PrivateKey privateKey) throws InvalidKeyException;
@@ -282,5 +282,5 @@ public interface CryptoToken extends Serializable {
 
     /** @return true if there is an auto activation PIN stored in the token */
     boolean isAutoActivationPinPresent();
-    
+
 }

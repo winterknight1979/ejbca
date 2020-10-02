@@ -28,27 +28,27 @@ import org.cesecore.util.query.QueryCriteria;
 
 /**
  * Interface for querying, validating and exporting log.
- * 
+ *
  * @version $Id: Auditable.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface Auditable {
 
     /**
      * Select a set of events to be audited.
-     * 
+     *
      * @param token user performing the task.
      * @param startIndex Index where select will start.
      * @param max maximum number of results to be returned.
      * @param criteria Criteria defining the subset of logs to be selected.
      * @param properties properties to be passed on the device
-     * 
+     *
      * @return The audit logs to the given criteria
      */
     List<? extends AuditLogEntry> selectAuditLogs(AuthenticationToken token, int startIndex, int max, QueryCriteria criteria, Properties properties);
 
     /**
      * This operation is used to export a set logs.
-     * 
+     *
      * @param token user performing the task.
      * @param cryptoToken Crypto Token to be used.
      * @param timestamp Timestamp till which the logs will be exported.
@@ -56,9 +56,9 @@ public interface Auditable {
      * @param signatureDetails Map containing signature details. (@see AuditLogBasicExporter public static varaibles).
      * @param exporter the exporter implementation to be used
      * @param properties properties to be passed on the device
-     * 
+     *
      * @return A extended validation report with the path to the exported file.
-     * 
+     *
      * @throws AuditLogExporterException if export fails
      */
     AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport,
@@ -68,10 +68,10 @@ public interface Auditable {
      * This operation is used to verify integrity of log to detect potential
      * modifications.
      * @param token Auth Token
-     * 
+     *
      * @param date Date from which to start verifying logs.
      * @param properties properties to be passed on the device
-     * 
+     *
      * @return validation report.
      * @throws AuditLogValidatorException If validation fails
      */

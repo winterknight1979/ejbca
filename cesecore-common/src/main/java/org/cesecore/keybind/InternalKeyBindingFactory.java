@@ -29,7 +29,7 @@ import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
  * Factory class with an internal registry of known implementations.
- * 
+ *
  * @version $Id: InternalKeyBindingFactory.java 23648 2016-06-09 15:19:55Z mikekushner $
  */
 public enum InternalKeyBindingFactory {
@@ -54,7 +54,7 @@ public enum InternalKeyBindingFactory {
 
     /**
      * Creates a new InternalKeyBinding instance.
-     * 
+     *
      * @param type is the alias of the registered InternalKeyBinding's type
      * @param id is the unique identifier of this InternalKeyBinding
      * @param name is the unique name that this InternalKeyBinding will be given
@@ -89,10 +89,10 @@ public enum InternalKeyBindingFactory {
             } catch (ClassNotFoundException e) {
                 log.error("Unable to create InternalKeyBinding. Could not find implementation '" + implementationClassName + "'.", e);
             } catch (InvocationTargetException e) {
-            	log.error("Unable to create InternalKeyBinding. Could not be instantiate implementation '" + implementationClassName + "'.", e);
+                log.error("Unable to create InternalKeyBinding. Could not be instantiate implementation '" + implementationClassName + "'.", e);
             } catch (NoSuchMethodException e) {
-            	log.error("Unable to create InternalKeyBinding. Could not find implementation '" + implementationClassName + "'.", e);
-			}
+                log.error("Unable to create InternalKeyBinding. Could not find implementation '" + implementationClassName + "'.", e);
+            }
         }
         return internalKeyBinding;
     }
@@ -120,8 +120,8 @@ public enum InternalKeyBindingFactory {
         } catch (IllegalAccessException e) {
             log.error("Unable to create InternalKeyBinding. Not allowed to instantiate implementation '" + c.getName() + "'.", e);
         }  catch (NoSuchMethodException e) {
-        	log.error("Unable to create InternalKeyBinding. Could not find implementation '" + c.getName() + "'.", e);
-		}
+            log.error("Unable to create InternalKeyBinding. Could not find implementation '" + c.getName() + "'.", e);
+        }
         if (alias != null) {
             aliasToImplementationMap.put(alias, c.getName());
             implementationToAliasMap.put(c.getName(), alias);
@@ -134,11 +134,11 @@ public enum InternalKeyBindingFactory {
     }
 
     /**
-     * Method to be used from an external environment (such as the CLI) where contextual information about a key binding 
+     * Method to be used from an external environment (such as the CLI) where contextual information about a key binding
      * implementation is not available. Will presume that all key binding properties were entered as strings, will return a
      * data wrapper that contains a map of properly casted values, and information about any values which were either unknown
-     * or of an incorrect format.  
-     * 
+     * or of an incorrect format.
+     *
      * @param alias the alias of the key binding type to check for
      * @param propertiesMap the inputed properties, as strings
      * @return a wrapper class that contains the correctly casted values, and information about any values that were invalid.

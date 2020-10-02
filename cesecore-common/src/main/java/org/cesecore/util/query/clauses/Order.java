@@ -15,7 +15,7 @@ package org.cesecore.util.query.clauses;
 import org.cesecore.util.query.Elem;
 /**
  * Query ORDER BY element.
- * 
+ *
  * @version $Id: Order.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class Order implements Elem {

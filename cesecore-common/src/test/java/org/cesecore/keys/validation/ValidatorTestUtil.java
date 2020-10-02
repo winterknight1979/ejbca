@@ -13,7 +13,7 @@
 
 /**
  * Static helper key validator tests.
- * 
+ *
  * @version $Id: ValidatorTestUtil.java 27654 2017-12-22 13:56:31Z mikekushner $
  */
 package org.cesecore.keys.validation;
@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 
+ *
  * @version $Id: ValidatorTestUtil.java 27654 2017-12-22 13:56:31Z mikekushner $
  *
  */
@@ -33,7 +33,7 @@ public final class ValidatorTestUtil {
 
     /**
      * Factory method to create key validators.
-     * 
+     *
      * @param type the key validator type (see {@link ValidatorBase#TYPE}
      * @param name the logical name
      * @param description the description text
@@ -42,7 +42,7 @@ public final class ValidatorTestUtil {
      * @param notAfter the certificates validity not after
      * @param notAfterCondition the certificates validity not after condition
      * @param failedAction the failed action to be performed.
-     * @param certificateProfileIds list of IDs of certificate profile to be applied to. 
+     * @param certificateProfileIds list of IDs of certificate profile to be applied to.
      * @return the concrete key validator instance.
      * @throws IllegalAccessException fail
      * @throws InstantiationException fail
@@ -81,7 +81,7 @@ public final class ValidatorTestUtil {
         result.setCertificateProfileIds(ids);
         return result;
     }
-    
+
     /**
      * Avoid instantiation.
      */

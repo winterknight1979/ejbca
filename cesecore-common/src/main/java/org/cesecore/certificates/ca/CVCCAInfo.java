@@ -34,7 +34,7 @@ import org.cesecore.util.StringTools;
  */
 public class CVCCAInfo extends CAInfo {
 
-	private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 2L;
 
     /**
      * This constructor can be used when creating a CA.
@@ -45,7 +45,7 @@ public class CVCCAInfo extends CAInfo {
      * @param certificateprofileid ID
      * @param encodedValidity Validity
      * @param signedby signer
-     * @param certificatechain chain 
+     * @param certificatechain chain
      * @param catoken token
      * */
     public CVCCAInfo(String subjectdn, String name, int status, int certificateprofileid, String encodedValidity, int signedby,
@@ -75,147 +75,147 @@ public class CVCCAInfo extends CAInfo {
                 false, // useCertReqHistory
                 true, // useUserStorage
                 true, // useCertificateStorage
-				false // acceptRevocationNonExistingEntry
+                false // acceptRevocationNonExistingEntry
             );
     }
 
-	/**
-	 * Constructor that should be used when creating CA and retrieving CA info.
-	 * Please use the shorter form if you do not need to set all of the values.
-	 * @param subjectDn DN
-	 * @param name Name
-	 * @param status Status
-	 * @param updateTime Update
-	 * @param certificateprofileid ID 
-	 * @param defaultCertprofileId ID
-	 * @param encodedValidity Validity
-	 * @param expiretime Expiry
-	 * @param catype Type of CA
-	 * @param signedBy Signer
-	 * @param certificatechain Chain 
-	 * @param catoken Token
-	 * @param description Description
-	 * @param revocationReason Reason for revoking
-	 * @param revocationDate Date of revoking
-	 * @param crlperiod CRL period
-	 * @param crlIssueInterval CRL Issue interval
-	 * @param crlOverlapTime CRL Overlap
-	 * @param deltacrlperiod CRL change
-	 * @param crlpublishers Publisher of CRL
-	 * @param keyValidators Validators
-	 * @param finishuser boolean
-	 * @param extendedcaserviceinfos info 
-	 * @param approvals approvals
-	 * @param includeInHealthCheck bool 
-	 * @param _doEnforceUniquePublicKeys bool 
-	 * @param _doEnforceUniqueDistinguishedName bool 
-	 * @param _doEnforceUniqueSubjectDNSerialnumber bool
-	 * @param _useCertReqHistory bool
-	 * @param _useUserStorage bool
-	 * @param _useCertificateStorage bool 
-	 * @param _acceptRevocationNonExistingEntry bool  
-	 */
-	public CVCCAInfo(String subjectDn, String name, int status, Date updateTime, int certificateprofileid, int defaultCertprofileId,
+    /**
+     * Constructor that should be used when creating CA and retrieving CA info.
+     * Please use the shorter form if you do not need to set all of the values.
+     * @param subjectDn DN
+     * @param name Name
+     * @param status Status
+     * @param updateTime Update
+     * @param certificateprofileid ID
+     * @param defaultCertprofileId ID
+     * @param encodedValidity Validity
+     * @param expiretime Expiry
+     * @param catype Type of CA
+     * @param signedBy Signer
+     * @param certificatechain Chain
+     * @param catoken Token
+     * @param description Description
+     * @param revocationReason Reason for revoking
+     * @param revocationDate Date of revoking
+     * @param crlperiod CRL period
+     * @param crlIssueInterval CRL Issue interval
+     * @param crlOverlapTime CRL Overlap
+     * @param deltacrlperiod CRL change
+     * @param crlpublishers Publisher of CRL
+     * @param keyValidators Validators
+     * @param finishuser boolean
+     * @param extendedcaserviceinfos info
+     * @param approvals approvals
+     * @param includeInHealthCheck bool
+     * @param _doEnforceUniquePublicKeys bool
+     * @param _doEnforceUniqueDistinguishedName bool
+     * @param _doEnforceUniqueSubjectDNSerialnumber bool
+     * @param _useCertReqHistory bool
+     * @param _useUserStorage bool
+     * @param _useCertificateStorage bool
+     * @param _acceptRevocationNonExistingEntry bool
+     */
+    public CVCCAInfo(String subjectDn, String name, int status, Date updateTime, int certificateprofileid, int defaultCertprofileId,
             String encodedValidity, Date expiretime, int catype, int signedBy, List<Certificate> certificatechain,
-			CAToken catoken, String description, int revocationReason, Date revocationDate,
-			long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,
-			Collection<Integer> crlpublishers, Collection<Integer> keyValidators,
-			boolean finishuser,Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
-			Map<ApprovalRequestType, Integer> approvals,
-			boolean includeInHealthCheck, boolean _doEnforceUniquePublicKeys,
-			boolean _doEnforceUniqueDistinguishedName, boolean _doEnforceUniqueSubjectDNSerialnumber,
-			boolean _useCertReqHistory, boolean _useUserStorage, boolean _useCertificateStorage, boolean _acceptRevocationNonExistingEntry) {
-		this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
-		this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
-		this.name = name;
-		this.status = status;
-		this.updatetime = updateTime;
-		setEncodedValidity(encodedValidity);
-		this.expiretime = expiretime;
-		this.catype = catype;
-		this.signedby = signedBy;
-		setCertificateChain(certificatechain);
-		this.catoken = catoken;
-		this.description = description;
-		this.revocationReason = revocationReason;
-		this.revocationDate = revocationDate;
-		this.crlperiod = crlperiod;
-		this.crlIssueInterval = crlIssueInterval;
-		this.crlOverlapTime = crlOverlapTime;
-		this.deltacrlperiod = deltacrlperiod;
-		this.crlpublishers = crlpublishers;
-		this.validators = keyValidators;
-		this.finishuser = finishuser;
-		this.certificateprofileid = certificateprofileid;
-		this.defaultCertificateProfileId = defaultCertprofileId;
-		this.extendedcaserviceinfos = extendedcaserviceinfos;
-		setApprovals(approvals);
-		this.includeInHealthCheck = includeInHealthCheck;
-		this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
-		this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
-		this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;
-		this.useCertReqHistory = _useCertReqHistory;
+            CAToken catoken, String description, int revocationReason, Date revocationDate,
+            long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,
+            Collection<Integer> crlpublishers, Collection<Integer> keyValidators,
+            boolean finishuser,Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
+            Map<ApprovalRequestType, Integer> approvals,
+            boolean includeInHealthCheck, boolean _doEnforceUniquePublicKeys,
+            boolean _doEnforceUniqueDistinguishedName, boolean _doEnforceUniqueSubjectDNSerialnumber,
+            boolean _useCertReqHistory, boolean _useUserStorage, boolean _useCertificateStorage, boolean _acceptRevocationNonExistingEntry) {
+        this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
+        this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
+        this.name = name;
+        this.status = status;
+        this.updatetime = updateTime;
+        setEncodedValidity(encodedValidity);
+        this.expiretime = expiretime;
+        this.catype = catype;
+        this.signedby = signedBy;
+        setCertificateChain(certificatechain);
+        this.catoken = catoken;
+        this.description = description;
+        this.revocationReason = revocationReason;
+        this.revocationDate = revocationDate;
+        this.crlperiod = crlperiod;
+        this.crlIssueInterval = crlIssueInterval;
+        this.crlOverlapTime = crlOverlapTime;
+        this.deltacrlperiod = deltacrlperiod;
+        this.crlpublishers = crlpublishers;
+        this.validators = keyValidators;
+        this.finishuser = finishuser;
+        this.certificateprofileid = certificateprofileid;
+        this.defaultCertificateProfileId = defaultCertprofileId;
+        this.extendedcaserviceinfos = extendedcaserviceinfos;
+        setApprovals(approvals);
+        this.includeInHealthCheck = includeInHealthCheck;
+        this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
+        this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
+        this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;
+        this.useCertReqHistory = _useCertReqHistory;
         this.useUserStorage = _useUserStorage;
         this.useCertificateStorage = _useCertificateStorage;
         this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;
-	}
+    }
 
-	/**
-	 * Constructor that should be used when updating CA data.
+    /**
+     * Constructor that should be used when updating CA data.
      * Used by the web. Jsp and stuff like that.
-	 * @param caid CA ID
-	 * @param encodedValidity Validity 
-	 * @param catoken Token
-	 * @param description Description
-	 * @param crlperiod CRL period
-	 * @param crlIssueInterval CRL Issue
-	 * @param crlOverlapTime CRL Overlap
-	 * @param deltacrlperiod CRL Delta
-	 * @param crlpublishers CRL Publisher
-	 * @param keyValidators Validators
-	 * @param finishuser bool
-	 * @param extendedcaserviceinfos info
-	 * @param approvals approvals
-	 * @param includeInHealthCheck bool 
-	 * @param _doEnforceUniquePublicKeys bool 
-	 * @param _doEnforceUniqueDistinguishedName bool 
-	 * @param _doEnforceUniqueSubjectDNSerialnumber bool
-	 * @param _useCertReqHistory bool
-	 * @param _useUserStorage bool
-	 * @param _useCertificateStorage bool 
-	 * @param _acceptRevocationNonExistingEntry bool 
-	 * @param defaultCertprofileId ID
-	 */
-	public CVCCAInfo(int caid, String encodedValidity, CAToken catoken, String description,
-			long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,
-			Collection<Integer> crlpublishers, Collection<Integer> keyValidators,
-			boolean finishuser, Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
-			Map<ApprovalRequestType, Integer> approvals,
-			boolean includeInHealthCheck, boolean _doEnforceUniquePublicKeys,
-			boolean _doEnforceUniqueDistinguishedName, boolean _doEnforceUniqueSubjectDNSerialnumber,
-			boolean _useCertReqHistory, boolean _useUserStorage, boolean _useCertificateStorage, boolean _acceptRevocationNonExistingEntry,
-			int defaultCertprofileId) {
-		this.caid = caid;
-		setEncodedValidity(encodedValidity);
-		this.catoken = catoken;
-		this.description = description;
-		this.crlperiod = crlperiod;
-		this.crlIssueInterval = crlIssueInterval;
-		this.crlOverlapTime = crlOverlapTime;
-		this.deltacrlperiod = deltacrlperiod;
-		this.crlpublishers = crlpublishers;
-		this.validators = keyValidators;
-		this.finishuser = finishuser;
-		this.extendedcaserviceinfos = extendedcaserviceinfos;
-		setApprovals(approvals);
-		this.includeInHealthCheck = includeInHealthCheck;
-		this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
-		this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
-		this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;
-		this.useCertReqHistory = _useCertReqHistory;
+     * @param caid CA ID
+     * @param encodedValidity Validity
+     * @param catoken Token
+     * @param description Description
+     * @param crlperiod CRL period
+     * @param crlIssueInterval CRL Issue
+     * @param crlOverlapTime CRL Overlap
+     * @param deltacrlperiod CRL Delta
+     * @param crlpublishers CRL Publisher
+     * @param keyValidators Validators
+     * @param finishuser bool
+     * @param extendedcaserviceinfos info
+     * @param approvals approvals
+     * @param includeInHealthCheck bool
+     * @param _doEnforceUniquePublicKeys bool
+     * @param _doEnforceUniqueDistinguishedName bool
+     * @param _doEnforceUniqueSubjectDNSerialnumber bool
+     * @param _useCertReqHistory bool
+     * @param _useUserStorage bool
+     * @param _useCertificateStorage bool
+     * @param _acceptRevocationNonExistingEntry bool
+     * @param defaultCertprofileId ID
+     */
+    public CVCCAInfo(int caid, String encodedValidity, CAToken catoken, String description,
+            long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,
+            Collection<Integer> crlpublishers, Collection<Integer> keyValidators,
+            boolean finishuser, Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
+            Map<ApprovalRequestType, Integer> approvals,
+            boolean includeInHealthCheck, boolean _doEnforceUniquePublicKeys,
+            boolean _doEnforceUniqueDistinguishedName, boolean _doEnforceUniqueSubjectDNSerialnumber,
+            boolean _useCertReqHistory, boolean _useUserStorage, boolean _useCertificateStorage, boolean _acceptRevocationNonExistingEntry,
+            int defaultCertprofileId) {
+        this.caid = caid;
+        setEncodedValidity(encodedValidity);
+        this.catoken = catoken;
+        this.description = description;
+        this.crlperiod = crlperiod;
+        this.crlIssueInterval = crlIssueInterval;
+        this.crlOverlapTime = crlOverlapTime;
+        this.deltacrlperiod = deltacrlperiod;
+        this.crlpublishers = crlpublishers;
+        this.validators = keyValidators;
+        this.finishuser = finishuser;
+        this.extendedcaserviceinfos = extendedcaserviceinfos;
+        setApprovals(approvals);
+        this.includeInHealthCheck = includeInHealthCheck;
+        this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
+        this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
+        this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;
+        this.useCertReqHistory = _useCertReqHistory;
         this.useUserStorage = _useUserStorage;
         this.useCertificateStorage = _useCertificateStorage;
         this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;
         this.defaultCertificateProfileId = defaultCertprofileId;
-	}
+    }
 }

@@ -18,7 +18,7 @@ import org.cesecore.config.OcspConfiguration;
 
 /**
  * OCSP transaction logger.
- * 
+ *
  * @version $Id: TransactionLogger.java 25218 2017-02-08 13:45:12Z anatom $
  *
  */
@@ -29,7 +29,7 @@ public class TransactionLogger extends PatternLogger {
      * The BC normalized subject Distinguished Name of the client making the request
      */
     public static final String REQ_NAME = "REQ_NAME";
-    /** 
+    /**
      * The Unnormalized subject Distinguished Name of the client making the request
      */
     public static final String REQ_NAME_RAW = "REQ_NAME_RAW";
@@ -53,12 +53,12 @@ public class TransactionLogger extends PatternLogger {
      * The unnormalized issuer Distinguished Name of the requested certificate
      */
     public static final String ISSUER_NAME_DN_RAW = "ISSUER_NAME_DN_RAW";
-    
+
     /**
      * Algorithm used by requested certificate to hash issuer key and issuer name
      */
     public static final String DIGEST_ALGOR = "DIGEST_ALGOR";
-    
+
     /**
      * The number of certificates to check revocation status for
      */

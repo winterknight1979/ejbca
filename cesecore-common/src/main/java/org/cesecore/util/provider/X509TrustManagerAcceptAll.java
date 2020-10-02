@@ -30,7 +30,7 @@ import org.cesecore.util.CertTools;
 public class X509TrustManagerAcceptAll implements X509TrustManager {
 
     private static final Logger log = Logger.getLogger(X509TrustManagerAcceptAll.class);
-    
+
     /**
      */
     public X509TrustManagerAcceptAll() {

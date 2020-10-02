@@ -21,9 +21,9 @@ import javax.xml.ws.WebFault;
  * @version $Id: AuthorizationDeniedException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 @WebFault
-@ApplicationException(rollback=true)  
+@ApplicationException(rollback=true)
 public class AuthorizationDeniedException extends Exception {
-    
+
 
     private static final long serialVersionUID = 4400551462100867374L;
 
@@ -32,10 +32,10 @@ public class AuthorizationDeniedException extends Exception {
      * Creates a new instance of <code>AuthorizationDeniedException</code> without detail message.
      */
     public AuthorizationDeniedException() {
-      super();  
+      super();
     }
-    
-    
+
+
     /**
      * Constructs an instance of <code>AuthorizationDeniedException</code> with the specified detail message.
      * @param msg the detail message.

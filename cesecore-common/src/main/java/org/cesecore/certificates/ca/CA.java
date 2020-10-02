@@ -157,7 +157,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
     /** No args constructor required for ServiceLocator */
     protected CA() {}
 
-    /** Creates a new instance of CA, this constructor should be used when a new CA is created 
+    /** Creates a new instance of CA, this constructor should be used when a new CA is created
      * @param cainfo Info*/
     public CA(CAInfo cainfo) {
         init(cainfo);
@@ -233,7 +233,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         init(data);
     }
 
-    /** Constructor used when retrieving existing CA from database. 
+    /** Constructor used when retrieving existing CA from database.
      * @param data data*/
     public void init(HashMap<Object, Object> data) {
         loadData(data);
@@ -462,31 +462,31 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         return caToken;
     }
 
-    /** Sets the CA token. 
+    /** Sets the CA token.
      * @param catoken token
      * @throws InvalidAlgorithmException  if algorithm is not valid*/
     public void setCAToken(CAToken catoken) throws InvalidAlgorithmException {
         // Check that the signature algorithm is one of the allowed ones, only check if there is a sigAlg though
-    	// things like a NulLCryptoToken does not have signature algorithms
-    	final String sigAlg = catoken.getSignatureAlgorithm();
-    	if (StringUtils.isNotEmpty(sigAlg)) {
+        // things like a NulLCryptoToken does not have signature algorithms
+        final String sigAlg = catoken.getSignatureAlgorithm();
+        if (StringUtils.isNotEmpty(sigAlg)) {
             if (!StringTools.containsCaseInsensitive(AlgorithmConstants.AVAILABLE_SIGALGS, sigAlg)) {
                 final String msg = intres.getLocalizedMessage("createcert.invalidsignaturealg", sigAlg, ArrayUtils.toString(AlgorithmConstants.AVAILABLE_SIGALGS));
                 throw new InvalidAlgorithmException(msg);
             }
-    	}
-    	final String encAlg = catoken.getEncryptionAlgorithm();
-    	if (StringUtils.isNotEmpty(encAlg)) {
-    		if (!StringTools.containsCaseInsensitive(AlgorithmConstants.AVAILABLE_SIGALGS, encAlg)) {
-    			final String msg = intres.getLocalizedMessage("createcert.invalidsignaturealg", encAlg, ArrayUtils.toString(AlgorithmConstants.AVAILABLE_SIGALGS));
-    			throw new InvalidAlgorithmException(msg);
-    		}
-    	}
+        }
+        final String encAlg = catoken.getEncryptionAlgorithm();
+        if (StringUtils.isNotEmpty(encAlg)) {
+            if (!StringTools.containsCaseInsensitive(AlgorithmConstants.AVAILABLE_SIGALGS, encAlg)) {
+                final String msg = intres.getLocalizedMessage("createcert.invalidsignaturealg", encAlg, ArrayUtils.toString(AlgorithmConstants.AVAILABLE_SIGALGS));
+                throw new InvalidAlgorithmException(msg);
+            }
+        }
         data.put(CATOKENDATA, catoken.saveData());
         this.caToken = catoken;
     }
 
-    /** Returns a collection of CA certificates, or null if no request certificate chain exists 
+    /** Returns a collection of CA certificates, or null if no request certificate chain exists
      * @return certificates*/
     public Collection<Certificate> getRequestCertificateChain() {
         if (requestcertchain == null) {
@@ -775,7 +775,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         putBoolean(USE_CERTREQ_HISTORY, useCertReqHistory);
     }
 
-    /**@return whether users should be stored or not, default true as was the case before 3.10.x 
+    /**@return whether users should be stored or not, default true as was the case before 3.10.x
      * */
     public boolean isUseUserStorage() {
         return getBoolean(USE_USER_STORAGE, true);
@@ -1178,7 +1178,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         }
     }
 
-    /** Method used to retrieve information about the service. 
+    /** Method used to retrieve information about the service.
      * @param type type
      * @return info */
     public ExtendedCAServiceInfo getExtendedCAServiceInfo(int type) {
@@ -1206,9 +1206,9 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
             IllegalExtendedCAServiceRequestException, ExtendedCAServiceNotActiveException, CertificateEncodingException, CertificateException, OperatorCreationException {
         ExtendedCAService service = getExtendedCAService(request.getServiceType());
         if (service == null) {
-        	final String msg = "Extended CA service is null for service request: "+request.getClass().getName();
-        	log.error(msg);
-        	throw new IllegalExtendedCAServiceRequestException();
+            final String msg = "Extended CA service is null for service request: "+request.getClass().getName();
+            log.error(msg);
+            throw new IllegalExtendedCAServiceRequestException();
         }
         // Enrich request with CA in order for the service to be able to use CA keys and certificates
         service.setCA(this);
@@ -1230,7 +1230,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         try {
             returnval = extendedcaservicemap.get(Integer.valueOf(type));
             if (returnval == null) {
-            	@SuppressWarnings("rawtypes")
+                @SuppressWarnings("rawtypes")
                 HashMap serviceData = getExtendedCAServiceData(type);
                 if (serviceData != null) {
                     // We must have run upgrade on the extended CA services for this to work
@@ -1266,7 +1266,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
                         extendedcaservicemap.put(Integer.valueOf(type), returnval);
                     }
                 } else {
-                	log.error("Servicedata is null for extended CA service of type: "+type);
+                    log.error("Servicedata is null for extended CA service of type: "+type);
                 }
             }
         } catch (ClassNotFoundException e) {
@@ -1294,7 +1294,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         extendedcaservicemap.put(Integer.valueOf(info.getType()), extendedcaservice);
     }
 
-    /** Returns a Collection of ExternalCAServices (int) added to this CA. 
+    /** Returns a Collection of ExternalCAServices (int) added to this CA.
      * @return types*/
     @SuppressWarnings("unchecked")
     public Collection<Integer> getExternalCAServiceTypes() {
@@ -1311,7 +1311,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
      */
     public abstract boolean upgradeExtendedCAServices();
 
-    /** Create a certificate with all the current CA certificate info, but signed by the old issuer 
+    /** Create a certificate with all the current CA certificate info, but signed by the old issuer
      * @param cryptoToken token
      * @param createLinkCertificate create?
      * @param certProfile profile
@@ -1321,7 +1321,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
     public abstract void createOrRemoveLinkCertificate(CryptoToken cryptoToken, boolean createLinkCertificate, CertificateProfile certProfile,
             AvailableCustomCertificateExtensionsConfiguration cceConfig, Certificate oldCaCert) throws CryptoTokenOfflineException;
 
-    /** Store the latest link certificate in this object. 
+    /** Store the latest link certificate in this object.
      * @param encodedLinkCertificate certificate*/
     protected void updateLatestLinkCertificate(byte[] encodedLinkCertificate) {
         if (encodedLinkCertificate == null) {

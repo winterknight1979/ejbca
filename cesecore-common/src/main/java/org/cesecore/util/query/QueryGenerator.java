@@ -33,12 +33,12 @@ import org.cesecore.util.query.elems.Term;
 
 /**
  * Class responsible for Query Generation.
- * 
- * Queries will be generated according to provided Criteria. 
+ *
+ * Queries will be generated according to provided Criteria.
  * Each criteria (composing Terms) will be subdued to validation.
- * 
+ *
  * <em>For usage examples @see QueryCriteriaTest</em>
- * 
+ *
  * @version $Id: QueryGenerator.java 27999 2018-01-18 09:17:13Z mikekushner $
  */
 public final class QueryGenerator implements Serializable {
@@ -51,7 +51,7 @@ public final class QueryGenerator implements Serializable {
 
     /**
      * Class holding query construction logic.
-     * 
+     *
      */
     private final class Query {
         public final StringBuilder query = new StringBuilder();
@@ -143,7 +143,7 @@ public final class QueryGenerator implements Serializable {
 
     /**
      * Generates the SQL query according to the criteria passed in generator.
-     * 
+     *
      * @return generated Query.
      */
     public String generate() {
@@ -151,10 +151,10 @@ public final class QueryGenerator implements Serializable {
             final List<Elem> elements = criteria.getElements();
             final List<Elem> terms = new ArrayList<Elem>();
             final List<Elem> clauses = new ArrayList<Elem>();
-            
+
             CollectionUtils.selectRejected(elements, PredicateUtils.instanceofPredicate(Order.class), terms);
             CollectionUtils.select(elements, PredicateUtils.instanceofPredicate(Order.class), clauses);
-            
+
             if (terms.size() > 0) {
                 query.where();
             }
@@ -163,10 +163,10 @@ public final class QueryGenerator implements Serializable {
         }
         return query.toString();
     }
-    
+
     /**
      * Traverses the terms list that is constructed according to the elements list in the QueryCriteria.
-     * 
+     *
      * @param elements elements
      */
     private void termTraversal(List<Elem> elements) {
@@ -180,10 +180,10 @@ public final class QueryGenerator implements Serializable {
             generate(element);
         }
     }
-    
+
     /**
      * Traverses the clauses list that is constructed according to the elements list in the QueryCriteria.
-     * 
+     *
      * @param clauses clauses
      */
     private void clauseTraversal(List<Elem> clauses) {
@@ -192,9 +192,9 @@ public final class QueryGenerator implements Serializable {
         }
     }
 
-    /** 
+    /**
      * Partial query generation according to the provided element.
-     * 
+     *
      * @param elem Term or Operation or Order object
      */
     private void generate(final Elem elem) {
@@ -209,7 +209,7 @@ public final class QueryGenerator implements Serializable {
         }
     }
 
-    
+
     private void generateRestriction(final Operation op) {
         generateRestriction(op.getTerm());
         query.operator(op.getOperator());
@@ -258,7 +258,7 @@ public final class QueryGenerator implements Serializable {
 
     /**
      * Validates the provided name against our naming strategy ... columns with alphanumeric chars only.
-     * 
+     *
      * @param name to be validated
      */
     private void validate(final String name) {
@@ -274,7 +274,7 @@ public final class QueryGenerator implements Serializable {
 
     /**
      * Generated a valid parameter name. Uses an internal store to associate the generated name (parameter) to a value.
-     * 
+     *
      * @param name that will be used as a seed to the parameter name
      * @param value to be associated with the parameter name
      * @return parameter name

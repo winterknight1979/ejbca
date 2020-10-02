@@ -350,7 +350,7 @@ public class RsaKeyValidatorTest {
      * @throws CertificateParsingException fail
      * @throws InstantiationException fail
      * @throws IllegalAccessException fail
-     * @throws ValidatorNotApplicableException fail 
+     * @throws ValidatorNotApplicableException fail
      * @throws ValidationException fail
      * @throws SecurityException fail
      * @throws NoSuchMethodException fail

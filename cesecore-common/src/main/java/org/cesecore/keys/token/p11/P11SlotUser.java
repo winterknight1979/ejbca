@@ -22,22 +22,22 @@ package org.cesecore.keys.token.p11;
  * </p>
  * <p>
  * If deactivation is not allowed then the user may just continue to answer true to {@link #isActive()}.
- * </p>  
- * 
+ * </p>
+ *
  * @version $Id: P11SlotUser.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ *
  */
 public interface P11SlotUser {
     /**
      * Called by the {@link P11Slot} when resetting the slot.
-     * 
+     *
      * @throws Exception on error
      */
     void deactivate() throws Exception;
 
     /**
      * The user should return true if not accepting a slot reset.
-     * 
+     *
      * @return true if the slot is being used.
      */
     boolean isActive();

@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.cesecore;
 
 import javax.xml.ws.WebFault;
@@ -27,7 +27,7 @@ import javax.xml.ws.WebFault;
 public class CesecoreException extends Exception {
 
     private static final long serialVersionUID = -3754146611270578813L;
-    
+
     //private static final Logger log = Logger.getLogger(CesecoreException.class);
 
     /** The error code describes the cause of the exception. */
@@ -83,7 +83,7 @@ public class CesecoreException extends Exception {
     public CesecoreException(final Exception exception) {
         super(exception);
         if (exception instanceof CesecoreException) {
-        	errorCode = ((CesecoreException) exception).getErrorCode();
+            errorCode = ((CesecoreException) exception).getErrorCode();
         }
     }
 
@@ -107,16 +107,16 @@ public class CesecoreException extends Exception {
      * @param cause Embedded exception
      */
     public CesecoreException(final String message, final Throwable cause) {
-		super(message, cause);
+        super(message, cause);
         if (cause instanceof CesecoreException) {
-        	errorCode = ((CesecoreException) cause).getErrorCode();
+            errorCode = ((CesecoreException) cause).getErrorCode();
         }
-	}
+    }
 
-	public CesecoreException(final ErrorCode errorCode, final String message, final Throwable cause) {
-		super(message, cause);
+    public CesecoreException(final ErrorCode errorCode, final String message, final Throwable cause) {
+        super(message, cause);
         this.errorCode = errorCode;
-	}
+    }
 
     /** Get the error code.
      * @return the error code.
@@ -131,7 +131,7 @@ public class CesecoreException extends Exception {
     public void setErrorCode(final ErrorCode errorCode) {
         this.errorCode = errorCode;
     }
-    
+
     /** Get EJBCA ErrorCode from any exception that is, extends or just wraps CesecoreException
      * @param exception exception or its cause from error code should be retrieved
      * @return error code as ErrorCode object, or null if CesecoreException could not be found

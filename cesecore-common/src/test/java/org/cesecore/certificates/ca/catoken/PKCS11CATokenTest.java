@@ -45,7 +45,7 @@ public class PKCS11CATokenTest extends CATokenTestBase {
 
     @Test
     public void testCATokenRSA() throws Exception {
-    	CryptoToken cryptoToken = createPKCS11Token(false);
+        CryptoToken cryptoToken = createPKCS11Token(false);
         doCaTokenRSA("1024", cryptoToken, getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
     }
 
@@ -56,44 +56,44 @@ public class PKCS11CATokenTest extends CATokenTestBase {
         doCaTokenECC("prime256v1", cryptoToken, getCaTokenProperties("ecctest" + CAToken.DEFAULT_KEYSEQUENCE));
     }
 
-	@Test
+    @Test
     public void testCATokenECCsecp() throws Exception {
-    	CryptoToken cryptoToken = createPKCS11Token(true);
+        CryptoToken cryptoToken = createPKCS11Token(true);
         doCaTokenECC("secp256r1", cryptoToken, getCaTokenProperties("ecctest" + CAToken.DEFAULT_KEYSEQUENCE));
     }
 
     @Test
     public void testActivateDeactivate() throws Exception {
-    	CryptoToken cryptoToken = createPKCS11Token(true);
-    	doActivateDeactivate("1024", cryptoToken, getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
+        CryptoToken cryptoToken = createPKCS11Token(true);
+        doActivateDeactivate("1024", cryptoToken, getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
     }
 
-	@Test
-	public void testSaveAndLoad() throws Exception {
-    	CryptoToken cryptoToken = createPKCS11Token(true);
-    	doSaveAndLoad("1024", cryptoToken, getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
-	}
+    @Test
+    public void testSaveAndLoad() throws Exception {
+        CryptoToken cryptoToken = createPKCS11Token(true);
+        doSaveAndLoad("1024", cryptoToken, getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
+    }
 
-	private CryptoToken createPKCS11Token(boolean useAutoActivationPin) throws NoSuchSlotException {
-		CryptoToken cryptoToken = PKCS11CryptoTokenTest.createPKCS11Token();
-    	Properties cryptoTokenProperties = cryptoToken.getProperties();
-    	if (useAutoActivationPin) {
+    private CryptoToken createPKCS11Token(boolean useAutoActivationPin) throws NoSuchSlotException {
+        CryptoToken cryptoToken = PKCS11CryptoTokenTest.createPKCS11Token();
+        Properties cryptoTokenProperties = cryptoToken.getProperties();
+        if (useAutoActivationPin) {
             cryptoTokenProperties.setProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY, CATokenTestBase.TOKEN_PIN);
         }
         cryptoToken.setProperties(cryptoTokenProperties);
-		return cryptoToken;
-	}
+        return cryptoToken;
+    }
 
-	private Properties getCaTokenProperties(String signAlias) {
-	    Properties caTokenProperties = new Properties();
-	    caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, signAlias); // does not exist and never will, will be moved to new keys
+    private Properties getCaTokenProperties(String signAlias) {
+        Properties caTokenProperties = new Properties();
+        caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING, signAlias); // does not exist and never will, will be moved to new keys
         caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING, signAlias); // does not exist and never will, will be moved to new keys
         caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING, ENCRYPTION_KEY); // does not exist but will soon, after first generate
         return caTokenProperties;
-	}
+    }
 
     @Override
     String getProvider() {
-    	return PKCS11TestUtils.getHSMProvider();
+        return PKCS11TestUtils.getHSMProvider();
     }
 }

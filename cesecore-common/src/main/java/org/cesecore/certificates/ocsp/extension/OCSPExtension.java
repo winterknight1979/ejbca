@@ -25,19 +25,19 @@ import org.cesecore.keybind.InternalKeyBinding;
 
 /**
  * Interface that must be implemented by OCSP extensions that are added to the OCSPServlet
- * 
+ *
  * @version $Id: OCSPExtension.java 28881 2018-05-08 18:18:11Z anatom $
  */
 public interface OCSPExtension {
 
     /** Called after construction
-     * 
+     *
      */
     void init();
 
     /**
      * Called by OCSP responder when the configured extension is found in the request.
-     * 
+     *
      * @param requestCertificates
      *            A certificate array from the original HttpServletRequest, used for authorization.
      * @param remoteAddress
@@ -48,10 +48,10 @@ public interface OCSPExtension {
      *            X509Certificate the caller asked for in the OCSP request
      * @param status
      *            CertificateStatus the status the certificate has according to the OCSP responder, null means the cert is good
-     * 
+     *
      * @param internalKeyBinding
      *            Used to get the trusted ca cert etc.
-     * 
+     *
      * @return Hashtable with X509Extensions &lt;String oid, X509Extension ext&gt; that will be added to responseExtensions by OCSP responder, or null if an
      *         error occurs
      */
@@ -60,23 +60,23 @@ public interface OCSPExtension {
 
     /**
      * Returns the last error that occured during process(), when process returns null
-     * 
+     *
      * @return error code as defined by implementing class
      */
     int getLastErrorCode();
-    
+
     /**
      * Returns a set of valid positions where the extension may be added.
-     * 
+     *
      * @return a set of valid positions where the extension may be added. The returned Set should contain at least one value. Never returns <code>null</code>.
      */
     Set<OCSPExtensionType> getExtensionType();
-    
+
     /**
      * @return Extension OID
      */
     String getOid();
-    
+
     /**
      * @return Human readable extension name
      */

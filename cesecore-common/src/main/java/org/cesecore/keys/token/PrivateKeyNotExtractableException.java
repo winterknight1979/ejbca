@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
@@ -23,18 +23,18 @@ public class PrivateKeyNotExtractableException extends CesecoreException {
 
     private static final long serialVersionUID = -5484077868101864920L;
 
-    
+
     /**
-     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the cause 
+     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the cause
      * @param exception exception
      */
     public PrivateKeyNotExtractableException(Exception exception) {
-        super(exception);       
+        super(exception);
     }
 
-    
+
     /**
-     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message and cause 
+     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message and cause
      * @param message message
      * @param cause cause
      */
@@ -42,14 +42,14 @@ public class PrivateKeyNotExtractableException extends CesecoreException {
         super(message, cause);
     }
 
-    
+
     /**
-     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message 
+     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message
      * @param message message
      */
     public PrivateKeyNotExtractableException(String message) {
         super(message);
     }
 
-    
+
 }

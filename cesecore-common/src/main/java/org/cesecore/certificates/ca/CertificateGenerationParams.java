@@ -24,18 +24,18 @@ import org.cesecore.keys.validation.CertificateValidationDomainService;
  * generation in X509CA, e.g. by the CT extension. This can be used to access
  * session beans from this class, for instance the global configuration
  * or audit logging.
- * 
+ *
  * @apiNote Since instances of this class may reference session beans, you must ensure
  * that instances of this interface are only used temporarily, e.g. as
  * functions arguments, and never as e.g. instance variables of non-temporary
  * classes.
- * 
+ *
  * @apiNote Since it might not be possible to obtain the parameters, all methods that
  * accept objects of this class should also accept a null value, or null values
  * inside the CertificateGenerationParams object.
- * 
+ *
  * @see CTAuditLogCallback
- * 
+ *
  * @version $Id: CertificateGenerationParams.java 27524 2017-12-12 09:48:23Z bastianf $
  */
 public final class CertificateGenerationParams implements Serializable {
@@ -44,10 +44,10 @@ public final class CertificateGenerationParams implements Serializable {
 
     private CTSubmissionConfigParams ctSubmissionConfigParams;
     private CTAuditLogCallback ctAuditLogCallback;
-    
+
     private AuthenticationToken authenticationToken;
     private CertificateValidationDomainService certificateValidationDomainService;
-    
+
     /**
      * Sets CT parameters that are not specific to the certificate profile, for example list of available CT logs.
      * @param ctSubmissionConfigParams parameters
@@ -61,7 +61,7 @@ public final class CertificateGenerationParams implements Serializable {
      * This method is called automatically from CertificateCreateSession when generating a certificate.
      * @param ctAuditLogCallback callback
      */
-    public void setCTAuditLogCallback(CTAuditLogCallback ctAuditLogCallback) { 
+    public void setCTAuditLogCallback(CTAuditLogCallback ctAuditLogCallback) {
         this.ctAuditLogCallback = ctAuditLogCallback;
     }
 

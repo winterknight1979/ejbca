@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import javax.xml.ws.WebFault;
@@ -20,14 +20,14 @@ import org.cesecore.CesecoreException;
 /**
  * Error due to malformed certificate request. The cause of failure can be related to ASN.1,
  * algorithm or other
- * 
+ *
  * Probably based on EJCBA's org.ejbca.core.model.ca.SignRequestException r11201
  *
  * @version $Id: SignRequestException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 @WebFault
 public class SignRequestException extends CesecoreException {
-  
+
     private static final long serialVersionUID = 4368820010501466071L;
 
     /**

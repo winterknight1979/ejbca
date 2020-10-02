@@ -257,7 +257,7 @@ public abstract class CryptoTokenTestBase {
 
     /**
       * @param cryptoToken token
-     * @param curve1 curve 
+     * @param curve1 curve
      * @param keyLen1 length
      * @param curve2 curve
      * @param keyLen2 length
@@ -589,7 +589,7 @@ public abstract class CryptoTokenTestBase {
         cryptoToken.deleteEntry("aestest00001");
     }
 
-    /* Not used because HMAC on HSMs is too hard... keep for future reference though 
+    /* Not used because HMAC on HSMs is too hard... keep for future reference though
     protected void doGenerateHmacKey(CryptoToken token) throws InvalidKeyException, CryptoTokenOfflineException, KeyStoreException, NoSuchProviderException, NoSuchAlgorithmException, CertificateException, SignatureException, CryptoTokenAuthenticationFailedException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException {
         token.activate(tokenpin.toCharArray());
         assertEquals(CryptoToken.STATUS_ACTIVE, token.getTokenStatus());
@@ -630,6 +630,6 @@ public abstract class CryptoTokenTestBase {
         }
     }
     */
-    
+
     abstract String getProvider();
 }

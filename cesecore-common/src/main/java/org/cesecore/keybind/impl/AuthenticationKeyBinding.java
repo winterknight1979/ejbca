@@ -28,7 +28,7 @@ import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
  * Used when this EJBCA instance authenticates to other instances.
- * 
+ *
  * @version $Id: AuthenticationKeyBinding.java 26192 2017-08-02 07:59:40Z anatom $
  */
 public class AuthenticationKeyBinding extends InternalKeyBindingBase {
@@ -85,7 +85,7 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
 
     @Override
     protected void upgrade(float latestVersion, float currentVersion) {
-        // Nothing to do   
+        // Nothing to do
     }
 
     public static boolean isClientSSLCertificate(Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) {
@@ -111,7 +111,7 @@ public class AuthenticationKeyBinding extends InternalKeyBindingBase {
                 }
             } else {
                 log.debug("No Key Usage to verify.");
-                return false;            	
+                return false;
             }
             if (x509Certificate.getExtendedKeyUsage() == null) {
                 log.debug("No EKU to verify.");

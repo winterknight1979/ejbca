@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.io.Serializable;
@@ -33,7 +33,7 @@ import org.bouncycastle.asn1.x509.Extensions;
  *
  * @version $Id: RequestMessage.java 28201 2018-02-07 08:33:29Z andresjakobs $
  */
-public interface RequestMessage extends Serializable {    
+public interface RequestMessage extends Serializable {
     /**
      * Get the username used to request a certificate from EJBCA.
      *
@@ -62,7 +62,7 @@ public interface RequestMessage extends Serializable {
      * @return serial number of CA certificate for CA issuing CRL or null.
      */
     BigInteger getSerialNo();
-    
+
     /**
      * Gets the requested DN if contained in the request (the desired DN for the user).
      *
@@ -83,32 +83,32 @@ public interface RequestMessage extends Serializable {
      * @return requested altNames or null.
      */
     String getRequestAltNames();
-    
+
     /**
      * Gets a validity date from the request, if the request contains a desired validity.
-     * The requested validity may, or may not be used, it depends if allowValidityOverride is set in 
+     * The requested validity may, or may not be used, it depends if allowValidityOverride is set in
      * the certificate profile.
-     * 
+     *
      * @return A date now or in the future for notBefore validity in the certificate, or null if no desired validity is in the certificate.
      */
-	Date getRequestValidityNotBefore();
-	
+    Date getRequestValidityNotBefore();
+
     /**
      * Gets a validity date from the request, if the request contains a desired validity.
-     * The requested validity may, or may not be used, it depends if allowValidityOverride is set in 
+     * The requested validity may, or may not be used, it depends if allowValidityOverride is set in
      * the certificate profile.
-     * 
+     *
      * @return A date in the future for notAfter validity in the certificate, or null if no desired validity is in the certificate.
      */
-	Date getRequestValidityNotAfter();
+    Date getRequestValidityNotAfter();
 
-	/** 
-	 * Gets any requested extensions, if the request message type is able to contain request extensions
-	 * and if there are any. Requested extensions are (currently) in the form of X509Extensions.
-	 * 
-	 * @return X509Extensions or null
-	 */
-	Extensions getRequestExtensions();
+    /**
+     * Gets any requested extensions, if the request message type is able to contain request extensions
+     * and if there are any. Requested extensions are (currently) in the form of X509Extensions.
+     *
+     * @return X509Extensions or null
+     */
+    Extensions getRequestExtensions();
 
     /**
      * Gets the issuer DN (of CA cert) from IssuerAndSerialNumber when this is a CRL request.
@@ -204,37 +204,37 @@ public interface RequestMessage extends Serializable {
      * @return request key info
      */
     byte[] getRequestKeyInfo();
-    
+
     /**
      * Returns the name of the preferred Digest algorithm to be used in the response if applicable.
      * Defaults to CMSSignedGenerator.DIGEST_SHA1 for normal messages.
-     *  
+     *
      * @return oid of digest algorithm ex CMSSignedGenerator.DIGEST_SHA1, SHA256 etc
      */
-    String getPreferredDigestAlg(); 
-    
-    
+    String getPreferredDigestAlg();
+
+
     /** If the CA certificate should be included in the response or not, default to true = yes.
      * Not applicable for all request/response types.
-     * 
+     *
      * @return true or false
      */
     boolean includeCACert();
 
-    /** Sometimes (CMP) the response identifier sent depends on which request identifier was used, 
+    /** Sometimes (CMP) the response identifier sent depends on which request identifier was used,
      * even if the messages themselves are the same messages.
-     * 
+     *
      * @return which type of request message this response is in response to
-     */ 
+     */
     int getRequestType();
-    
+
     /**
      * For some types of request-responses there is a need for a requestId to match the request and the
      * response together.
      * @return the id from the request matching to this response
      */
     int getRequestId();
-    
+
     /**
      * Sets the private key needed to create a response message.
      *
@@ -251,18 +251,18 @@ public interface RequestMessage extends Serializable {
     public List<Certificate> getAdditionalCaCertificates();
 
     /**
-     * Sets the list of additional CA certificates 
+     * Sets the list of additional CA certificates
      * (i.e. to be appended to the user certificates CA certificate returned in the CMP response message caPubs field).
      * @param certificates the list of CA certificates.
      */
     public void setAdditionalCaCertificates(final List<Certificate> certificates);
-    
+
     /**
      * Gets the list of additional CA certificates to be appended to the PKI response message extraCerts field.
      * @return the list of CA certificates.
      */
     public List<Certificate> getAdditionalExtraCertsCertificates();
-    
+
     /**
      * Sets the list of additional CA certificates to be appended to the PKI response message extraCerts field.
      * @param certificates the list of CA certificates.

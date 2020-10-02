@@ -10,15 +10,15 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.cesecore.util;
 
 import java.io.ByteArrayOutputStream;
 
 
 /**
- * This class implements a BASE64 Character encoder/decoder as specified in RFC1521. 
- * It extends the bouncycastle implementation and adds the functionality to split lines 
+ * This class implements a BASE64 Character encoder/decoder as specified in RFC1521.
+ * It extends the bouncycastle implementation and adds the functionality to split lines
  * with a '\n' after every 64 bytes.
  *
  * @version $Id: Base64.java 25733 2017-04-23 20:14:32Z joseromero $
@@ -37,7 +37,7 @@ public final class Base64 {
         return encode(data, true);
     }
 
-	/**
+    /**
      * encode the input data producing a base 64 encoded byte array.
      *
      * @param data the data to be encoded
@@ -45,7 +45,7 @@ public final class Base64 {
      * @return a byte array containing the base 64 encoded data.
      */
     public static byte[] encode(final byte[] data, final boolean splitlines) {
-		byte[] bytes = org.bouncycastle.util.encoders.Base64.encode(data);
+        byte[] bytes = org.bouncycastle.util.encoders.Base64.encode(data);
         if (splitlines) {
             // make sure we get limited lines...
             final ByteArrayOutputStream os = new ByteArrayOutputStream();

@@ -31,7 +31,7 @@ import org.cesecore.profiles.ProfileBase;
 /**
  * BaseKeyValidator is a basic class that should be inherited by all types
  * of key validator in the system.
- *  
+ *
  *
  * @version $Id: ValidatorBase.java 28140 2018-01-30 12:40:30Z andresjakobs $
  */
@@ -44,12 +44,12 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
 
     protected static final InternalResources intres = InternalResources.getInstance();
 
-    /** List of applicable issuance phases (see {@link IssuancePhase}). */ 
+    /** List of applicable issuance phases (see {@link IssuancePhase}). */
     protected static List<Integer> APPLICABLE_PHASES;
-    
-    /** List of applicable CA types (see {@link #getApplicableCaTypes()}. */ 
+
+    /** List of applicable CA types (see {@link #getApplicableCaTypes()}. */
     protected static List<Integer> APPLICABLE_CA_TYPES;
-        
+
     public static final float LATEST_VERSION = 7F;
 
     public static final String TYPE = "type";
@@ -64,13 +64,13 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     protected static final String CERTIFICATE_PROFILE_IDS = "certificateProfileIds";
     protected static final String FAILED_ACTION = "failedAction";
     protected static final String NOT_APPLICABLE_ACTION = "notApplicableAction";
-        
+
     static {
         APPLICABLE_PHASES = new ArrayList<Integer>();
         APPLICABLE_PHASES.add(IssuancePhase.DATA_VALIDATION.getIndex());
         APPLICABLE_PHASES.add(IssuancePhase.PRE_CERTIFICATE_VALIDATION.getIndex());
         APPLICABLE_PHASES.add(IssuancePhase.CERTIFICATE_VALIDATION.getIndex());
-        
+
         APPLICABLE_CA_TYPES = new ArrayList<Integer>();
         APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_X509);
         APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_CVC);
@@ -86,7 +86,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
         super();
         init();
     }
-    
+
     /**
      * Creates a new instance.
      * @param name name
@@ -95,7 +95,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
         super(name);
         init();
     }
-   
+
     @Override
     public List<Integer> getApplicableCaTypes() {
         return APPLICABLE_CA_TYPES;
@@ -105,7 +105,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     public String getProfileType() {
         return Validator.TYPE_NAME;
     }
-    
+
     /**
      * Initializes uninitialized data fields.
      */
@@ -142,7 +142,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     public List<Integer> getApplicablePhases() {
         return APPLICABLE_PHASES;
     }
-    
+
     @Override
     public int getPhase() {
         return ((Integer) data.get(PHASE)).intValue();
@@ -152,7 +152,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     public void setPhase(int index) {
         data.put(PHASE, index);
     }
-    
+
     @Override
     public void setKeyValidatorSettingsTemplate(KeyValidatorSettingsTemplate template) {
     }
@@ -181,12 +181,12 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     public boolean isAllCertificateProfileIds() {
         return ((Boolean) data.get(ALL_CERTIFICATE_PROFILE_IDS)).booleanValue();
     }
-    
-    @Override 
+
+    @Override
     public void setAllCertificateProfileIds(boolean isAll) {
         data.put(ALL_CERTIFICATE_PROFILE_IDS, Boolean.valueOf(isAll));
     }
-    
+
     @Override
     public List<Integer> getCertificateProfileIds() {
         final String value = (String) data.get(CERTIFICATE_PROFILE_IDS);
@@ -264,7 +264,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
                 .append(", failedAction=").append(data.get(FAILED_ACTION));
         return result.toString();
     }
-    
+
     @Override
     public Validator clone() {
         getType();
@@ -290,7 +290,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
         clone.setDataMap(dataMap);
         return clone;
     }
-    
+
     @Override
     protected void saveTransientObjects() {
 
@@ -299,10 +299,10 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     @Override
     protected void loadTransientObjects() {
     }
-    
+
     @Override
     public UpgradeableDataHashMap getUpgradableHashmap() {
         return this;
     }
-    
+
 }

@@ -111,7 +111,7 @@ import org.ejbca.cvc.PublicKeyEC;
 
 /**
  * Tools to handle common key and keystore operations.
- * 
+ *
  * @version $Id: KeyTools.java 29338 2018-06-26 05:55:57Z samuellb $
  */
 public final class KeyTools {
@@ -137,7 +137,7 @@ public final class KeyTools {
 
     /**
      * Generates a keypair
-     * 
+     *
      * @param keySpec
      *            string specification of keys to generate, typical value is 2048 for RSA keys,
      *            1024 for DSA keys, secp256r1 for ECDSA keys, or null if algspec is to be used.
@@ -145,12 +145,12 @@ public final class KeyTools {
      *            AlgorithmParameterSpec of keys to generate, typically an EXParameterSpec for EC keys, or null if keySpec is to be used.
      * @param keyAlg
      *            algorithm of keys to generate, typical value is RSA, DSA or ECDSA, see AlgorithmConstants.KEYALGORITHM_XX
-     * 
+     *
      * @see org.cesecore.certificates.util.AlgorithmConstants
      * @see org.bouncycastle.asn1.x9.X962NamedCurves
      * @see org.bouncycastle.asn1.nist.NISTNamedCurves
      * @see org.bouncycastle.asn1.sec.SECNamedCurves
-     * 
+     *
      * @return KeyPair the generated keypair
      * @throws InvalidAlgorithmParameterException  if the given parameters are inappropriate for this key pair generator.
      * @see org.cesecore.certificates.util.AlgorithmConstants#KEYALGORITHM_RSA
@@ -174,7 +174,7 @@ public final class KeyTools {
                 // Check if we have an OID for this named curve
                 if (ECUtil.getNamedCurveOid(keySpec) != null) {
                     ECGenParameterSpec bcSpec = new ECGenParameterSpec(keySpec);
-                    keygen.initialize(bcSpec, new SecureRandom());                    
+                    keygen.initialize(bcSpec, new SecureRandom());
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("Curve did not have an OID in BC, trying to pick up Parameter spec: " + keySpec);
@@ -185,8 +185,8 @@ public final class KeyTools {
                         throw new InvalidAlgorithmParameterException("Can not generate EC curve, no OID and no ECParameters found: "+keySpec);
                     }
                     org.bouncycastle.jce.spec.ECParameterSpec ecSpec = new org.bouncycastle.jce.spec.ECParameterSpec(
-                            ecP.getCurve(), ecP.getG(), ecP.getN(), ecP.getH(), ecP.getSeed()); 
-                    keygen.initialize(ecSpec, new SecureRandom());                    
+                            ecP.getCurve(), ecP.getG(), ecP.getN(), ecP.getH(), ecP.getSeed());
+                    keygen.initialize(ecSpec, new SecureRandom());
                 }
                 // The old code should work in BC v1.50b6 and later, but in versions prior to that the below produces a key with explicit parameter encoding instead of named curves.
                 // There is a test for this in KeyToolsTest.testGenKeysECDSAx9
@@ -261,7 +261,7 @@ public final class KeyTools {
      * @param keyAlg Algorithm
      * @return Key pair
      * @see KeyTools#genKeys(String,AlgorithmParameterSpec,String)
-     * 
+     *
      * @throws InvalidAlgorithmParameterException  if the given parameters are inappropriate for this key pair generator.
      */
     public static KeyPair genKeys(final String keySpec, final String keyAlg) throws InvalidAlgorithmParameterException {
@@ -271,7 +271,7 @@ public final class KeyTools {
     /**
      * An ECDSA key can be stripped of the curve parameters so it only contains the public point, and this is not enough to use the key for
      * verification. However, if we know the curve name we can fill in the curve parameters and get a usable EC public key
-     * 
+     *
      * @param pk
      *            PublicKey, org.ejbca.cvc.PublicKeyEC, that might miss parameters, if parameters are there we do not touch the public key just return it unchanged
      * @param keySpec
@@ -303,7 +303,7 @@ public final class KeyTools {
     /**
      * An ECDSA key can be stripped of the curve parameters so it only contains the public point, and this is not enough to use the key for
      * verification. However, if we know the curve name we can fill in the curve parameters and get a usable EC public key
-     * 
+     *
      * @param pk
      *            PublicKey, org.ejbca.cvc.PublicKeyEC, that might miss parameters, if parameters are there we do not touch the public key just return it unchanged
      * @param pkwithparams
@@ -346,7 +346,7 @@ public final class KeyTools {
 
     /**
      * Gets the key length of supported keys
-     * 
+     *
      * @param pk
      *            PublicKey used to derive the keysize
      * @return -1 if key is unsupported, otherwise a number &gt;= 0. 0 usually means the length can not be calculated, for example if the key is an EC
@@ -397,7 +397,7 @@ public final class KeyTools {
 
     /**
      * Gets the key AlgorithmParameterSpec of supported keys. Can be used to initialize a KeyPairGenerator to generate a key of equal type and size.
-     * 
+     *
      * @param pk
      *            PublicKey used to derive the AlgorithmParameterSpec
      * @return null if key is unsupported or pk is null, otherwise a AlgorithmParameterSpec.
@@ -458,7 +458,7 @@ public final class KeyTools {
     /**
      * Creates PKCS12-file that can be imported in IE or Firefox. The alias for the private key is set to 'privateKey' and the private key password is
      * null.
-     * 
+     *
      * @param alias
      *            the alias used for the key entry
      * @param privKey
@@ -467,7 +467,7 @@ public final class KeyTools {
      *            user certificate
      * @param cacert
      *            CA-certificate or null if only one cert in chain, in that case use 'cert'.
-     * 
+     *
      * @return KeyStore containing PKCS12-keystore
      * @throws CertificateException if the certificate couldn't be parsed
      * @throws CertificateEncodingException if the encoded bytestream of the certificate couldn't be retrieved
@@ -491,7 +491,7 @@ public final class KeyTools {
     /**
      * Creates PKCS12-file that can be imported in IE or Firefox. The alias for the private key is set to 'privateKey' and the private key password is
      * null.
-     * 
+     *
      * @param alias
      *            the alias used for the key entry
      * @param privKey
@@ -520,7 +520,7 @@ public final class KeyTools {
     /**
      * Creates PKCS12-file that can be imported in IE or Firefox. The alias for the private key is set to 'privateKey' and the private key password is
      * null.
-     * 
+     *
      * @param alias
      *            the alias used for the key entry
      * @param privKey
@@ -633,7 +633,7 @@ public final class KeyTools {
 
     /**
      * Creates JKS-file that can be used with JDK. The alias for the private key is set to 'privateKey' and the private key password is null.
-     * 
+     *
      * @param alias
      *            the alias used for the key entry
      * @param privKey
@@ -644,7 +644,7 @@ public final class KeyTools {
      *            user certificate
      * @param cachain
      *            CA-certificate chain or null if only one cert in chain, in that case use 'cert'.
-     * 
+     *
      * @return KeyStore containing JKS-keystore
      * @throws KeyStoreException is storing the certificate failed, perhaps because the alias is already being used?
      */
@@ -694,7 +694,7 @@ public final class KeyTools {
             store.setKeyEntry(alias, privKey, password.toCharArray(), usercert);
         } catch (KeyStoreException e) {
             throw new IllegalStateException("Keystore apparently hasn't been loaded?", e);
- 
+
         }
 
         // Add the root cert as trusted
@@ -716,7 +716,7 @@ public final class KeyTools {
     } // createJKS
 
     /**
-     * Generates KeyStore from key store byte array. Token type (JKS / P12) is determined 
+     * Generates KeyStore from key store byte array. Token type (JKS / P12) is determined
      * automatically by the byte array content
      * @param keyStoreBytes byte array containing key store
      * @param password of the key store
@@ -724,10 +724,10 @@ public final class KeyTools {
      * @throws KeyStoreException If store fails
      * @throws NoSuchProviderException If provider not found
      * @throws IOException On I/O error
-     * @throws NoSuchAlgorithmException If algorithm not found 
+     * @throws NoSuchAlgorithmException If algorithm not found
      * @throws CertificateException on invalid certificate
      */
-    public static KeyStore createKeyStore(byte[] keyStoreBytes, String password) throws KeyStoreException, 
+    public static KeyStore createKeyStore(byte[] keyStoreBytes, String password) throws KeyStoreException,
             NoSuchProviderException, IOException, NoSuchAlgorithmException, CertificateException {
         final byte PKCS12_MAGIC = (byte)48;
         final byte JKS_MAGIC = (byte)(0xfe);
@@ -743,17 +743,17 @@ public final class KeyTools {
         keyStore.load(new ByteArrayInputStream(keyStoreBytes), password.toCharArray());
         return keyStore;
     }
-    
-    
+
+
     /**
      * Convert a KeyStore to PEM format.
      * @param ks Key store
      * @param password password
      * @return PEM
-     * @throws KeyStoreException if store fails 
+     * @throws KeyStoreException if store fails
      * @throws CertificateEncodingException If cert cannot be parsed
      * @throws IOException on i/o error
-     * @throws UnrecoverableKeyException if key cannot be read 
+     * @throws UnrecoverableKeyException if key cannot be read
      * @throws NoSuchAlgorithmException if algorithm not found
      */
     public static byte[] getSinglePemFromKeyStore(final KeyStore ks, final char[] password) throws KeyStoreException, CertificateEncodingException,
@@ -854,7 +854,7 @@ public final class KeyTools {
     }
 
     /** @param publicKey Key
-     * @return a buffer with the public key in PEM format 
+     * @return a buffer with the public key in PEM format
      * @throws IOException on I/O error */
     public static String getAsPem(final PublicKey publicKey) throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -866,12 +866,12 @@ public final class KeyTools {
 
     /**
      * Retrieves the certificate chain from a keystore.
-     * 
+     *
      * @param keyStore
      *            the keystore, which has been loaded and opened.
      * @param privateKeyAlias
      *            the alias of the privatekey for which the certchain belongs.
-     * 
+     *
      * @return array of Certificate, or null if no certificates are found.
      * @throws KeyStoreException on fail
      */
@@ -958,10 +958,10 @@ public final class KeyTools {
 
     /**
      * create the subject key identifier.
-     * 
+     *
      * @param pubKey
      *            the public key
-     * 
+     *
      * @return SubjectKeyIdentifer asn.1 structure
      */
     public static SubjectKeyIdentifier createSubjectKeyId(final PublicKey pubKey) {
@@ -986,11 +986,11 @@ public final class KeyTools {
             e2.initCause(e);
             throw e2;
         }
-    } 
+    }
 
     /**
      * Detect if "Unlimited Strength" Policy files has bean properly installed.
-     * 
+     *
      * @return true if key strength is limited
      */
     public static boolean isUsingExportableCryptography() {
@@ -999,7 +999,7 @@ public final class KeyTools {
 
     /**
      * Sign provided data with specified private key and algortihm
-     * 
+     *
      * @param privateKey
      *            the private key
      * @param signatureAlgorithm a valid signature algorithm such as AlgorithmConstants.SIGALG_SHA256_WITH_RSA
@@ -1009,7 +1009,7 @@ public final class KeyTools {
      * @throws SignatureException If sig is invalid
      * @throws NoSuchAlgorithmException If algorithm not found
      * @throws InvalidKeyException if key is invalid
-     * @throws NoSuchProviderException if BouncyCastleProvider is not installed 
+     * @throws NoSuchProviderException if BouncyCastleProvider is not installed
      */
     public static byte[] signData(final PrivateKey privateKey, final String signatureAlgorithm, final byte[] data) throws SignatureException,
             NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException {
@@ -1021,7 +1021,7 @@ public final class KeyTools {
 
     /**
      * Verify signed data with specified public key, algorith and signature
-     * 
+     *
      * @param publicKey
      *            the public key
      * @param signatureAlgorithm a valid signature algorithm
@@ -1033,7 +1033,7 @@ public final class KeyTools {
      * @throws SignatureException if signature is invalid
      * @throws NoSuchAlgorithmException if algo not found
      * @throws InvalidKeyException if key is invalid
-     * @throws NoSuchProviderException if BouncyCastleProvider is not installed 
+     * @throws NoSuchProviderException if BouncyCastleProvider is not installed
      */
     public static boolean verifyData(final PublicKey publicKey, final String signatureAlgorithm, final byte[] data, final byte[] signature)
             throws SignatureException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException {
@@ -1086,14 +1086,14 @@ public final class KeyTools {
     }
     /**
      * Testing a key pair to verify that it is possible to first sign and then verify with it.
-     * 
+     *
      * @param priv
      *            private key to sign a string with
      * @param pub
      *            public key to verify the signature with
      * @param sProvider
      *            A provider used for signing with the private key, or null if "BC" should be used.
-     * 
+     *
      * @throws InvalidKeyException
      *             if the public key can not be used to verify a string signed by the private key, because the key is wrong or the signature operation
      *             fails for other reasons such as a NoSuchAlgorithmException or SignatureException.
@@ -1155,7 +1155,7 @@ public final class KeyTools {
 
     /**
      * Print parameters of public part of a key.
-     * 
+     *
      * @param publK
      *            the key
      * @param ps
@@ -1193,7 +1193,7 @@ public final class KeyTools {
 
     /**
      * Test if a private key is extractable (could be stored).
-     * 
+     *
      * @param privK
      *            key to test.
      * @return true if the key is extractable.
@@ -1226,7 +1226,7 @@ public final class KeyTools {
         final String keyAlg = keyspecToKeyalg(keyspec);
         final int len;
         if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {
-            len = Integer.parseInt(keyspec); 
+            len = Integer.parseInt(keyspec);
         } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {
             len = Integer.parseInt(keyspec.substring(3));
         } else {
@@ -1248,13 +1248,13 @@ public final class KeyTools {
         final boolean isGost3410 = AlgorithmTools.isGost3410Enabled() && AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(keyAlg);
         final boolean isDstu4145 = AlgorithmTools.isDstu4145Enabled() && keyAlg.startsWith(CesecoreConfiguration.getOidDstu4145()+".");
         if (isEcdsa || isGost3410 || isDstu4145) {
-            // We allow key lengths of 0, because that means that implicitlyCA is used. 
+            // We allow key lengths of 0, because that means that implicitlyCA is used.
             // for ImplicitlyCA we have no idea what the key length is, on the other hand only real professionals
             // will ever use that to we will allow it.
             if ((len > 0) && (len < 224)) {
                 final String msg = intres.getLocalizedMessage("catoken.invalidkeylength", "ECDSA", "224", Integer.valueOf(len));
                 throw new InvalidKeyException(msg);
-            }                            
+            }
         } else if (AlgorithmConstants.KEYALGORITHM_RSA.equals(keyAlg) || AlgorithmConstants.KEYALGORITHM_DSA.equals(keyAlg)) {
             if (len < 1024) {
                 final String msg = intres.getLocalizedMessage("catoken.invalidkeylength", "RSA/DSA", "1024", Integer.valueOf(len));
@@ -1262,16 +1262,16 @@ public final class KeyTools {
             }
         }
     }
-    
+
     /**
-     * Gets the parameter spec from a given OID of a DSTU curve (they don't have names) 
+     * Gets the parameter spec from a given OID of a DSTU curve (they don't have names)
      * @param dstuOid OIS
      * @return spec
      */
     public static AlgorithmParameterSpec dstuOidToAlgoParams(String dstuOid) {
         return new ECGenParameterSpec(dstuOid);
     }
-    
+
     public static String keyspecToKeyalg(String keyspec) {
         if (StringUtils.isNumeric(keyspec)) {
             return AlgorithmConstants.KEYALGORITHM_RSA;
@@ -1290,7 +1290,7 @@ public final class KeyTools {
         }
         return AlgorithmConstants.KEYALGORITHM_ECDSA;
     }
-    
+
     /**
      * Converts a standalone specspec that starts with the keyalg to a short keyspec which
      * is to be used together with a separate "keyalg" value.
@@ -1303,7 +1303,7 @@ public final class KeyTools {
         }
         return keyspec;
     }
-    
+
     /**
      * Converts a keyalg/keyspec pair into a standalone specspec.
      * @param keyalg algorithm
@@ -1317,7 +1317,7 @@ public final class KeyTools {
         return keyspec;
     }
 
-    /** 
+    /**
      * Get the ASN.1 encoded PublicKey as a Java PublicKey Object.
      * @param asn1EncodedPublicKey the ASN.1 encoded PublicKey
      * @return the ASN.1 encoded PublicKey as a Java Object
@@ -1335,10 +1335,10 @@ public final class KeyTools {
         }
         return null;
     }
-    
+
     /**
      * Extracts the binary data from a PEM of a specified kind, e.g. public key.
-     *  
+     *
      * @param pem PEM data to extract from. May contain other types of data as well.
      * @param beginMarker E.g. CertTools.BEGIN_PUBLIC_KEY
      * @param endMarker E.g. CertTools.END_PUBLIC_KEY
@@ -1351,7 +1351,7 @@ public final class KeyTools {
             log.debug("Could not find "+beginMarker+" and "+endMarker+" lines in PEM");
             return null;
         }
-        
+
         final String base64 = pem.substring(start + beginMarker.length(), end);
         try {
             return Base64.decode(base64.getBytes("ASCII"));
@@ -1360,11 +1360,11 @@ public final class KeyTools {
             return null;
         }
     }
-    
+
     /**
      * Extracts the binary DER data from a public key file. The file may be either in PEM format
      * or in DER format. In the latter case, the file contents is returned as-is.
-     *  
+     *
      * @param file Data of a PEM or DER file.
      * @return DER encoded public key.
      * @throws CertificateParsingException If the data isn't a public key in either PEM or DER format.
@@ -1383,7 +1383,7 @@ public final class KeyTools {
             throw new CertificateParsingException(e);
         }
     }
-    
+
     /**
      * Returns the modulus of the public key.
      * @param publicKey public key
@@ -1404,7 +1404,7 @@ public final class KeyTools {
         }
         return modulus;
     }
-    
+
     /**
      * Returns the exponent of the public key.
      * @param publicKey public key
@@ -1417,17 +1417,17 @@ public final class KeyTools {
         }
         return exponent;
     }
-    
+
     /**
      * Generates the SHA256 fingerprint of the given text string.
      * @param text input on what to generate the fingerprint
-     * @return SHA256 fingerprint of given input string 
+     * @return SHA256 fingerprint of given input string
      */
     public static String getSha256Fingerprint(String text) {
         byte[] sha256Fingerprint = CertTools.generateSHA256Fingerprint(text.getBytes());
         return new String(Hex.encode(sha256Fingerprint));
     }
-    
+
     /**
      * Returns the signature of the given JcaPKCS10CertificationRequest.
      * @param certificationRequest BouncyCastle JcaPKCS10CertificationRequest certification request

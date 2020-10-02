@@ -17,8 +17,8 @@ import java.util.List;
 import org.cesecore.CesecoreException;
 
 /**
- * The external process exception is the base exception to handle (platform dependent) external process calls ({@link ExternalProcessTools}. 
- * 
+ * The external process exception is the base exception to handle (platform dependent) external process calls ({@link ExternalProcessTools}.
+ *
  * @version $Id: ExternalProcessException.java 27706 2018-01-02 13:50:59Z andresjakobs $
  */
 public class ExternalProcessException extends CesecoreException {
@@ -26,7 +26,7 @@ public class ExternalProcessException extends CesecoreException {
     private static final long serialVersionUID = 1L;
 
     private List<String> out;
-    
+
     /**
      * Default constructor.
      */
@@ -53,7 +53,7 @@ public class ExternalProcessException extends CesecoreException {
         super(message, cause);
         this.out = out;
     }
-    
+
     /**
      * Parameterized constructor.
      * @param message the message.
@@ -61,7 +61,7 @@ public class ExternalProcessException extends CesecoreException {
     public ExternalProcessException(final String message) {
         super(message);
     }
-    
+
     /**
      * Parameterized constructor.
      * @param message the message.

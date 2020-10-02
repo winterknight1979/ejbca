@@ -14,12 +14,12 @@ package org.cesecore.authorization.access;
 
 /**
  * Interface for subscriber to AuthorizationCacheReload events.
- * 
+ *
  * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
  */
 public interface AuthorizationCacheReloadListener {
 
-    /** Invoked when the authorization system has been modified. 
+    /** Invoked when the authorization system has been modified.
      * @param event Event*/
     void onReload(AuthorizationCacheReload event);
 

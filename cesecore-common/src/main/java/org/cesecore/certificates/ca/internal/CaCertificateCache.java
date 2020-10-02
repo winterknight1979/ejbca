@@ -40,8 +40,8 @@ import org.cesecore.util.CertTools;
  */
 public enum CaCertificateCache  {
     INSTANCE;
-    
-	private final Logger log = Logger.getLogger(CaCertificateCache.class);
+
+    private final Logger log = Logger.getLogger(CaCertificateCache.class);
 
     /** Mapping from subjectDN to key in the certs HashMap. */
     private Map<Integer, X509Certificate> certsFromSubjectDN = new HashMap<Integer, X509Certificate>();
@@ -52,8 +52,8 @@ public enum CaCertificateCache  {
     /** All root certificates. */
     private Set<X509Certificate> rootCertificates = new HashSet<X509Certificate>();
 
-	/** Cache time counter, set and used by loadCertificates */
-	private long certValidTo = 0;
+    /** Cache time counter, set and used by loadCertificates */
+    private long certValidTo = 0;
 
     public X509Certificate findLatestBySubjectDN(final HashID id) {
         final X509Certificate ret = certsFromSubjectDN.get(id.getKey());
@@ -61,9 +61,9 @@ public enum CaCertificateCache  {
             log.debug("Certificate not found from SubjectDN HashId in certsFromSubjectDN map. HashID=" + id.getB64());
         }
         return ret;
-	}
+    }
 
-	public X509Certificate[] findLatestByIssuerDN(final HashID id) {	    
+    public X509Certificate[] findLatestByIssuerDN(final HashID id) {
         final Set<X509Certificate> sCert = certsFromIssuerDN.get(id.getKey());
         if (sCert == null || sCert.isEmpty()) {
             if (log.isDebugEnabled()) {
@@ -91,14 +91,14 @@ public enum CaCertificateCache  {
         return certValidTo < System.currentTimeMillis();
     }
 
-	/** Loads CA certificates but holds a cache so it's reloaded only every five minutes (configurable).
-	 *
-	 * We keep this method as synchronized, it should not take more than a few microseconds to complete if the cache does not have
-	 * to be reloaded. If the cache must be reloaded, we must wait for it anyway to not have ConcurrentModificationException.
-	 * We also only want one single thread to do the rebuilding.
-	 * @param certs Certificates
-	 * 
-	 */
+    /** Loads CA certificates but holds a cache so it's reloaded only every five minutes (configurable).
+     *
+     * We keep this method as synchronized, it should not take more than a few microseconds to complete if the cache does not have
+     * to be reloaded. If the cache must be reloaded, we must wait for it anyway to not have ConcurrentModificationException.
+     * We also only want one single thread to do the rebuilding.
+     * @param certs Certificates
+     *
+     */
     public synchronized void loadCertificates(final Collection<Certificate> certs) {
         if (log.isDebugEnabled()) {
             log.debug("Loaded " + (certs == null ? "0" : Integer.toString(certs.size())) + " ca certificates");

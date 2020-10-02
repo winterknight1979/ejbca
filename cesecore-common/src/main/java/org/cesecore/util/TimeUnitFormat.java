@@ -22,13 +22,13 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 
-/** 
+/**
  * Class to parse and format relative time values, i.e. '1y-2mo+3d-4h+5m-6s7ms'.
- *  
+ *
  * @version $Id: TimeUnitFormat.java 24933 2016-12-20 08:41:57Z mikekushner $
  */
 public final class TimeUnitFormat {
-    
+
     private static final String PATTERN_PREFIX = "\\s*(([+-]?\\d+)\\s*(";
     private static final String PATTERN_SUFFIX = "))\\s*";
     private static final String ZERO = "0";
@@ -37,7 +37,7 @@ public final class TimeUnitFormat {
 
     private static final String EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS = "Illegal characters.";
     private static final String EXCEPTION_MESSAGE_BLANK_STRING = "Cannot parse a blank string.";
-    
+
     private Pattern pattern;
     private Map<String, Long> defaultValues;
     private Map<String, Long> factors;
@@ -68,7 +68,7 @@ public final class TimeUnitFormat {
 
     /**
      * Parses a formatted time string.
-     * 
+     *
      * @param formattedString
      *            time string, i.e '1y-2mo10d'.
      * @return the milliseconds as long value from 0.
@@ -106,7 +106,7 @@ public final class TimeUnitFormat {
     }
 
     /**
-     * Formats the given period in milliseconds to a readable string.   
+     * Formats the given period in milliseconds to a readable string.
      * @param millis the milliseconds (count from 0 - not epoch).
      * @param factors factors
      * @param zeroType the unit if the result is 0.

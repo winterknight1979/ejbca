@@ -14,7 +14,7 @@ package org.cesecore.certificates.ocsp.exception;
 
 /**
  * General RuntimeException for OCSP error that can't be handled.
- * 
+ *
  * @version $Id: OcspFailureException.java 18437 2014-02-03 12:46:08Z mikekushner $
  *
  */
@@ -23,10 +23,10 @@ public class OcspFailureException extends RuntimeException {
     private static final long serialVersionUID = 3024801898030204798L;
 
     /**
-     * 
+     *
      */
     public OcspFailureException() {
-    
+
     }
 
     /**
@@ -51,7 +51,7 @@ public class OcspFailureException extends RuntimeException {
      */
     public OcspFailureException(String msg, Throwable t) {
         super(msg, t);
-        
+
     }
 
 }

@@ -77,7 +77,7 @@ public final class ExternalProcessTools {
      * - field at index 0 is the interpreter,
      * - field at index 1 is the one and only parameter of the interpreter,
      * - field at index 2 must contain the complete external command, including pipes, chains, sub-shells, etc. and is appended later.
-     * 
+     *
      * @param cmd the external command or script
      * @return the command array as list.
      */
@@ -100,9 +100,9 @@ public final class ExternalProcessTools {
     }
 
     /**
-     * Writes the byte-array to a temporary file or pipes the PEM certificate into the command, and launches the given external command, 
+     * Writes the byte-array to a temporary file or pipes the PEM certificate into the command, and launches the given external command,
      * see {@link ExternalProcessTools#launchExternalCommand(String, byte[], boolean, boolean, boolean, boolean, List, String)}.
-     * 
+     *
      * @param cmd The command to run.
      * @param bytes The buffer with content to write to the file.
      * @param failOnCode Determines if the method should fail on a non-zero exit code.
@@ -118,10 +118,10 @@ public final class ExternalProcessTools {
     }
 
     /**
-     * Writes the byte-array to a temporary file and launches the given external command with the file as argument at 
-     * index positional parameter index 1 or the pipes the PEM certificate into the command. The function will, depending on 
+     * Writes the byte-array to a temporary file and launches the given external command with the file as argument at
+     * index positional parameter index 1 or the pipes the PEM certificate into the command. The function will, depending on
      * its parameters, fail if output to standard error from the command was detected or the command returns with an non-zero exit code.
-     * 
+     *
      * @param cmd The command to run. If the parameter place holder {@link #PLACE_HOLDER_CERTIFICATE} is used, the PEM certificate is piped into the STDIN of the command (i.e. 'openssl x509 -text -noout %cert%').
      * @param bytes The buffer with content to write to the file.
      * @param failOnCode Determines if the method should fail on a non-zero exit code.
@@ -170,7 +170,7 @@ public final class ExternalProcessTools {
                     /*
                      * Hack needed for Windows, where Runtime.exec won't consistently encapsulate arguments, leading to arguments
                      * containing spaces (such as Subject DNs) sometimes being parsed as multiple arguments. Bash, on the other hand,
-                     * won't parse quote surrounded arguments. 
+                     * won't parse quote surrounded arguments.
                      */
                     qouteArguments(arguments);
                 } else {
@@ -253,7 +253,7 @@ public final class ExternalProcessTools {
 
     /**
      * Writes the byte array into a temporary file with the prefix + "-" + System.currentTimeMillies + suffix into the user directory and returns it, or null.
-     * 
+     *
      * @param bytes the bytes to write.
      * @param filePrefix the file prefix.
      * @param fileSuffix the file suffix.
@@ -287,15 +287,15 @@ public final class ExternalProcessTools {
                 throw new ExternalProcessException(msg);
             }
         }
-        // Delete temp file on JVM exit. 
+        // Delete temp file on JVM exit.
         file.deleteOnExit();
         return file;
     }
-    
+
     /**
      * Extracts the exit code in the list (at index 0 prefixed with #EXIT_CODE_PREFIX).
      * @param out the output of the external process.
-     * 
+     *
      * @return the exit code.
      */
     public static final Integer extractExitCode(final List<String> out) {
@@ -321,7 +321,7 @@ public final class ExternalProcessTools {
         }
         return false;
     }
-    
+
     /**
      * Quotes the arguments list.
      * @param arguments the arguments list.
@@ -329,7 +329,7 @@ public final class ExternalProcessTools {
     private static final void qouteArguments(final List<String> arguments) {
         for (int i = 0; i < arguments.size(); i++) {
             String argument = arguments.get(i);
-            //Add quotes to encapsulate argument. 
+            //Add quotes to encapsulate argument.
             if (!argument.startsWith("\"") && !argument.endsWith("\"")) {
                 arguments.set(i, "\"" + argument + "\"");
             }

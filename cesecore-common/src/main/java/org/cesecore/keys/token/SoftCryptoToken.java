@@ -45,7 +45,7 @@ import org.cesecore.util.StringTools;
 
 /**
  * Handles maintenance of the soft devices producing signatures and handling the private key and stored in database.
- * 
+ *
  * @version $Id: SoftCryptoToken.java 29156 2018-06-08 07:59:28Z anatom $
  */
 public class SoftCryptoToken extends BaseCryptoToken {
@@ -60,11 +60,11 @@ public class SoftCryptoToken extends BaseCryptoToken {
      * When upgrading this version, you must up the version of the CA as well, otherwise the upgraded CA token will not be stored in the database.
      */
     public static final float LATEST_VERSION = 3;
-    
+
     /**
      * This property value denotes whether the default soft token password is usable on this token (as defined by ca.keystorepass, defaults to 'foo123',
-     * which allows it to be activated/deactivated/edited without providing a password. Setting this property (it does not matter what it's value is set to as long as it is present) 
-     * means that the default password is not available for use. 
+     * which allows it to be activated/deactivated/edited without providing a password. Setting this property (it does not matter what it's value is set to as long as it is present)
+     * means that the default password is not available for use.
      */
     public static final String NODEFAULTPWD = "NODEFAULTPWD";
 
@@ -168,10 +168,10 @@ public class SoftCryptoToken extends BaseCryptoToken {
             }
         }
     }
-    
+
     /**
      * Throws an exception if the export of this crypto token should be denied.
-     * 
+     *
      * @param authCode code
      * @throws CryptoTokenAuthenticationFailedException if the authentication code is incorrect.
      * @throws CryptoTokenOfflineException if the crypto token is offline or an unknown error occurs.
@@ -209,7 +209,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
         CryptoProviderTools.installBCProviderIfNotAvailable();
         KeyStore keystore = KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
         if (log.isDebugEnabled()) {
-        	log.debug("Loading keystore data of size: "+ (ksdata == null ? "null" : ksdata.length));
+            log.debug("Loading keystore data of size: "+ (ksdata == null ? "null" : ksdata.length));
         }
         keystore.load(new ByteArrayInputStream(ksdata), keystorepass);
         return keystore;
@@ -221,7 +221,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
         try {
             setKeyStore(null);
         } catch (KeyStoreException e) {
-        	// Exception should only be thrown if loading a non-null KeyStore fails
+            // Exception should only be thrown if loading a non-null KeyStore fails
             throw new IllegalStateException("This should never happen.");
         }
         String msg = intres.getLocalizedMessage("token.deactivate", getId());
@@ -258,7 +258,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
 
     /**
      * Verifies the password for soft keystore by trying to load the keystore
-     * 
+     *
      * @param authenticationCode
      *            authentication code for the keystore
      * @param cryptoTokenId ID

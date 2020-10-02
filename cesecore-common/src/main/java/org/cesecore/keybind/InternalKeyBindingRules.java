@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  * Authorization Rules for InternalKeyBindings.
- * 
+ *
  * @version $Id: InternalKeyBindingRules.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public enum InternalKeyBindingRules {
@@ -28,17 +28,17 @@ public enum InternalKeyBindingRules {
     VIEW(BASE.resource() + "/view", "VIEW");
 
     private static final Map<String, InternalKeyBindingRules> reverseResourceLookup;
-    
+
     static {
         reverseResourceLookup = new HashMap<String, InternalKeyBindingRules>();
         for(InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {
             reverseResourceLookup.put(rule.resource(), rule);
         }
     }
-    
+
     private final String resource;
     private final String reference;
-    
+
     private InternalKeyBindingRules(String resource, String reference) {
         this.resource = resource;
         this.reference = reference;
@@ -51,11 +51,11 @@ public enum InternalKeyBindingRules {
     public String toString() {
         return this.resource;
     }
-    
+
     public String getReference() {
         return reference;
     }
-    
+
     public static InternalKeyBindingRules getFromResource(String resource) {
         return reverseResourceLookup.get(resource);
     }

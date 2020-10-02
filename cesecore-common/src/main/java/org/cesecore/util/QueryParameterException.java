@@ -13,8 +13,8 @@
 package org.cesecore.util;
 
 /**
- * Query Criteria Exception. Thrown on entity parameter mismatch. 
- * 
+ * Query Criteria Exception. Thrown on entity parameter mismatch.
+ *
  * @version $Id: QueryParameterException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class QueryParameterException extends RuntimeException {

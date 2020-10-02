@@ -27,7 +27,7 @@ import org.junit.Test;
 
 /**
  * Test of CrlExtensions utility class.
- * 
+ *
  * @version $Id: CrlExtensionsTest.java 31834 2019-03-13 21:57:50Z jeklund $
  */
 public class CrlExtensionsTest {

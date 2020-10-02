@@ -20,7 +20,7 @@ import java.util.Comparator;
  * @version $Id: AsStringComparator.java 28178 2018-02-02 12:37:55Z samuellb $
  */
 public final class AsStringComparator implements Comparator<Object>, Serializable {
-    
+
     private static final long serialVersionUID = 1L;
 
     @Override

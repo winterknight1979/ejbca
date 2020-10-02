@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.math.BigInteger;
@@ -38,7 +38,7 @@ import org.cesecore.util.CeSecoreNameStyle;
  * @version $Id: SimpleRequestMessage.java 28201 2018-02-07 08:33:29Z andresjakobs $
  */
 public class SimpleRequestMessage implements RequestMessage {
-        
+
     private static final Logger log = Logger.getLogger(SimpleRequestMessage.class);
 
     /**
@@ -60,7 +60,7 @@ public class SimpleRequestMessage implements RequestMessage {
 
     /** manually set username */
     protected String username = null;
-    
+
     /** If the CA certificate should be included in the response or not, default to true = yes */
     protected boolean includeCACert = true;
 
@@ -75,20 +75,20 @@ public class SimpleRequestMessage implements RequestMessage {
 
     /** Issue DN, if set manually */
     private String issuerDN = null;
-    
+
     /** request X500Name, if set manually */
     private String requestDN = null;
 
     /** Requested certificate extensions */
     private Extensions x509Extensions = null;
-    
+
     private Date validityNotBefore = null;
     private Date validityNotAfter = null;
 
     private List<Certificate> additionalCaCertificates = new ArrayList<Certificate>();
 
     private List<Certificate> additionalExtraCertsCertificates = new ArrayList<Certificate>();
-    
+
     /**
      * Constructs a new Simple message handler object.
      * @param pubkey the public key to be certified
@@ -100,7 +100,7 @@ public class SimpleRequestMessage implements RequestMessage {
         this.username = username;
         this.password = password;
     }
-    
+
     /**
      * Constructs a new Simple message handler object.
      * @param pubkey the public key to be certified
@@ -114,7 +114,7 @@ public class SimpleRequestMessage implements RequestMessage {
         this.password = password;
         this.validityNotAfter = validityNotAfter;
     }
-    
+
     /**
      * Constructs a new Simple message handler object.
      * @param pubkey the public key to be certified
@@ -133,7 +133,7 @@ public class SimpleRequestMessage implements RequestMessage {
 
     @Override
     public PublicKey getRequestPublicKey() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
-    	return pubkey.getPublicKey();
+        return pubkey.getPublicKey();
     }
 
     /** set a password
@@ -145,7 +145,7 @@ public class SimpleRequestMessage implements RequestMessage {
 
     @Override
     public String getPassword() {
-    	return password;
+        return password;
     }
 
     /** set a username
@@ -157,7 +157,7 @@ public class SimpleRequestMessage implements RequestMessage {
 
     @Override
     public String getUsername() {
-    	return username;
+        return username;
     }
 
     @Override
@@ -166,17 +166,17 @@ public class SimpleRequestMessage implements RequestMessage {
     }
 
     /** Sets the issuer DN manually, since it can not be contained in the request for
-     * this type of simple request message 
+     * this type of simple request message
      * @param dn issuerDN, in CertTools.stringToBCDnString() format
      */
     public void setIssuerDN(String dn) {
-    	this.issuerDN = dn;
+        this.issuerDN = dn;
     }
     @Override
     public BigInteger getSerialNo() {
-    	return null;
+        return null;
     }
-    
+
     @Override
     public String getCRLIssuerDN() {
         return null;
@@ -189,47 +189,47 @@ public class SimpleRequestMessage implements RequestMessage {
 
     @Override
     public String getRequestDN() {
-    	return null;
+        return null;
     }
 
     @Override
     public X500Name getRequestX500Name() {
-    	if (this.requestDN == null) {
-    		return null;
-    	}
-    	return new X500Name(new CeSecoreNameStyle(), this.requestDN);
+        if (this.requestDN == null) {
+            return null;
+        }
+        return new X500Name(new CeSecoreNameStyle(), this.requestDN);
     }
 
     public void setRequestDN(String dn) {
-    	this.requestDN = dn;
-    }
-    
-    @Override
-    public String getRequestAltNames() {
-    	return null;
+        this.requestDN = dn;
     }
 
     @Override
-	public Date getRequestValidityNotBefore() {
-		return validityNotBefore;
-	}
-	
+    public String getRequestAltNames() {
+        return null;
+    }
+
     @Override
-	public Date getRequestValidityNotAfter() {
-		return validityNotAfter;
-	}
-	
+    public Date getRequestValidityNotBefore() {
+        return validityNotBefore;
+    }
+
     @Override
-	public Extensions getRequestExtensions() {
-	    return x509Extensions;
-	}
-	
-	/** Sets request extensions, if any 
-	 * @param extensions extensions*/
-	public void setRequestExtensions(final Extensions extensions) {
-	    this.x509Extensions = extensions;
-	}
-	
+    public Date getRequestValidityNotAfter() {
+        return validityNotAfter;
+    }
+
+    @Override
+    public Extensions getRequestExtensions() {
+        return x509Extensions;
+    }
+
+    /** Sets request extensions, if any
+     * @param extensions extensions*/
+    public void setRequestExtensions(final Extensions extensions) {
+        this.x509Extensions = extensions;
+    }
+
     @Override
     public boolean verify()
     throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -269,24 +269,24 @@ public class SimpleRequestMessage implements RequestMessage {
     public byte[] getRequestKeyInfo() {
         return null;
     }
-    
+
     @Override
     public String getPreferredDigestAlg() {
-    	return preferredDigestAlg;
+        return preferredDigestAlg;
     }
     @Override
     public boolean includeCACert() {
-    	return includeCACert;
+        return includeCACert;
     }
 
     @Override
     public int getRequestType() {
-    	return 0;
+        return 0;
     }
-    
+
     @Override
     public int getRequestId() {
-    	return 0;
+        return 0;
     }
 
     @Override
@@ -306,7 +306,7 @@ public class SimpleRequestMessage implements RequestMessage {
     public void setAdditionalCaCertificates(final List<Certificate> certificates) {
         this.additionalCaCertificates = certificates;
     }
-    
+
     @Override
     public List<Certificate> getAdditionalExtraCertsCertificates() {
         return additionalExtraCertsCertificates;

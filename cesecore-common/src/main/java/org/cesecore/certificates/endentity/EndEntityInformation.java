@@ -184,15 +184,15 @@ public class EndEntityInformation implements Serializable {
         if (dn==null) {
             dn = "";
         }
-    	final StringBuilder removedAllEmpties = new StringBuilder(dn.length());
+        final StringBuilder removedAllEmpties = new StringBuilder(dn.length());
         final StringBuilder removedTrailingEmpties = DNFieldsUtil.removeEmpties(dn, removedAllEmpties, true);
         if (removedTrailingEmpties == null) {
-        	this.subjectDNClean=StringTools.putBase64String(removedAllEmpties.toString());
-        	this.subjectDN=this.subjectDNClean;
-    	} else {
-        	this.subjectDNClean=StringTools.putBase64String(removedAllEmpties.toString());
-        	this.subjectDN=StringTools.putBase64String(removedTrailingEmpties.toString());
-    	}
+            this.subjectDNClean=StringTools.putBase64String(removedAllEmpties.toString());
+            this.subjectDN=this.subjectDNClean;
+        } else {
+            this.subjectDNClean=StringTools.putBase64String(removedAllEmpties.toString());
+            this.subjectDN=StringTools.putBase64String(removedTrailingEmpties.toString());
+        }
     }
 
     /** User DN as stored in the database. If the registered DN has unused DN fields the empty ones are kept, i.e.
@@ -306,18 +306,18 @@ public class EndEntityInformation implements Serializable {
         setType(type);
     }
 
-	/**
-	 * @return Returns the extendedinformation or null if no extended information exists.
-	 */
-	public ExtendedInformation getExtendedInformation() {
-		return extendedinformation;
-	}
-	/**
-	 * @param extendedinformation The extendedinformation to set.
-	 */
-	public void setExtendedInformation(ExtendedInformation extendedinformation) {
-		this.extendedinformation = extendedinformation;
-	}
+    /**
+     * @return Returns the extendedinformation or null if no extended information exists.
+     */
+    public ExtendedInformation getExtendedInformation() {
+        return extendedinformation;
+    }
+    /**
+     * @param extendedinformation The extendedinformation to set.
+     */
+    public void setExtendedInformation(ExtendedInformation extendedinformation) {
+        this.extendedinformation = extendedinformation;
+    }
 
     /**
      * Help Method used to create an ExtendedInformation from String representation.
@@ -329,15 +329,15 @@ public class EndEntityInformation implements Serializable {
         ExtendedInformation returnval = null;
         if (extendedinfostring != null && !extendedinfostring.isEmpty() ) {
             try (final SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(extendedinfostring.getBytes(StandardCharsets.UTF_8)))) {
-            	final HashMap<?, ?> data = (HashMap<?, ?>) decoder.readObject();
-            	// No need to b64 decode Integer value, just read it
-            	final int type = ((Integer) data.get(ExtendedInformation.TYPE)).intValue();
-            	switch (type) {
-            	case ExtendedInformation.TYPE_BASIC :
-            	    returnval = new ExtendedInformation();
-            	    returnval.loadData(data);
-            	    break;
-            	}
+                final HashMap<?, ?> data = (HashMap<?, ?>) decoder.readObject();
+                // No need to b64 decode Integer value, just read it
+                final int type = ((Integer) data.get(ExtendedInformation.TYPE)).intValue();
+                switch (type) {
+                case ExtendedInformation.TYPE_BASIC :
+                    returnval = new ExtendedInformation();
+                    returnval.loadData(data);
+                    break;
+                }
             } catch (IOException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Failed to parse ExtendedInformation for End Entity. Data:\n" + extendedinfostring);
@@ -349,18 +349,18 @@ public class EndEntityInformation implements Serializable {
     }
 
     public static String extendedInformationToStringData(final ExtendedInformation extendedinformation) {
-    	String ret = null;
-    	if (extendedinformation != null){
+        String ret = null;
+        if (extendedinformation != null){
             // We must base64 encode string for UTF safety
             final HashMap<Object, Object> b64DataMap = new Base64PutHashMap();
             b64DataMap.putAll(extendedinformation.getRawData());
             final ByteArrayOutputStream baos = new ByteArrayOutputStream(512);
-    		try (final java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);) {
-    		    encoder.writeObject(b64DataMap);
-    		}
-    		ret = new String(baos.toByteArray(), StandardCharsets.UTF_8);
-    	}
-    	return ret;
+            try (final java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);) {
+                encoder.writeObject(b64DataMap);
+            }
+            ret = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+        }
+        return ret;
     }
 
     /** @return the DN to be used when creating a certificate (without empty fields).
@@ -370,12 +370,12 @@ public class EndEntityInformation implements Serializable {
      * @see #getDN()
      */
     public String getCertificateDN() {
-    	if (subjectDNClean == null) {
-    		// This might be fetched from database serialization so we need to perform the cleaning all over again
-    		return DNFieldsUtil.removeAllEmpties(getDN());
-    	} else {
+        if (subjectDNClean == null) {
+            // This might be fetched from database serialization so we need to perform the cleaning all over again
+            return DNFieldsUtil.removeAllEmpties(getDN());
+        } else {
             return StringTools.getBase64String(subjectDNClean);
-    	}
+        }
     }
 
     /**

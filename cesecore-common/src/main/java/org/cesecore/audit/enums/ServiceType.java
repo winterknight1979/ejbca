@@ -14,9 +14,9 @@ package org.cesecore.audit.enums;
 
 
 /**
- * Interface used to describe the available Service Types. 
+ * Interface used to describe the available Service Types.
  * Created to allow extension of the current defined types.
- * 
+ *
  * @version $Id: ServiceType.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface ServiceType extends ConstantType<ServiceType> {

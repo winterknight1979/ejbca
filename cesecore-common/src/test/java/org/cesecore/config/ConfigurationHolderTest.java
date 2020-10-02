@@ -29,7 +29,7 @@ import org.junit.Test;
 
 /**
  * Tests the ConfigurationHolder class
- * 
+ *
  * @version $Id: ConfigurationHolderTest.java 19777 2014-09-18 13:11:18Z mikekushner $
  */
 public class ConfigurationHolderTest {
@@ -74,7 +74,7 @@ public class ConfigurationHolderTest {
     }
 
     @Test
-    public void testGetDefaultValuesWithCommas() throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException, ConfigurationException {        
+    public void testGetDefaultValuesWithCommas() throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, IOException, ConfigurationException {
         // Make sure we handle comma in default values
         String val = ConfigurationHolder.getString("intresources.preferredlanguage");
         assertEquals("en", val);

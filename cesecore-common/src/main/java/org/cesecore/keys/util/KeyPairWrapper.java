@@ -26,32 +26,32 @@ import java.security.spec.X509EncodedKeySpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * Wrapper class for serializing KeyPair objects. 
- * 
+ * Wrapper class for serializing KeyPair objects.
+ *
  * @see org.cesecore.util.EJBTools
- * 
+ *
  * @version $Id: KeyPairWrapper.java 26210 2017-08-03 10:12:32Z samuellb $
  *
  */
 public class KeyPairWrapper implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    
+
     final byte[] encodedPublicKey;
     final byte[] encodedPrivateKey;
     final String algorithm;
     transient KeyPair cachedKeyPair = null;
-    
+
     public KeyPairWrapper(final KeyPair keyPair) {
         this.encodedPublicKey = keyPair.getPublic().getEncoded();
         this.encodedPrivateKey = keyPair.getPrivate().getEncoded();
         this.algorithm = keyPair.getPublic().getAlgorithm();
     }
-    
+
     /**
-     * 
+     *
      * @return the decoded PublicKey object wrapped in this class.
-     * 
+     *
      */
     private PublicKey getPublicKey() {
         try {
@@ -64,13 +64,13 @@ public class KeyPairWrapper implements Serializable {
             throw new IllegalStateException("Algorithm "  + algorithm + " was not known at deserialisation", e);
         } catch (InvalidKeySpecException e) {
             throw new IllegalStateException("The incorrect key specification was implemented.", e);
-        } 
+        }
     }
-    
+
     /**
-     * 
+     *
      * @return the decoded PublicKey object wrapped in this class.
-     * 
+     *
      */
     private PrivateKey getPrivateKey() {
         try {
@@ -83,15 +83,15 @@ public class KeyPairWrapper implements Serializable {
             throw new IllegalStateException("Algorithm "  + algorithm + " was not known at deserialisation", e);
         } catch (InvalidKeySpecException e) {
             throw new IllegalStateException("The incorrect key specification was implemented.", e);
-        } 
+        }
     }
-    
-    
+
+
     public KeyPair getKeyPair() {
         if(cachedKeyPair == null) {
             cachedKeyPair = new KeyPair(getPublicKey(), getPrivateKey());
-        } 
+        }
         return cachedKeyPair;
     }
-   
+
 }

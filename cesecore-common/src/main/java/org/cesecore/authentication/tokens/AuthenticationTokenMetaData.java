@@ -19,17 +19,17 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
  * Meta data definition and marker interface used by the ServiceLoader that all AuthenticationToken types must have to be usable.
- * 
+ *
  * @version $Id: AuthenticationTokenMetaData.java 25249 2017-02-10 15:06:43Z jeklund $
  */
 public interface AuthenticationTokenMetaData {
-    
+
     /** @return the type identifier of the AuthenticationToken */
     String getTokenType();
 
     /** @return true if the this type of AuthenticationToken should be UI configurable. */
     boolean isUserConfigurable();
-    
+
     /** @return a List of all available AccessMatchValue for this type of AuthenctionToken */
     List<? extends AccessMatchValue> getAccessMatchValues();
 

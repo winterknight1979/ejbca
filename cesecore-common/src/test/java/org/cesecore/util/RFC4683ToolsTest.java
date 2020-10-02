@@ -35,7 +35,7 @@ import org.junit.Test;
 
 /**
  * (see <a href="https://tools.ietf.org/html/rfc4683">RFC4683</a>).
- * 
+ *
  * @version $Id: RFC4683ToolsTest.java 25221 2017-02-08 14:24:59Z anatom $
  */
 public class RFC4683ToolsTest {
@@ -71,7 +71,7 @@ public class RFC4683ToolsTest {
         // 1b. Test SAN without 'subjectIdentificationMethod' -> nothing happens.
         san = "DNSNAME=localhost";
         assertEquals(RFC4683Tools.generateSimForInternalSanFormat(san), san);
-        // 1c. Test SAN with 'subjectIdentificationMethod' but without SIM parameters -> nothing happens.        
+        // 1c. Test SAN with 'subjectIdentificationMethod' but without SIM parameters -> nothing happens.
         san = "SUBJECTIDENTIFICATIONMETHOD=, DNSNAME=localhost";
         assertEquals(RFC4683Tools.generateSimForInternalSanFormat(san), san);
         // 1d: Test SAN with 'subjectIdentificationMethod' but with wrong number of SIM parameters.

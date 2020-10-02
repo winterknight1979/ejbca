@@ -28,7 +28,7 @@ import org.cesecore.util.StringTools;
  * @version $Id: ExternalScriptsWhitelist.java 30973 2019-01-03 14:33:40Z samuellb $
  */
 public class ExternalScriptsWhitelist {
-    
+
     /** Class logger. */
     private static final Logger log = Logger.getLogger(ExternalScriptsWhitelist.class);
 

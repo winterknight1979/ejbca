@@ -19,7 +19,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 /**
- * This class represents the audit log validation report. 
+ * This class represents the audit log validation report.
  * It's generated during validation.
  *
  * @version $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z netmackan $
@@ -28,10 +28,10 @@ public class AuditLogValidationReport implements Serializable{
 
     private static final Logger log = Logger.getLogger(AuditLogValidationReport.class);
     private static final long serialVersionUID = 1L;
-    
+
     private final List<AuditLogReportElem> errors;
     private final List<AuditLogReportElem> warns;
-    
+
     public AuditLogValidationReport() {
         this.errors = new ArrayList<AuditLogReportElem>();
         this.warns = new ArrayList<AuditLogReportElem>();
@@ -47,7 +47,7 @@ public class AuditLogValidationReport implements Serializable{
      * @param error The error to be added.
      */
     public void error(final AuditLogReportElem error) {
-    	log.warn(String.format("ERROR: auditlog sequence: %d -> %d. Reason: %s", error.getFirst(), error.getSecond(), error.getReasons()));
+        log.warn(String.format("ERROR: auditlog sequence: %d -> %d. Reason: %s", error.getFirst(), error.getSecond(), error.getReasons()));
         this.errors.add(error);
     }
 
@@ -61,7 +61,7 @@ public class AuditLogValidationReport implements Serializable{
      * @param warning The warning.
      */
     public void warn(final AuditLogReportElem warning){
-    	log.info(String.format("WARN: auditlog sequence: %d -> %d. Reason: %s", warning.getFirst(), warning.getSecond(), warning.getReasons()));
+        log.info(String.format("WARN: auditlog sequence: %d -> %d. Reason: %s", warning.getFirst(), warning.getSecond(), warning.getReasons()));
         this.warns.add(warning);
     }
 }

@@ -9,15 +9,15 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.extendedservices;
 
 /** Used for illegal (invalid) CA Service Requests
- * 
+ *
  * @version $Id: IllegalExtendedCAServiceRequestException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class IllegalExtendedCAServiceRequestException extends Exception {
-    
+
     private static final long serialVersionUID = 2715976842113419606L;
 
     /**
@@ -26,7 +26,7 @@ public class IllegalExtendedCAServiceRequestException extends Exception {
     public IllegalExtendedCAServiceRequestException() {
         super();
     }
-        
+
     /**
      * Constructs an instance of <code>IllegalExtendedCAServiceRequestException</code> with the specified detail message.
      * @param msg the detail message.

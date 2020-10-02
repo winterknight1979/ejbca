@@ -25,7 +25,7 @@ import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
  * Value object for remote invocation from JVMs where the implementation class is not available.
- * 
+ *
  * @version $Id: InternalKeyBindingInfo.java 28496 2018-03-16 12:13:55Z henriks $
  */
 public class InternalKeyBindingInfo implements InternalKeyBinding {
@@ -45,13 +45,13 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
     final private List<InternalKeyBindingTrustEntry> trustedCertificateReferences;
     final private List<String> ocspExtensions;
     final private String signatureAlgorithm;
-    
+
     public InternalKeyBindingInfo(InternalKeyBinding internalKeyBinding) {
         this.implementationAlias = internalKeyBinding.getImplementationAlias();
         this.id = internalKeyBinding.getId();
         this.name = internalKeyBinding.getName();
         this.status = internalKeyBinding.getStatus();
-        this.operationalStatus = internalKeyBinding.getOperationalStatus(); 
+        this.operationalStatus = internalKeyBinding.getOperationalStatus();
         this.certificateId = internalKeyBinding.getCertificateId();
         this.cryptoTokenId = internalKeyBinding.getCryptoTokenId();
         this.keyPairAlias = internalKeyBinding.getKeyPairAlias();
@@ -61,7 +61,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
         this.ocspExtensions = internalKeyBinding.getOcspExtensions();
         this.signatureAlgorithm = internalKeyBinding.getSignatureAlgorithm();
     }
-    
+
     @Override
     public void init(int id, String name, InternalKeyBindingStatus status, String certificateId, int cryptoTokenId, String keyPairAlias,
             LinkedHashMap<Object, Object> dataMapToLoad) {
@@ -137,7 +137,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
     public void setOperationalStatus(InternalKeyBindingOperationalStatus opStatus) {
         throw new RuntimeException(new OperationNotSupportedException());
     }
-    
+
     @Override
     public String getCertificateId() {
         return certificateId;

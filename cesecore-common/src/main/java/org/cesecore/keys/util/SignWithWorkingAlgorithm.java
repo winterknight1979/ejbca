@@ -65,10 +65,10 @@ public class SignWithWorkingAlgorithm {
         return doSignTask(availableSignAlgorithms, provider, operation);
     }
     /**
-     * First time each algorithm in availableSignAlgorithms are tried until the 
+     * First time each algorithm in availableSignAlgorithms are tried until the
      * {@link ISignOperation#taskWithSigning(String, Provider)} is successfully completed.
      * The working algorithm is saved after the first time. Succeeding calls
-     * with same availableSignAlgorithms and provider will directly use the 
+     * with same availableSignAlgorithms and provider will directly use the
      * algorithm that was working the first time.
      * @param availableSignAlgorithms algorithms to choose from.
      * @param provider provider

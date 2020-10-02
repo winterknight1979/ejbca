@@ -22,7 +22,7 @@ import org.cesecore.configuration.ConfigurationCache;
 
 /**
  * Class Holding cache variable for the OCSP configuration
- * 
+ *
  * @version $Id: GlobalOcspConfigurationCache.java 20003 2014-10-16 17:14:03Z mikekushner $
  */
 public final class GlobalOcspConfigurationCache implements ConfigurationCache {
@@ -34,7 +34,7 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
      */
     private volatile GlobalOcspConfiguration ocspConfigurationCache = null;
     /** help variable used to control that OcspConfiguration update isn't performed to often. */
-    private volatile long lastupdatetime = -1;  
+    private volatile long lastupdatetime = -1;
 
     public GlobalOcspConfigurationCache() {
         // Do nothing
@@ -48,7 +48,7 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
         }
         return true;
     }
-    
+
     public void clearCache() {
         ocspConfigurationCache = null;
     }
@@ -67,7 +67,7 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
     public ConfigurationBase getConfiguration() {
         return ocspConfigurationCache;
     }
-    
+
     @SuppressWarnings("rawtypes")
     @Override
     public ConfigurationBase getConfiguration(HashMap data) {
@@ -81,12 +81,12 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
     public void updateConfiguration(final ConfigurationBase configuration) {
         this.ocspConfigurationCache = (GlobalOcspConfiguration) configuration;
         lastupdatetime = System.currentTimeMillis();
-        
+
     }
-    
+
     @Override
     public ConfigurationBase getNewConfiguration() {
-       return new GlobalOcspConfiguration();      
+       return new GlobalOcspConfiguration();
     }
 
 

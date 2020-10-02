@@ -13,7 +13,7 @@
 package org.cesecore.audit.enums;
 
 /**
- * Contains all event types that CESeCore core needs to log to secure audit log. 
+ * Contains all event types that CESeCore core needs to log to secure audit log.
  *
  * When doing secure audit log it is necessary to identify the event being logged.
  *

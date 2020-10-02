@@ -22,7 +22,7 @@ import org.cesecore.internal.CommonCacheBase;
 
 /**
  * Signer Object cache.
- * 
+ *
  * @version $Id: InternalKeyBindingCache.java 28332 2018-02-20 14:40:52Z anatom $
  */
 public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
@@ -58,7 +58,7 @@ public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
     public boolean shouldCheckForUpdates(final int signerId) {
         return internalKeyBindingCache.shouldCheckForUpdates(signerId);
     }
-    
+
     @Override
     public void updateWith(int signerId, int digest, String name, InternalKeyBinding object) {
         internalKeyBindingCache.updateWith(signerId, digest, name, object);
@@ -68,7 +68,7 @@ public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
     public void removeEntry(int signerId) {
         internalKeyBindingCache.removeEntry(signerId);
     }
-    
+
     @Override
     public String getName(int id) {
         return internalKeyBindingCache.getName(id);
@@ -78,12 +78,12 @@ public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
     public Map<String,Integer> getNameToIdMap() {
         return internalKeyBindingCache.getNameToIdMap();
     }
-    
+
     @Override
     public void flush() {
         internalKeyBindingCache.flush();
     }
-    
+
     @Override
     public void replaceCacheWith(List<Integer> keys) {
         internalKeyBindingCache.replaceCacheWith(keys);

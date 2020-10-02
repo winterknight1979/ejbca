@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
@@ -22,7 +22,7 @@ import org.cesecore.ErrorCode;
  * @version $Id: CryptoTokenOfflineException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class CryptoTokenOfflineException extends CesecoreException {
-    
+
     private static final long serialVersionUID = -4228966531990184850L;
 
 
@@ -33,8 +33,8 @@ public class CryptoTokenOfflineException extends CesecoreException {
         super();
         super.setErrorCode(ErrorCode.CA_OFFLINE);
     }
-    
-    
+
+
     /**
      * Constructs an instance of <code>CryptoTokenOfflineException</code> with the specified detail message.
      * @param msg the detail message.

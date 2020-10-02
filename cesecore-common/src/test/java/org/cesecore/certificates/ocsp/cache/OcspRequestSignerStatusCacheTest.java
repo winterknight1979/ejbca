@@ -27,13 +27,13 @@ import org.junit.Test;
 
 /**
  * Test of the cache that hold revocation information for certificates that signs OCSP requests.
- * 
+ *
  * @version $Id: OcspRequestSignerStatusCacheTest.java 22253 2015-11-24 13:41:45Z jeklund $
  */
 public class OcspRequestSignerStatusCacheTest {
 
     private String defaultConfigurationValue = null;
-    
+
     @Before
     public void before() {
         OcspRequestSignerStatusCache.INSTANCE.flush();

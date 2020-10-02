@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
@@ -33,7 +33,7 @@ public class SignRequestSignatureException extends CesecoreException {
     public SignRequestSignatureException(final String message) {
         super(ErrorCode.BAD_REQUEST_SIGNATURE, message);
     }
-    
+
     public SignRequestSignatureException(final String message, Throwable cause) {
         super(ErrorCode.BAD_REQUEST_SIGNATURE, message, cause);
     }

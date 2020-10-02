@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import java.util.HashMap;
@@ -26,56 +26,56 @@ import org.cesecore.keys.token.CryptoToken;
 
 /**
  * @version $Id: MyExtendedCAService.java 22147 2015-11-03 16:24:00Z mikekushner $
- */ 
+ */
 public class MyExtendedCAService extends ExtendedCAService {
 
-	public MyExtendedCAService(ExtendedCAServiceInfo info) {
-		super(info);
-		data.put(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
-	}
-
-    public MyExtendedCAService(HashMap<?, ?> data) {
-    	super(data);
-    	loadData(data);
+    public MyExtendedCAService(ExtendedCAServiceInfo info) {
+        super(info);
+        data.put(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
     }
 
-	private static final long serialVersionUID = 1L;
-	
-	public static int didrun = 0;
-	
-	@Override
-	public ExtendedCAServiceResponse extendedService(CryptoToken cryptoToken,
-			ExtendedCAServiceRequest request)
-	throws ExtendedCAServiceRequestException,
-	IllegalExtendedCAServiceRequestException,
-	ExtendedCAServiceNotActiveException {
-		didrun++;
-		return new MyExtendedCAServiceResponse();
-	}
+    public MyExtendedCAService(HashMap<?, ?> data) {
+        super(data);
+        loadData(data);
+    }
 
-	@Override
-	public ExtendedCAServiceInfo getExtendedCAServiceInfo() {
-		return new MyExtendedCAServiceInfo(0);
-	}
+    private static final long serialVersionUID = 1L;
+
+    public static int didrun = 0;
+
+    @Override
+    public ExtendedCAServiceResponse extendedService(CryptoToken cryptoToken,
+            ExtendedCAServiceRequest request)
+    throws ExtendedCAServiceRequestException,
+    IllegalExtendedCAServiceRequestException,
+    ExtendedCAServiceNotActiveException {
+        didrun++;
+        return new MyExtendedCAServiceResponse();
+    }
+
+    @Override
+    public ExtendedCAServiceInfo getExtendedCAServiceInfo() {
+        return new MyExtendedCAServiceInfo(0);
+    }
 
 
-	@Override
-	public float getLatestVersion() {
-		return 0;
-	}
+    @Override
+    public float getLatestVersion() {
+        return 0;
+    }
 
-	@Override
-	public void upgrade() {
-	}
+    @Override
+    public void upgrade() {
+    }
 
     @Override
     public void init(CryptoToken cryptoToken, CA ca, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception {
-        
+
     }
 
     @Override
     public void update(CryptoToken cryptoToken, ExtendedCAServiceInfo info, CA ca, AvailableCustomCertificateExtensionsConfiguration cceConfig) {
-        
+
     }
 
 }

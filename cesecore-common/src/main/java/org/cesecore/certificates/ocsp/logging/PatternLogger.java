@@ -32,11 +32,11 @@ import org.bouncycastle.util.encoders.Hex;
  * This class can be extended to create highly configurable log classes. Values that are to be logged are stored in a Hashmap and the output is
  * configured using a Java.util.regex.Matcher and a sortString. The extending classes also need to supply a Logger and a String specifying how to log
  * Dates.
- * 
+ *
  * Use paramPut(String key, String value) to add values, Use writeln() to log all the stored values and then use flush() to store them to file.
- * 
+ *
  * Roughly based on PatternLogger.java 8663 2010-02-17 10:42:41Z anatom from EJBCA
- * 
+ *
  * @version $Id: PatternLogger.java 31242 2019-01-17 22:41:24Z jeklund $
  */
 public abstract class PatternLogger implements Serializable {
@@ -72,13 +72,13 @@ public abstract class PatternLogger implements Serializable {
     /**
      * PROCESS_TIME is a marker that is used to record the total time a request takes to process, excluding reading the request. It is replaced with
      * the correct value when the log entry is written. the time measurement start when this param is set in the logger with:
-     * 
+     *
      * <pre>
      * ocspTransactionLogger(PROCESS_TIME, PROCESS_TIME);
      * </pre>
-     * 
+     *
      * This means that this variable can be used to measure any time you want to measure in your code.
-     * 
+     *
      */
     public static final String PROCESS_TIME = "PROCESS_TIME";
 
@@ -129,7 +129,7 @@ public abstract class PatternLogger implements Serializable {
         this.paramPut(REPLY_TIME, REPLY_TIME);
         this.paramPut(LOG_ID, "0");
     }
-    
+
     private Matcher getMatcher() {
         if (this.m == null) {
             // We have to instantiate the Matcher in the class and can not have it as an instance variable.
@@ -155,9 +155,9 @@ public abstract class PatternLogger implements Serializable {
         }
         return pw;
     }
-    
+
     /**
-     * 
+     *
      * @return output to be logged
      */
     private String interpolate() {

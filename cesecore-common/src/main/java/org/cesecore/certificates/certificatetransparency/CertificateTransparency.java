@@ -81,8 +81,8 @@ public interface CertificateTransparency {
 
     /**
      * @return true if the given certificate has an SCT extension with at least one entry.
-     * @param cert certificate 
-     * 
+     * @param cert certificate
+     *
      */
     boolean hasSCTs(Certificate cert);
 
@@ -96,7 +96,7 @@ public interface CertificateTransparency {
      * Ensure that all SCTs in the certificate are valid or throw an exception. No checks are performed if the certificate given
      * as input does not have an SCT extension present.
      * @param leafCertificate The final certificate to check
-     * @param issuerCertificates Other certs in the chain 
+     * @param issuerCertificates Other certs in the chain
      * @param ctLogs Logs
      * @throws CertificateCreateException if one of the SCTs are invalid or if the certificate could not be parsed
      */

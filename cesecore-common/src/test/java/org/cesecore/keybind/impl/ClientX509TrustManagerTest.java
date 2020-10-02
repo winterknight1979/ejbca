@@ -40,7 +40,7 @@ import org.junit.runner.Description;
 
 /**
  * Test of ClientX509TrustManager.
- * 
+ *
  * @version $Id: ClientX509TrustManagerTest.java 23093 2016-03-29 12:42:59Z jeklund $
  */
 public class ClientX509TrustManagerTest {

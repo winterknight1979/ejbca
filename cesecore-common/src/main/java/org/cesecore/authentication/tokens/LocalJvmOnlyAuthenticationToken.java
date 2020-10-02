@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
  * Common base class for tokens that are only valid in the JVM they are created and could
  * otherwise be spoofed. E.g. X509 client certificate validation AuthenticationToken could
  * otherwise be created and sent to a remote EJB interface.
- * 
+ *
  * @version $Id: LocalJvmOnlyAuthenticationToken.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public abstract class LocalJvmOnlyAuthenticationToken extends AuthenticationToken {
@@ -32,8 +32,8 @@ public abstract class LocalJvmOnlyAuthenticationToken extends AuthenticationToke
 
     private static final Logger log = Logger.getLogger(LocalJvmOnlyAuthenticationToken.class);
 
-	/** A random token that is unique to this JVM (e.g. the application server JVM and a CLI JVM does not have the same token). */
-	private static final byte[] RANDOM_TOKEN = createRandomToken();
+    /** A random token that is unique to this JVM (e.g. the application server JVM and a CLI JVM does not have the same token). */
+    private static final byte[] RANDOM_TOKEN = createRandomToken();
 
     /** transient authToken should NOT be serialized. **/
     private transient byte[] authToken;
@@ -41,27 +41,27 @@ public abstract class LocalJvmOnlyAuthenticationToken extends AuthenticationToke
     /** @param principals Principals
      * @param credentials Credentials
      * @see org.cesecore.authentication.tokens.AuthenticationToken#AuthenticationToken */
-	protected LocalJvmOnlyAuthenticationToken(Set<? extends Principal> principals, Set<?> credentials) {
-		super(principals, credentials);
-		authToken = RANDOM_TOKEN;
-	}
-	
-	/** @return true if this */
-	protected final boolean isCreatedInThisJvm() {
-		boolean isCreatedInThisJvm = ArrayUtils.isEquals(authToken, RANDOM_TOKEN);
-		if (log.isTraceEnabled()) {
-			log.trace("isCreatedInThisJvm: "+isCreatedInThisJvm);
-		}
-		return isCreatedInThisJvm;
-	}
+    protected LocalJvmOnlyAuthenticationToken(Set<? extends Principal> principals, Set<?> credentials) {
+        super(principals, credentials);
+        authToken = RANDOM_TOKEN;
+    }
 
-	public void initRandomToken() {
-		authToken = RANDOM_TOKEN;
-	}
-	
-	private static byte[] createRandomToken() {
-    	final byte[] token = new byte[32];
+    /** @return true if this */
+    protected final boolean isCreatedInThisJvm() {
+        boolean isCreatedInThisJvm = ArrayUtils.isEquals(authToken, RANDOM_TOKEN);
+        if (log.isTraceEnabled()) {
+            log.trace("isCreatedInThisJvm: "+isCreatedInThisJvm);
+        }
+        return isCreatedInThisJvm;
+    }
+
+    public void initRandomToken() {
+        authToken = RANDOM_TOKEN;
+    }
+
+    private static byte[] createRandomToken() {
+        final byte[] token = new byte[32];
         new SecureRandom().nextBytes(token);
-    	return token;
-	}
+        return token;
+    }
 }

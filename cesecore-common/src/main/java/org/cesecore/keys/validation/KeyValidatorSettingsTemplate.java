@@ -26,8 +26,8 @@ import java.util.Map;
 public enum KeyValidatorSettingsTemplate {
 
     // @formatter:off
-    USE_CERTIFICATE_PROFILE_SETTINGS(0, "VALIDATORSETTINGSTEMPLATE_USE_CP_SETTINGS"), 
-    USE_CAB_FORUM_SETTINGS(1, "VALIDATORSETTINGSTEMPLATE_USE_CAB_FORUM_SETTINGS"), 
+    USE_CERTIFICATE_PROFILE_SETTINGS(0, "VALIDATORSETTINGSTEMPLATE_USE_CP_SETTINGS"),
+    USE_CAB_FORUM_SETTINGS(1, "VALIDATORSETTINGSTEMPLATE_USE_CAB_FORUM_SETTINGS"),
     USE_CUSTOM_SETTINGS(2, "VALIDATORSETTINGSTEMPLATE_USE_CUSTOM_SETTINGS");
     // @formatter:on
 
@@ -39,7 +39,7 @@ public enum KeyValidatorSettingsTemplate {
 
     /**
      * Creates a new instance.
-     * 
+     *
      * @param option option index
      * @param label resource key or label.
      */
@@ -75,7 +75,7 @@ public enum KeyValidatorSettingsTemplate {
         }
         return result;
     }
-    
+
     /**
      * Gets a String list instance containing all I18N label keys.
      * @return keys

@@ -30,24 +30,24 @@ import org.cesecore.util.CertTools;
 
 /**
  * Validate the EKUs of a leaf certificate.
- * 
+ *
  * If a EKU extension exists and is marked as critical, this PKIXCertPathChecker will ensure that
  * at least the specified extended key usages are present. Additional EKUs will be ignored as long
- * as the required ones are there. 
- * 
+ * as the required ones are there.
+ *
  * @version $Id: EkuPKIXCertPathChecker.java 21415 2015-05-29 14:00:56Z anatom $
  */
 public class EkuPKIXCertPathChecker extends PKIXCertPathChecker {
-    
+
     private static final Logger log = Logger.getLogger(EkuPKIXCertPathChecker.class);
     private static final List<String> EMPTY = new ArrayList<String>(0);
     private final List<String> requiredKeyPurposeOids;
 
     /**
      * Create a new instance that will check a critical EKU of the leaf certificate.
-     * 
+     *
      * Parameters OIDs could be supplied using org.bouncycastle.asn1.x509.KeyPurposeId.id_kp_*.getId()
-     * 
+     *
      * @param requiredKeyPurposeOids a list of EKUs that at a minimum must be present if the EKU exists and is critical.
      */
     public EkuPKIXCertPathChecker(final String...requiredKeyPurposeOids) {
@@ -61,9 +61,9 @@ public class EkuPKIXCertPathChecker extends PKIXCertPathChecker {
 
     /**
      * Create a new instance that will check a critical EKU of the leaf certificate.
-     * 
+     *
      * Parameters OIDs could be supplied using org.bouncycastle.asn1.x509.KeyPurposeId.id_kp_*.getId()
-     * 
+     *
      * @param requiredKeyPurposeOids a list of EKUs that at a minimum must be present if the EKU exists and is critical.
      */
     public EkuPKIXCertPathChecker(final List<String> requiredKeyPurposeOids) {
@@ -109,12 +109,12 @@ public class EkuPKIXCertPathChecker extends PKIXCertPathChecker {
 
     @Override
     public void init(final boolean forward) throws CertPathValidatorException {
-        // NOOP: We don't care about the order, we handle EKUs for non-CA certs 
+        // NOOP: We don't care about the order, we handle EKUs for non-CA certs
     }
 
     @Override
     public boolean isForwardCheckingSupported() {
-        // We don't care about the order, we handle EKUs for non-CA certs 
+        // We don't care about the order, we handle EKUs for non-CA certs
         return true;
     }
 }

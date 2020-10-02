@@ -17,7 +17,7 @@ import java.io.Serializable;
 /**
  * Should be inherited by all ExtendedCAServiceInfo Value objects. These classes are used to retrieve general information about the service and also
  * used to send parameters to the service when creating it.
- * 
+ *
  * @version $Id: ExtendedCAServiceInfo.java 21900 2015-09-17 19:22:21Z anatom $
  */
 public abstract class ExtendedCAServiceInfo implements Serializable {
@@ -51,7 +51,7 @@ public abstract class ExtendedCAServiceInfo implements Serializable {
 
     /**
      * The extended CA service implementation will be created using reflection.
-     * 
+     *
      * @return a class name implementing the extended CA service
      */
     public abstract String getImplClass();

@@ -12,19 +12,19 @@ import org.cesecore.util.SecureXMLDecoder;
 import org.junit.Test;
 
 /**
- * @version $Id: UpgradeableDataHashMapTest.java 34163 2020-01-02 15:00:17Z samuellb $ 
+ * @version $Id: UpgradeableDataHashMapTest.java 34163 2020-01-02 15:00:17Z samuellb $
  */
 public class UpgradeableDataHashMapTest {
-    
+
     static final Logger log = Logger.getLogger(UpgradeableDataHashMapTest.class);
-    
+
     /**
      * Test if UpgradeableDataHashMap is vulnerable to CVE-2010-4476 through
      * the XML Serialization we use for storing UpgradeableDataHashMap.
-     * 
+     *
      * When "2.2250738585072012e-308" is converted to a float, the code toggles
      * between two values causing the the Thread to hang.
-     * 
+     *
      * UpgradeableDataHashMap.VERSION is normally stored as a Float.
      */
     @Test
@@ -41,7 +41,7 @@ public class UpgradeableDataHashMapTest {
         assertTrue(FAIL_MESSAGE, new DecoderThread(XML_W_BADFLOAT).execute());
         assertTrue(FAIL_MESSAGE, new DecoderThread(XML_W_BADDERFLOAT).execute());
     }
-    
+
     /** Separate thread for test that might hang. */
     class DecoderThread implements Runnable {   // NOPMD this is a stand-alone test, not a part of a JEE application
         final String decodeXML;
@@ -49,7 +49,7 @@ public class UpgradeableDataHashMapTest {
         DecoderThread(String decodeXML) {
             this.decodeXML = decodeXML;
         }
-        
+
         protected boolean execute() {
             Thread t = new Thread(this);    // NOPMD this is a stand-alone test, not a part of a JEE application
             t.start();
@@ -57,7 +57,7 @@ public class UpgradeableDataHashMapTest {
                 t.join(4000);   //Wait 5 seconds for thread to complete
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            } 
+            }
             if (!t.getState().equals(State.TERMINATED)) {
                 t.interrupt();
                 return false;

@@ -31,13 +31,13 @@ public enum AuditLogRules {
 
     private final String resource;
     private static final Map<String,String> allResources = new HashMap<>();
-    
+
     static {
         for (AuditLogRules rule : AuditLogRules.values()) {
             allResources.put(rule.resource(), rule.resource());
         }
     }
-    
+
     private AuditLogRules(String resource) {
         this.resource = resource;
     }

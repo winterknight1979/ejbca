@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
@@ -33,8 +33,8 @@ public class CAOfflineException extends CesecoreException {
         super();
         super.setErrorCode(ErrorCode.CA_OFFLINE);
     }
-    
-    
+
+
     /**
      * Constructs an instance of <code>CAOfflineException</code> with the specified detail message.
      * @param msg the detail message.

@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Type for phased validator (a validator bound to a defined phased of the certificate issuance process, #see  ).
- * 
+ *
  * @version $Id: PhasedValidator.java 27527 2017-12-12 15:49:13Z mikekushner $
  *
  */
@@ -27,13 +27,13 @@ public interface PhasedValidator {
      * @return the list of certificate issuance process phase index.
      */
     List<Integer> getApplicablePhases();
-    
+
     /**
      * Gets the certificate process phase index ({@link IssuancePhase}).
      * @return the index.
      */
     int getPhase();
-    
+
     /**
      * Sets the certificate process phase index ({@link IssuancePhase}).
      * @param index the index.

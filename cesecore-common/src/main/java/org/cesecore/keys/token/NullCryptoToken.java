@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 
 /** This class is used as crypto Token for virtual CAs that does not have a keystore, such as external SubCAs.
- * 
+ *
  * @version $Id: NullCryptoToken.java 22561 2016-01-12 14:35:29Z mikekushner $
  */
 public class NullCryptoToken extends BaseCryptoToken {
@@ -37,38 +37,38 @@ public class NullCryptoToken extends BaseCryptoToken {
     private int id;
 
     public NullCryptoToken() {
-    	super();
+        super();
     }
 
     @Override
     public void init(Properties properties, byte[] data, int id) throws Exception {
-    	// We only need to set JCA provider, if JCE provider is the same (which is the common case)
-    	setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);
-    	this.id = id;
+        // We only need to set JCA provider, if JCE provider is the same (which is the common case)
+        setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);
+        this.id = id;
     }
 
     @Override
     public int getId() {
-    	return this.id;
+        return this.id;
     }
 
     @Override
     public Properties getProperties(){
-    	return new Properties();
+        return new Properties();
     }
 
     @Override
     public PrivateKey getPrivateKey(String alias){
-      return null;        
+      return null;
     }
 
     @Override
-    public PublicKey getPublicKey(String alias){    
-      return null;        
+    public PublicKey getPublicKey(String alias){
+      return null;
     }
-    
+
     @Override
-    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, CryptoTokenOfflineException {    	
+    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, CryptoTokenOfflineException {
     }
 
     @Override
@@ -86,19 +86,19 @@ public class NullCryptoToken extends BaseCryptoToken {
     }
 
     @Override
-	public void activate(char[] authenticationcode) throws CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException {
-		// Do Nothing		
-	}
+    public void activate(char[] authenticationcode) throws CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException {
+        // Do Nothing
+    }
 
     @Override
-	public void deactivate() {
+    public void deactivate() {
        // Do Nothing
-	}
+    }
 
     @Override
-	public byte[] getTokenData() {
-    	return null;
-	}
+    public byte[] getTokenData() {
+        return null;
+    }
 
     @Override
     public boolean permitExtractablePrivateKeyForTest() {

@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 
 package org.cesecore.certificates.certificate.certextensions.standard;
 
@@ -31,7 +31,7 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
  * Class for standard X509 certificate extension. See rfc3280 or later for spec of this extension.
- * 
+ *
  * @version $Id: PrivateKeyUsagePeriod.java 24737 2016-11-15 13:53:25Z anatom $
  */
 public class PrivateKeyUsagePeriod extends StandardCertificateExtension {
@@ -48,7 +48,7 @@ public class PrivateKeyUsagePeriod extends StandardCertificateExtension {
 
     @Override
     public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws 
+            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws
             CertificateExtensionException {
         // Construct the start and end dates of PrivateKeyUsagePeriod
         // As start date, use the same as the start date of the certificate

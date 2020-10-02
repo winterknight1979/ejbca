@@ -21,7 +21,7 @@ import org.cesecore.config.OcspConfiguration;
 
 /**
  * Cache of revocation status for certificates that signs OCSP requests.
- * 
+ *
  * @version $Id: OcspRequestSignerStatusCache.java 22253 2015-11-24 13:41:45Z jeklund $
  */
 public enum OcspRequestSignerStatusCache {
@@ -31,7 +31,7 @@ public enum OcspRequestSignerStatusCache {
     private class OcspSignerStatus {
         long lastUpdate;
         final CertificateStatus certificateStatus;
-        
+
         public OcspSignerStatus(final long lastUpdate, final CertificateStatus certificateStatus) {
             this.lastUpdate = lastUpdate;
             this.certificateStatus = certificateStatus;
@@ -42,7 +42,7 @@ public enum OcspRequestSignerStatusCache {
 
     /**
      * Create a cache lookup key with very low probability of collision.
-     * 
+     *
      * @param signercertIssuerName Issuer DN of the certificate that signed the OCSP request
      * @param signercertSerNo Serial number of the certificate that signed the OCSP request
      * @return a key that can be used for cache lookup
@@ -68,7 +68,7 @@ public enum OcspRequestSignerStatusCache {
         return ocspSignerStatus.certificateStatus;
     }
 
-    /** Update the cache with an usable CertificateStatus. 
+    /** Update the cache with an usable CertificateStatus.
      * @param cacheLookupKey key
      * @param certificateStatus status*/
     public void updateCachedCertificateStatus(final String cacheLookupKey, final CertificateStatus certificateStatus) {

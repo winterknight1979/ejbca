@@ -15,9 +15,9 @@ package org.cesecore.certificates.ocsp.logging;
 
 /**
  * An enum based singleton which returns transaction numbers. Not a static volatile value, because these are forbidden by the EJB standard.
- * 
+ *
  * @version $Id: TransactionCounter.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ *
  */
 public enum TransactionCounter {
     INSTANCE;

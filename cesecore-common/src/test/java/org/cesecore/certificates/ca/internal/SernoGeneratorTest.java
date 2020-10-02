@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.internal;
 
 import static org.junit.Assert.assertEquals;
@@ -39,7 +39,7 @@ import org.junit.Test;
 public class SernoGeneratorTest {
     private static final Logger log = Logger.getLogger(SernoGeneratorTest.class);
 
-    /** Test min and max values for different serial number sizes. 
+    /** Test min and max values for different serial number sizes.
      * @throws NoSuchAlgorithmException fail */
     @Test
     public void testSernoValidationChecker() throws NoSuchAlgorithmException {
@@ -79,7 +79,7 @@ public class SernoGeneratorTest {
         assertEquals(1, someSerno.compareTo(lowest));
         assertEquals(-1, someSerno.compareTo(highest));
         assertTrue(gen.checkSernoValidity(someSerno));
-        
+
         // Set serno size 8 bytes (64 bits)
         gen = new SernoGeneratorRandom(8);
         lowest = new BigInteger("0080000000000000", 16);
@@ -92,7 +92,7 @@ public class SernoGeneratorTest {
         assertFalse(gen.checkSernoValidity(toohigh));
     }
 
-    /** Test certificate serialNumber generation with 8 octets size (64 bits). 
+    /** Test certificate serialNumber generation with 8 octets size (64 bits).
      * Using 64 bit serial numbers should not product any collisions for 500.000 serials
      * @throws Exception fail
      */
@@ -108,8 +108,8 @@ public class SernoGeneratorTest {
         BigDecimal div = time.divide(BigDecimal.valueOf(500000));
         log.info("Creating "+noRounds*1000+" 8 octet serNos with "+algo+" took "+(end-start)+" ms, thats "+div+" ms per serno");
     }
-    
-    /** Using only 32 bit serial numbers will produce collisions 
+
+    /** Using only 32 bit serial numbers will produce collisions
      * about 1-5 times for 100.000 serial numbers
      * @throws Exception fail
      */
@@ -125,8 +125,8 @@ public class SernoGeneratorTest {
         BigDecimal div = time.divide(BigDecimal.valueOf(500000));
         log.info("Creating "+noRounds*1000+" 4 octet serNos with "+algo+" took "+(end-start)+" ms, thats "+div+" ms per serno");
     }
-    
-    /** Test certificate serialNumber generation with 20 octets size (160 bits). 
+
+    /** Test certificate serialNumber generation with 20 octets size (160 bits).
      * Using 160 bit serial numbers should not product any collisions for 500.000 serials
      * @throws Exception fail
      */
@@ -144,8 +144,8 @@ public class SernoGeneratorTest {
     }
 
 
-    /** Try fetching a random number generator of type "defaultstrong". 
-     * We will not make actual tests with this, since on Tomas's Linux laptop (on real HW) 
+    /** Try fetching a random number generator of type "defaultstrong".
+     * We will not make actual tests with this, since on Tomas's Linux laptop (on real HW)
      * it takes 30-70 seconds to generate a single random number once the entropy pool is exhausted after 0-10 serials.
      * On JDK7 and less the "defaultstrong" option is not available, which is considered in this test.
      * @throws Exception fail
@@ -156,7 +156,7 @@ public class SernoGeneratorTest {
             generateSernos(4, "defaultstrong", 0, 0);
             // If running on JDK >= 8 we will come here
             final String algo = ((SernoGeneratorRandom)SernoGeneratorRandom.instance(4)).getAlgorithm();
-            assertEquals("NativePRNGBlocking", algo);        
+            assertEquals("NativePRNGBlocking", algo);
         } catch (IllegalStateException e) {
             // if running on JDK < 8 this is a valid exception
             try {
@@ -171,7 +171,7 @@ public class SernoGeneratorTest {
         }
     }
 
-    /** Try fetching a random number generator of type "default". This will create a default SecureRandom implementation. 
+    /** Try fetching a random number generator of type "default". This will create a default SecureRandom implementation.
      * @throws Exception fail
      */
     @Test
@@ -181,12 +181,12 @@ public class SernoGeneratorTest {
         generateSernos(8, "default", 0, noRounds);
         final long end = System.currentTimeMillis();
         final String algo = ((SernoGeneratorRandom)SernoGeneratorRandom.instance(8)).getAlgorithm();
-        assertEquals("NativePRNG", algo);            
+        assertEquals("NativePRNG", algo);
         BigDecimal time = BigDecimal.valueOf(end-start);
         BigDecimal div = time.divide(BigDecimal.valueOf(500000));
         log.info("Creating "+noRounds*1000+" 8 octet serNos with "+algo+" took "+(end-start)+" ms, thats "+div+" ms per serno");
     }
-    
+
     private void generateSernos(final int nrOctets, final String algorithm, final int maxDups, final int roundsOf1000) throws Exception {
         // this will actually create a default RNG first (depending on configuration in cesecore.properties), which will be changed by setAlgorithm below
         SernoGenerator gen = SernoGeneratorRandom.instance(nrOctets);
@@ -201,7 +201,7 @@ public class SernoGeneratorTest {
                 BigInteger bi = gen.getSerno();
                 //long end = System.currentTimeMillis();
                 //log.info("Generated one serno took (ms): "+(end-start));
-                
+
                 // Check that it generates the specified number of ASN.1 encoded integers
                 // The length to check is nrOctets+2 since it is encoded as "tag+length+value", where tag and length are 1 octet each
                 ASN1Integer asn1 = new ASN1Integer(bi);
@@ -211,11 +211,11 @@ public class SernoGeneratorTest {
                 hex = bi.toString(16);
 
                 if (map.put(hex, hex) != null) {
-                	duplicates++;
+                    duplicates++;
 //                    log.warn("Duplicate serno produced: " + hex);
 //                    log.warn("Number of sernos produced before duplicate: "+(j*1000+i));
                     if (duplicates > maxDups) {
-                        assertTrue("More then 10 duplicates produced, "+duplicates, false);                    	
+                        assertTrue("More then 10 duplicates produced, "+duplicates, false);
                     }
                 }
             }

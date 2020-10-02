@@ -26,7 +26,7 @@ import org.junit.Test;
 
 /** Tests SecurityFilterInputStream class that can be used to prevent java heap-overflow during
  * reading from input stream
- * 
+ *
  * @version $Id: SecurityFilterInputStreamTest.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public class SecurityFilterInputStreamTest {
@@ -115,7 +115,7 @@ public class SecurityFilterInputStreamTest {
         ByteArrayOutputStream byteArrayOutputStream = null;
         try {
             byteArrayOutputStream = new ByteArrayOutputStream();
-            prepareExploitStream(byteArrayOutputStream, 0xFFFF); // 0xFFFF simulates safe stream 
+            prepareExploitStream(byteArrayOutputStream, 0xFFFF); // 0xFFFF simulates safe stream
 
             objectInputStream = new ObjectInputStream(
                     new SecurityFilterInputStream(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), 0xFFFFF));

@@ -17,7 +17,7 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
 /**
  * Thrown to signify that a slot was not found. Differs from {@link CryptoTokenOfflineException} by virtue of
  * the latter being thrown when a slot exists, but for some reason is unavailable.
- * 
+ *
  * @version $Id: PKCS11LibraryFileNotFoundException.java 26057 2017-06-22 08:08:34Z anatom $
  *
  */

@@ -17,7 +17,7 @@ import java.io.OutputStream;
 
 /**
  * Interface for how to export audit log data.
- * 
+ *
  * Users of this interface is expected to call:
  * 1. setOutputStream after creation
  * 2. For each added object:
@@ -25,17 +25,17 @@ import java.io.OutputStream;
  * 2b. zero or more writeLongField and/or writeStringField
  * 2c. writeEndObject()
  * 3. close()
- * 
+ *
  * @version $Id: AuditExporter.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface AuditExporter {
 
-	void setOutputStream(OutputStream outputStream) throws IOException;
-	void startObjectLabel(String label) throws IOException;
+    void setOutputStream(OutputStream outputStream) throws IOException;
+    void startObjectLabel(String label) throws IOException;
     void endObjectLabel() throws IOException;
-	void writeStartObject() throws IOException;
-	void writeField(String key, long value) throws IOException;
-	void writeField(String key, String value) throws IOException;
-	void writeEndObject() throws IOException;
-	void close() throws IOException;
+    void writeStartObject() throws IOException;
+    void writeField(String key, long value) throws IOException;
+    void writeField(String key, String value) throws IOException;
+    void writeEndObject() throws IOException;
+    void close() throws IOException;
 }

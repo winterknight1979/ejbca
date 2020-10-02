@@ -30,13 +30,13 @@ import org.cesecore.util.CertTools;
 
 /**
  * Hold information needed for creating an OCSP response without database lookups.
- * 
+ *
  * @version $Id: OcspSigningCacheEntry.java 28643 2018-04-06 08:53:57Z samuellb $
  */
 public class OcspSigningCacheEntry {
 
     private static final Logger log = Logger.getLogger(OcspSigningCacheEntry.class);
-    
+
     private final List<CertificateID> certificateID;
     private final List<X509Certificate> caCertificateChain;
     private final X509Certificate ocspSigningCertificate;
@@ -188,9 +188,9 @@ public class OcspSigningCacheEntry {
      * This method construct the certificate chain that will be included in the OCSP response according to the following rules:
      * - If includeSignCert && includeChain --> include entire chain except for the root CA certificate
      * - If includeSignCert && !includeChain --> include only the signing certificate whatever it is (even if it was a root CA cert)
-     * - If !includingSignCert --> not including any certificate or chain no matter what value includeChain has. The value of the 
+     * - If !includingSignCert --> not including any certificate or chain no matter what value includeChain has. The value of the
      *   certificate chain  will then be an empty array.
-     *   
+     *
      * @param certChain certificate chain
      * @return the certificate chain that will be included in the OCSP response
      */

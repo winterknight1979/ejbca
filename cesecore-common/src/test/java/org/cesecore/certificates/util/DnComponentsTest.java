@@ -25,7 +25,7 @@ import org.junit.Test;
 
 /**
  * Tests the DnComponents class.
- * 
+ *
  * @version $Id: DnComponentsTest.java 27045 2017-11-07 10:48:46Z samuellb $
  */
 public class DnComponentsTest {
@@ -103,10 +103,10 @@ public class DnComponentsTest {
         assertEquals("1.3.6.1.4.1.311.60.2.1.3", DnComponents.getOid("jurisdictioncountry").toString());
         assertEquals("1.3.6.1.4.1.311.60.2.1.2", DnComponents.getOid("jurisdictionstate").toString());
         assertEquals("1.3.6.1.4.1.311.60.2.1.1", DnComponents.getOid("jurisdictionlocality").toString());
-        
+
         assertEquals("CN=",DnComponents.getDnExtractorFieldFromDnId(2));
         assertEquals("C=",DnComponents.getDnExtractorFieldFromDnId(13));
-        
+
         assertEquals(2, (int)DnComponents.getDnIdFromDnName("CN"));
         assertEquals(17, (int)DnComponents.getDnIdFromAltName("RFC822NAME"));
         assertEquals(17, (int)DnComponents.getDnIdFromAltName("rfc822name")); // should be case insensitive
@@ -122,7 +122,7 @@ public class DnComponentsTest {
         assertEquals("JURISDICTIONCOUNTRY=", DnComponents.getDnExtractorFieldFromDnId(105));
         assertEquals("ORGANIZATIONIDENTIFIER=", DnComponents.getDnExtractorFieldFromDnId(106));
     }
-    
+
     @Test
     public void test02() {
         String dn = CertTools.stringToBCDNString("uri=fff,CN=oid,SN=12345,NAME=name,C=se");

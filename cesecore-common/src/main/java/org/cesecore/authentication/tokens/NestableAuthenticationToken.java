@@ -20,14 +20,14 @@ import java.util.Set;
 /**
  * A NestableAuthenticationToken represents an AuthenticationToken where the original credentials has
  * passed through multiple step of authentication.
- * 
+ *
  * @version $Id: NestableAuthenticationToken.java 25797 2017-05-04 15:52:00Z jeklund $
  */
 public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthenticationToken {
 
     private static final long serialVersionUID = 1L;
     private static final int MAX_NESTING = 10;
-    
+
     private NestableAuthenticationToken nestedAuthenticationToken = null;
 
     protected NestableAuthenticationToken(final Set<? extends Principal> principals, final Set<?> credentials) {
@@ -40,7 +40,7 @@ public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthentica
         NestableAuthenticationToken current = this.nestedAuthenticationToken;
         while (current!=null) {
             nestedAuthenticationTokens.add(current);
-            // Perform a small sanity check to protect against loops or massive nesting in order to exhaust server mem 
+            // Perform a small sanity check to protect against loops or massive nesting in order to exhaust server mem
             if (nestedAuthenticationTokens.size()>MAX_NESTING) {
                 throw new IllegalStateException("Hard coded limit of number of nested AuthenticationTokens reached.");
             }
@@ -61,7 +61,7 @@ public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthentica
                 current.nestedAuthenticationToken = nestedAuthenticationToken;
                 break;
             }
-            // Perform a small sanity check to protect against loops or massive nesting in order to exhaust server mem 
+            // Perform a small sanity check to protect against loops or massive nesting in order to exhaust server mem
             if (count++>MAX_NESTING) {
                 throw new IllegalStateException("Hard coded limit of number of nested AuthenticationTokens reached.");
             }
@@ -90,7 +90,7 @@ public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthentica
         return ret;
     }
 
-    /** Override and return anything but null to use this value instead of {@link AuthenticationToken#toString()} 
+    /** Override and return anything but null to use this value instead of {@link AuthenticationToken#toString()}
      * @return null by default */
     protected String toStringOverride() {
         return null;

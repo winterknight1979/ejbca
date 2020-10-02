@@ -17,9 +17,9 @@ package org.cesecore.audit.log;
  */
 public class AuditLogResetException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public AuditLogResetException() {
+    public AuditLogResetException() {
         super();
     }
 

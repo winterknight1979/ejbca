@@ -21,13 +21,13 @@ import org.cesecore.certificates.crl.RevocationReasons;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 
 /** Simple class encapsulating the certificate status information needed when making revocation checks.
- * 
+ *
  * @version $Id: CertificateStatus.java 22920 2016-03-03 17:44:03Z samuellb $
  */
 public class CertificateStatus implements Serializable {
 
     private static final long serialVersionUID = 1515679904853388419L;
-	
+
     public final static CertificateStatus REVOKED = new CertificateStatus("REVOKED", -1L, RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
     public final static CertificateStatus OK = new CertificateStatus("OK", -1L, RevokedCertInfo.NOT_REVOKED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
     public final static CertificateStatus NOT_AVAILABLE = new CertificateStatus("NOT_AVAILABLE", -1L, RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
@@ -37,28 +37,28 @@ public class CertificateStatus implements Serializable {
     /** @see RevocationReasons */
     public final int revocationReason;
     public final int certificateProfileId;
-    
+
     public CertificateStatus(String name, long date, int reason, int certProfileId ) {
         this.name = name;
         this.revocationDate = new Date(date);
         this.revocationReason = reason;
         this.certificateProfileId = certProfileId;
     }
-    
+
     @Override
     public String toString() {
         return this.name;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         return obj instanceof CertificateStatus && this.equals((CertificateStatus)obj);
     }
-    
+
     public boolean equals(CertificateStatus obj) {
         return this.name.equals(obj.toString());
     }
-    
+
     public boolean isRevoked() {
         return revocationReason != RevokedCertInfo.NOT_REVOKED && revocationReason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;
     }

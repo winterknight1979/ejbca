@@ -39,30 +39,30 @@ import org.cesecore.util.StringTools;
  */
 public class X509CAInfo extends CAInfo {
 
-	private static final long serialVersionUID = 2L;
-	private List<CertificatePolicy> policies;
-	private boolean useauthoritykeyidentifier;
-	private boolean authoritykeyidentifiercritical;
-	private boolean usecrlnumber;
-	private boolean crlnumbercritical;
-	private String defaultcrldistpoint;
-	private String defaultcrlissuer;
-	private String defaultocsplocator;
-	private String cadefinedfreshestcrl;
-	private String subjectaltname;
-	private boolean useUTF8PolicyText;
-	private boolean usePrintableStringSubjectDN;
-	private boolean useLdapDNOrder;
-	private boolean useCrlDistributionPointOnCrl;
-	private boolean crlDistributionPointOnCrlCritical;
-	private String cmpRaAuthSecret = "";
-	private List<String> authorityInformationAccess;
-	private List<String> certificateAiaDefaultCaIssuerUri;
-	private List<String> nameConstraintsPermitted;
-	private List<String> nameConstraintsExcluded;
-	private String externalCdp;
-	private boolean nameChanged;
-	private int caSerialNumberOctetSize;
+    private static final long serialVersionUID = 2L;
+    private List<CertificatePolicy> policies;
+    private boolean useauthoritykeyidentifier;
+    private boolean authoritykeyidentifiercritical;
+    private boolean usecrlnumber;
+    private boolean crlnumbercritical;
+    private String defaultcrldistpoint;
+    private String defaultcrlissuer;
+    private String defaultocsplocator;
+    private String cadefinedfreshestcrl;
+    private String subjectaltname;
+    private boolean useUTF8PolicyText;
+    private boolean usePrintableStringSubjectDN;
+    private boolean useLdapDNOrder;
+    private boolean useCrlDistributionPointOnCrl;
+    private boolean crlDistributionPointOnCrlCritical;
+    private String cmpRaAuthSecret = "";
+    private List<String> authorityInformationAccess;
+    private List<String> certificateAiaDefaultCaIssuerUri;
+    private List<String> nameConstraintsPermitted;
+    private List<String> nameConstraintsExcluded;
+    private String externalCdp;
+    private boolean nameChanged;
+    private int caSerialNumberOctetSize;
 
     /**
      * This constructor can be used when creating a CA.
@@ -73,7 +73,7 @@ public class X509CAInfo extends CAInfo {
      * @param certificateProfileId Profile
      * @param encodedValidity Vlidity
      * @param signedby Signer
-     * @param certificatechain Certs 
+     * @param certificatechain Certs
      * @param catoken Token
      */
     public X509CAInfo(final String subjectdn, final String name, final int status,
@@ -85,7 +85,7 @@ public class X509CAInfo extends CAInfo {
              "", // Subject Alternative name
              certificateProfileId, // CA certificate profile
                 0, // default ca profile
-             false, // default is certificate data table   
+             false, // default is certificate data table
              encodedValidity, null, // Expiretime
              CAInfo.CATYPE_X509, // CA type (X509/CVC)
              signedby, // Signed by CA
@@ -196,19 +196,19 @@ public class X509CAInfo extends CAInfo {
     private X509CAInfo(final String subjectDn, final String name, final int status, final Date updateTime, final String subjectaltname,
             final int certificateprofileid, final int defaultCertprofileId, final boolean useNoConflictCertificateData, final String encodedValidity, final Date expiretime, final int catype, final int signedBy,
             final Collection<Certificate> certificatechain, final CAToken catoken,
-    		final String description, final int caSerialNumberOctetSize, final int revocationReason, final Date revocationDate, final List<CertificatePolicy> policies,
-    		final long crlperiod, final long crlIssueInterval, final long crlOverlapTime, final long deltacrlperiod,
-    		final Collection<Integer> crlpublishers, final Collection<Integer> keyValidators, final boolean useauthoritykeyidentifier, final boolean authoritykeyidentifiercritical,
-    		final boolean usecrlnumber, final boolean crlnumbercritical, final String defaultcrldistpoint, final String defaultcrlissuer,
-    		final String defaultocspservicelocator,
-    		final List<String> authorityInformationAccess,
-    		final List<String> certificateAiaDefaultCaIssuerUri,
-    		final List<String> nameConstraintsPermitted, final List<String> nameConstraintsExcluded, final String cadefinedfreshestcrl,
-    		final boolean finishuser, final Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
-    		final boolean useUTF8PolicyText, final Map<ApprovalRequestType, Integer> approvals, final boolean usePrintableStringSubjectDN,
-    		final boolean useLdapDnOrder, final boolean useCrlDistributionPointOnCrl, final boolean crlDistributionPointOnCrlCritical, final boolean includeInHealthCheck,
-    		final boolean _doEnforceUniquePublicKeys, final boolean _doEnforceUniqueDistinguishedName, final boolean _doEnforceUniqueSubjectDNSerialnumber,
-    		final boolean _useCertReqHistory, final boolean _useUserStorage, final boolean _useCertificateStorage, final boolean _acceptRevocationNonExistingEntry,
+            final String description, final int caSerialNumberOctetSize, final int revocationReason, final Date revocationDate, final List<CertificatePolicy> policies,
+            final long crlperiod, final long crlIssueInterval, final long crlOverlapTime, final long deltacrlperiod,
+            final Collection<Integer> crlpublishers, final Collection<Integer> keyValidators, final boolean useauthoritykeyidentifier, final boolean authoritykeyidentifiercritical,
+            final boolean usecrlnumber, final boolean crlnumbercritical, final String defaultcrldistpoint, final String defaultcrlissuer,
+            final String defaultocspservicelocator,
+            final List<String> authorityInformationAccess,
+            final List<String> certificateAiaDefaultCaIssuerUri,
+            final List<String> nameConstraintsPermitted, final List<String> nameConstraintsExcluded, final String cadefinedfreshestcrl,
+            final boolean finishuser, final Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
+            final boolean useUTF8PolicyText, final Map<ApprovalRequestType, Integer> approvals, final boolean usePrintableStringSubjectDN,
+            final boolean useLdapDnOrder, final boolean useCrlDistributionPointOnCrl, final boolean crlDistributionPointOnCrlCritical, final boolean includeInHealthCheck,
+            final boolean _doEnforceUniquePublicKeys, final boolean _doEnforceUniqueDistinguishedName, final boolean _doEnforceUniqueSubjectDNSerialnumber,
+            final boolean _useCertReqHistory, final boolean _useUserStorage, final boolean _useCertificateStorage, final boolean _acceptRevocationNonExistingEntry,
             final String _cmpRaAuthSecret, final boolean keepExpiredCertsOnCRL) {
         this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
         this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
@@ -222,19 +222,19 @@ public class X509CAInfo extends CAInfo {
         // Due to a bug in Glassfish v1 (fixed in v2), we used to have to make sure all certificates in this
         // Array were of SUNs own provider, using CertTools.SYSTEM_SECURITY_PROVIDER.
         // As of EJBCA 3.9.3 we decided that we don't have to support Glassfish v1 anymore.
-		try {
-			if (certificatechain != null) {
-		        X509Certificate[] certs = certificatechain.toArray(new X509Certificate[certificatechain.size()]);
+        try {
+            if (certificatechain != null) {
+                X509Certificate[] certs = certificatechain.toArray(new X509Certificate[certificatechain.size()]);
                 List<Certificate> list = CertTools.getCertCollectionFromArray(certs, null);
-		        setCertificateChain(list);
-			} else {
-			    setCertificateChain(null);
-			}
-		} catch (CertificateException e) {
-			throw new IllegalArgumentException(e);
-		} catch (NoSuchProviderException e) {
-			throw new IllegalArgumentException(e);
-		}
+                setCertificateChain(list);
+            } else {
+                setCertificateChain(null);
+            }
+        } catch (CertificateException e) {
+            throw new IllegalArgumentException(e);
+        } catch (NoSuchProviderException e) {
+            throw new IllegalArgumentException(e);
+        }
         this.catoken = catoken;
         this.description = description;
         setRevocationReason(revocationReason);
@@ -306,7 +306,7 @@ public class X509CAInfo extends CAInfo {
      * @param defaultcrldistpoint the URI of the default CRL distribution point
      * @param defaultcrlissuer Issuer
      * @param defaultocspservicelocator Locator
-     * @param crlAuthorityInformationAccess Access info to CRLs 
+     * @param crlAuthorityInformationAccess Access info to CRLs
      * @param certificateAiaDefaultCaIssuerUri Issuer URI
      * @param nameConstraintsPermitted a list of name constraints which should be permitted
      * @param nameConstraintsExcluded a list of name constraints which should be excluded
@@ -330,7 +330,7 @@ public class X509CAInfo extends CAInfo {
      * @param _cmpRaAuthSecret bool
      * @param keepExpiredCertsOnCRL bool
      */
-    public X509CAInfo(final int caid, final String encodedValidity, final CAToken catoken, final String description, final int caSerialNumberOctetSize, 
+    public X509CAInfo(final int caid, final String encodedValidity, final CAToken catoken, final String description, final int caSerialNumberOctetSize,
             final long crlperiod, final long crlIssueInterval, final long crlOverlapTime, final long deltacrlperiod, final Collection<Integer> crlpublishers,
             final Collection<Integer> keyValidators, final boolean useauthoritykeyidentifier, final boolean authoritykeyidentifiercritical,
             final boolean usecrlnumber, final boolean crlnumbercritical, final String defaultcrldistpoint, final String defaultcrlissuer,
@@ -390,7 +390,7 @@ public class X509CAInfo extends CAInfo {
     }
 
   public List<CertificatePolicy> getPolicies() {
-	  return this.policies;
+      return this.policies;
   }
   public void setPolicies(final List<CertificatePolicy> policies) {
       this.policies = policies;
@@ -508,7 +508,7 @@ public class X509CAInfo extends CAInfo {
         return externalCdp;
     }
 
-    /** Set what should be a String formatted URL pointing to an external CA's CDP. 
+    /** Set what should be a String formatted URL pointing to an external CA's CDP.
      * @param externalCdp CDP*/
     public void setExternalCdp(final String externalCdp) {
         this.externalCdp = externalCdp;
@@ -519,7 +519,7 @@ public class X509CAInfo extends CAInfo {
         return nameChanged;
     }
 
-    /** NameChanged attribute should only be set when X509CA is retrieved from DB 
+    /** NameChanged attribute should only be set when X509CA is retrieved from DB
      * @param value new name*/
     void setNameChanged(final boolean value){
         nameChanged = value;
@@ -532,8 +532,8 @@ public class X509CAInfo extends CAInfo {
     public void setCaSerialNumberOctetSize(int caSerialNumberOctetSize) {
         this.caSerialNumberOctetSize = caSerialNumberOctetSize;
     }
-    
-    
+
+
     public static class X509CAInfoBuilder {
         private String subjectDn;
         private String name;
@@ -590,7 +590,7 @@ public class X509CAInfo extends CAInfo {
         private boolean acceptRevocationNonExistingEntry = false;
         private String cmpRaAuthSecret = null;
         private boolean keepExpiredCertsOnCRL = false;
-        
+
         public X509CAInfoBuilder setSubjectDn(String subjectDn) {
             this.subjectDn = subjectDn;
             return this;
@@ -860,7 +860,7 @@ public class X509CAInfo extends CAInfo {
             this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;
             return this;
         }
-        
+
         public X509CAInfoBuilder setCaSerialNumberOctetSize(int caSerialNumberOctetSize) {
             this.caSerialNumberOctetSize = caSerialNumberOctetSize;
             return this;

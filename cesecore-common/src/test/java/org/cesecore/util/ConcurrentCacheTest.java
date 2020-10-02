@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.util;
 
 import static org.junit.Assert.assertEquals;
@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
- * 
+ *
  * @version $Id: ConcurrentCacheTest.java 23098 2016-03-30 10:35:11Z samuellb $
  */
 public final class ConcurrentCacheTest {
@@ -36,9 +36,9 @@ public final class ConcurrentCacheTest {
     private static final int THREAD_ONE = 101;
     private static final int THREAD_TWO = 102;
     private static final int THREAD_RANDOM = 200;
-    
+
     private static final int CONCURRENT_OPEN_TIMEOUT = 2000;
-    
+
     private static final int NUM_RANDOM_THREADS = 100;
 
     @Test
@@ -46,7 +46,7 @@ public final class ConcurrentCacheTest {
         log.trace(">testSingleThreaded");
         final ConcurrentCache<String,Integer> cache = new ConcurrentCache<>();
         ConcurrentCache<String,Integer>.Entry entry;
-        
+
         // Create new entry
         entry = cache.openCacheEntry("A", 1);
         assertNotNull("openCacheEntry timed out in single-threaded test", entry);
@@ -59,7 +59,7 @@ public final class ConcurrentCacheTest {
         entry.putValue(111);
         entry.setCacheValidity(60*1000);
         entry.close();
-        
+
         // Read it and modify the value
         entry = cache.openCacheEntry("A", 1);
         assertNotNull("openCacheEntry timed out in single-threaded test", entry);
@@ -69,18 +69,18 @@ public final class ConcurrentCacheTest {
         assertEquals(Integer.valueOf(222), entry.getValue());
         entry.setCacheValidity(60*1000);
         entry.close();
-        
-        // Read it again and modify the timeout 
+
+        // Read it again and modify the timeout
         entry = cache.openCacheEntry("A", 1);
         assertNotNull("openCacheEntry timed out in single-threaded test", entry);
         assertTrue("isInCache should return true for existing entry", entry.isInCache());
         assertEquals(Integer.valueOf(222), entry.getValue());
         entry.setCacheValidity(1);
         entry.close();
-        
+
         Thread.sleep(5);
-        
-        // Try to read it now. It should have expired and a fresh entry should be returned. 
+
+        // Try to read it now. It should have expired and a fresh entry should be returned.
         entry = cache.openCacheEntry("A", 1);
         assertFalse("isInCache should return false for expired entry", entry.isInCache());
         try {
@@ -91,14 +91,14 @@ public final class ConcurrentCacheTest {
         entry.close();
         log.trace("<testSingleThreaded");
     }
-    
+
     @Test
     public void testDisabled() throws Exception {
         log.trace(">testDisabled");
         final ConcurrentCache<String,Integer> cache = new ConcurrentCache<>();
         cache.setEnabled(false);
         ConcurrentCache<String,Integer>.Entry entry;
-        
+
         // Create entries. All operations should be "no-ops"
         for (int i = 0; i < 10; i++) {
             long timeBefore = System.currentTimeMillis();
@@ -114,48 +114,48 @@ public final class ConcurrentCacheTest {
             entry.putValue(111);
             entry.setCacheValidity(60*1000);
             entry.close();
-            
+
             // This should have been a no-op
             cache.checkNumberOfEntries(0, 0);
         }
         log.trace("<testDisabled");
     }
-    
+
     @Test
     public void testMultiThreaded() throws Exception {
         log.trace(">testMultiThreaded");
         final ConcurrentCache<String,Integer> cache = new ConcurrentCache<>();
-        
+
         final Thread thread1 = new Thread(new CacheTestRunner(cache, THREAD_ONE), "CacheTestThread1");
         final Thread thread2 = new Thread(new CacheTestRunner(cache, THREAD_TWO), "CacheTestThread2");
-        
+
         thread1.start();
         thread2.start();
-        
+
         thread1.join();
         thread2.join();
-        
+
         log.trace("<testMultiThreaded");
     }
-    
+
     @Test
     public void testExpiryBehavior() throws Exception {
         log.trace(">testExpiryBehavior");
         final ConcurrentCache<String,Integer> cache = new ConcurrentCache<>();
         cache.setCleanupInterval(60000L); // don't run cleanup during test
-        
+
         // Create an entry that will expire
         final ConcurrentCache<String,Integer>.Entry entry1 = cache.openCacheEntry("A", 1000);
         entry1.putValue(456);
         entry1.setCacheValidity(1L);
         entry1.close();
-        
+
         Thread.sleep(5);
-        
+
         // We should get an expired entry now. Start updating it but don't finish
         final ConcurrentCache<String,Integer>.Entry entry2 = cache.openCacheEntry("A", 1000);
         assertFalse("Should be forced to update the cache.", entry2.isInCache()); // technically, it is still in the cache, but ConcurrentCache will pretend it's not, so the caller will update it
-        
+
         // Start a new request for the same entry. Should use the old expired entry
         final long startTime = System.currentTimeMillis();
         final ConcurrentCache<String,Integer>.Entry entry3 = cache.openCacheEntry("A", 1000);
@@ -164,23 +164,23 @@ public final class ConcurrentCacheTest {
         assertTrue("Should be able to use the existing cached data, because someone is updating the new value", entry3.isInCache());
         assertEquals(Integer.valueOf(456), entry3.getValue());
         entry3.close();
-        
+
         // Now write the new value
         entry2.putValue(768);
         entry2.setCacheValidity(500);
         entry2.close();
-        
+
         Thread.sleep(5);
-        
+
         // We should see the new entry now
         final ConcurrentCache<String,Integer>.Entry entry4 = cache.openCacheEntry("A", 1000);
         assertTrue("Entry should still be in cache.", entry4.isInCache());
         assertEquals("Entry should have been updated.", Integer.valueOf(768), entry4.getValue());
         entry4.close();
-        
+
         log.trace("<testExpiryBehavior");
     }
-    
+
     @Test(timeout=6000)
     public void testRandomMultiThreaded() throws InterruptedException {
         log.trace(">testRandomMultiThreaded");
@@ -191,7 +191,7 @@ public final class ConcurrentCacheTest {
             final ConcurrentCache<String,Integer> cache = new ConcurrentCache<>();
             cache.setMaxEntries(20);
             cache.setCleanupInterval(100); // To stress the system a bit more
-            
+
             final Thread[] threads = new Thread[NUM_RANDOM_THREADS];
             final CacheTestRunner[] runners = new CacheTestRunner[NUM_RANDOM_THREADS];
             for (int i = 0; i < threads.length; i++) {
@@ -203,7 +203,7 @@ public final class ConcurrentCacheTest {
                 for (int i = 0; i < threads.length; i++) {
                     threads[i].start();
                 }
-                
+
                 log.info("All threads started");
                 Thread.sleep(2000);
             } finally {
@@ -211,7 +211,7 @@ public final class ConcurrentCacheTest {
                 for (int i = 0; i < threads.length; i++) {
                     runners[i].shouldExit = true;
                 }
-                
+
                 log.info("Waiting for join of first thread (1 sec timeout)");
                 threads[0].join(1000);
                 log.info("Waiting for other threads");
@@ -220,7 +220,7 @@ public final class ConcurrentCacheTest {
                     threads[i].join(1);
                 }
             }
-            
+
             long timeout = System.currentTimeMillis() + 2000; // if a thread stops for more than 2 s in cleanup() then that's a problem by itself
             for (int i = 0; i < threads.length; i++) {
                 if (threads[i].isAlive() && System.currentTimeMillis() < timeout) {
@@ -237,11 +237,11 @@ public final class ConcurrentCacheTest {
             log.trace("<testRandomMultiThreaded");
         }
     }
-    
+
     private static final int MAXENTRIES = 1000000;
     private static final int OVERSHOOT = MAXENTRIES+(MAXENTRIES/2)+1; // overshoot by 50%
     private static final int MIN_ENTRIES_AFTER_CLEANUP = MAXENTRIES - (MAXENTRIES/4); // 75% of maxentries
-    
+
     @Test
     public void testMaxEntries() throws Exception {
         log.trace(">testMaxEntries");
@@ -249,7 +249,7 @@ public final class ConcurrentCacheTest {
         cache.setMaxEntries(MAXENTRIES);
         cache.setCleanupInterval(100);
         ConcurrentCache<String,Integer>.Entry entry;
-        
+
         try {
             Logger.getLogger(ConcurrentCache.class).setLevel(Level.INFO);
             // Create initial entries
@@ -262,9 +262,9 @@ public final class ConcurrentCacheTest {
                 entry.setCacheValidity(60*1000);
                 entry.close();
             }
-            
+
             cache.checkNumberOfEntries(MAXENTRIES, MAXENTRIES);
-            
+
             // Add some more. Cleanup is guaranteed to run if we overshoot by 50%
             log.debug("Creating more entries (to overshoot the limit)");
             for (int i = MAXENTRIES; i <= OVERSHOOT; i++) {
@@ -275,10 +275,10 @@ public final class ConcurrentCacheTest {
                 entry.setCacheValidity(60*1000);
                 entry.close();
             }
-            
+
             log.debug("Sleeping to allow for cleanup to run again");
             Thread.sleep(100);
-            
+
             // Access the cache once more to trigger a cleanup
             entry = cache.openCacheEntry(String.valueOf("x"), 1);
             assertNotNull("openCacheEntry timed out", entry);
@@ -286,9 +286,9 @@ public final class ConcurrentCacheTest {
             entry.putValue(-123456);
             entry.setCacheValidity(60*1000);
             entry.close();
-            
+
             log.debug("Done creating entries");
-            
+
             // Cleanup should have run now
             cache.checkNumberOfEntries(MIN_ENTRIES_AFTER_CLEANUP, MAXENTRIES-1);
         } finally {
@@ -296,23 +296,23 @@ public final class ConcurrentCacheTest {
             log.trace("<testMaxEntries");
         }
     }
-    
+
     private static final class CacheTestRunner implements Runnable {
         private final int id;
         private final ConcurrentCache<String,Integer> cache;
-        
+
         private final static String[] KEYS = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"};
         public volatile boolean shouldExit = false;
-        
+
         public CacheTestRunner(final ConcurrentCache<String,Integer> cache, final int id) {
             this.cache = cache;
             this.id = id;
         }
-        
+
         @Override
         public void run() {
             ConcurrentCache<String,Integer>.Entry entry;
-            
+
             try {
                 switch (id) {
                 case THREAD_ONE:
@@ -332,9 +332,9 @@ public final class ConcurrentCacheTest {
                     assertTrue("existing entry should be in cache", entry.isInCache());
                     assertEquals("wrong value of cache entry", Integer.valueOf(123), entry.getValue());
                     entry.close();
-                    
+
                     Thread.sleep(300);
-                    
+
                     // 500 ms
                     entry = cache.openCacheEntry("A", CONCURRENT_OPEN_TIMEOUT);
                     assertFalse("entry should have expired", entry.isInCache());

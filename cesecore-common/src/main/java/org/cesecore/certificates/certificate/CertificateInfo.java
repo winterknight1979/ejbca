@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate;
 
 import java.io.Serializable;
@@ -23,9 +23,9 @@ import java.util.Date;
  */
 public class CertificateInfo implements Serializable {
 
-	private static final long serialVersionUID = -1973602951994928833L;
-	
-	private String fingerprint;
+    private static final long serialVersionUID = -1973602951994928833L;
+
+    private String fingerprint;
     private String cafingerprint;
     private String serno;
     private String issuerdn;
@@ -37,14 +37,14 @@ public class CertificateInfo implements Serializable {
     private Date revocationdate;
     private int revocationreason;
     private String username;
-	private String tag;
-	private int certificateProfileId;
+    private String tag;
+    private int certificateProfileId;
     private Integer endEntityProfileId;
     private Date updateTime;
     private String subjectKeyId;
     private String subjectAltName;
-    
-    public CertificateInfo(String fingerprint, String cafingerprint, String serno,  String issuerdn, String subjectdn, int status, int type, 
+
+    public CertificateInfo(String fingerprint, String cafingerprint, String serno,  String issuerdn, String subjectdn, int status, int type,
             Long notBefore, long expiredate, long revocationdate, int revocationreason, String username, String tag, int certificateProfileId,
             Integer endEntityProfileId, long updateTime, String subjectKeyId, String subjectAltName) {
         this.fingerprint = fingerprint;
@@ -66,14 +66,14 @@ public class CertificateInfo implements Serializable {
         this.subjectKeyId = subjectKeyId;
         this.subjectAltName = subjectAltName;
     }
-    
+
     public String getFingerprint() {return fingerprint;}
     public void setFingerprint(String fp) {this.fingerprint=fp;}
     public String getCAFingerprint() {return cafingerprint;}
     public BigInteger getSerialNumber() {return new BigInteger(serno);}
     public String getSubjectDN() {return subjectdn;}
     public String getIssuerDN() {return issuerdn;}
-    /**@return One of the CertificateConstants.CERT_ constants, for example CertificateConstants.CERT_ACTIVE 
+    /**@return One of the CertificateConstants.CERT_ constants, for example CertificateConstants.CERT_ACTIVE
      */
     public int getStatus() { return status; }
     /** @param s One of the CertificateConstants.CERT_ constants, for example CertificateConstants.CERT_ACTIVE */
@@ -85,45 +85,45 @@ public class CertificateInfo implements Serializable {
     public void setRevocationDate(Date d) { this.revocationdate=d; }
     public int getRevocationReason() { return revocationreason; }
     public String getTag() {
-		return tag;
-	}
+        return tag;
+    }
 
-	public void setTag(String tag) {
-		this.tag = tag;
-	}
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
 
-	public int getCertificateProfileId() {
-		return certificateProfileId;
-	}
+    public int getCertificateProfileId() {
+        return certificateProfileId;
+    }
 
-	public int getEndEntityProfileIdOrZero() {
-	    return endEntityProfileId==null ? 0 : endEntityProfileId;
-	}
+    public int getEndEntityProfileIdOrZero() {
+        return endEntityProfileId==null ? 0 : endEntityProfileId;
+    }
 
-	public void setCertificateProfileId(int certificateProfileId) {
-		this.certificateProfileId = certificateProfileId;
-	}
+    public void setCertificateProfileId(int certificateProfileId) {
+        this.certificateProfileId = certificateProfileId;
+    }
 
-	public Date getUpdateTime() {
-		return updateTime;
-	}
+    public Date getUpdateTime() {
+        return updateTime;
+    }
 
-	public void setUpdateTime(Date updateTime) {
-		this.updateTime = updateTime;
-	}
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
 
     public String getUsername() {
-		return username;
-	}
+        return username;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getSubjectKeyId() {
         return subjectKeyId;
     }
-	
+
     public String getSubjectAltName() {
         return subjectAltName;
     }

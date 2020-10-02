@@ -32,27 +32,27 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
 
     /** Class logger. */
     private static final Logger log = Logger.getLogger(KeyValidatorBase.class);
-    
+
     private static final long serialVersionUID = 1L;
-    
-    /** List of applicable issuance phases (see {@link IssuancePhase}). */ 
+
+    /** List of applicable issuance phases (see {@link IssuancePhase}). */
     protected static List<Integer> APPLICABLE_PHASES;
-    
+
     static {
         APPLICABLE_PHASES = new ArrayList<Integer>();
         APPLICABLE_PHASES.add(IssuancePhase.DATA_VALIDATION.getIndex());
     }
-    
+
     /** Dynamic UI model extension. */
     protected DynamicUiModel uiModel;
-    
+
     /**
      * Public constructor needed for deserialization.
      */
     public KeyValidatorBase() {
         super();
     }
-    
+
     /**
      * Creates a new instance.
      * @param name name
@@ -74,7 +74,7 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
             setNotAfterCondition(KeyValidatorDateConditions.LESS_THAN.getIndex());
         }
     }
-   
+
     @Override
     public void initDynamicUiModel() {
     }
@@ -83,12 +83,12 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
     public List<Integer> getApplicablePhases() {
         return APPLICABLE_PHASES;
     }
-    
+
     @Override
     public Class<? extends Validator> getValidatorSubType() {
         return KeyValidator.class;
     }
-    
+
     @Override
     public Date getNotBefore() {
         return (Date) data.get(NOT_BEFORE);
@@ -129,12 +129,12 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
         return ((Integer) data.get(NOT_AFTER_CONDITION)).intValue();
     }
 
-    
+
     @Override
     public String getNotBeforeAsString() {
         return formatDate(getNotBefore());
     }
-    
+
     @Override
     public String getNotAfterAsString() {
         return formatDate(getNotAfter());
@@ -148,7 +148,7 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
             log.debug("Could not parse Date: " + formattedDate);
         }
     }
-    
+
     @Override
     public void setNotAfterAsString(String formattedDate) {
         try {
@@ -157,12 +157,12 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
             log.debug("Could not parse Date: " + formattedDate);
         }
     }
-    
+
     @Override
     public DynamicUiModel getDynamicUiModel() {
         return uiModel;
     }
-    
+
     /**
      * Formats a date.
      * @param date the date
@@ -187,7 +187,7 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
         if (StringUtils.isNotBlank(string)) {
             final String dateString = string.trim();
                 result = DateUtils.parseDate(dateString, DATE_FORMAT);
-  
+
         }
         return result;
     }

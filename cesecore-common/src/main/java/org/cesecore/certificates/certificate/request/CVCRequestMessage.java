@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.math.BigInteger;
@@ -67,19 +67,19 @@ public class CVCRequestMessage implements RequestMessage {
 
     /** manually set username */
     protected String username = null;
-    
+
     /** The cvc request message, not serialized. */
     protected transient CVCertificate cvcert = null;
 
     private List<Certificate> additionalCaCertificates = new ArrayList<Certificate>();
-  
+
     private List<Certificate> additionalExtraCertsCertificates = new ArrayList<Certificate>();
-    
+
     /**
      * Constructs a new empty message handler object.
      */
     public CVCRequestMessage() {
-    	// No constructor
+        // No constructor
     }
 
     /**
@@ -93,45 +93,45 @@ public class CVCRequestMessage implements RequestMessage {
     }
 
     private void init() {
-		try {
-			CVCObject parsedObject;
-			parsedObject = CertificateParser.parseCVCObject(cvcmsg);
-			if (parsedObject instanceof CVCertificate) {
-				cvcert = (CVCertificate) parsedObject;
-			} else if (parsedObject instanceof CVCAuthenticatedRequest) {
-				CVCAuthenticatedRequest authreq = (CVCAuthenticatedRequest)parsedObject;
-				cvcert = authreq.getRequest();
-			}
-		} catch (ParseException e) {
+        try {
+            CVCObject parsedObject;
+            parsedObject = CertificateParser.parseCVCObject(cvcmsg);
+            if (parsedObject instanceof CVCertificate) {
+                cvcert = (CVCertificate) parsedObject;
+            } else if (parsedObject instanceof CVCAuthenticatedRequest) {
+                CVCAuthenticatedRequest authreq = (CVCAuthenticatedRequest)parsedObject;
+                cvcert = authreq.getRequest();
+            }
+        } catch (ParseException e) {
             log.error("Error in init for CVC request: ", e);
             throw new IllegalArgumentException(e);
-		} catch (ConstructionException e) {
+        } catch (ConstructionException e) {
             log.error("Error in init for CVC request: ", e);
             throw new IllegalArgumentException(e);
-		} catch (NoSuchFieldException e) {
+        } catch (NoSuchFieldException e) {
             log.error("Error in init for CVC request: ", e);
             throw new IllegalArgumentException(e);
-		}
+        }
     }
 
     @Override
     public PublicKey getRequestPublicKey()
             throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
-    	try {
-    		if (cvcert == null) {
-    			init();
-    		}
+        try {
+            if (cvcert == null) {
+                init();
+            }
         } catch (IllegalArgumentException e) {
             log.error("CVC not inited!");
             return null;
         }
 
         PublicKey pk;
-		try {
-			pk = cvcert.getCertificateBody().getPublicKey();
-		} catch (NoSuchFieldException e) {
-			throw new InvalidKeyException(e);
-		}
+        try {
+            pk = cvcert.getCertificateBody().getPublicKey();
+        } catch (NoSuchFieldException e) {
+            throw new InvalidKeyException(e);
+        }
         return pk;
     }
 
@@ -144,7 +144,7 @@ public class CVCRequestMessage implements RequestMessage {
 
     @Override
     public String getPassword() {
-    	return password;
+        return password;
     }
 
     /** force a username, i.e. ignore the DN/username in the request
@@ -160,18 +160,18 @@ public class CVCRequestMessage implements RequestMessage {
             return username;
         }
         String subject = null;
-		try {
-			HolderReferenceField hr = cvcert.getCertificateBody().getHolderReference();
-			subject = hr.getMnemonic()+hr.getCountry();
-		} catch (NoSuchFieldException e) {
-			log.error(e);
-		}
+        try {
+            HolderReferenceField hr = cvcert.getCertificateBody().getHolderReference();
+            subject = hr.getMnemonic()+hr.getCountry();
+        } catch (NoSuchFieldException e) {
+            log.error(e);
+        }
         return subject;
     }
 
     @Override
     public String getIssuerDN() {
-    	CardVerifiableCertificate cc = getCardVerifiableCertificate();
+        CardVerifiableCertificate cc = getCardVerifiableCertificate();
         return CertTools.getIssuerDN(cc);
     }
 
@@ -183,11 +183,11 @@ public class CVCRequestMessage implements RequestMessage {
      */
     @Override
     public BigInteger getSerialNo() {
-    	//CardVerifiableCertificate cc = getCardVerifiableCertificate()
+        //CardVerifiableCertificate cc = getCardVerifiableCertificate()
         //return CertTools.getSerialNumber(cc);
-    	return null;
+        return null;
     }
-    
+
     @Override
     public String getCRLIssuerDN() {
         return null;
@@ -200,38 +200,38 @@ public class CVCRequestMessage implements RequestMessage {
 
     @Override
     public String getRequestDN() {
-    	CardVerifiableCertificate cc = getCardVerifiableCertificate();
+        CardVerifiableCertificate cc = getCardVerifiableCertificate();
         return CertTools.getSubjectDN(cc);
     }
 
     @Override
     public X500Name getRequestX500Name() {
-    	String dn = getRequestDN();
-    	return new X500Name(dn);
+        String dn = getRequestDN();
+        return new X500Name(dn);
     }
 
     @Override
     public String getRequestAltNames() {
-    	return null;
+        return null;
     }
 
     @Override
-	public Date getRequestValidityNotBefore() {
-    	CardVerifiableCertificate cc = getCardVerifiableCertificate();
+    public Date getRequestValidityNotBefore() {
+        CardVerifiableCertificate cc = getCardVerifiableCertificate();
         return CertTools.getNotBefore(cc);
-	}
-	
+    }
+
     @Override
-	public Date getRequestValidityNotAfter() {
-    	CardVerifiableCertificate cc = getCardVerifiableCertificate();
+    public Date getRequestValidityNotAfter() {
+        CardVerifiableCertificate cc = getCardVerifiableCertificate();
         return CertTools.getNotAfter(cc);
-	}
-	
+    }
+
     @Override
-	public Extensions getRequestExtensions() {
-		return null;
-	}
-	
+    public Extensions getRequestExtensions() {
+        return null;
+    }
+
     @Override
     public boolean verify()
     throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -244,16 +244,16 @@ public class CVCRequestMessage implements RequestMessage {
         boolean ret = false;
 
         try {
-        	CardVerifiableCertificate cc = getCardVerifiableCertificate();
-        	if (cc != null) {
+            CardVerifiableCertificate cc = getCardVerifiableCertificate();
+            if (cc != null) {
                 if (pubKey == null) {
-                	cc.verify(cvcert.getCertificateBody().getPublicKey());
-                	ret = true; // If we came here verification was successful
+                    cc.verify(cvcert.getCertificateBody().getPublicKey());
+                    ret = true; // If we came here verification was successful
                 } else {
                     cc.verify(pubKey);
-                	ret = true; // If we came here verification was successful
-                }        		
-        	}
+                    ret = true; // If we came here verification was successful
+                }
+            }
         } catch (NoSuchFieldException e) {
             log.error("CVC error!", e);
         } catch (InvalidKeyException e) {
@@ -301,42 +301,42 @@ public class CVCRequestMessage implements RequestMessage {
 
     @Override
     public byte[] getRequestKeyInfo() {
-    	byte[] ret = null;
-    	try {
-        	String seq = cvcert.getCertificateBody().getHolderReference().getSequence();
-        	ret = seq.getBytes();
-    	} catch (NoSuchFieldException e) {
+        byte[] ret = null;
+        try {
+            String seq = cvcert.getCertificateBody().getHolderReference().getSequence();
+            ret = seq.getBytes();
+        } catch (NoSuchFieldException e) {
             log.error("CVC error!", e);
-    	}
+        }
         return ret;
     }
-    
+
     @Override
     public String getPreferredDigestAlg() {
-    	// Not used
-    	return CMSSignedGenerator.DIGEST_SHA256;
+        // Not used
+        return CMSSignedGenerator.DIGEST_SHA256;
     }
 
     @Override
     public boolean includeCACert() {
-    	return false;
+        return false;
     }
 
     @Override
     public int getRequestType() {
-    	return 0;
+        return 0;
     }
-    
+
     @Override
     public int getRequestId() {
-    	return 0;
+        return 0;
     }
-    
+
     @Override
     public void setResponseKeyInfo(PrivateKey key, String provider) {
         // NOOP
     }
-    
+
     @Override
     public List<Certificate> getAdditionalCaCertificates() {
         return additionalCaCertificates;
@@ -346,7 +346,7 @@ public class CVCRequestMessage implements RequestMessage {
     public void setAdditionalCaCertificates(final List<Certificate> certificates) {
         this.additionalCaCertificates = certificates;
     }
-    
+
     @Override
     public List<Certificate> getAdditionalExtraCertsCertificates() {
         return additionalExtraCertsCertificates;
@@ -357,30 +357,30 @@ public class CVCRequestMessage implements RequestMessage {
         this.additionalExtraCertsCertificates = additionalExtraCertsCertificates;
     }
 
-    /** Specific to CVC request messages, EAC requests contains a sequence 
+    /** Specific to CVC request messages, EAC requests contains a sequence
      * @return sequence*/
     public String getKeySequence() {
-    	String ret = null;
-    	try {
-			if (cvcert.getCertificateBody().getHolderReference() != null) {
-				ret = cvcert.getCertificateBody().getHolderReference().getSequence();    		
-			}
-		} catch (NoSuchFieldException e) {
-			// No sequence found...
-		}
-    	return ret;
+        String ret = null;
+        try {
+            if (cvcert.getCertificateBody().getHolderReference() != null) {
+                ret = cvcert.getCertificateBody().getHolderReference().getSequence();
+            }
+        } catch (NoSuchFieldException e) {
+            // No sequence found...
+        }
+        return ret;
     }
-    
+
     private CardVerifiableCertificate getCardVerifiableCertificate() {
-    	try {
-    		if (cvcert == null) {
-    			init();
-    		}
+        try {
+            if (cvcert == null) {
+                init();
+            }
         } catch (IllegalArgumentException e) {
             log.error("CVC not inited!", e);
             return null;
         }
-    	CardVerifiableCertificate cc = new CardVerifiableCertificate(cvcert);
-    	return cc;
+        CardVerifiableCertificate cc = new CardVerifiableCertificate(cvcert);
+        return cc;
     }
 } // PKCS10RequestMessage

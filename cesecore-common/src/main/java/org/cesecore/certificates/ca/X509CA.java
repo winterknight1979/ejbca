@@ -206,7 +206,7 @@ public class X509CA extends CA implements Serializable {
     private static final CertificateTransparency ct = CertificateTransparencyFactory.getInstance();
 
     // Public Methods
-    /** Creates a new instance of CA, this constructor should be used when a new CA is created 
+    /** Creates a new instance of CA, this constructor should be used when a new CA is created
      * @param cainfo Info*/
     public X509CA(final X509CAInfo cainfo) {
         super(cainfo);
@@ -245,7 +245,7 @@ public class X509CA extends CA implements Serializable {
      * Constructor used when retrieving existing X509CA from database.
      * @param data Data
      * @param caId ID
-     * @param subjectDn DN 
+     * @param subjectDn DN
      * @param name Name
      * @param status Status
      * @param updateTime Updated
@@ -537,12 +537,12 @@ public class X509CA extends CA implements Serializable {
         return (String) getMapValueWithDefault(EXTERNALCDP, "");
     }
 
-    /** Set what should be a String formatted URL pointing to an external CA's CDP. 
+    /** Set what should be a String formatted URL pointing to an external CA's CDP.
      * @param externalCdp CDP*/
     public void setExternalCdp(final String externalCdp) {
         data.put(EXTERNALCDP, externalCdp);
     }
-    
+
     public Integer getSerialNumberOctetSize() {
         return (Integer)getMapValueWithDefault(SERIALNUMBEROCTETSIZE, CesecoreConfiguration.getSerialNumberOctetSizeForNewCa());
     }
@@ -568,7 +568,7 @@ public class X509CA extends CA implements Serializable {
         data.put(NAMECHANGED, Boolean.valueOf(nameChanged));
     }
 
-    /** Retrieving NAMECHANGED flag that shows if this CA has gone through the Name Change any time in its history renewal. 
+    /** Retrieving NAMECHANGED flag that shows if this CA has gone through the Name Change any time in its history renewal.
      * @return boolean*/
     public boolean getNameChanged() {
         Boolean v = ((Boolean) data.get(NAMECHANGED));
@@ -822,7 +822,7 @@ public class X509CA extends CA implements Serializable {
      *       IssuerDN as CA's SubjectDN/IssuerDN before CA Name Change
      *       the Name Change Extension
      * @param oldCaCert to get expire date info from the old CA certificate to put in the link certificate
-     * @throws CryptoTokenOfflineException if offline 
+     * @throws CryptoTokenOfflineException if offline
      */
     private void createOrRemoveLinkCertificate(final CryptoToken cryptoToken, final boolean createLinkCertificate, final CertificateProfile certProfile,
             final AvailableCustomCertificateExtensionsConfiguration cceConfig, boolean caNameChange, final Certificate oldCaCert) throws CryptoTokenOfflineException {
@@ -934,7 +934,7 @@ public class X509CA extends CA implements Serializable {
             throws CAOfflineException, InvalidAlgorithmException, IllegalValidityException, IllegalNameException, CertificateExtensionException,
              OperatorCreationException, CertificateCreateException, SignatureException, IllegalKeyException {
 
-    	// We must only allow signing to take place if the CA itself is on line, even if the token is on-line.
+        // We must only allow signing to take place if the CA itself is on line, even if the token is on-line.
         // We have to allow expired as well though, so we can renew expired CAs
         if ((getStatus() != CAConstants.CA_ACTIVE) && ((getStatus() != CAConstants.CA_EXPIRED))) {
             final String msg = intres.getLocalizedMessage("error.caoffline", getName(), getStatus());
@@ -978,7 +978,7 @@ public class X509CA extends CA implements Serializable {
         // Or a custom serial number defined in the end entity object
         final BigInteger serno;
         {
-            
+
             if (certProfile.getAllowCertSerialNumberOverride()) {
                 if (ei != null && ei.certificateSerialNumber()!=null) {
                     serno = ei.certificateSerialNumber();
@@ -989,7 +989,7 @@ public class X509CA extends CA implements Serializable {
             } else {
                 SernoGenerator instance = SernoGeneratorRandom.instance(getSerialNumberOctetSize());
                 serno = instance.getSerno();
-                
+
                 if ((ei != null) && (ei.certificateSerialNumber() != null)) {
                     final String msg = intres.getLocalizedMessage("createcert.certprof_not_allowing_cert_sn_override_using_normal", ei.certificateSerialNumber().toString(16));
                     log.info(msg);
@@ -1061,10 +1061,10 @@ public class X509CA extends CA implements Serializable {
         // Make sure the DN does not contain dangerous characters
         if (!StringTools.hasStripChars(subjectDNName.toString()).isEmpty()) {
             if (log.isTraceEnabled()) {
-            	log.trace("DN with illegal name: "+subjectDNName);
+                log.trace("DN with illegal name: "+subjectDNName);
             }
             final String msg = intres.getLocalizedMessage("createcert.illegalname");
-        	throw new IllegalNameException(msg);
+            throw new IllegalNameException(msg);
         }
         if (log.isDebugEnabled()) {
             log.debug("Using subjectDN: " + subjectDNName.toString());
@@ -1247,7 +1247,7 @@ public class X509CA extends CA implements Serializable {
         final List<Integer> usedCertExt = certProfile.getUsedCertificateExtensions();
         final List<Integer> wildcardExt = new ArrayList<>();
         final Iterator<Integer> certExtIter = usedCertExt.iterator();
-        Set<String> requestOids = new HashSet<>(); 
+        Set<String> requestOids = new HashSet<>();
         if (subject.getExtendedInformation() != null) {
             requestOids = subject.getExtendedInformation().getExtensionDataOids();
         }
@@ -1258,7 +1258,7 @@ public class X509CA extends CA implements Serializable {
                 if (certExt.getOID().contains("*")) {
                     // Match wildcards later
                     wildcardExt.add(id);
-                    continue;   
+                    continue;
                 }
                 // We don't want to try to add custom extensions with the same oid if we have already added them
                 // from the request, if AllowExtensionOverride is enabled.
@@ -1284,7 +1284,7 @@ public class X509CA extends CA implements Serializable {
             final CustomCertificateExtension certExt = cceConfig.getCustomCertificateExtension(id);
             if (certExt != null) {
                 for (final String oid : requestOids) {
-                    // Match requested OID with wildcard in CCE configuration 
+                    // Match requested OID with wildcard in CCE configuration
                     if (oid.matches(CertTools.getOidWildcardPattern(certExt.getOID()))) {
                         if (overridenexts.getExtension(new ASN1ObjectIdentifier(oid)) == null) {
                             final byte[] value = certExt.getValueEncoded(subject, this, certProfile, publicKey, caPublicKey, val, oid);
@@ -1303,7 +1303,7 @@ public class X509CA extends CA implements Serializable {
                 }
                 if ((remainingOidsToMatch == requestOids.size()) && certExt.isRequiredFlag()) {
                     // Required wildcard extension didn't match any OIDs in the request
-                    throw new CertificateExtensionException(intres.getLocalizedMessage("certext.basic.incorrectvalue", Integer.valueOf(certExt.getId()), certExt.getOID()) + 
+                    throw new CertificateExtensionException(intres.getLocalizedMessage("certext.basic.incorrectvalue", Integer.valueOf(certExt.getId()), certExt.getOID()) +
                             "\nNo requested OID matched wildcard");
                 }
             }
@@ -1313,7 +1313,7 @@ public class X509CA extends CA implements Serializable {
             throw new CertificateCreateException(ErrorCode.CUSTOM_CERTIFICATE_EXTENSION_ERROR,
                     "Request contained custom certificate extensions which couldn't match any configuration");
         }
-        
+
         // Finally add extensions to certificate generator
         final Extensions exts = extgen.generate();
         ASN1ObjectIdentifier[] oids = exts.getExtensionOIDs();
@@ -1626,8 +1626,8 @@ public class X509CA extends CA implements Serializable {
         return gen;
     }
 
-    
-    
+
+
     /**
      * Generate a CRL or a deltaCRL
      *
@@ -1888,7 +1888,7 @@ public class X509CA extends CA implements Serializable {
             }
             if (data.get(CRLOVERLAPTIME) == null) {
                 // Default value 10 minutes
-                // This used to be setting of 10, as an Integer, but was refactored to a long (ms) in v18->19, 
+                // This used to be setting of 10, as an Integer, but was refactored to a long (ms) in v18->19,
                 // therefore we have to update this to reflect that as well. If's probably not hurting anyone here, it's too old, but right is right.
                 setCRLOverlapTime(10 * SimpleTime.MILLISECONDS_PER_MINUTE);
             }
@@ -1962,11 +1962,11 @@ public class X509CA extends CA implements Serializable {
             }
             // v21, AIA: Copy CA issuer URI to separated AIA field.
             if (data.get(CERTIFICATE_AIA_DEFAULT_CA_ISSUER_URI) == null) {
-            	if (null != getAuthorityInformationAccess()) {
-            	    setCertificateAiaDefaultCaIssuerUri( getAuthorityInformationAccess());
-            	} else {
-            		setCertificateAiaDefaultCaIssuerUri( new ArrayList<String>());
-            	}
+                if (null != getAuthorityInformationAccess()) {
+                    setCertificateAiaDefaultCaIssuerUri( getAuthorityInformationAccess());
+                } else {
+                    setCertificateAiaDefaultCaIssuerUri( new ArrayList<String>());
+                }
             }
             // v22, 'encodedValidity' is derived by the former long value!
             if (null == data.get(ENCODED_VALIDITY)  && null != data.get(VALIDITY)) {

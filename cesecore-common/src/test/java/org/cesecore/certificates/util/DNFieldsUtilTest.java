@@ -62,7 +62,7 @@ public class DNFieldsUtilTest {
         Map<String,String> map = new HashMap<String,String>();
         Map<String,String> dnMap = DNFieldsUtil.dnStringToMap(string);
         assertEquals("An empty DN string must result in an empty map.", map, dnMap);
-        
+
         // Test valid string with some attributes -> must be all in the map.
         string = "C=SE,O=,OU=Test,CN=Tester";
         map = new HashMap<String,String>();
@@ -75,14 +75,14 @@ public class DNFieldsUtilTest {
         assertTrue("The DN map must contain all attributes.", dnMap.containsKey("C") && dnMap.containsKey("O") && dnMap.containsKey("OU") && dnMap.containsKey("CN"));
         assertEquals("The DN map must contain all attributes and values.", map, dnMap);
     }
-    
+
     @Test
     public void testDnEqualsWithOtherSerialNumber() {
         // Test empty DN strings.
         String string1 = StringUtils.EMPTY;
         String string2 = StringUtils.EMPTY;
         assertFalse("Empty DNs do not belong to the same CSCA (no valid CSCA subject-DNs).", DNFieldsUtil.dnEqualsWithOtherSerialNumber(DNFieldsUtil.dnStringToMap(string1), DNFieldsUtil.dnStringToMap(string2)));
-        
+
         // Test CSCA subject-DNs without serialNumber
         string1 = "C=SE,CN=CSCA";
         assertTrue("DNs with the same values for C and CN can belong to the subject-DN of the same CSCA.", DNFieldsUtil.dnEqualsWithOtherSerialNumber(DNFieldsUtil.dnStringToMap(string1), DNFieldsUtil.dnStringToMap(string1)));
@@ -93,23 +93,23 @@ public class DNFieldsUtilTest {
         assertFalse("A subject-DN string with missing CN does not belong to a CSCA certificate.", DNFieldsUtil.dnEqualsWithOtherSerialNumber(DNFieldsUtil.dnStringToMap(string1), DNFieldsUtil.dnStringToMap(string1)));
 
     }
-    
+
     @Test
     public void testRemoveAllEmpties() throws Exception {
-    	assertEquals(allSpacesRemovedDN, removeEmpties(originalDN, false));
-    	assertEquals(defaultEmptyAfter, removeEmpties(defaultEmptyBefore, false));
-    	assertEquals(simpleBeforeAfter, removeEmpties(simpleBeforeAfter, false));
-    	assertEquals(simple2AfterA, removeEmpties(simple2Before, false));
+        assertEquals(allSpacesRemovedDN, removeEmpties(originalDN, false));
+        assertEquals(defaultEmptyAfter, removeEmpties(defaultEmptyBefore, false));
+        assertEquals(simpleBeforeAfter, removeEmpties(simpleBeforeAfter, false));
+        assertEquals(simple2AfterA, removeEmpties(simple2Before, false));
     }
-    
+
     @Test
     public void testRemoveTrailingEmpties() {
-    	assertEquals(trailingSpacesRemovedDN, removeEmpties(originalDN, true));
-    	assertEquals(defaultEmptyAfter, removeEmpties(defaultEmptyBefore, true));
-    	assertEquals(simpleBeforeAfter, removeEmpties(simpleBeforeAfter, true));
-    	assertEquals(simple2AfterT, removeEmpties(simple2Before, true));
+        assertEquals(trailingSpacesRemovedDN, removeEmpties(originalDN, true));
+        assertEquals(defaultEmptyAfter, removeEmpties(defaultEmptyBefore, true));
+        assertEquals(simpleBeforeAfter, removeEmpties(simpleBeforeAfter, true));
+        assertEquals(simple2AfterT, removeEmpties(simple2Before, true));
     }
-    
+
     @Test
     public void testRemoveSingleEmpty() {
         assertEquals("", DNFieldsUtil.removeAllEmpties("CN="));
@@ -122,34 +122,34 @@ public class DNFieldsUtilTest {
 
     @Test
     public void testRemoveTrailingEmptiesError() {
-    	final String BAD_DN_STRING = "ddddddd=, sdfdf, sdfsdf=44";
-    	final String FAIL_MESSAGE = "Behavioral change in DNFieldsUtil.";
-    	try {
-    		removeEmpties(BAD_DN_STRING, true);
-    		fail(FAIL_MESSAGE);
-    	} catch (Exception e) {
-    		// What we expect if something goes wrong
-    	}
-    	try {
-    		removeEmpties(BAD_DN_STRING, false);
-    		fail(FAIL_MESSAGE);
-    	} catch (Exception e) {
-    		// What we expect if something goes wrong
-    	}
+        final String BAD_DN_STRING = "ddddddd=, sdfdf, sdfsdf=44";
+        final String FAIL_MESSAGE = "Behavioral change in DNFieldsUtil.";
+        try {
+            removeEmpties(BAD_DN_STRING, true);
+            fail(FAIL_MESSAGE);
+        } catch (Exception e) {
+            // What we expect if something goes wrong
+        }
+        try {
+            removeEmpties(BAD_DN_STRING, false);
+            fail(FAIL_MESSAGE);
+        } catch (Exception e) {
+            // What we expect if something goes wrong
+        }
     }
 
     private String removeEmpties(String dn, boolean onlyTrailing) {
-    	final StringBuilder sb2 = new StringBuilder();
-    	final StringBuilder sb1 = DNFieldsUtil.removeEmpties(dn, sb2, true);
-    	final String removedEmpties1 = DNFieldsUtil.removeAllEmpties(dn);
-    	final String removedEmpties2 = sb2.toString();
-		assertEquals(removedEmpties1, removedEmpties2);
-    	if (sb1 == null) {
-    		return removedEmpties2;
-    	}
-    	if (onlyTrailing) {
-    		return sb1.toString();
-    	}
-		return removedEmpties2;
+        final StringBuilder sb2 = new StringBuilder();
+        final StringBuilder sb1 = DNFieldsUtil.removeEmpties(dn, sb2, true);
+        final String removedEmpties1 = DNFieldsUtil.removeAllEmpties(dn);
+        final String removedEmpties2 = sb2.toString();
+        assertEquals(removedEmpties1, removedEmpties2);
+        if (sb1 == null) {
+            return removedEmpties2;
+        }
+        if (onlyTrailing) {
+            return sb1.toString();
+        }
+        return removedEmpties2;
     }
 }

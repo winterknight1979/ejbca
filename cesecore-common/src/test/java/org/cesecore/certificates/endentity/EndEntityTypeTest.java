@@ -18,7 +18,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for the {@link EndEntityType} class and the {@link EndEntityTypes} enum.
- * 
+ *
  * @version $Id: EndEntityTypeTest.java 22121 2015-10-29 13:49:30Z mikekushner $
  *
  */
@@ -32,7 +32,7 @@ public class EndEntityTypeTest {
         assertFalse(basicType.isType(EndEntityTypes.ENDUSER));
         assertFalse(basicType.isType(EndEntityTypes.INVALID));
     }
-    
+
     @Test
     public void testIsTypeComplex() {
         //Complex test
@@ -40,7 +40,7 @@ public class EndEntityTypeTest {
         assertFalse(complexType.isType(EndEntityTypes.ENDUSER));
         assertFalse(complexType.isType(EndEntityTypes.ADMINISTRATOR));
     }
-    
+
     @Test
     public void testAddToType() {
         EndEntityType type = new EndEntityType();
@@ -48,11 +48,11 @@ public class EndEntityTypeTest {
             throw new RuntimeException("Type shouldn't contain ENDUSER to begin with.");
         }
         type.addType(EndEntityTypes.ENDUSER);
-        assertTrue((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue()) == EndEntityTypes.ENDUSER.hexValue()); 
+        assertTrue((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue()) == EndEntityTypes.ENDUSER.hexValue());
         type.addType(EndEntityTypes.ADMINISTRATOR);
-        assertTrue((type.getHexValue() & EndEntityTypes.ADMINISTRATOR.hexValue()) == EndEntityTypes.ADMINISTRATOR.hexValue()); 
+        assertTrue((type.getHexValue() & EndEntityTypes.ADMINISTRATOR.hexValue()) == EndEntityTypes.ADMINISTRATOR.hexValue());
     }
-    
+
     @Test
     public void testContains() {
         EndEntityType type = new EndEntityType(EndEntityTypes.INVALID);
@@ -60,12 +60,12 @@ public class EndEntityTypeTest {
             throw new RuntimeException("Type shouldn't contain ENDUSER to begin with.");
         }
         type.addType(EndEntityTypes.ENDUSER);
-        assertTrue(type.contains(EndEntityTypes.ENDUSER));   
-        //Since EndEntityTypes.INVALID is 0x0, it can always be considered "contained". 
+        assertTrue(type.contains(EndEntityTypes.ENDUSER));
+        //Since EndEntityTypes.INVALID is 0x0, it can always be considered "contained".
         assertTrue(type.contains(EndEntityTypes.INVALID));
     }
-    
-    @Test 
+
+    @Test
     public void testRemoveType() {
         EndEntityType type = new EndEntityType(EndEntityTypes.ENDUSER, EndEntityTypes.PRINT);
         if((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue()) != EndEntityTypes.ENDUSER.hexValue()) {

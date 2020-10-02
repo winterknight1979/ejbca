@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.io.Serializable;
@@ -48,9 +48,9 @@ public class FailInfo implements Serializable {
      * No certificate could be identified matching the provided criteria
      */
     public static final FailInfo BAD_CERTIFICATE_ID = new FailInfo(4);
-    
+
     // The below codes are not specified in the SCEP draft RFC
-    
+
     /**
      * Request for wrong certificate authority
      */
@@ -99,17 +99,17 @@ public class FailInfo implements Serializable {
     public int intValue() {
         return value;
     }
-    
+
     public boolean equals(Object o) {
         if (this == o) {
-        	return true;
+            return true;
         }
-        if (!(o instanceof FailInfo)) { 
-        	return false;
+        if (!(o instanceof FailInfo)) {
+            return false;
         }
         final FailInfo scepResponseStatus = (FailInfo) o;
         if (value != scepResponseStatus.value) {
-        	return false;
+            return false;
         }
         return true;
     }
@@ -118,6 +118,6 @@ public class FailInfo implements Serializable {
         return value;
     }
     public String toString() {
-    	return Integer.toString(value);
+        return Integer.toString(value);
     }
 }

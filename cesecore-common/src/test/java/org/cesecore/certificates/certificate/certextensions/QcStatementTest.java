@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.certextensions;
 
 import static org.junit.Assert.assertEquals;
@@ -41,7 +41,7 @@ import org.junit.Test;
  */
 public class QcStatementTest {
     private static Logger log = Logger.getLogger(QcStatementTest.class);
-	
+
     @Test
     public void testQcStatement() throws CertificateExtensionException, IOException {
         CertificateProfile prof = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
@@ -51,7 +51,7 @@ public class QcStatementTest {
         // QC ETSI type from eIDAS EN 319 412-5, eSign = 0.4.0.1862.1.6.1, eseal = 0.4.0.1862.1.6.2, web = 0.4.0.1862.1.6.3
         prof.setQCEtsiType("0.4.0.1862.1.6.1");
         prof.setQCEtsiPds(Arrays.asList(new PKIDisclosureStatement("http://qcs.localhost/QcPDS", "en")));
-        // id-qcs-pkixQCSyntax-v2 (OID = 1.3.6.1.55.7.11.2) with SematicsID = 0.4.0.194121.1.2 
+        // id-qcs-pkixQCSyntax-v2 (OID = 1.3.6.1.55.7.11.2) with SematicsID = 0.4.0.194121.1.2
         // SemanticsID = "Legal Person", according to eIDAS EN 319 412-1
         prof.setUsePkixQCSyntaxV2(true);
         prof.setQCSemanticsId("0.4.0.194121.1.2");
@@ -61,7 +61,7 @@ public class QcStatementTest {
         final String dump = ASN1Dump.dumpAsString(new ASN1InputStream(value).readObject(), true);
         log.info(dump);
         // Hex dump can be used in Custom Certificate Extensions
-        final String hexEncodedQcStatements = new String(Hex.encode(value)); 
+        final String hexEncodedQcStatements = new String(Hex.encode(value));
         log.info(hexEncodedQcStatements);
         // Parsing the Hex encoded QCStatements that we creted above, will it parse?
         final ASN1Sequence seq = (ASN1Sequence) ASN1Sequence.fromByteArray(value);
@@ -88,6 +88,6 @@ public class QcStatementTest {
         // Check the values we set
         assertEquals("0.4.0.1862.1.6.1", QCStatementExtension.getStatementStringValue(seq, "0.4.0.1862.1.6", 0));
         assertEquals("[http://qcs.localhost/QcPDS, en]", QCStatementExtension.getStatementStringValue(seq, "0.4.0.1862.1.5", 0));
-        
+
     }
 }

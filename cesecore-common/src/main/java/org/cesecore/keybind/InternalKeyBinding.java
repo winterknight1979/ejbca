@@ -27,33 +27,33 @@ import org.cesecore.util.ui.DynamicUiProperty;
  */
 public interface InternalKeyBinding extends Serializable {
 
-    /** Called directly after implementation instantiation status 
+    /** Called directly after implementation instantiation status
      * @param id ID
      * @param name Name
      * @param status Status
-     * @param certificateId ID of certificate 
+     * @param certificateId ID of certificate
      * @param cryptoTokenId ID of Crypto token
      * @param keyPairAlias Key pair
      * @param dataMapToLoad Map */
     void init(int id, String name, InternalKeyBindingStatus status, String certificateId, int cryptoTokenId, String keyPairAlias,
             LinkedHashMap<Object, Object> dataMapToLoad);
 
-    /** Called directly before object is persisted 
+    /** Called directly before object is persisted
      * @return Map*/
     LinkedHashMap<Object, Object> getDataMapToPersist();
 
-    /** @return the non-changeable alias for this implementation. E.g. "DummyKeyBinding". 
+    /** @return the non-changeable alias for this implementation. E.g. "DummyKeyBinding".
      * */
     String getImplementationAlias();
 
     /** @return the next key pair's alias to be used or null of there currently is no mapped next key */
     String getNextKeyPairAlias();
 
-    /** Set the next key pair's alias to be used 
+    /** Set the next key pair's alias to be used
      * @param currentNextKeyPairAlias alias*/
     void setNextKeyPairAlias(String currentNextKeyPairAlias);
 
-    /** Uses the next key alias as current key alias and updates the certificateId 
+    /** Uses the next key alias as current key alias and updates the certificateId
      * @param certificateId certificate*/
     void updateCertificateIdAndCurrentKeyAlias(String certificateId);
 
@@ -64,7 +64,7 @@ public interface InternalKeyBinding extends Serializable {
      * IMPORTANT: The validation must be done properly to avoid unintended certificate import.
      * @param certificate certificate
      * @param ekuConfig config
-     * 
+     *
      * @throws CertificateImportException if the provided certificate is not compatible with this type of implementation
      */
     void assertCertificateCompatability(Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) throws CertificateImportException;
@@ -75,46 +75,46 @@ public interface InternalKeyBinding extends Serializable {
     /** @return the current human friendly name of this instance */
     String getName();
 
-    /** Sets the current human friendly name of this instance 
+    /** Sets the current human friendly name of this instance
      * @param name name*/
     void setName(String name);
 
     /** @return the current status of this instance */
     InternalKeyBindingStatus getStatus();
 
-    /** Sets the current status of this instance 
+    /** Sets the current status of this instance
      * @param status status*/
     void setStatus(InternalKeyBindingStatus status);
 
     /** @return the current operational status of this instance */
     InternalKeyBindingOperationalStatus getOperationalStatus();
 
-    /** Sets the current operational status of this instance 
+    /** Sets the current operational status of this instance
      * @param opStatus status*/
     void setOperationalStatus(InternalKeyBindingOperationalStatus opStatus);
-    
+
     /** @return the fingerprint of the certificate currently in use or null if none is referenced */
     String getCertificateId();
 
-    /** Sets the fingerprint of the certificate currently in use 
+    /** Sets the fingerprint of the certificate currently in use
      * @param certificateId ID*/
     void setCertificateId(String certificateId);
 
     /** @return the id of the CryptoToken currently in use */
     int getCryptoTokenId();
 
-    /** Sets the id of the CryptoToken currently in use 
+    /** Sets the id of the CryptoToken currently in use
      * @param cryptoTokenId ID*/
     void setCryptoTokenId(int cryptoTokenId);
 
     /** @return the key pair alias currently in use */
     String getKeyPairAlias();
 
-    /** Sets the key pair alias currently in use 
+    /** Sets the key pair alias currently in use
      * @param keyPairAlias alias*/
     void setKeyPairAlias(String keyPairAlias);
 
-    /** Set an implementation specific property 
+    /** Set an implementation specific property
      * @param name name
      * @param value value */
     void setProperty(String name, Serializable value);
@@ -123,29 +123,29 @@ public interface InternalKeyBinding extends Serializable {
      * @return an implementation specific property or the default */
     DynamicUiProperty<? extends Serializable> getProperty(String name);
 
-    /** 
+    /**
      * Get a defensive copy of all properties
-     * 
-     * @return a Map of all properties/data specific to this implementation, keyed to each property's name. 
+     *
+     * @return a Map of all properties/data specific to this implementation, keyed to each property's name.
      */
     Map<String, DynamicUiProperty<? extends Serializable>> getCopyOfProperties();
 
     /** @return a list of trusted certificates references. An undefined (null) serialnumber means ANY serialnumber. */
     List<InternalKeyBindingTrustEntry> getTrustedCertificateReferences();
 
-    /** Set the list of trusted certificates references. An undefined (null) serialnumber means ANY serialnumber. 
+    /** Set the list of trusted certificates references. An undefined (null) serialnumber means ANY serialnumber.
      * @param trustedCertificateReferences references*/
     void setTrustedCertificateReferences(List<InternalKeyBindingTrustEntry> trustedCertificateReferences);
 
     /** @return the currently used signature algorithm */
     String getSignatureAlgorithm();
 
-    /** Set the currently used signature algorithm (it is up to the caller to ensure that this is compatible with the current keyspec). 
+    /** Set the currently used signature algorithm (it is up to the caller to ensure that this is compatible with the current keyspec).
      * @param signatureAlgorithm algorithm*/
     void setSignatureAlgorithm(String signatureAlgorithm);
 
     List<String> getOcspExtensions();
-    
+
     void setOcspExtensions(List<String> ocspExtensions);
 
 }

@@ -14,29 +14,29 @@ package org.cesecore.audit.enums;
 
 /**
  * Simple implementation of ModuleType that holds the identifier.
- * 
+ *
  * @version $Id: ModuleTypeHolder.java 26796 2017-10-12 04:29:58Z anatom $
  */
 public class ModuleTypeHolder implements ModuleType {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private final String value;
-	
-	public ModuleTypeHolder(final String value) {
-		this.value = value;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
-	}
-	
-	@Override
-	public boolean equals(final ModuleType value) {
-		if (value == null) {
-			return false;
-		}
-		return this.value.equals(value.toString());
-	}
+    private final String value;
+
+    public ModuleTypeHolder(final String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(final ModuleType value) {
+        if (value == null) {
+            return false;
+        }
+        return this.value.equals(value.toString());
+    }
 }

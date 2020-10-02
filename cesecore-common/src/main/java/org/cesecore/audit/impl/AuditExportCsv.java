@@ -21,55 +21,55 @@ import org.cesecore.audit.audit.AuditExporter;
 /**
  * Simple implementation of AuditExporter that writes the field values as a
  * tab-separated file for easy import in spread sheet processors.
- * 
+ *
  * @version $Id: AuditExportCsv.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class AuditExportCsv implements AuditExporter {
 
-	PrintWriter pw;
-	boolean isThisLineEmpty;
-	
-	@Override
-	public void close() throws IOException {
-		pw.close();
-	}
+    PrintWriter pw;
+    boolean isThisLineEmpty;
 
-	@Override
-	public void setOutputStream(OutputStream outputStream) throws IOException {
-		pw = new PrintWriter(outputStream);
-	}
+    @Override
+    public void close() throws IOException {
+        pw.close();
+    }
 
-	@Override
-	public void writeEndObject() throws IOException {
-		pw.println();
-	}
+    @Override
+    public void setOutputStream(OutputStream outputStream) throws IOException {
+        pw = new PrintWriter(outputStream);
+    }
 
-	@Override
-	public void writeField(String key, long value) throws IOException {
-		printTab();
-		pw.print(value);
-		isThisLineEmpty = false;
-	}
+    @Override
+    public void writeEndObject() throws IOException {
+        pw.println();
+    }
 
-	@Override
-	public void writeStartObject() throws IOException {
-		isThisLineEmpty = true;
-	}
+    @Override
+    public void writeField(String key, long value) throws IOException {
+        printTab();
+        pw.print(value);
+        isThisLineEmpty = false;
+    }
 
-	@Override
-	public void writeField(String key, String value) throws IOException {
-		printTab();
-		pw.print(value);
-		isThisLineEmpty = false;
-	}
+    @Override
+    public void writeStartObject() throws IOException {
+        isThisLineEmpty = true;
+    }
 
-	/** Print a tab-char before the value if it is not the first one in this row. */
-	private void printTab() {
-		if (!isThisLineEmpty) {
-			pw.print('\t');
-		}
-	}
-	
+    @Override
+    public void writeField(String key, String value) throws IOException {
+        printTab();
+        pw.print(value);
+        isThisLineEmpty = false;
+    }
+
+    /** Print a tab-char before the value if it is not the first one in this row. */
+    private void printTab() {
+        if (!isThisLineEmpty) {
+            pw.print('\t');
+        }
+    }
+
     @Override
     public void startObjectLabel(String label) throws IOException {
     }

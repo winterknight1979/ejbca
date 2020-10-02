@@ -22,8 +22,8 @@ import java.util.Map;
 /**
  * This class wraps the result of an internal key binding validation. It contains a defensive copy of the properties map
  * allowing values entered as strings to be recast as their proper values, and also contains lists of invalid values for
- * diagnostic purposes. 
- * 
+ * diagnostic purposes.
+ *
  * @version $Id: InternalKeyBindingPropertyValidationWrapper.java 19902 2014-09-30 14:32:24Z anatom $
  *
  */
