@@ -1,15 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>goldeneyes.ejbca</groupId>
     <artifactId>ejbca</artifactId>
     <version>${revision}</version>
   </parent>
+
   <artifactId>ra-gui</artifactId>
   <packaging>war</packaging>
+
   <name>Registration Authority GUI</name>
   <description>Registration Authority GUI WAR</description>
-  
+
   <dependencies>
   
   <dependency>
@@ -41,10 +45,8 @@
 		</dependency>
   
   </dependencies>
-  
-  
+
   <build>
-  
   <plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -119,9 +121,8 @@
 			</plugin>
 			</plugins>
   </build>
-  
-  
-	<reporting>
+
+  <reporting>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -154,7 +155,7 @@
 			</plugin>
 		</plugins>
 	</reporting>
-  
+
   <profiles>
 		<profile>
 			<id>coverage</id>
@@ -200,5 +201,4 @@
 			</reporting>
 		</profile>
 	</profiles>
-  
 </project>
