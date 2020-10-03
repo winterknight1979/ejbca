@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:component="http://java.sun.com/jsf/composite/component"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:t="http://myfaces.apache.org/tomahawk">
+<ui:remove>
+	<!--
+    /*************************************************************************
+     *                                                                       *
+     *  EJBCA: The OpenSource Certificate Authority                          *
+     *                                                                       *
+     *  This software is free software; you can redistribute it and/or       *
+     *  modify it under the terms of the GNU Lesser General Public           *
+     *  License as published by the Free Software Foundation; either         *
+     *  version 2.1 of the License, or any later version.                    *
+     *                                                                       *
+     *  See terms of license at gnu.org.                                     *
+     *                                                                       *
+     *************************************************************************/
+
+     version: $Id: enrollwithrequestid.xhtml 34207 2020-01-08 13:22:50Z samuellb $
+     -->
+</ui:remove>
+<ui:composition template="/WEB-INF/include/template.xhtml">
+	<ui:define name="content">
+		<h:panelGroup layout="block" class="header" id="title">
+			<h1>
+				<h:outputText
+					value="#{msg.enrollwithrequestid_enrollment_with_request_id_title}" />
+			</h1>
+		</h:panelGroup>
+		<h:outputText value="#{msg.enroll_error_unauthorized}" rendered="#{not raAccessBean.authorizedToEnroll}"/>
+		<h:panelGroup layout="block" id="enrollUseRequestIdContentBody"
+			styleClass="content-body"
+			rendered="#{raAccessBean.authorizedToEnroll}">
+			<h:form id="enrollWithRequestIdForm"
+				styleClass="pure-form pure-form-aligned">
+				
+				<h:panelGroup layout="block" rendered="#{!(enrollWithRequestIdBean.finalizeEnrollmentRendered)}">
+					<h2>
+						<h:outputText
+							value="#{msg.enrollwithrequestid_enter_request_id_to_check_the_request_status}" />
+					</h2>
+					<h:panelGroup layout="block" styleClass="internal-frame">
+						<fieldset>
+							<h:panelGroup layout="block" styleClass="pure-control-group">
+								<h:outputLabel for="requestId" value="#{msg.enroll_request_id}" />
+								<h:inputText id="requestId" styleClass="required-input"
+									required="true" value="#{enrollWithRequestIdBean.requestId}">
+									<f:validateLongRange minimum="-2147483648" maximum="2147483647" />
+								</h:inputText>
+							</h:panelGroup>
+							<h:panelGroup layout="block" id="checkRequestButtonGroup"
+								styleClass="keygeneration-button-group">
+								<h:commandButton id="checkButton"
+									value="#{msg.enrollwithrequestid_check}"
+									styleClass="pure-button ra-button"
+									action="#{enrollWithRequestIdBean.checkRequestId}">
+								</h:commandButton>
+							</h:panelGroup>
+						</fieldset>
+					</h:panelGroup>
+				</h:panelGroup>
+
+				<h:panelGroup layout="block" rendered="#{enrollWithRequestIdBean.finalizeEnrollmentRendered}">
+					<h2>
+						<h:outputText
+							value="#{msg.enrollwithrequestid_finalize_enrollment} " />
+					</h2>
+					
+					<h:panelGroup layout="block" styleClass="internal-frame">
+						<h:panelGroup id="enteredRequestId" layout="block" styleClass="pure-control-group">
+							<h:outputLabel for="requestIdField" value="#{msg.enroll_request_id}" />
+							<h:outputText id="requestIdField" value="#{enrollWithRequestIdBean.requestId}" />
+						</h:panelGroup>
+						<h:panelGroup id="requestSubjectDn" layout="block" styleClass="pure-control-group">
+							<h:outputLabel for="subjectDnField" value="Subject"/>
+							<h:outputText id="subjectDnField" styleClass="monospace" value="#{enrollWithRequestIdBean.endEntityInformation.DN};#{enrollWithRequestIdBean.endEntityInformation.subjectAltName}"/>
+						</h:panelGroup>
+						<h:panelGroup id="requestKeyAlgorithm" layout="block" styleClass="pure-control-group" rendered="#{enrollWithRequestIdBean.preSetKeyAlgorithmRendered}">
+							<h:outputLabel for="requestKeyAlgorithmField" value="Key Algorithm"/>
+							<h:outputText id="requestKeyAlgorithmField" value="#{enrollWithRequestIdBean.preSetKeyAlgorithm}"/>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:panelGroup layout="block" styleClass="internal-frame">
+						<fieldset>
+							<!--Either render the fields for algorithm selection, or render the field for CSR upload/paste -->
+							<h:panelGroup id="enteredkeyAlg" layout="block" styleClass="pure-control-group"
+								rendered="#{!enrollWithRequestIdBean.keyAlgorithmPreSet}">
+								<h:outputLabel for="selectAlgorithmOneMenu" value="#{msg.enroll_key_algorithm}" />
+								<h:selectOneMenu id="selectAlgorithmOneMenu" styleClass="jsAutoFocusLast" value="#{enrollWithRequestIdBean.selectedAlgorithm}">
+									<f:selectItems value="#{enrollWithRequestIdBean.availableAlgorithmSelectItems}" />
+								</h:selectOneMenu>
+							</h:panelGroup>
+							
+							<!-- Render CSR upload if user generated -->
+							<h:panelGroup layout="block"
+								rendered="#{enrollWithRequestIdBean.renderGenerateCertificate}" id="uploadCsrOuterPanel" styleClass="pure-control-group">
+								<h:panelGroup layout="block" rendered="#{!enrollWithRequestIdBean.uploadCsrDoneRendered}">
+									<h:panelGroup layout="block">
+									    <p id="newFileInputContainer" style="display: inline-block;"></p>
+									    <ui:remove>
+									        <!-- Pure JavaScript file upload, since non-JS fallback of pasting upload exists -->
+									    </ui:remove>
+									    <script>
+									        ejbca.ra.createFileUploadInput("newFileInput", "newFileInputContainer", function(uploadedText) {
+									            document.getElementById("enrollWithRequestIdForm:certificateRequest").value = uploadedText;
+									            document.getElementById("enrollWithRequestIdForm:uploadCsrButton").click();
+									        });
+									    </script>
+									</h:panelGroup>
+									<h:inputTextarea id="certificateRequest" styleClass="fineprintMono jsAutoFocusLast" style="line-height: 100%;"
+										value="#{enrollWithRequestIdBean.certificateRequest}" cols="80" rows="20" validator="#{enrollWithRequestIdBean.validateCsr}"/>
+									<h:message for="certificateRequest" id="certificateRequestMessage" styleClass="showErrorMessage"/>
+									<br/>
+									<h:commandButton id="uploadCsrButton" value="#{msg.enroll_upload_csr}" styleClass="pure-button ra-button"
+									    action="#{enrollWithRequestIdBean.uploadCsr}">
+									    <f:ajax event="change" execute="@form" render=":globalMessages :enrollWithRequestIdForm certificateRequestMessage @form"/>
+									</h:commandButton>
+								</h:panelGroup>
+							    <h:panelGroup layout="block" styleClass="internal-frame" rendered="#{enrollWithRequestIdBean.uploadCsrDoneRendered}">
+									<h:panelGroup layout="block" styleClass="pure-control-group">
+									    <h:outputLabel for="certificateRequestNode" value="#{msg.enroll_upload_csr_keyalgo_label}"/>
+									    <h:outputText id="certificateRequestNode" value="#{enrollWithRequestIdBean.selectedAlgorithm}"/>
+									</h:panelGroup>
+									<h:commandButton id="changeCsrButton" value="#{msg.enroll_upload_csr_change}" styleClass="pure-button ra-button"
+									    action="#{enrollWithRequestIdBean.uploadCsrChange}" rendered="#{!enrollWithRequestIdBean.csrPreSet}">
+									</h:commandButton>
+							    </h:panelGroup>
+							</h:panelGroup>
+							
+							<h:panelGroup id="enteredRequestEnrollmentCode" layout="block" styleClass="pure-control-group">
+								<h:outputLabel for="enrollmentCode" value="#{msg.enroll_password}" />
+								<h:inputSecret id="enrollmentCode" value="#{enrollWithRequestIdBean.endEntityInformation.password}" autocomplete="off">
+									<f:validateRequired/>
+								</h:inputSecret>
+								<h:message for="enrollmentCode" id="enrollmentCodeMessage" styleClass="showErrorMessage"/>
+							</h:panelGroup>
+
+							<h:panelGroup id="requestIdButtons" layout="block">
+								<h:commandButton id="generatePem"
+									value="#{msg.enroll_generate_pem}"
+									action="#{enrollWithRequestIdBean.generateCertificatePem}"
+									rendered="#{enrollWithRequestIdBean.renderGenerateCertificate}"
+									styleClass="pure-button ra-button">
+								</h:commandButton>
+								<h:commandButton id="generatePemFullChain"
+									value="#{msg.enroll_generate_pem_full_chain}"
+									action="#{enrollWithRequestIdBean.generateCertificatePemFullChain}"
+									rendered="#{enrollWithRequestIdBean.renderGenerateCertificate}"
+									styleClass="pure-button ra-button">
+								</h:commandButton>
+								<h:commandButton id="generatePkcs7"
+									value="#{msg.enroll_generate_pkcs7}"
+									action="#{enrollWithRequestIdBean.generateCertificatePkcs7}"
+									rendered="#{enrollWithRequestIdBean.renderGenerateCertificate}"
+									styleClass="pure-button ra-button">
+								</h:commandButton>
+								<h:commandButton id="generateDer"
+									value="#{msg.enroll_generate_der}"
+									action="#{enrollWithRequestIdBean.generateCertificateDer}"
+									rendered="#{enrollWithRequestIdBean.renderGenerateCertificate}"
+									styleClass="pure-button ra-button">
+								</h:commandButton>
+								<h:commandButton id="generateJks"
+									value="#{msg.enroll_generate_jks}"
+									action="#{enrollWithRequestIdBean.generateKeyStoreJks}"
+									rendered="#{enrollWithRequestIdBean.renderGenerateKeyStoreJks}"
+									styleClass="pure-button ra-button">
+								</h:commandButton>
+								<h:commandButton id="generatePkcs12"
+									value="#{msg.enroll_generate_p12}"
+									action="#{enrollWithRequestIdBean.generateKeyStorePkcs12}"
+									rendered="#{enrollWithRequestIdBean.renderGenerateKeyStorePkcs12}"
+									styleClass="pure-button ra-button">
+								</h:commandButton>
+								<h:commandButton id="generateKeyStorePem"
+									value="#{msg.enroll_generate_pem}"
+									action="#{enrollWithRequestIdBean.generateKeyStorePem}"
+									rendered="#{enrollWithRequestIdBean.renderGenerateKeyStorePem}"
+									styleClass="pure-button ra-button">
+								</h:commandButton>
+							</h:panelGroup>
+						</fieldset>
+					</h:panelGroup>
+					<h:panelGroup layout="block" id="navigationButtonGroup"
+					styleClass="navigation-button-group">
+					<h:commandButton id="resetButton" value="#{msg.generic_back}"
+						styleClass="pure-button ra-button"
+						action="#{enrollWithRequestIdBean.reset}" immediate="true">
+					</h:commandButton>
+				</h:panelGroup>
+				</h:panelGroup>
+			</h:form>
+		</h:panelGroup>
+	</ui:define>
+</ui:composition>
+</html>

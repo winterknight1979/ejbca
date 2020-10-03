@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- *  EJBCA Community: The OpenSource Certificate Authority                *
+ *  EJBCA: The OpenSource Certificate Authority                          *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
  *  modify it under the terms of the GNU Lesser General Public           *
@@ -10,17 +10,24 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-package org.ejbca.core.protocol.ws.logger;
 
-public enum TransactionTags {
-    METHOD,
-    ERROR_MESSAGE,
-    ADMIN_DN,
-    ADMIN_ISSUER_DN,
-    ADMIN_REMOTE_IP,
-    ADMIN_FORWARDED_IP;
-    @SuppressWarnings("el-syntax")
-    public String getTag() {
-        return "${"+toString()+"}";
-    }
-}
+/* version: $Id: base.css 25409 2017-03-07 16:34:41Z samuellb $ */
+
+.rtlDirection { direction: rtl; }
+.ltrDirection { direction: ltr; }
+
+.nopadding td { padding: 0px; }
+.noborder td { border: 0px; }
+
+.fineprint { font-size: xx-small; }
+.fineprintMono { font-size: xx-small; font-family: monospace; }
+
+.monospace { font-family: monospace; }
+.ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pre { white-space: pre; }
+
+label.invalidInput { color: red; }
+
+.jsShow { display: none; }
+
+.plainDiv { width: 100%; }

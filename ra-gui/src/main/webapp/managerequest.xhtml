@@ -1,0 +1,181 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:component="http://java.sun.com/jsf/composite/component"
+    xmlns:c="http://java.sun.com/jsp/jstl/core"
+    xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+    xmlns:t="http://myfaces.apache.org/tomahawk">
+<ui:remove>
+    <!--
+    /*************************************************************************
+     *                                                                       *
+     *  EJBCA: The OpenSource Certificate Authority                          *
+     *                                                                       *
+     *  This software is free software; you can redistribute it and/or       *
+     *  modify it under the terms of the GNU Lesser General Public           *
+     *  License as published by the Free Software Foundation; either         *
+     *  version 2.1 of the License, or any later version.                    *
+     *                                                                       *
+     *  See terms of license at gnu.org.                                     *
+     *                                                                       *
+     *************************************************************************/
+
+     version: $Id: managerequest.xhtml 34360 2020-01-23 09:25:05Z samuellb $
+     -->
+</ui:remove>
+<ui:composition template="/WEB-INF/include/template.xhtml">
+<f:metadata>
+    <!-- Parameters must be duplicated here and in managerequests.xhtml. When we drop support for JBoss GA 7.1.1 we can put them in a separate file and use ui:include -->
+    <f:viewParam name="tab" value="#{raManageRequestsBean.tab}"/>
+    <f:viewParam name="sortAsc" value="#{raManageRequestsBean.sortAscending}"/>
+    <f:viewParam name="sortCol" value="#{raManageRequestsBean.sortColumn}"/>
+    <f:viewParam name="searchWaiting" value="#{raManageRequestsBean.customSearchingWaiting}"/>
+    <f:viewParam name="searchProcessed" value="#{raManageRequestsBean.customSearchingProcessed}"/>
+    <f:viewParam name="searchExpired" value="#{raManageRequestsBean.customSearchingExpired}"/>
+    <f:viewParam name="searchStartDate" value="#{raManageRequestsBean.customSearchStartDate}"/>
+    <f:viewParam name="searchEndDate" value="#{raManageRequestsBean.customSearchEndDate}"/>
+    <f:viewParam name="searchExpiresDays" value="#{raManageRequestsBean.customSearchExpiresDays}"/>
+
+    <f:viewParam name="id" value="#{raManageRequestBean.idParam}"/>
+    <f:viewParam name="aid" value="#{raManageRequestBean.aidParam}"/>
+    <f:event type="preRenderView" listener="#{raManageRequestBean.initializeRequestInfo}"/>
+</f:metadata>
+<ui:define name="content">
+    <h:panelGroup layout="block" class="header" id="title">
+        <h1><h:outputText value="#{raManageRequestBean.pageTitle}"/></h1>
+    </h:panelGroup>
+    <h:outputText value="#{msg.manage_requests_page_error_unauthorized}" rendered="#{!raAccessBean.authorizedToManageRequests}"/>
+    <h:panelGroup layout="block" styleClass="content-body" rendered="#{raAccessBean.authorizedToManageRequests}">
+        <h:panelGroup styleClass="topLinks" layout="block">
+            <h:link outcome="managerequests" rendered="#{not raManageRequestBean.editDataVisible and raManageRequestsBean.tab != null}" styleClass="backLink" includeViewParams="true">
+                <h:outputText value="#{msg.generic_back}"/>
+            </h:link>
+            <h:link rendered="#{raManageRequestBean.editDataVisible}" styleClass="backLink" includeViewParams="true">
+                <h:outputText value="#{msg.generic_back}"/>
+            </h:link>
+        </h:panelGroup>
+        <h:form id="manageRequestForm" class="pure-form manageRequestDetView">
+            
+            <h:panelGroup layout="block" rendered="#{raManageRequestBean.statusVisible}">
+                <h2 class="h2ManageRequst"><h:outputText value="#{msg.view_request_page_request_status_header}"/></h2>
+                
+		    <h:panelGroup layout="block" styleClass="internal-frame">
+		        <h:panelGroup layout="block" styleClass="bigStatus">
+		            <h:outputText value="#{raManageRequestBean.request.status}" styleClass="statusApproved" rendered="#{raManageRequestBean.request.successful}" />
+		            <h:outputText value="#{raManageRequestBean.request.status}" styleClass="statusFailed" rendered="#{raManageRequestBean.request.unsuccessful}" />
+		            <h:outputText value="#{raManageRequestBean.request.status}" rendered="#{raManageRequestBean.request.waitingForApproval}" />
+		        </h:panelGroup>
+		        <h:panelGroup layout="block" styleClass="smallStatus" rendered="#{raManageRequestBean.request.waitingForApproval}">
+		            <h:outputText value="#{raManageRequestBean.stepInfoText}"/>
+		        </h:panelGroup>
+		    </h:panelGroup>
+            </h:panelGroup>
+            
+            <h2><h:outputText value="#{msg.view_request_page_request_data_header}"/></h2>
+            <h:panelGroup id="viewRequestDataTable" layout="block" styleClass="internal-frame" rendered="#{raManageRequestBean.viewDataVisible}">
+                <h:outputLabel for="requestId" value="#{msg.enroll_request_id}" styleClass="pure-u-lg-1-3"/>
+                <h:outputText id="requestId" value="#{raManageRequestBean.request.id}" styleClass="pure-u-lg-2-3 ra-outputText"/>
+                
+                <h:outputLabel for="requestType" value="#{msg.view_request_page_request_type}" styleClass="pure-u-lg-1-3"/>
+                <h:outputText id="requestType" value="#{raManageRequestBean.request.type}" styleClass="pure-u-lg-2-3 ra-outputText"/>
+                 
+                <component:eedetails raEndEntityDetails="#{raManageRequestBean.request.endEntityDetails}" editMode="false" approvalRequestMode="true" rendered="#{raManageRequestBean.request.endEntityDetails != null}"/>
+                <h:outputText id="dnoverride" value="#{msg.view_request_page_note_dnoverride}" rendered="#{raManageRequestBean.dnOverrideRendered}"/>
+                <h:outputText styleClass="pure-u-lg-1 pre" value=" "/>
+                
+                <ui:repeat value="#{raManageRequestBean.request.requestData}" var="row">
+                    <h:outputLabel value="#{row.header}" styleClass="pure-u-lg-1-3"/>
+                    <h:outputText value="#{row.data}" styleClass="pure-u-lg-2-3 ra-outputText"/>
+                </ui:repeat>
+                
+                <h:panelGroup layout="block" styleClass="editButtons" rendered="#{raManageRequestBean.request.canEdit}">
+                    <h:commandButton id="commandEditData" styleClass="pure-button ra-button" action="#{raManageRequestBean.editRequestData}" value="#{msg.view_request_page_edit_data_command}"/>
+                </h:panelGroup>
+                <h:panelGroup rendered="#{raManageRequestBean.request.canExtend}">
+                    <h:outputLabel value="#{msg.view_request_page_extend_days_1}" styleClass="pure-u-lg-1-3"/>
+                    <h:inputText id="extendDays" value="#{raManageRequestBean.extendDays}" styleClass="pure-input-1-6" size="3"
+                        validatorMessage="#{msg.generic_invalid_number}">
+                        <f:validateRegex pattern="\s*([0-9]+\s*)?"/>
+                    </h:inputText>
+                    <h:outputText value="#{raManageRequestBean.extendDaysPart2Text}" styleClass="bodyText"/>
+                    <br />
+                    <h:outputText value="" styleClass="pure-u-lg-1-3"/>
+                    <h:commandButton id="commandExtendRequest" styleClass="pure-button ra-button" action="#{raManageRequestBean.extendRequest}" value="#{msg.view_request_page_extend_command}"/>
+                    <h:message for="extendDays" id="extendDaysMessage" styleClass="showErrorMessage"/>
+                </h:panelGroup>
+            </h:panelGroup>
+            <ui:repeat value="#{raManageRequestBean.request.editLogEntries}" var="entryText" rendered="#{raManageRequestBean.viewDataVisible}">
+                <h:panelGroup layout="block" styleClass="editLogEntry">
+                    <h:outputText value="#{entryText}"/>
+                </h:panelGroup>
+            </ui:repeat>
+            
+            <h:panelGroup id="editRequestDataTable" layout="block" styleClass="internal-frame" rendered="#{raManageRequestBean.editDataVisible}">
+                <component:eedetails raEndEntityDetails="#{raManageRequestBean.request.endEntityDetails}" editMode="true" approvalRequestMode="true" rendered="#{raManageRequestBean.request.endEntityDetails != null}"/>
+                
+                <h:outputText styleClass="pure-u-lg-1 pre" value=" "/>
+                
+                <ui:repeat value="#{raManageRequestBean.request.requestData}" var="row">
+                    <h:outputLabel value="#{row.header}" styleClass="pure-u-lg-1-3"/>
+                    <h:outputText value="#{row.data}" styleClass="pure-u-lg-2-3 ra-outputText" rendered="#{not row.editingSupported}"/>
+                    <h:inputText value="#{row.editValue}" styleClass="pure-u-lg-2-3 ra-outputText" rendered="#{row.editingSupported}"/>
+                </ui:repeat>
+                
+                <h:panelGroup layout="block" styleClass="editButtons">
+                    <h:commandButton id="commandSaveData" action="#{raManageRequestBean.saveRequestData}" value="#{msg.view_request_page_save_data_command}" styleClass="pure-button ra-button executeActionButton" />
+                    <h:commandButton id="commandCancelEdit" action="#{raManageRequestBean.cancelEdit}" value="#{msg.generic_cancel}" styleClass="pure-button ra-button" />
+                </h:panelGroup>
+            </h:panelGroup>
+            
+            <h:panelGroup id="previousSteps" layout="block" rendered="#{raManageRequestBean.previousStepsVisible}">
+                <h2><h:outputText value="#{msg.view_request_page_previous_steps_header}"/></h2>
+            
+                <ui:repeat value="#{raManageRequestBean.request.previousSteps}" var="prevStep">
+                    <h:panelGroup layout="block" styleClass="approvalStep internal-frame">
+                        <h3 class="h3Margin" id="h3ApprovedSteps"><h:outputText value="#{prevStep.headingText}"/></h3>
+                        <ui:repeat value="#{raManageRequestBean.partitionsToGuiPartitions(prevStep, prevStep.partitions)}" var="partition">
+                            <h:panelGroup styleClass="approvalStep" rendered="#{not empty raManageRequestBean.getPartitionName(partition)}">
+        	     				<h:outputText value="#{msg.view_request_page_partition}: #{raManageRequestBean.getPartitionName(partition)}"/>
+             				</h:panelGroup>
+                    		<h:panelGroup layout="block" id="approvedByDataTable" rendered="#{not empty raManageRequestBean.getHandledPartitionData(partition)}">
+                    			<ui:repeat value="#{raManageRequestBean.getHandledPartitionData(partition)}" var="kvp"> 
+                    				<h:panelGroup layout="block" styleClass="approvalControl">    
+                            			<h:outputLabel value="#{kvp.key}" styleClass="pure-u-lg-1-3"/>
+                    					<h:panelGroup layout="block">
+                        					<h:outputText value="#{kvp.value}" rendered="#{not empty kvp.value}" styleClass="pure-u-lg-2-3 ra-outputText"/>
+                        					<h:outputText value="&nbsp;" rendered="#{empty kvp.value}" styleClass="pure-u-lg-2-3 ra-outputText"/>
+                    					</h:panelGroup>
+                    				</h:panelGroup>
+                    			</ui:repeat>
+                    		</h:panelGroup>
+                		</ui:repeat>
+            		</h:panelGroup>
+                </ui:repeat>
+            </h:panelGroup>
+            
+            <h:panelGroup id="currentStep" layout="block" rendered="#{raManageRequestBean.approvalVisible}">
+                <h2><h:outputText value="#{msg.view_request_page_approval_header}"/></h2>
+                <h:panelGroup layout="block" rendered="#{raManageRequestBean.request.canApprove}">
+                    
+                    <ui:repeat value="#{raManageRequestBean.partitions}" var="partition">     
+                        <component:approvalmetadata id="currentMetaData" partition="#{partition}" rendered="#{raManageRequestBean.hasContent(partition)}" />
+                    </ui:repeat>
+                    
+                    <h:panelGroup id="approvalButtonsPanel" layout="block">
+                        <h:commandButton id="commandApprove" action="#{raManageRequestBean.approve}" value="#{msg.view_request_page_approve_command}" styleClass="pure-button ra-button executeActionButton" />
+                        <h:commandButton id="commandReject" action="#{raManageRequestBean.reject}" value="#{msg.view_request_page_reject_command}" styleClass="pure-button ra-button executeActionButton" />
+                    </h:panelGroup>
+                </h:panelGroup>
+                
+                <h:panelGroup id="requestApproveMessage" styleClass="bodyText" layout="block" rendered="#{not raManageRequestBean.request.canApprove}">
+                    <h:outputText value="#{raManageRequestBean.cantApproveReason}"/>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:form>
+    </h:panelGroup>
+</ui:define>
+</ui:composition>
+</html>

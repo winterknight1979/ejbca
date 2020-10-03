@@ -68,10 +68,12 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>healthcheck-war</module>
 		<module>clearcache-war</module>
 		<module>admin-gui</module>
+		<module>ra-gui</module>
 		
 		<!-- Test-only modules -->
 		
 		<module>ejbca-test-aggregator</module>
+
 
 
 		
