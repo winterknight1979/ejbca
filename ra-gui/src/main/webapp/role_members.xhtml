@@ -1,0 +1,214 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:component="http://java.sun.com/jsf/composite/component"
+    xmlns:c="http://java.sun.com/jsp/jstl/core"
+    xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+    xmlns:t="http://myfaces.apache.org/tomahawk">
+<ui:remove>
+    <!--
+    /*************************************************************************
+     *                                                                       *
+     *  EJBCA: The OpenSource Certificate Authority                          *
+     *                                                                       *
+     *  This software is free software; you can redistribute it and/or       *
+     *  modify it under the terms of the GNU Lesser General Public           *
+     *  License as published by the Free Software Foundation; either         *
+     *  version 2.1 of the License, or any later version.                    *
+     *                                                                       *
+     *  See terms of license at gnu.org.                                     *
+     *                                                                       *
+     *************************************************************************/
+
+     version: $Id: role_members.xhtml 25626 2017-03-30 17:09:50Z jeklund $
+     -->
+</ui:remove>
+<ui:composition template="/WEB-INF/include/template.xhtml">
+    <f:metadata>
+        <!-- These parameters must be duplicated here and in add_role_member.xhtml. When we drop support for JBoss GA 7.1.1 we can put them in a separate file and use ui:include -->
+        <f:viewParam name="genericSearchString" value="#{raRoleMembersBean.genericSearchString}"/>
+        <f:viewParam name="criteriaRoleId" value="#{raRoleMembersBean.criteriaRoleId}"/>
+        <f:viewParam name="criteriaCaId" value="#{raRoleMembersBean.criteriaCaId}"/>
+        <f:viewParam name="criteriaTokenType" value="#{raRoleMembersBean.criteriaTokenType}"/>
+        <f:viewParam name="membersSortAsc" value="#{raRoleMembersBean.sortAscending}"/>
+        <f:viewParam name="membersSortCol" value="#{raRoleMembersBean.sortColumn}"/>
+        <f:viewParam name="fromRolesPage" value="#{raRoleMembersBean.fromRolesPage}"/>
+        
+        <!-- These parameters must be duplicated in several places. See roles.xhtml for a complete list. When we drop support for JBoss GA 7.1.1 we can put them in a separate file and use ui:include -->
+        <f:viewParam name="roleSearchString" value="#{raRolesBean.roleSearchString}"/>
+        <f:viewParam name="rolesSortAsc" value="#{raRolesBean.sortAscending}"/>
+        <f:viewParam name="rolesSortCol" value="#{raRolesBean.sortColumn}"/>
+        
+        <f:event type="preRenderView" listener="#{raRoleMembersBean.initialize}"/>
+    </f:metadata>
+    <ui:define name="content">
+        <h:panelGroup layout="block" class="header" id="title">
+            <h1><h:outputText value="#{msg.role_members_page_title}"/></h1>
+        </h:panelGroup>
+        <h:outputText value="#{msg.role_members_page_error_unauthorized}" rendered="#{!raAccessBean.authorizedToRoleMembers}"/>
+        <h:panelGroup layout="block" styleClass="content-body" rendered="#{raAccessBean.authorizedToRoleMembers}">
+        
+            <h:panelGroup id="basic" layout="block">
+                <h:panelGroup styleClass="pure-u-1 pure-u-lg-2-5 topLeftButtons">
+                    <h:link outcome="roles" rendered="#{raRoleMembersBean.fromRolesPage}" layout="block" styleClass="backLink" includeViewParams="true">
+                        <h:outputText value="#{msg.role_members_page_back_to_roles_page}"/>
+                    </h:link>
+                </h:panelGroup>
+            </h:panelGroup>
+            
+            <h:form id="roleMembersForm" styleClass="pure-form">
+                <h:panelGroup id="basic" styleClass="pure-g">
+                    <h:panelGroup id="parentGenericSearchString" styleClass="pure-u-1 pure-u-lg-3-5">
+                        <h:inputText id="genericSearchString" value="#{raRoleMembersBean.genericSearchString}" styleClass="jsAutoFocusFirst jsTitleAsPlaceHolder jsDelayKeyUp pure-u-1" size="40"
+                             title="#{msg.role_members_page_criteria_generic_title}">
+                            <f:ajax event="keyup" execute="@this" render=":roleMembersForm:filteredResults" listener="#{raRoleMembersBean.searchAndFilterAjaxListener}"
+                                onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                        </h:inputText>
+                    </h:panelGroup>
+
+                    <h:panelGroup id="parentGenericSearchButton" styleClass="pure-u-1 pure-u-lg-2-5">
+                        <h:commandButton action="#{raRoleMembersBean.searchAndFilterAction}" value="#{msg.role_members_page_search_command}" styleClass="pure-button pure-button-primary searchButton jsHide"/>
+                    </h:panelGroup>
+                    
+                    <ui:remove><!-- TODO: choose namespace also? and only show the first 100 roles here? --></ui:remove>
+                    <h:panelGroup id="parentCriteriaRoleId" styleClass="pure-u-1 pure-u-lg-1-5">
+                        <h:selectOneMenu id="criteriaRoleId" value="#{raRoleMembersBean.criteriaRoleId}" styleClass="pure-input-1">
+                            <f:selectItems value="#{raRoleMembersBean.availableRoles}"/>
+                            <f:ajax event="change" execute="@this" render=":roleMembersForm:filteredResults" listener="#{raRoleMembersBean.searchAndFilterAjaxListener}"
+                                onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    
+                    <h:panelGroup id="parentCriteriaCaId" styleClass="pure-u-1 pure-u-lg-1-5">
+                        <h:selectOneMenu id="criteriaCaId" value="#{raRoleMembersBean.criteriaCaId}" styleClass="pure-input-1" rendered="#{!raRoleMembersBean.onlyOneCaAvailable}">
+                            <f:selectItems value="#{raRoleMembersBean.availableCas}"/>
+                            <f:ajax event="change" execute="@this" render=":roleMembersForm:filteredResults" listener="#{raRoleMembersBean.searchAndFilterAjaxListener}"
+                                onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+
+                    <h:panelGroup id="parentCriteriaTokenType" styleClass="pure-u-1 pure-u-lg-1-5">
+                        <h:selectOneMenu id="criteriaTokenType" value="#{raRoleMembersBean.criteriaTokenType}" styleClass="pure-input-1" rendered="#{!raRoleMembersBean.onlyOneTokenTypeAvailable}">
+                            <f:selectItems value="#{raRoleMembersBean.availableTokenTypes}"/>
+                            <f:ajax event="change" execute="@this" render=":roleMembersForm:filteredResults" listener="#{raRoleMembersBean.searchAndFilterAjaxListener}"
+                                onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    
+                    <h:panelGroup id="parentAddRoleMemberButton" styleClass="pure-u-1 pure-u-lg-2-5 topRightButtons" rendered="#{raAccessBean.authorizedToEditRoleMembers}">
+                        <h:link id="addRoleMemberButton" outcome="role_member" includeViewParams="true" styleClass="pure-button ra-button">
+                            <f:param name="roleId" value="#{raRoleMembersBean.criteriaRoleId}" disable="#{raRoleMembersBean.criteriaRoleId == null}"/>
+                            <f:param name="caId" value="#{raRoleMembersBean.criteriaCaId}" disable="#{raRoleMembersBean.criteriaCaId == null}"/>
+                            <f:param name="tokenType" value="#{raRoleMembersBean.criteriaTokenType}" disable="#{raRoleMembersBean.criteriaTokenType == null}"/>
+                            <h:outputText value="#{msg.role_members_page_add_member_command}"/>
+                        </h:link>
+                    </h:panelGroup>
+                </h:panelGroup>
+                
+
+                <h:panelGroup id="filteredResults" layout="block" style="margin-top: 10px;" styleClass="pure-u-lg-5-5">
+                    <h:outputText rendered="#{empty raRoleMembersBean.filteredResults}" value="#{msg.role_members_page_info_noresult}"/>
+                    <h:outputText styleClass="fineprint" rendered="#{raRoleMembersBean.moreResultsAvailable}" value="#{msg.role_members_page_info_moreresults}"/>
+                    <h:dataTable id="roleMembersTable" rendered="#{not empty raRoleMembersBean.filteredResults}" value="#{raRoleMembersBean.filteredResults}" var="raRoleMember"
+                        styleClass="pure-table fullWidthTable" rowClasses=",pure-table-odd">
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortRole" value="#{msg.role_members_page_colhead_role} #{raRoleMembersBean.sortedByRole}"/>
+                                <h:commandButton id="sortRole" action="#{raRoleMembersBean.sortByRole}" value="#{msg.generic_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":roleMembersForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{not empty raRoleMember.roleName ? raRoleMember.roleName : msg.role_members_page_role_none}" style="white-space: nowrap"
+                                styleClass="#{empty raRoleMember.roleName ? &quot;noneCell&quot; : &quot;&quot;}"/>
+                        </h:column>
+                        <h:column rendered="#{raRoleMembersBean.hasMultipleNamespaces}">
+                            <f:facet name="header">
+                                <h:outputLabel for="sortRoleNamespace" value="#{msg.role_members_page_colhead_role_namespace} #{raRoleMembersBean.sortedByRoleNamespace}"/>
+                                <h:commandButton id="sortRoleNamespace" action="#{raRoleMembersBean.sortByRoleNamespace}" value="#{msg.generic_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":roleMembersForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRoleMember.roleNamespace}" style="white-space: nowrap"/>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortCA" value="#{msg.role_members_page_colhead_ca} #{raRoleMembersBean.sortedByCA}"/>
+                                <h:commandButton id="sortCA" action="#{raRoleMembersBean.sortByCA}" value="#{msg.generic_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":roleMembersForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRoleMember.caName}" style="white-space: nowrap"/>
+                        </h:column>
+                        <h:column rendered="#{raRoleMembersBean.hasMultipleTokenTypes}">
+                            <f:facet name="header">
+                                <h:outputLabel for="sortTokenType" value="#{msg.role_members_page_colhead_tokentype} #{raRoleMembersBean.sortedByTokenType}"/>
+                                <h:commandButton id="sortTokenType" action="#{raRoleMembersBean.sortByTokenType}" value="#{msg.generic_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":roleMembersForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRoleMember.tokenTypeText}" style="white-space: nowrap"/>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortTokenMatchValue" value="#{msg.role_members_page_colhead_tokenidentifier} #{raRoleMembersBean.sortedByTokenMatchValue}"/>
+                                <h:commandButton id="sortTokenMatchValue" action="#{raRoleMembersBean.sortByTokenMatchValue}" value="#{msg.generic_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":roleMembersForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRoleMember.roleMember.tokenMatchValue}" style="white-space: nowrap" rendered="#{not raRoleMember.tokenMatchValueIsLink}"/>
+                            <h:outputLink value="search_certs.xhtml" style="white-space: nowrap" rendered="#{raRoleMember.tokenMatchValueIsLink}">
+                                <f:param name="certsGenericSearchString" value="#{raRoleMember.roleMember.tokenMatchValue}"/>
+                                <h:outputText value="#{raRoleMember.roleMember.tokenMatchValue}"/>
+                            </h:outputLink>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortDescription" value="#{msg.role_members_page_colhead_description} #{raRoleMembersBean.sortedByDescription}"/>
+                                <h:commandButton id="sortDescription" action="#{raRoleMembersBean.sortByDescription}" value="#{msg.generic_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":roleMembersForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'roleMembersForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'roleMembersForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRoleMember.roleMember.description}" style="white-space: nowrap"/>
+                        </h:column>
+                        
+                        <h:column rendered="#{raAccessBean.authorizedToEditRoleMembers}">
+                            <h:link id="editButton" styleClass="viewMoreLink" outcome="role_member" includeViewParams="true">
+                                <f:param name="roleMemberId" value="#{raRoleMember.roleMember.id}"/>
+                                <h:outputText value="#{msg.role_members_page_edit_command}"/>
+                            </h:link>
+                        </h:column>
+                        
+                        <h:column rendered="#{raAccessBean.authorizedToEditRoleMembers}">
+                            <h:link id="removeButton" styleClass="viewMoreLink" outcome="role_member_remove" includeViewParams="true">
+                                <f:param name="roleMemberId" value="#{raRoleMember.roleMember.id}"/>
+                                <h:outputText value="#{msg.role_members_page_remove_command}"/>
+                            </h:link>
+                        </h:column>
+                        
+                    </h:dataTable>
+                    
+                </h:panelGroup>
+            </h:form>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>
+</html>

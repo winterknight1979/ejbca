@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*************************************************************************
+ *                                                                       *
+ *  EJBCA: The OpenSource Certificate Authority                          *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+ version: $Id: web.xml 31116 2019-01-10 14:25:14Z jeklund $
+ -->
+<web-app version="3.0" id="ra-gui" metadata-complete="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                        http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+    <description><![CDATA[EJBCA RA GUI]]></description>
+
+    <!-- Set to "Development" for debugging.
+        "Production" also implies javax.faces.FACELETS_REFRESH_PERIOD=-1 which means pages are never recompiled.
+        TODO: Set automatically when ejbca.productionmode=false
+    -->
+    <context-param>
+        <param-name>javax.faces.PROJECT_STAGE</param-name>
+        <param-value>Production</param-value>
+    </context-param>
+
+    <filter> 
+        <filter-name>ServiceControlFilter</filter-name>
+        <filter-class>org.ejbca.util.ServiceControlFilter</filter-class> 
+        <init-param>  
+            <param-name>serviceName</param-name>  
+            <param-value>RA Web</param-value>  
+        </init-param>  
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>ServiceControlFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+
+    <!-- Tomahawk filter for file uploads. Should be replaced by h:inputFile pattern when we can use JSF2.2. -->
+    <filter>
+        <filter-name>extensionsFilter</filter-name>
+        <filter-class>org.apache.myfaces.webapp.filter.ExtensionsFilter</filter-class>
+        <init-param>
+            <description>Maximum size of uploads</description>
+            <param-name>uploadMaxFileSize</param-name>
+            <param-value>101k</param-value>
+        </init-param>
+        <init-param>
+            <description>Maximum size of uploads before using disk</description>
+            <param-name>uploadThresholdSize</param-name>
+            <param-value>100k</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>extensionsFilter</filter-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>ContentSecurityPolicyFilter</filter-name>
+        <filter-class>org.owasp.filters.ContentSecurityPolicyFilter</filter-class>
+        <init-param>
+            <param-name>unsafeeval</param-name>
+            <param-value>yes</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping> 
+        <filter-name>ContentSecurityPolicyFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <filter>
+        <filter-name>RaStyleRequestFilter</filter-name>
+        <filter-class>org.ejbca.ra.jsfext.RaStyleRequestFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>RaStyleRequestFilter</filter-name>
+        <url-pattern>/css/*</url-pattern>
+        <url-pattern>/img/*</url-pattern>
+    </filter-mapping>
+    
+    <servlet>
+        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+
+    <session-config>
+        <!-- This timeout of 30 minutes will be used for non-JavaScript users that can't do background polling. -->
+        <session-timeout>30</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+            <secure>true</secure>
+        </cookie-config>
+    </session-config>
+
+    <welcome-file-list>
+        <welcome-file>index.xhtml</welcome-file>
+    </welcome-file-list>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>restricted methods</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method-omission>HEAD</http-method-omission>
+            <http-method-omission>GET</http-method-omission>
+            <http-method-omission>POST</http-method-omission>
+        </web-resource-collection>
+        <auth-constraint />
+    </security-constraint> 
+
+    <!-- Catch 404s etc that are unknown to JSF -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error.xhtml</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/error.xhtml</location>
+    </error-page>
+</web-app>
