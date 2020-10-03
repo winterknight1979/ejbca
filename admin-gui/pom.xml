@@ -1,83 +1,83 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>goldeneyes.ejbca</groupId>
-    <artifactId>ejbca</artifactId>
-    <version>${revision}</version>
-  </parent>
-  <artifactId>admin-gui</artifactId>
-  <packaging>war</packaging>
-  <name>Administration GUI</name>
-  <description>Administration GUI</description>
-  
-  <dependencies>
-  
-  <dependency>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>goldeneyes.ejbca</groupId>
+		<artifactId>ejbca</artifactId>
+		<version>${revision}</version>
+	</parent>
+
+	<artifactId>admin-gui</artifactId>
+	<packaging>war</packaging>
+
+	<name>Administration GUI</name>
+	<description>Administration GUI</description>
+
+	<dependencies>
+
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>edition-specific-ejb</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-ejb</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
-		 <dependency>
+
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-common-web</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
-				<groupId>org.apache.myfaces.tomahawk</groupId>
-				<artifactId>tomahawk</artifactId>
-				</dependency>
-				
-				<dependency>
-				<groupId>org.owasp</groupId>
-				<artifactId>csrfguard</artifactId>
-				</dependency>
-				
-	<dependency>
-				<groupId>org.apache.myfaces.core</groupId>
-				<artifactId>myfaces-impl</artifactId>
-			</dependency>
-				
-		
-		
-  <dependency>
+			<groupId>org.apache.myfaces.tomahawk</groupId>
+			<artifactId>tomahawk</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.owasp</groupId>
+			<artifactId>csrfguard</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.myfaces.core</groupId>
+			<artifactId>myfaces-impl</artifactId>
+		</dependency>
+
+
+
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>edition-specific-interface</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-  
-  	<dependency>
+
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>shared-resources</artifactId>
 			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
-	
-	
 
-  <build>
-  
-  <resources>
-  	<resource>
-  		<filtering>true</filtering>
-  		<directory>${project.basedir}/src/main/resources</directory>
-  		<includes>
-  			<include>languagefile.*.properties</include>	
-  		</includes>
-  		<excludes>
-  			<exclude>languagefile.zh.properties</exclude>
-  		</excludes>
-  	</resource>
-  </resources>
-  
+	<build>
+		<resources>
+			<resource>
+				<filtering>true</filtering>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<includes>
+					<include>languagefile.*.properties</include>
+				</includes>
+				<excludes>
+					<exclude>languagefile.zh.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -100,7 +100,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -125,6 +125,25 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-resources</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/test-classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/maven-shared-archive-resource/conf</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>systemtests.properties</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+						</execution>
 				</executions>
 			</plugin>
 
@@ -156,7 +175,7 @@
 		</plugins>
 	</build>
 
-  <reporting>
+	<reporting>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -190,7 +209,7 @@
 		</plugins>
 	</reporting>
 
-  <profiles>
+	<profiles>
 		<profile>
 			<id>coverage</id>
 			<build>
@@ -235,5 +254,4 @@
 			</reporting>
 		</profile>
 	</profiles>
-  
 </project>

@@ -9,6 +9,8 @@ Goals are:
 * Change build system from ant to maven
 * Get it building under Java 11
 * Get it working on up-to-date app servers (Wildfly 19, Payara 5, Tomcat 9)
+* Fix some securtity issues (not good in a CA application!)
+* Use CDI beans instead of deprecated JSF beans
 * Improve test coverage
 * Add system-level tests with Selenium
 
