@@ -291,7 +291,7 @@ public class EditServiceManagedBean extends BaseManagedBean {
 	
 	/** Returns the list of available CAs, only including the actually present CAs.
      * 
-     * @return List<javax.faces.model.SelectItem>(String, String) of CA id's (as String) and CA names
+     * @return List&lt;javax.faces.model.SelectItem&gt;(String, String) of CA id's (as String) and CA names
      */
     public List<SelectItem> getAvailableCAs() {
         List<SelectItem> availableCANames = new ArrayList<>();
@@ -306,7 +306,7 @@ public class EditServiceManagedBean extends BaseManagedBean {
     }
 	/** Returns the list of available CAs, also including the special option 'Any CA'.
 	 * 
-	 * @return List<javax.faces.model.SelectItem>(String, String) of CA id's (as String) and CA names
+	 * @return List&lt;javax.faces.model.SelectItem&gt;(String, String) of CA id's (as String) and CA names
 	 */
     public List<SelectItem> getAvailableCAsWithAnyOption() {
         List<SelectItem> availableCANames = new ArrayList<>();
@@ -318,7 +318,7 @@ public class EditServiceManagedBean extends BaseManagedBean {
 
     /** Returns the list of available external X509 CAs, also including the special option 'Any CA'.
      * 
-     * @return List<javax.faces.model.SelectItem>(String, String) of CA id's (as String) and CA names
+     * @return List&lt;javax.faces.model.SelectItem&gt;(String, String) of CA id's (as String) and CA names
      */
     public List<SelectItem> getAvailableExternalX509CAsWithAnyOption() {
         final List<SelectItem> availableCANames = new ArrayList<>();

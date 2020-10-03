@@ -25,11 +25,11 @@ import javax.faces.convert.FacesConverter;
 import org.cesecore.certificates.util.DnComponents;
 
 /**
- * A JSF converter that makes it possible to input a comma separated list of DN components (DN,O,OU,C etc) and store it into an ArrayList<String>.
+ * A JSF converter that makes it possible to input a comma separated list of DN components (DN,O,OU,C etc) and store it into an ArrayList&lt;String&gt;.
  * The converter makes validation that it is DN components that are input.
  * 
  * To Use:
- * <h:inputText ... converter="org.ejbca.DnObjectArrayListConverter"/>
+ * &lt;h:inputText ... converter="org.ejbca.DnObjectArrayListConverter"/&gt;
  *  
  * @version $Id: DnObjectArrayListConverter.java 28844 2018-05-04 08:31:02Z samuellb $
  */

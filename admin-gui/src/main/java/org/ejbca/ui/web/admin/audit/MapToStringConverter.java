@@ -19,7 +19,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 
 /**
- * One way converter from Map<Object,Object> to String.
+ * One way converter from Map&lt;Object,Object&gt; to String.
  * @version $Id: MapToStringConverter.java 25705 2017-04-18 15:18:58Z samuellb $
  */
 public class MapToStringConverter implements Converter {

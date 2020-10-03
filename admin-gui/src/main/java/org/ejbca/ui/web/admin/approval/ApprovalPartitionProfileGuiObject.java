@@ -71,7 +71,7 @@ public class ApprovalPartitionProfileGuiObject implements Serializable {
         return propertyPossibleValues;
     }
 
-    /** @return the lookup result of message key "APPROVAL_PROFILE_<TYPE>_<property-name>" or property-name if no key exists. */
+    /** @return the lookup result of message key "APPROVAL_PROFILE_&lt;TYPE&gt;_&lt;property-name&gt;" or property-name if no key exists. */
     public String getPropertyNameLocalized() {
         final String name = profilePropertyList.getRowData().getName();
         final String msgKeyCommon = "APPROVAL_PROFILE_COMMON_" + name.toUpperCase();

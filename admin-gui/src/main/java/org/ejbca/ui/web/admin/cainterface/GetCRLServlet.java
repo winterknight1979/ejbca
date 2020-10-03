@@ -38,6 +38,7 @@ import org.ejbca.ui.web.pub.ServletUtils;
  * <p>The follwing commands are supported:<br>
  * <ul>
  * <li>crl - gets the latest CRL.
+ * </ul>
  *
  * @version $Id: GetCRLServlet.java 34154 2019-12-23 13:38:17Z samuellb $
  */

@@ -218,7 +218,7 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
         return getAccessMatchValue(getSelectedTokenType(), getSelectedTokenMatchKey()).isIssuedByCa();
     }
 
-    /** @return a List of (SelectItem<Integer, String>) authorized CAs */
+    /** @return a List of (SelectItem&lt;Integer, String&gt;) authorized CAs */
     public List<SelectItem> getAvailableCas() {
         final List<SelectItem> availableCas = new ArrayList<>();
         final List<Integer> authorizedCaIds = caSession.getAuthorizedCaIds(getAdmin());

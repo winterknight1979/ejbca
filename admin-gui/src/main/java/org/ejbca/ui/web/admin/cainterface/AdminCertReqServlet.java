@@ -150,7 +150,7 @@ public class AdminCertReqServlet extends BaseAdminServlet {
      * algorithm           AlgorithmIdentifier {{IOSet}},
      * subjectPublicKey    BIT STRING
      * }
-     * </pre>
+     * </code></pre>
      *
      * PublicKey's encoded-format has to be RSA X.509.
      */

@@ -1310,7 +1310,7 @@ public class InternalKeyBindingMBean extends BaseManagedBean implements Serializ
         return internalKeyBindingPropertyList;
     }
 
-    /** @return the lookup result of message key "INTERNALKEYBINDING_<type>_<property-name>" or property-name if no key exists. */
+    /** @return the lookup result of message key "INTERNALKEYBINDING_&lt;type&gt;_&lt;property-name&gt;" or property-name if no key exists. */
     public String getPropertyNameTranslated() {
         final String name = ((DynamicUiProperty<? extends Serializable>) internalKeyBindingPropertyList.getRowData()).getName();
         final String msgKey = "INTERNALKEYBINDING_" + getSelectedInternalKeyBindingType().toUpperCase() + "_" + name.toUpperCase();

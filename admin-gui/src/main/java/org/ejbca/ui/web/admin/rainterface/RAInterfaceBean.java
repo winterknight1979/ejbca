@@ -1054,8 +1054,7 @@ public class RAInterfaceBean implements Serializable {
      *
      * @param endentityprofileid the EE profile of the end entity
      * @param endentityAccessRule Rule
-     * @return Map
-     * @returns a HashMap of CertificateProfileIds mapped to Lists if CA IDs. It returns a set of available CAs per end entity profile.
+     * @return a HashMap of CertificateProfileIds mapped to Lists if CA IDs. It returns a set of available CAs per end entity profile.
      */
 
     public Map<Integer, List<Integer>> getCasAvailableToEndEntity(int endentityprofileid, final String endentityAccessRule) {

@@ -25,11 +25,11 @@ import javax.faces.convert.FacesConverter;
 
 
 /**
- * A JSF converter that makes it possible to input a comma separated list of Oids Strings (2.5.29.15,2.5.29.37,2.5.29.32,etc) and store it into an LinkedHashSet<String>.
+ * A JSF converter that makes it possible to input a comma separated list of Oids Strings (2.5.29.15,2.5.29.37,2.5.29.32,etc) and store it into an LinkedHashSet&lt;String&gt;.
  * The converter makes validation that it is Oids Strings that are input.
  * 
  * To Use:
- * <h:inputText ... converter="org.ejbca.OidsObjectLinkedHashSetConverter"/>
+ * &lt;h:inputText ... converter="org.ejbca.OidsObjectLinkedHashSetConverter"/&gt;
  *  
  * @version $Id: OidsObjectLinkedHashSetConverter.java 28844 2018-05-04 08:31:02Z samuellb $
  */

@@ -818,7 +818,7 @@ public class EjbcaWebBean implements Serializable {
     }
 
     /**
-     * Returns authorized end entity  profile names as a treemap of name (String) -> id (Integer)
+     * Returns authorized end entity  profile names as a treemap of name (String) -&gt; id (Integer)
      * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedEndEntityCertificateProfileNames() {
@@ -837,7 +837,7 @@ public class EjbcaWebBean implements Serializable {
     }
 
     /**
-     * Returns authorized sub CA certificate profile names as a treemap of name (String) -> id (Integer)
+     * Returns authorized sub CA certificate profile names as a treemap of name (String) -&gt; id (Integer)
      * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedSubCACertificateProfileNames() {
@@ -851,7 +851,7 @@ public class EjbcaWebBean implements Serializable {
     }
 
     /**
-     * Returns authorized root CA certificate profile names as a treemap of name (String) -> id (Integer)
+     * Returns authorized root CA certificate profile names as a treemap of name (String) -&gt; id (Integer)
      * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedRootCACertificateProfileNames() {
@@ -887,7 +887,7 @@ public class EjbcaWebBean implements Serializable {
     }
 
     /**
-     * Returns all authorized publishers names as a treemap of name (String) -> id (Integer).
+     * Returns all authorized publishers names as a treemap of name (String) -&gt; id (Integer).
      * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedPublisherNames() {
@@ -923,7 +923,7 @@ public class EjbcaWebBean implements Serializable {
     }
 
     /**
-     * Returns authorized end entity profile names as a treemap of name (String) -> id (String)
+     * Returns authorized end entity profile names as a treemap of name (String) -&gt; id (String)
      * @param endentityAccessRule Rule
      * @return Map
      */
@@ -1334,7 +1334,7 @@ public class EjbcaWebBean implements Serializable {
      * The returned map will contain an additional "KeyID" entry which allows the end user to specify the end entity
      * in the CMP request.
      * @param endEntityAccessRule the access rule used for authorization
-     * @return a map {end entity profile name} => {end entity profile id} with authorized end entituy profiles
+     * @return a map {end entity profile name} =&gt; {end entity profile id} with authorized end entituy profiles
      */
     public Map<String, String> getAuthorizedEEProfileNamesAndIds(final String endEntityAccessRule) {
         final RAAuthorization raAuthorization = new RAAuthorization(administrator, globalConfigurationSession, authorizationSession, caSession, endEntityProfileSession);

@@ -187,7 +187,7 @@ public class ValidatorsBean extends BaseManagedBean {
     /**
      * Gets the available key validators taking into account access rules. The admin need access to view vlidators, and to all certificate profiles
      * referenced by the Validator.
-     * @return ListDataModel<ValidatorItem>
+     * @return ListDataModel&lt;ValidatorItem&gt;
      */
     public ListDataModel<ValidatorItem> getAvailableValidators() {
         if (validatorItems == null) {

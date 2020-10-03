@@ -391,7 +391,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
     /**
      * Gets the validity.
      * @return the validity as ISO8601 date or relative time.
-     * @See {@link org.cesecore.util.ValidityDate ValidityDate}
+     * @see  org.cesecore.util.ValidityDate ValidityDate
      */
     public String getValidity() {
         return getCertificateProfile().getEncodedValidity();
@@ -400,7 +400,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
     /**
      * Sets the validity .
      * @param value the validity as ISO8601 date or relative time.
-     * @See {@link org.cesecore.util.ValidityDate ValidityDate}
+     * @see org.cesecore.util.ValidityDate ValidityDate
      */
     public void setValidity(final String value) {
         String valueToSet = value;
@@ -419,7 +419,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
     /**
      * Gets the validity offset.
      * @return the offset as relative time.
-     * @See {@link org.cesecore.util.SimpleTime SimpleTime}
+     * @see org.cesecore.util.SimpleTime SimpleTime
      */
     public String getCertificateValidityOffset() {
         return certificateProfile.getCertificateValidityOffset();
@@ -428,7 +428,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
     /**
      * Sets the validity offset.
      * @param value the offset as relative time.
-     * @See {@link org.cesecore.util.SimpleTime SimpleTime}
+     * @see org.cesecore.util.SimpleTime SimpleTime
      */
     public void setCertificateValidityOffset(String value) {
         certificateProfile.setCertificateValidityOffset(SimpleTime.toString( SimpleTime.getSecondsFormat().parseMillis(value), SimpleTime.TYPE_MINUTES));

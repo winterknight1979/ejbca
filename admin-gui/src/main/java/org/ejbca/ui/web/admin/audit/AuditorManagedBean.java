@@ -569,7 +569,7 @@ public class AuditorManagedBean implements Serializable {
 	/**
 	 * Ugly hack to be able to read the length of the resulting String from JSF EL.
 	 * 
-	 * Example: "#{auditor.stringTooLong[(auditLogEntry.mapAdditionalDetails)] > 50}"
+	 * Example: "#{auditor.stringTooLong[(auditLogEntry.mapAdditionalDetails)] &gt; 50}"
 	 * 
 	 * TODO: Use javax.faces.model.DataModel instead
 	 * 

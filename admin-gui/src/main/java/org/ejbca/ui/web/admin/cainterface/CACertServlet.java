@@ -41,7 +41,7 @@ import org.ejbca.ui.web.pub.ServletUtils;
  * nscacert - returns ca certificate for Firefox
  * iecacert - returns ca certificate for Internet Explorer
  *
- * cacert, nscacert and iecacert also takes optional parameter level=<int 1,2,...>, where the level is
+ * cacert, nscacert and iecacert also takes optional parameter level=&lt;int 1,2,...&gt;, where the level is
  * which ca certificate in a hierachy should be returned. 0=root (default), 1=sub to root etc.
  *
  * @version $Id: CACertServlet.java 34154 2019-12-23 13:38:17Z samuellb $
