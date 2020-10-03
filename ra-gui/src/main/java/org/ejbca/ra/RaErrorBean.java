@@ -30,7 +30,9 @@ import org.ejbca.ra.jsfext.RaExceptionHandlerFactory;
  * Bean used to display a summary of unexpected errors and debug log the cause.
  * 
  * @version $Id: RaErrorBean.java 23096 2016-03-30 01:04:38Z jeklund $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaErrorBean implements Serializable {

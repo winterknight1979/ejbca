@@ -15,11 +15,11 @@
 
  version: $Id: web.xml 31116 2019-01-10 14:25:14Z jeklund $
  -->
-<web-app version="3.0" id="ra-gui" metadata-complete="false"
+<web-app version="4.0" id="ra-gui" metadata-complete="false"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xmlns="http://java.sun.com/xml/ns/javaee"
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-                        http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+                        http://java.sun.com/xml/ns/javaee/web-app_4_0.xsd">
 
     <description><![CDATA[EJBCA RA GUI]]></description>
 

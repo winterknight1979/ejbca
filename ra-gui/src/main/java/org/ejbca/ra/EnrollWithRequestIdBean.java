@@ -78,7 +78,9 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
  * Managed bean that backs up the enrollwithrequestid.xhtml page
  *
  * @version $Id: EnrollWithRequestIdBean.java 29541 2018-08-01 09:53:21Z anatom $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class EnrollWithRequestIdBean implements Serializable {
@@ -448,6 +450,7 @@ public class EnrollWithRequestIdBean implements Serializable {
 
     /**
      * Checks if a non-modifiable text displaying the previously set key algorithm should be shown.
+     * @return bool
      */
     public boolean isPreSetKeyAlgorithmRendered() {
         return endEntityInformation.getExtendedInformation() != null &&
@@ -536,7 +539,11 @@ public class EnrollWithRequestIdBean implements Serializable {
         }
     }
 
-    /** Validate an uploaded CSR and store the extracted key algorithm and CSR for later use. */
+    /** Validate an uploaded CSR and store the extracted key algorithm and CSR for later use. 
+     * @param context Context
+     * @param component Component
+     * @param value Value
+     * @throws ValidatorException Fail */
     public void validateCsr(FacesContext context, UIComponent component, Object value) throws ValidatorException {
         selectedAlgorithm = null;
         final String valueStr = value.toString();

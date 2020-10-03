@@ -37,7 +37,9 @@ import org.ejbca.core.model.era.RaRoleSearchResponse;
  * Backing bean for the Roles page
  *  
  * @version $Id: RaRolesBean.java 25430 2017-03-09 16:37:36Z samuellb $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaRolesBean implements Serializable {
@@ -90,7 +92,8 @@ public class RaRolesBean implements Serializable {
         searchAndFilterCommon();
     }
 
-    /** Invoked on criteria changes */
+    /** Invoked on criteria changes 
+     * @param event Event */
     public void searchAndFilterAjaxListener(final AjaxBehaviorEvent event) {
         searchAndFilterCommon();
     }
@@ -186,7 +189,9 @@ public class RaRolesBean implements Serializable {
         return "";
     }
     
-    /** Set current sort column. Flip the order if the column was already selected. */
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortBy Column
+     * @param defaultAscending Order */
     private void sortBy(final SortBy sortBy, final boolean defaultAscending) {
         if (this.sortBy.equals(sortBy)) {
             sortAscending = !isSortAscending();

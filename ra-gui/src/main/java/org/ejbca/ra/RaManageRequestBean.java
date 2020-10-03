@@ -61,8 +61,10 @@ import org.ejbca.util.KeyValuePair;
  *
  * @see RaManageRequestsBean
  * @version $Id: RaManageRequestBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
  */
-@ManagedBean
+@SuppressWarnings("deprecation")
+@ManagedBean 
 @ViewScoped
 public class RaManageRequestBean implements Serializable {
 
@@ -214,7 +216,8 @@ public class RaManageRequestBean implements Serializable {
         return getPartitionProperties(approvalProfile, partition);
     }
 
-    /** Returns partitions in the current step */
+    /** Returns partitions in the current step 
+     * @return List */
     public List<ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject> getPartitions() {
         if (partitionsAuthorizedToView == null) {
             List<ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject> authorizedPartitions = new ArrayList<>();
@@ -261,6 +264,7 @@ public class RaManageRequestBean implements Serializable {
     }
 
     /**
+     * @param partition Partition 
      * @return true if there already exists an approval for this partition
      */
     public boolean isPartitionHandled(final ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject partition) {
@@ -288,6 +292,8 @@ public class RaManageRequestBean implements Serializable {
 
     /**
      * Extract the partition properties, and fill in all and any placeholders. Also cull any properties set to be hidden.
+     * @param approvalProfile Profile
+     * @param approvalPartition Partition
      *
      * @return a list of dynamic properties
      */
@@ -311,7 +317,10 @@ public class RaManageRequestBean implements Serializable {
         return currentPartitionsProperties.get(approvalPartition.getPartitionIdentifier());
     }
 
-    /** Creates a list of partitions that can be used with the approvalmetadata component */
+    /** Creates a list of partitions that can be used with the approvalmetadata component 
+     * @param step Step
+     * @param partitions Oartitions 
+     * @return List */
     public List<ApprovalRequestGUIInfo.ApprovalPartitionProfileGuiObject> partitionsToGuiPartitions(final ApprovalRequestGUIInfo.Step step, final Iterable<ApprovalPartition> partitions) {
         if (partitions == null) {
             // JBoss EAP 6.4 seems to make calls EL method calls one time extra, with a null parameter, once per page rendering
@@ -579,7 +588,9 @@ public class RaManageRequestBean implements Serializable {
         return (String) dataRow.getEditValue();
     }
 
-    /** Logs the message of an exception, which usually contains some message. For example: "You may not approve an action which you requested yourself" */
+    /** Logs the message of an exception, which usually contains some message. For example: "You may not approve an action which you requested yourself" 
+     * @param action Action 
+     * @param t Exception */
     private void logException(final String action, final Throwable t) {
         if (log.isDebugEnabled()) {
             log.debug("Got exception while trying to " + action + " an approval request: " + t.getMessage());

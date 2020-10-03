@@ -398,7 +398,9 @@ public class RaCertificateDetails {
         return (styleRowCallCounter+1) / 2 % 2 == 0;
     }
 
-    /** @return CA Name from the provided issuer DN or the IssuerDN itself if no name is known */
+    /** @param caSubjectToNameMap Map
+     * @param issuerDn DN
+     * @return CA Name from the provided issuer DN or the IssuerDN itself if no name is known */
     private String getCaNameFromIssuerDn(final Map<String, String> caSubjectToNameMap, final String issuerDn) {
         if (issuerDn != null && caSubjectToNameMap.containsKey(issuerDn)) {
             return String.valueOf(caSubjectToNameMap.get(issuerDn));
@@ -504,7 +506,8 @@ public class RaCertificateDetails {
         renderConfirmRecoveryToggle();
     }
 
-    /** Validate that password and password confirm entries match and render error messages otherwise. */
+    /** Validate that password and password confirm entries match and render error messages otherwise. 
+     * @param event event */
     public final void validatePassword(ComponentSystemEvent event) {
         if (renderConfirmRecovery){
             FacesContext fc = FacesContext.getCurrentInstance();

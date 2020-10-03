@@ -41,7 +41,9 @@ import org.ejbca.core.model.era.RaRequestsSearchResponse;
  *
  * @see RaManageRequestBean
  * @version $Id: RaManageRequestsBean.java 28085 2018-01-24 09:20:32Z henriks $
+ * TODO: Use CDI beans 
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaManageRequestsBean implements Serializable {
@@ -270,8 +272,10 @@ public class RaManageRequestsBean implements Serializable {
         return "";
     }
 
-    /** Set current sort column. Flip the order if the column was already selected. */
-    private void sortBy(final SortBy sortBy, final boolean defaultAscending) {
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortBy Column
+     * @param defaultAscending Order */
+    private void sortBy(final SortBy sortBy, final boolean defaultAscending) { 
         if (this.sortBy.equals(sortBy)) {
             sortAscending = !isSortAscending();
         } else {

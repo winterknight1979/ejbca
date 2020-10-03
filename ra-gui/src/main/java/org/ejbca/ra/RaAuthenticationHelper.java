@@ -49,7 +49,9 @@ public class RaAuthenticationHelper implements Serializable {
         this.webAuthenticationProviderSession = webAuthenticationProviderSession;
     }
 
-    /** @return the X509CertificateAuthenticationToken if the client has provided a certificate or a PublicAccessAuthenticationToken otherwise. */
+    /** @param httpServletRequest req
+     * @param httpServletResponse resp
+     * @return the X509CertificateAuthenticationToken if the client has provided a certificate or a PublicAccessAuthenticationToken otherwise. */
     public AuthenticationToken getAuthenticationToken(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse) {
         final String currentTlsSessionId = getTlsSessionId(httpServletRequest);
         if (authenticationToken==null || !StringUtils.equals(authenticationTokenTlsSessionId, currentTlsSessionId)) {
@@ -98,7 +100,9 @@ public class RaAuthenticationHelper implements Serializable {
         return authenticationToken;
     }
     
-    /** Invoke once the session is started to prevent security leak via HTTP headers related. */
+    /** Invoke once the session is started to prevent security leak via HTTP headers related. 
+     * @param httpServletRequest req
+     * @param httpServletResponse resp */
     private void resetUnwantedHttpHeaders(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse) {
         // Ensure that we never send the JSESSIONID over an insecure (HTTP) connection
         // By default JBoss will send the JSESSIONID cookie over HTTP with the "Secure;" option. Since this is sent in clear from the server to the broswer

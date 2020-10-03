@@ -143,7 +143,9 @@ public class RaStyleRequestFilter implements Filter {
         chain.doFilter(httpRequest, httpResponse);
     }
 
-    /** @return the X509CertificateAuthenticationToken if the client has provided a certificate or a PublicAccessAuthenticationToken otherwise. */
+    /** @param httpRequest Req
+     * @param httpResponse Resp
+     * @return the X509CertificateAuthenticationToken if the client has provided a certificate or a PublicAccessAuthenticationToken otherwise. */
     private AuthenticationToken getAuthenticationToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         raAuthenticationHelper = new RaAuthenticationHelper(webAuthenticationProviderSession);
         AuthenticationToken authenticationToken = raAuthenticationHelper.getAuthenticationToken(httpRequest, httpResponse);

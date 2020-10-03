@@ -38,7 +38,9 @@ import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
  * JSF Managed Bean for handling localization of clients.
  * 
  * @version $Id: RaLocaleBean.java 26904 2017-10-26 10:37:28Z aminkh $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @SessionScoped
 public class RaLocaleBean implements Serializable {
@@ -84,7 +86,8 @@ public class RaLocaleBean implements Serializable {
         }
         return locale;
     }
-    /** Set this sessions Locale */
+    /** Set this sessions Locale 
+     * @param locale Locale*/
     public void setLocale(final Locale locale) {
 
         this.locale = locale;
@@ -112,7 +115,8 @@ public class RaLocaleBean implements Serializable {
         return ret;
     }
 
-    /** @return true if the language direction is left to right */
+    /** @param locale Locale
+     * @return true if the language direction is left to right */
     private boolean isDirectionLeftToRight(final Locale locale) {
         final int directionality = Character.getDirectionality(locale.getDisplayName(locale).charAt(0));
         log.debug("directionality is " + directionality + " for " + locale.getLanguage() + " (" + locale.getDisplayName(locale) + ").");
@@ -130,27 +134,35 @@ public class RaLocaleBean implements Serializable {
         return directionLeftToRight ? "left" : "right";
     }
     
-    /** @returns the reverse of the standard value, for cases when text needs to be aligned to the other side. */
+    /** @return 
+     *     the reverse of the standard value, for cases when text needs to be aligned to the other side. */
     public String getReverseIndentationDirection() {
         return !directionLeftToRight ? "left" : "right";
     }
 
-    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_ERROR. */
+    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_ERROR. 
+     * @param messageKey Hey
+     * @param params Par ams*/
     public void addMessageError(final String messageKey, final Object...params) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, getMessage(messageKey, params), null));
     }
     
-    /** Add a faces message with the localized error code message with level FacesMessage.SEVERITY_ERROR. */
+    /** Add a faces message with the localized error code message with level FacesMessage.SEVERITY_ERROR. 
+     * @param errorCode Code*/
     public void addMessageError(ErrorCode errorCode) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, getErrorCodeMessage(errorCode), null));
     }
 
-    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_WARN. */
+    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_WARN. 
+     * @param messageKey Key
+     * @param params Params */
     public void addMessageWarn(final String messageKey, final Object...params) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, getMessage(messageKey, params), null));
     }
 
-    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_INFO. */
+    /** Add a faces message with the localized message summary with level FacesMessage.SEVERITY_INFO. 
+     * @param messageKey Key
+     * @param params Params */
     public void addMessageInfo(final String messageKey, final Object...params) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, getMessage(messageKey, params), null));
     }
@@ -204,7 +216,7 @@ public class RaLocaleBean implements Serializable {
     
     /**
      * Get localized error code.
-     * @param errorCode
+     * @param errorCode code
      * @return localized error code
      */
     public String getErrorCodeMessage(final ErrorCode errorCode){
@@ -219,7 +231,7 @@ public class RaLocaleBean implements Serializable {
      * @param messageKey the message key
      * @param params to replace place holders with. Evaluated with String.valueOf() (null-safe).
      * @return the localized message or "???messageKey???" if no key way found.
-     * @see RaLocalBean.getMessage 
+     * @see RaLocaleBean#getMessage 
      */
     public FacesMessage getFacesMessage(final String messageKey, final Object...params){
         return new FacesMessage(getMessage(messageKey, params));

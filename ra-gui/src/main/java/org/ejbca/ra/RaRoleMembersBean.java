@@ -44,7 +44,9 @@ import org.ejbca.core.model.era.RaRoleMemberTokenTypeInfo;
  * Backing bean for the Role Members page
  *  
  * @version $Id: RaRoleMembersBean.java 25626 2017-03-30 17:09:50Z jeklund $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaRoleMembersBean implements Serializable {
@@ -141,7 +143,8 @@ public class RaRoleMembersBean implements Serializable {
         searchAndFilterCommon();
     }
 
-    /** Invoked on criteria changes */
+    /** Invoked on criteria changes 
+     * @param event Event */
     public void searchAndFilterAjaxListener(final AjaxBehaviorEvent event) {
         searchAndFilterCommon();
     }
@@ -259,7 +262,9 @@ public class RaRoleMembersBean implements Serializable {
         return "";
     }
     
-    /** Set current sort column. Flip the order if the column was already selected. */
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortBy Column
+     * @param defaultAscending Order */
     private void sortBy(final SortBy sortBy, final boolean defaultAscending) {
         if (this.sortBy.equals(sortBy)) {
             sortAscending = !isSortAscending();

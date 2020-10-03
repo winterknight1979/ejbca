@@ -27,6 +27,7 @@ import javax.faces.model.SelectItem;
  * The getEnabledItems() and getItemStates() methods returns the enabled items.
  * Note that the type in the generic parameter must implement the equals() method.
  * @version $Id: AddRemoveListState.java 25492 2017-03-15 12:59:25Z samuellb $
+ * @param <T> Type
  */
 public final class AddRemoveListState<T extends Serializable> implements Serializable {
 
@@ -54,18 +55,23 @@ public final class AddRemoveListState<T extends Serializable> implements Seriali
         }
     }
 
-    /** Internal method that returns the currently selected items in the enabled list. These can be removed with the "Remove" button. */
+    /** Internal method that returns the currently selected items in the enabled list. These can be removed with the "Remove" button. 
+     * @return List */
     public List<T> getSelectedInEnabledList() { return selectedInEnabledList; }
     public void setSelectedInEnabledList(final List<T> selectedInEnabledList) { this.selectedInEnabledList = selectedInEnabledList; }
-    /** Internal method that returns the currently selected items in the available list. These can be added with the "Add" button. */
+    /** Internal method that returns the currently selected items in the available list. These can be added with the "Add" button. 
+     * @return List */
     public List<T> getSelectedInAvailableList() { return selectedInAvailableList; }
     public void setSelectedInAvailableList(final List<T> selectedInAvailableList) { this.selectedInAvailableList = selectedInAvailableList; }
-    /** Internal method that returns the items that are currently enabled, that the user can remove */
+    /** Internal method that returns the items that are currently enabled, that the user can remove 
+     * @return List*/
     public List<SelectItem> getEnabledSelectItems() { return enabledSelectItems; }
-    /** Internal method that returns the items that are currently available but not enabled, that the user can add */
+    /** Internal method that returns the items that are currently available but not enabled, that the user can add 
+     * @return List*/
     public List<SelectItem> getAvailableSelectItems() { return availableSelectItems; }
     
-    /** Returns the enabled items */
+    /** Returns the enabled items 
+     * @return List*/
     @SuppressWarnings("unchecked")
     public List<T> getEnabledItems() {
         final List<T> enabled = new ArrayList<>();
@@ -75,7 +81,8 @@ public final class AddRemoveListState<T extends Serializable> implements Seriali
         return enabled;
     }
     
-    /** Returns the enabled items */
+    /** Returns the enabled items 
+     * @return Map*/
     @SuppressWarnings("unchecked")
     public Map<T,Boolean> getItemStates() {
         final Map<T,Boolean> state = new HashMap<>();

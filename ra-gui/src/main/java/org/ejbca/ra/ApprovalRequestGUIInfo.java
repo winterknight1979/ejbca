@@ -112,7 +112,8 @@ public class ApprovalRequestGUIInfo implements Serializable {
             return stepId;
         }
         
-        /** @return the current multi-valued property's possible values as JSF friendly SelectItems. */
+        /** @param property Property
+         * @return the current multi-valued property's possible values as JSF friendly SelectItems. */
         public List<SelectItem/*<String,String>*/> getPropertyPossibleValues( final DynamicUiProperty<? extends Serializable> property) {
             final List<SelectItem> propertyPossibleValues = new ArrayList<>();
             if (profilePropertyList != null) {

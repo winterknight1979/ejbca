@@ -104,7 +104,9 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfile.FieldInstance;
  * all permutations that could potentially be affected down the line.)
  *
  * @version $Id: EnrollMakeNewRequestBean.java 34396 2020-01-28 13:50:08Z samuellb $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class EnrollMakeNewRequestBean implements Serializable {
@@ -309,6 +311,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
      * <li>The validity is a parsable date or time interval but exceeds the maximum validity specified by the certificate profile</li>
      * <li>The validity is valid (no error)</li>
      * <ul>
+     * @return String
      */
     public String getValidityHelpMessage() {
         if (validity == null || validity.isEmpty()) {
@@ -572,7 +575,10 @@ public class EnrollMakeNewRequestBean implements Serializable {
         }
     }
 
-    /** Populate the fieldInstances parameter with values from the CSR when the instances are modifiable */
+    /** Populate the fieldInstances parameter with values from the CSR when the instances are modifiable 
+     * @param isSubjectAlternativeName bool
+     * @param subject Subject
+     * @param fieldInstances Instances */
     private void populateRequestFields(final boolean isSubjectAlternativeName, final String subject, final Collection<FieldInstance> fieldInstances) {
         final List<String> subjectFieldsFromParsedCsr = CertTools.getX500NameComponents(subject);
         bothLoops: for (final String subjectField : subjectFieldsFromParsedCsr) {
@@ -866,12 +872,17 @@ public class EnrollMakeNewRequestBean implements Serializable {
         }
     }
 
-    /** Returns true if the default value of the given field is true in the end entity profile */
+    /** Returns true if the default value of the given field is true in the end entity profile 
+     * @param field Field
+     * @return bool */
     private boolean isDefaultInProfile(final String field) {
         return EndEntityProfile.TRUE.equals(getEndEntityProfile().getValue(field, 0));
     }
 
-    /** Send a file to the client if token parameter is not set to null */
+    /** Send a file to the client if token parameter is not set to null 
+     * @param token Token
+     * @param responseContentType Type 
+     * @param fileExtension Extension */
     private void downloadToken(byte[] token, String responseContentType, String fileExtension) {
         if (token == null) {
             return;
@@ -913,7 +924,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
 
     /**
      * Update RFC822NAME and DNEMAILADDRESS with value from end entity email
-     * @param event
+     * @param event Event
      */
     public void updateOtherEmailFields(AjaxBehaviorEvent event) {
         updateRfcAltName();
@@ -978,7 +989,8 @@ public class EnrollMakeNewRequestBean implements Serializable {
         }
     }
 
-    /** Validate that password and password confirm entries match and render error messages otherwise. */
+    /** Validate that password and password confirm entries match and render error messages otherwise. 
+     * @param event Event*/
     public final void validatePassword(ComponentSystemEvent event) {
         if (isPasswordRendered()){
             FacesContext fc = FacesContext.getCurrentInstance();
@@ -1017,7 +1029,9 @@ public class EnrollMakeNewRequestBean implements Serializable {
         }
     }
 
-    /** Validate an uploaded CSR and store the extracted key algorithm and CSR for later use. */
+    /** Validate an uploaded CSR and store the extracted key algorithm and CSR for later use. 
+     * @param csrValue Value
+     * @throws ValidatorException Fail */
     public final void validateCsr(String csrValue) throws ValidatorException {
         algorithmFromCsr = null;
         if (csrValue != null && csrValue.length() > EnrollMakeNewRequestBean.MAX_CSR_LENGTH) {
@@ -1103,6 +1117,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
 
     /**
      * Set a user-defined validity for the private key.
+     * @param validity Validity
      */
     public void setValidity(final String validity) {
         this.validity = validity;
@@ -1413,7 +1428,8 @@ public class EnrollMakeNewRequestBean implements Serializable {
         return availableAlgorithmSelectItems;
     }
 
-    /** Sort the provided list by label with the exception of any item with null value that ends up first. */
+    /** Sort the provided list by label with the exception of any item with null value that ends up first. 
+     * @param items Items*/
     protected static void sortSelectItemsByLabel(final List<SelectItem> items) {
         Collections.sort(items, new Comparator<SelectItem>() {
             @Override
@@ -1436,7 +1452,8 @@ public class EnrollMakeNewRequestBean implements Serializable {
         return getSelectedAlgorithm(getAvailableAlgorithmSelectItems());
     }
 
-    /** @return the current selectedAlgorithm as determined by state of dependencies */
+    /** @param availableAlgorithmSelectItems Items
+     * @return the current selectedAlgorithm as determined by state of dependencies */
     private String getSelectedAlgorithm(final List<SelectItem> availableAlgorithmSelectItems) {
         if (availableAlgorithmSelectItems.size()==1) {
             selectedAlgorithm = String.valueOf(availableAlgorithmSelectItems.get(0).getValue());
@@ -1598,7 +1615,8 @@ public class EnrollMakeNewRequestBean implements Serializable {
         return subjectDirectoryAttributes;
     }
 
-    /** @return true if the field instance should be rendered */
+    /** @param fieldInstance Instance
+     * @return true if the field instance should be rendered */
     public boolean isFieldInstanceRendered(final FieldInstance fieldInstance) {
         if (log.isTraceEnabled()) {
             log.trace("isFieldInstanceRendered name=" + fieldInstance.getName() + " used=" +fieldInstance.isUsed() + " selectable=" + fieldInstance.isSelectable() +

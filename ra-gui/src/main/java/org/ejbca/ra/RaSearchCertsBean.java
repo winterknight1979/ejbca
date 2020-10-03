@@ -57,7 +57,9 @@ import org.ejbca.ra.RaCertificateDetails.Callbacks;
  * Backing bean for Search Certificates page.
  *
  * @version $Id: RaSearchCertsBean.java 26524 2017-09-11 09:12:49Z bastianf $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaSearchCertsBean implements Serializable {
@@ -155,7 +157,8 @@ public class RaSearchCertsBean implements Serializable {
         searchAndFilterCommon();
     }
 
-    /** Invoked on criteria changes */
+    /** Invoked on criteria changes 
+     * @param event Event */
     public void searchAndFilterAjaxListener(final AjaxBehaviorEvent event) {
         searchAndFilterCommon();
     }
@@ -297,14 +300,17 @@ public class RaSearchCertsBean implements Serializable {
     public String getSortedByUsername() { return getSortedBy(SortOrder.USERNAME); }
     public void sortByUsername() { sortBy(SortOrder.USERNAME, true); }
 
-    /** @return an up or down arrow character depending on sort order if the sort column matches */
+    /** @param sortOrder Order
+     * @return an up or down arrow character depending on sort order if the sort column matches */
     private String getSortedBy(final SortOrder sortOrder) {
         if (sortBy.equals(sortOrder)) {
             return sortAscending ? "\u25bc" : "\u25b2";
         }
         return "";
     }
-    /** Set current sort column. Flip the order if the column was already selected. */
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortOrder Order
+     * @param defaultAscending Order */
     private void sortBy(final SortOrder sortOrder, final boolean defaultAscending) {
         if (sortBy.equals(sortOrder)) {
             sortAscending = !sortAscending;
@@ -495,6 +501,7 @@ public class RaSearchCertsBean implements Serializable {
 
     /**
      * Query for the next page of search results.
+     * @param event Event
      */
     public void queryNextPage(final AjaxBehaviorEvent event) {
         stagedRequest.setPageNumber(stagedRequest.getPageNumber() + 1);
@@ -503,20 +510,26 @@ public class RaSearchCertsBean implements Serializable {
 
     /**
      * Query for the previous page of search results.
+     * @param event Event 
      */
     public void queryPreviousPage(final AjaxBehaviorEvent event) {
         stagedRequest.setPageNumber(stagedRequest.getPageNumber() - 1);
         searchForCertificates();
     }
 
-    /** @return the current value if the staged request value if the default value */
+    /** @param stagedValue Value
+     * @param value Value
+     * @param defaultValue Default  
+     * @return the current value if the staged request value if the default value */
     private String getDateAsString(final String stagedValue, final long value, final long defaultValue) {
         if (value==defaultValue) {
             return stagedValue;
         }
         return ValidityDate.formatAsISO8601ServerTZ(value, TimeZone.getDefault());
     }
-    /** @return the staged request value if it is a parsable date and the default value otherwise */
+    /** @param input Input 
+     * @param defaultValue Value
+     * @return the staged request value if it is a parsable date and the default value otherwise */
     private long parseDateAndUseDefaultOnFail(final String input, final long defaultValue) {
         markCurrentComponentAsValid(true);
         if (!input.trim().isEmpty()) {
@@ -530,7 +543,8 @@ public class RaSearchCertsBean implements Serializable {
         return defaultValue;
     }
 
-    /** Set or remove the styleClass "invalidInput" on the label with a for-attribute matching the current input component. */
+    /** Set or remove the styleClass "invalidInput" on the label with a for-attribute matching the current input component. 
+     * @param valid Valid */
     private void markCurrentComponentAsValid(final boolean valid) {
         final String STYLE_CLASS_INVALID = "invalidInput";
         // UIComponent.getCurrentComponent only works when invoked via f:ajax

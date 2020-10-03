@@ -208,7 +208,8 @@ public class RaEndEntityDetails {
         return null;
     }
 
-    /** Returns the specified key type for this end entity (e.g. "RSA 2048"), or null if none is specified (e.g. if created from the Admin GUI) */
+    /** Returns the specified key type for this end entity (e.g. "RSA 2048"), or null if none is specified (e.g. if created from the Admin GUI) 
+     * @return String */
     public String getKeyType() {
         if (extendedInformation != null && extendedInformation.getKeyStoreAlgorithmType() != null) {
             String keyTypeString = extendedInformation.getKeyStoreAlgorithmType();

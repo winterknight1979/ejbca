@@ -45,7 +45,9 @@ import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
  * Managed bean that backs up the enrollwithusername.xhtml page. Extends EnrollWithRequestIdBean to make use of common code
  * 
  * @version $Id: EnrollWithUsernameBean.java 26742 2017-10-05 15:34:11Z samuellb $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class EnrollWithUsernameBean extends EnrollWithRequestIdBean implements Serializable {
@@ -84,7 +86,8 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean implements S
     }
 
     /** Disable the username field if we have passwed username as a parameter in the URL (i.e. &username=tomas).
-     * User friendly as the user can not accidentally change the pre defined username */
+     * User friendly as the user can not accidentally change the pre defined username 
+     * @return bool */
     public boolean isUsernameDisabled() {
         final HttpServletRequest httpServletRequest = (HttpServletRequest)FacesContext.getCurrentInstance().getExternalContext().getRequest();
         return httpServletRequest.getParameter(EnrollWithUsernameBean.PARAM_USERNAME) != null;

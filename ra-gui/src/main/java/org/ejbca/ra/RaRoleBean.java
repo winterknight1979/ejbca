@@ -48,7 +48,9 @@ import org.ejbca.ra.jsfext.AddRemoveListState;
  * Backing bean for the Edit Role page
  *
  * @version $Id: RaRoleBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaRoleBean implements Serializable {

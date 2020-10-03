@@ -61,7 +61,9 @@ import org.ejbca.ra.RaEndEntityDetails.Callbacks;
  * Backing bean for Search Certificates page.
  *
  * @version $Id: RaSearchEesBean.java 27619 2017-12-21 10:23:27Z oskareriksson $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaSearchEesBean implements Serializable {
@@ -134,7 +136,8 @@ public class RaSearchEesBean implements Serializable {
         searchAndFilterCommon();
     }
 
-    /** Invoked on criteria changes */
+    /** Invoked on criteria changes 
+     * @param event Event*/
     public void searchAndFilterAjaxListener(final AjaxBehaviorEvent event) {
         searchAndFilterCommon();
     }
@@ -264,14 +267,17 @@ public class RaSearchEesBean implements Serializable {
     public String getSortedByUsername() { return getSortedBy(SortOrder.USERNAME); }
     public void sortByUsername() { sortBy(SortOrder.USERNAME, true); }
 
-    /** @return an up or down arrow character depending on sort order if the sort column matches */
+    /** @param sortOrder Column
+     * @return an up or down arrow character depending on sort order if the sort column matches */
     private String getSortedBy(final SortOrder sortOrder) {
         if (sortBy.equals(sortOrder)) {
             return sortAscending ? "\u25bc" : "\u25b2";
         }
         return "";
     }
-    /** Set current sort column. Flip the order if the column was already selected. */
+    /** Set current sort column. Flip the order if the column was already selected. 
+     * @param sortOrder Order
+     * @param defaultAscending Order */
     private void sortBy(final SortOrder sortOrder, final boolean defaultAscending) {
         if (sortBy.equals(sortOrder)) {
             sortAscending = !sortAscending;
@@ -415,14 +421,19 @@ public class RaSearchEesBean implements Serializable {
         stagedRequest.setModifiedBefore(parseDateAndUseDefaultOnFail(modifiedBefore, Long.MAX_VALUE));
     }
 
-    /** @return the current value if the staged request value if the default value */
+    /** @param stagedValue Value
+     * @param value Value
+     * @param defaultValue Default 
+     * @return the current value if the staged request value if the default value */
     private String getDateAsString(final String stagedValue, final long value, final long defaultValue) {
         if (value==defaultValue) {
             return stagedValue;
         }
         return ValidityDate.formatAsISO8601ServerTZ(value, TimeZone.getDefault());
     }
-    /** @return the staged request value if it is a parsable date and the default value otherwise */
+    /** @param input Input
+     * @param defaultValue Default 
+     * @return the staged request value if it is a parsable date and the default value otherwise */
     private long parseDateAndUseDefaultOnFail(final String input, final long defaultValue) {
         markCurrentComponentAsValid(true);
         if (!input.trim().isEmpty()) {
@@ -436,7 +447,8 @@ public class RaSearchEesBean implements Serializable {
         return defaultValue;
     }
 
-    /** Set or remove the styleClass "invalidInput" on the label with a for-attribute matching the current input component. */
+    /** Set or remove the styleClass "invalidInput" on the label with a for-attribute matching the current input component. 
+     * @param valid Valid*/
     private void markCurrentComponentAsValid(final boolean valid) {
         final String STYLE_CLASS_INVALID = "invalidInput";
         // UIComponent.getCurrentComponent only works when invoked via f:ajax
@@ -538,6 +550,7 @@ public class RaSearchEesBean implements Serializable {
 
     /**
      * Query for the next page of search results.
+     * @param event Event 
      */
     public void queryNextPage(final AjaxBehaviorEvent event) {
         stagedRequest.setPageNumber(stagedRequest.getPageNumber() + 1);
@@ -546,6 +559,7 @@ public class RaSearchEesBean implements Serializable {
 
     /**
      * Query for the previous page of search results.
+     * @param event Event
      */
     public void queryPreviousPage(final AjaxBehaviorEvent event) {
         stagedRequest.setPageNumber(stagedRequest.getPageNumber() - 1);
@@ -567,7 +581,7 @@ public class RaSearchEesBean implements Serializable {
      * @param raAuthenticationBean the RaAuthenticationBean to be used in the search
      * @param raLocaleBean the RaLocaleBean to be used when creating the RaCertificateDetail objects
      * @param username the username of the End Entity to be used in the search
-     * @return
+     * @return List
      */
     public static List<RaCertificateDetails> searchCertificatesByUsernameSorted(final RaMasterApiProxyBeanLocal raMasterApiProxyBean,
             final RaAuthenticationBean raAuthenticationBean, final RaLocaleBean raLocaleBean, final String username) {

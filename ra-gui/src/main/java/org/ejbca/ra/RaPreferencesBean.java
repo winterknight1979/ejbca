@@ -41,9 +41,10 @@ import org.ejbca.core.model.ra.raadmin.AdminPreference;
  * Together with preferrences.xhtml it is used to produce the Preferences menu in RA web GUI.
  * 
  * @version $Id: RaPreferencesBean.java 26997 2017-11-06 08:07:17Z aminkh $
- *
+ *TODO: Use CDI beans
  */
 
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaPreferencesBean implements Converter, Serializable {
@@ -266,7 +267,7 @@ public class RaPreferencesBean implements Converter, Serializable {
      * Default style (which is needed by Preferences page) hence this method
      * is used to create that dummy style when required. Example use in initRaStyle 
      * function above. 
-     * @return
+     * @return info
      */
     private RaStyleInfo buildDummyStyleInfo() {
 
@@ -279,7 +280,7 @@ public class RaPreferencesBean implements Converter, Serializable {
 
     /**
      * Used to reset the preferences page
-     * @return
+     * @return String
      */
     public String reset() {
         String viewId = FacesContext.getCurrentInstance().getViewRoot().getViewId();
@@ -288,7 +289,7 @@ public class RaPreferencesBean implements Converter, Serializable {
     
     /**
      * Redirects to the pereferences.xhtml. Triggers the java script reload.
-     * @throws IOException
+     * @throws IOException fail
      */
     private void redirect() throws IOException {
         ExternalContext context = FacesContext.getCurrentInstance().getExternalContext();

@@ -43,7 +43,9 @@ import org.ejbca.ra.RaCertificateDetails.Callbacks;
  * Backing bean for certificate details view.
  *  
  * @version $Id: RaViewCertBean.java 26138 2017-07-06 14:39:48Z henriks $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaViewCertBean implements Serializable {

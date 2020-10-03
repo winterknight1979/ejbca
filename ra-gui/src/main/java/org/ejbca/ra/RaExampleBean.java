@@ -24,7 +24,9 @@ import javax.faces.bean.ViewScoped;
  * Example of JSF Managed Bean for backing a page. 
  * 
  * @version $Id: RaExampleBean.java 23491 2016-05-18 14:13:33Z jeklund $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaExampleBean implements Serializable {

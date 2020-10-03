@@ -104,7 +104,7 @@ public class RequestControlFilter implements Filter {
                 if (endDuration != -1) {
                     durationString = durationString.substring(0, endDuration);
                 }
-                Long duration = new Long(durationString);
+                Long duration = Long.valueOf(durationString);
 
                 // compile the corresponding pattern, and store it with this delay in the map
                 Pattern waitPattern = Pattern.compile(paramValue);
@@ -183,7 +183,8 @@ public class RequestControlFilter implements Filter {
     /**
      * Get a synchronization object for this session
      * 
-     * @param session
+     * @param session sessiom
+     * @return Object
      */
     private static synchronized Object getSynchronizationObject(HttpSession session) {
         // get the object from the session.  If it does not yet exist,
@@ -200,7 +201,7 @@ public class RequestControlFilter implements Filter {
      * Record that a request is in process so that the filter blocks additional
      * requests until this one finishes.
      * 
-     * @param request
+     * @param request req
      */
     private void setRequestInProgress(HttpServletRequest request) {
         HttpSession session = request.getSession();
@@ -280,7 +281,7 @@ public class RequestControlFilter implements Filter {
     /**
      * What is the maximum wait time (in milliseconds) for this request
      * 
-     * @param request
+     * @param request req
      * @return Maximum number of milliseconds to hold this request in the queue
      */
     private long getMaxWaitTime(HttpServletRequest request) {
@@ -302,7 +303,7 @@ public class RequestControlFilter implements Filter {
      * Look through the filter's configuration, and determine whether or not it
      * should synchronize this request with others.
      *
-     * @param httpRequest
+     * @param request req
      * @return true if request should be filtered, false if it is excluded
      */
     private boolean isFilteredRequest(HttpServletRequest request) {

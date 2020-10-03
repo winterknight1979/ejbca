@@ -12,7 +12,9 @@ import javax.faces.bean.RequestScoped;
  * Note: Preferably bean property name should be the same as xhtml id.
  * 
  * @version $Id: HtmlElementFocusBean.java 23983 2016-07-22 13:06:01Z marko $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @RequestScoped
 public class HtmlElementFocusBean {

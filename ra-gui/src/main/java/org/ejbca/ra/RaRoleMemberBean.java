@@ -42,7 +42,9 @@ import org.ejbca.core.model.era.RaRoleMemberTokenTypeInfo;
  * Backing bean for the (Add) Role Member page
  *
  * @version $Id: RaRoleMemberBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaRoleMemberBean implements Serializable {

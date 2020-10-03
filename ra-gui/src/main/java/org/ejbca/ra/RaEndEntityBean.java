@@ -51,7 +51,9 @@ import org.ejbca.ra.RaEndEntityDetails.Callbacks;
  * Backing bean for certificate details view.
  *  
  * @version $Id: RaEndEntityBean.java 34207 2020-01-08 13:22:50Z samuellb $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaEndEntityBean implements Serializable {
@@ -317,7 +319,7 @@ public class RaEndEntityBean implements Serializable {
     /**
      * Sets the enrollment code (confirm) field
      * 
-     * @param enrollmentCode the new enrollment code (confirm)
+     * @param enrollmentCodeConfirm the new enrollment code (confirm)
      */
     public void setEnrollmentCodeConfirm(String enrollmentCodeConfirm) {
         this.enrollmentCodeConfirm = enrollmentCodeConfirm;

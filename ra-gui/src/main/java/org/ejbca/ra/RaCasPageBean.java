@@ -42,7 +42,9 @@ import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
  * Backing bean for Certificate and CRLs download page.
  *
  * @version $Id: RaCasPageBean.java 28756 2018-04-20 05:17:42Z bastianf $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @ViewScoped
 public class RaCasPageBean implements Serializable {
@@ -185,7 +187,8 @@ public class RaCasPageBean implements Serializable {
         return casAndCrlItems;
     }
 
-    /** @return the issuer hash in base64 encoding without padding which is the way RFC4387 search function expects the iHash parameter. */
+    /** @param x509Certificate Cert
+     * @return the issuer hash in base64 encoding without padding which is the way RFC4387 search function expects the iHash parameter. */
     private String getSubjectPrincipalHashAsUnpaddedBase64(final X509Certificate x509Certificate) {
         final byte[] hashSubjectX500Principal = CertTools.generateSHA1Fingerprint(x509Certificate.getSubjectX500Principal().getEncoded());
         return new String(Base64.encode(hashSubjectX500Principal)).substring(0, 27).replaceAll("\\+", "%2B");

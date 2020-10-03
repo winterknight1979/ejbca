@@ -34,7 +34,9 @@ import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLoc
  * JSF Managed Bean for handling authentication of clients.
  * 
  * @version $Id: RaAuthenticationBean.java 23483 2016-05-18 06:43:57Z mikekushner $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @SessionScoped
 public class RaAuthenticationBean implements Serializable {
@@ -87,7 +89,8 @@ public class RaAuthenticationBean implements Serializable {
         return authToken.toString();
     }
     
-    /** Invoked from RaHttpSessionListener when a session expires/is destroyed */
+    /** Invoked from RaHttpSessionListener when a session expires/is destroyed 
+     * @param httpSessionEvent Event */
     public void onSessionDestroyed(final HttpSessionEvent httpSessionEvent) {
         log.info("HTTP session from client with authentication " + authenticationToken + " ended.");
         if (log.isDebugEnabled()) {

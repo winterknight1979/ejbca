@@ -39,7 +39,9 @@ import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
  * Managed bean with isAuthorized method.
  *
  * @version $Id: RaAccessBean.java 28562 2018-03-27 14:07:49Z undulf $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ManagedBean
 @SessionScoped
 public class RaAccessBean implements Serializable {
@@ -73,6 +75,9 @@ public class RaAccessBean implements Serializable {
 
     /**
      * Check authorization using AccessSet which do not support deny rules.
+     * @param authenticationToken Token
+     * @param resources Resources
+     * @return bool
      * @deprecated since EJBCA 6.8.0
      */
     @Deprecated
@@ -129,21 +134,24 @@ public class RaAccessBean implements Serializable {
 
     // Methods for checking authorization to various parts of EJBCA can be defined below
 
-    /** Example method */
+    /** Example method 
+     * @return bool*/
     @Deprecated
     public boolean isAuthorizedToRootTEST() {
         return isAuthorized(StandardRules.ROLE_ROOT.resource());
     }
 
     /** correspond to menu items in menu.xhtml
-     * This method shows and hides the whole enrollment menu */
+     * This method shows and hides the whole enrollment menu 
+     * @return bool */
     public boolean isAuthorizedToEnroll() {
         return isAuthorizedToEnrollMakeRequest() ||
                 isAuthorizedToEnrollWithRequestId();
     }
 
     /** correspond to menu items in menu.xhtml
-     * This method shows and hides the make request sub menu item */
+     * This method shows and hides the make request sub menu item 
+     * @return bool */
     public boolean isAuthorizedToEnrollMakeRequest() {
         /*
          * Only check if this admin has been configured to create end entities to display the meny.
@@ -155,7 +163,8 @@ public class RaAccessBean implements Serializable {
     }
 
     /** correspond to menu items in menu.xhtml
-     * This method shows and hides the use request id sub menu item */
+     * This method shows and hides the use request id sub menu item 
+     * @return bool */
     public boolean isAuthorizedToEnrollWithRequestId() {
         // There are no access rules available for "finalizing" requests, i.e. retrieving the certificate for your request
         // For starters we will assume that the same person who made the request is finalizing it with request ID, therefore

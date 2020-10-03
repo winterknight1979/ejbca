@@ -55,6 +55,7 @@ public abstract class RaAbstractDn {
     
     /**
      * Intended to be used for Subject DN: ;
+     * @param dnBeforeReordering DN
      * @return reordered dn value
      */
     protected abstract String reorder(String dnBeforeReordering);
@@ -126,7 +127,7 @@ public abstract class RaAbstractDn {
     /**
      * Returns non-updated string value of abstract DN.
      * @return DN as String
-     * @see RaAbstractDn.update()
+     * @see #RaAbstractDn.update()
      */
     public String getValue() {
         if(value == null){
