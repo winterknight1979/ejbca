@@ -31,21 +31,21 @@ import org.apache.log4j.Logger;
  * for ALL POST requests. 
  * 
  * Example usage:
-<ui:repeat value="#{someBean.instances}" var="instance">
-    <h:inputText id="id" value="#{instance.value}">
-        <f:validator validatorId="extendedRegexValidator" />
-        <f:attribute name="pattern" value="#{instance.required ? instance.regexPattern : ''}" />
-        <f:ajax event="change" execute="@this" listener="#{someBean.someMethodThatDoesntInvokeExtendedRegexValidator}"
-        render="..."/>
-    </h:inputText>
-</ui:repeat>
-<h:commandButton 
-    action="#{someBean.someMethodThatDoesntInvokeExtendedRegexValidator}">
-</h:commandButton>
-<h:commandButton 
-    action="#{someBean.someMethodThatInvokesExtendedRegexValidator}">
-    <f:param name="validationRequiredFromRequest" value="true" />
-</h:commandButton>
+&lt;ui:repeat value="#{someBean.instances}" var="instance"&gt;
+    &lt;h:inputText id="id" value="#{instance.value}"&gt;
+        &lt;f:validator validatorId="extendedRegexValidator" /&gt;
+        &lt;f:attribute name="pattern" value="#{instance.required ? instance.regexPattern : ''}" /&gt;
+        &lt;f:ajax event="change" execute="@this" listener="#{someBean.someMethodThatDoesntInvokeExtendedRegexValidator}"
+        render="..."/&gt;
+    &lt;/h:inputText&gt;
+&lt;/ui:repeat&gt;
+&lt;h:commandButton 
+    action="#{someBean.someMethodThatDoesntInvokeExtendedRegexValidator}"&gt;
+&lt;/h:commandButton&gt;
+&lt;h:commandButton 
+    action="#{someBean.someMethodThatInvokesExtendedRegexValidator}"&gt;
+    &lt;f:param name="validationRequiredFromRequest" value="true" /&gt;
+&lt;/h:commandButton&gt;
  * 
  * @version $Id: ExtendedRegexValidator.java 24512 2016-10-13 14:28:20Z marko $
  */

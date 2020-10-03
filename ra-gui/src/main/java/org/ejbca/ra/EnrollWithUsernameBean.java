@@ -85,7 +85,7 @@ public class EnrollWithUsernameBean extends EnrollWithRequestIdBean implements S
         super.postConstruct();
     }
 
-    /** Disable the username field if we have passwed username as a parameter in the URL (i.e. &username=tomas).
+    /** Disable the username field if we have passwed username as a parameter in the URL (i.e. &amp;username=tomas).
      * User friendly as the user can not accidentally change the pre defined username 
      * @return bool */
     public boolean isUsernameDisabled() {

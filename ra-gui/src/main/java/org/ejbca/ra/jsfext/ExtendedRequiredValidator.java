@@ -28,23 +28,23 @@ import org.apache.log4j.Logger;
  * for ALL POST requests. Beside the request parameter "validationRequiredFromRequest" input component has to have
  * attribute "_required" set to true (or expression that evaluates to true) to perform validation.
  * 
- * DO NOT try to rename the "_required" into "required". It will be treated as <h:inputText required="..."> thus breaking
+ * DO NOT try to rename the "_required" into "required". It will be treated as &lt;h:inputText required="..."&gt; thus breaking
  * the extendedRequiredValidator.
  * 
  * Example usage:
-<h:inputText value="#{someBean.componentForWhichValidationIsNotAllwaysRequired}">
-    <f:validator validatorId="extendedRequiredValidator" />
-    <f:attribute name="_required" value="true" />
-    <f:ajax event="change" execute="@this" listener="#{someBean.someMethodThatDoesntValidateRequired}"
-    render="..."/>
-</h:inputText>
-<h:commandButton 
-    action="#{someBean.someMethodThatDoesntValidateRequired}">
-</h:commandButton>
-<h:commandButton 
-    action="#{someBean.someMethodThatValidatesRequired}">
-    <f:param name="validationRequiredFromRequest" value="true" />
-</h:commandButton>
+&lt;h:inputText value="#{someBean.componentForWhichValidationIsNotAllwaysRequired}"&gt;
+    &lt;f:validator validatorId="extendedRequiredValidator" /&gt;
+    &lt;f:attribute name="_required" value="true" /&gt;
+    &lt;f:ajax event="change" execute="@this" listener="#{someBean.someMethodThatDoesntValidateRequired}"
+    render="..."/&gt;
+&lt;/h:inputText&gt;
+&lt;h:commandButton 
+    action="#{someBean.someMethodThatDoesntValidateRequired}"&gt;
+&lt;/h:commandButton&gt;
+&lt;h:commandButton 
+    action="#{someBean.someMethodThatValidatesRequired}"&gt;
+    &lt;f:param name="validationRequiredFromRequest" value="true" /&gt;
+&lt;/h:commandButton&gt;
  * 
  * @version $Id: ExtendedRequiredValidator.java 24496 2016-10-10 15:25:13Z marko $
  */

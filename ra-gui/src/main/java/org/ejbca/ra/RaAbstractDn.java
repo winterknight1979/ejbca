@@ -127,7 +127,7 @@ public abstract class RaAbstractDn {
     /**
      * Returns non-updated string value of abstract DN.
      * @return DN as String
-     * @see #RaAbstractDn.update()
+     * @see RaAbstractDn#update()
      */
     public String getValue() {
         if(value == null){

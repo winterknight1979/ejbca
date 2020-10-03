@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
  * 
  * Enabled in faces-config.xml with
  *     &lt;factory&gt;
- *         &lt;exception-handler-factory>org.ejbca.ra.jsfext.RaExceptionHandlerFactory&lt;/exception-handler-factory&gt;
+ *         &lt;exception-handler-factory&gt;org.ejbca.ra.jsfext.RaExceptionHandlerFactory&lt;/exception-handler-factory&gt;
  *     &lt;/factory&gt;
  *     
  * @version $Id: RaExceptionHandlerFactory.java 34547 2020-02-28 13:52:37Z samuellb $

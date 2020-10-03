@@ -310,7 +310,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
      * <li>The validity is non-empty but cannot be parsed</li>
      * <li>The validity is a parsable date or time interval but exceeds the maximum validity specified by the certificate profile</li>
      * <li>The validity is valid (no error)</li>
-     * <ul>
+     * </ul>
      * @return String
      */
     public String getValidityHelpMessage() {
@@ -379,7 +379,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
      * <ul>
      * <li>The validity can be parsed and interpreted as a date.</li>
      * <li>The validity does not exceed the validity of the certificate profile.</li>
-     * <ul>
+     * </ul>
      * @return True if the validity set by the user is valid
      */
     public boolean isValidityValid() {
@@ -398,7 +398,7 @@ public class EnrollMakeNewRequestBean implements Serializable {
      * <li>User defined validity is disabled in the UI</li>
      * <li>The validity cannot be parsed (invalid format)</li>
      * <li>The validity exceeds the maximum validity as specified by the certificate profile</li>
-     * <ul>
+     * </ul>
      * @return The validity as a string or null
      */
     private String getUserDefinedValidityIfSpecified() {
