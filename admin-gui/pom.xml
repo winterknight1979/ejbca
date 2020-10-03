@@ -168,7 +168,9 @@
 				<version>3.2.3</version>
 				<configuration>
 					<packagingExcludes>WEB-INF/lib/*</packagingExcludes>
+					<packagingIncludes>WEB-INF/lib/tomahawk*, WEB-INF/lib/csrf*</packagingIncludes>
 					<attachClasses>true</attachClasses>
+					<recompressZippedFiles>true</recompressZippedFiles>
 				</configuration>
 			</plugin>
 
