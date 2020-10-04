@@ -164,6 +164,13 @@ It should explicitly depend on all other modules.</description>
 			<version>${project.version}</version>
 			<classifier>classes</classifier>
 		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-cmp-tcp</artifactId>
+			<version>${project.version}</version>
+			<classifier>classes</classifier>
+		</dependency>
 
 		<!-- Shared Resource bundle and Service Manifest generator -->
 

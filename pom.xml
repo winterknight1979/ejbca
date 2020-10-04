@@ -69,6 +69,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>clearcache-war</module>
 		<module>admin-gui</module>
 		<module>ra-gui</module>
+		<module>ejbca-cmp-tcp</module>
 		
 		<!-- Test-only modules -->
 		
@@ -76,7 +77,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 
 
-		
+
 	</modules>
 
 	<scm>
@@ -275,10 +276,10 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<version>4.3</version>
 			</dependency>
 			<dependency>
-				<groupId>org.quickserver</groupId>
-				<artifactId>quickserver</artifactId>
-				<version>1.4.5</version>
-			</dependency>
+  <groupId>com.github.quickserverlab</groupId>
+  <artifactId>quickserver-main</artifactId>
+  <version>2.1.0</version>
+	</dependency>
 			<dependency>
 				<groupId>org.owasp</groupId>
 				<artifactId>csrfguard</artifactId>
@@ -516,6 +517,14 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<!-- Quickserver is not on Central  -->
+	<repositories>
+	    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
 
 	<build>
 		<pluginManagement>
