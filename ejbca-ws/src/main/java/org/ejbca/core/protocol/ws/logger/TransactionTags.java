@@ -19,6 +19,7 @@ public enum TransactionTags {
     ADMIN_ISSUER_DN,
     ADMIN_REMOTE_IP,
     ADMIN_FORWARDED_IP;
+    @SuppressWarnings("el-syntax")
     public String getTag() {
         return "${"+toString()+"}";
     }

@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:component="http://java.sun.com/jsf/composite/component"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:t="http://myfaces.apache.org/tomahawk">
+	<ui:remove>
+		<!--
+    /*************************************************************************
+     *                                                                       *
+     *  EJBCA: The OpenSource Certificate Authority                          *
+     *                                                                       *
+     *  This software is free software; you can redistribute it and/or       *
+     *  modify it under the terms of the GNU Lesser General Public           *
+     *  License as published by the Free Software Foundation; either         *
+     *  version 2.1 of the License, or any later version.                    *
+     *                                                                       *
+     *  See terms of license at gnu.org.                                     *
+     *                                                                       *
+     *************************************************************************/
+     
+     version: $Id: certificateValidity.xhtml 28397 2018-02-27 14:30:20Z mikekushner $
+     -->
+	</ui:remove>
+	<h:panelGroup>
+		<h:outputLabel for="certificateValidity" value="#{web.text.VALIDATOR_PERFORM_DURING}" style="font-weight: bold;" />&nbsp;
+    	<h:outputText value="#{web.ejbcaWebBean.getHelpReference('/Validators.html#Common_Key_Validator_Settings')}" escape="false"/>
+    </h:panelGroup>
+	<h:panelGroup id="certificateValidity" />
+	<h:outputLabel for="textfieldnotbefore" value="#{web.text.VALIDATORNOTBEFORE}" />
+	<h:panelGroup>
+		<h:selectOneMenu id="selectnotbeforecondition" value="#{validatorBean.validator.notBeforeCondition}"
+			validator="#{validatorBean.validateNotBeforeCondition}" disabled="#{validatorsBean.viewOnly}" onchange='fillNotBeforeConditionField()'>
+			<f:selectItems value="#{validatorBean.availableNotBeforeConditions}" />
+		</h:selectOneMenu>&nbsp;&nbsp;&nbsp;
+		<h:inputText id="textfieldnotbefore" value="#{validatorBean.validator.notBeforeAsString}" validator="#{validatorBean.validateNotBefore}"
+			required="false" maxlength="25" disabled="#{validatorsBean.viewOnly}" validatorMessage="#{web.text.INVALIDVALIDITYORCERTEND}">
+			<f:validator validatorId="validityDateValidator"/>
+			<f:attribute name="precision" value="seconds"/>
+			<f:attribute name="allowNull" value="true"/>
+		</h:inputText>&nbsp;&nbsp;&nbsp;
+		<h:outputText styleClass="help" value="#{web.text.DATE_HELP} #{web.ejbcaWebBean.dateExample}"/>
+	</h:panelGroup>
+	<h:outputLabel for="textfieldnotafter" value="#{web.text.VALIDATORNOTAFTER}" />
+	<h:panelGroup>
+		<h:selectOneMenu id="selectnotaftercondition" value="#{validatorBean.validator.notAfterCondition}"
+			validator="#{validatorBean.validateNotAfterCondition}" disabled="#{validatorsBean.viewOnly}" onchange='fillNotAfterConditionField()'>
+			<f:selectItems value="#{validatorBean.availableNotAfterConditions}" />
+		</h:selectOneMenu>&nbsp;&nbsp;&nbsp;
+		<h:inputText id="textfieldnotafter" value="#{validatorBean.validator.notAfterAsString}" validator="#{validatorBean.validateNotAfter}"
+			required="false" maxlength="25" disabled="#{validatorsBean.viewOnly}">
+			<f:validator validatorId="validityDateValidator"/>
+			<f:attribute name="precision" value="seconds"/>
+			<f:attribute name="allowNull" value="true"/>
+		</h:inputText>&nbsp;&nbsp;&nbsp;
+		<h:outputText styleClass="help" value="#{web.text.DATE_HELP} #{web.ejbcaWebBean.dateExample}"/>
+	</h:panelGroup>
+</ui:composition>

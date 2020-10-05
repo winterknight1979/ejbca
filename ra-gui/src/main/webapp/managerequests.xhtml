@@ -1,0 +1,223 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:component="http://java.sun.com/jsf/composite/component"
+    xmlns:c="http://java.sun.com/jsp/jstl/core"
+    xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+    xmlns:t="http://myfaces.apache.org/tomahawk">
+<ui:remove>
+    <!--
+    /*************************************************************************
+     *                                                                       *
+     *  EJBCA: The OpenSource Certificate Authority                          *
+     *                                                                       *
+     *  This software is free software; you can redistribute it and/or       *
+     *  modify it under the terms of the GNU Lesser General Public           *
+     *  License as published by the Free Software Foundation; either         *
+     *  version 2.1 of the License, or any later version.                    *
+     *                                                                       *
+     *  See terms of license at gnu.org.                                     *
+     *                                                                       *
+     *************************************************************************/
+
+     version: $Id: managerequests.xhtml 28090 2018-01-24 14:45:54Z henriks $
+     -->
+</ui:remove>
+<ui:composition template="/WEB-INF/include/template.xhtml">
+    <f:metadata>
+        <!-- Parameters must be duplicated here and in managerequests.xhtml. When we drop support for JBoss GA 7.1.1 we can put them in a separate file and use ui:include -->
+        <f:viewParam name="tab" value="#{raManageRequestsBean.tab}"/>
+        <f:viewParam name="sortAsc" value="#{raManageRequestsBean.sortAscending}"/>
+        <f:viewParam name="sortCol" value="#{raManageRequestsBean.sortColumn}"/>
+        <f:viewParam name="searchWaiting" value="#{raManageRequestsBean.customSearchingWaiting}"/>
+        <f:viewParam name="searchProcessed" value="#{raManageRequestsBean.customSearchingProcessed}"/>
+        <f:viewParam name="searchExpired" value="#{raManageRequestsBean.customSearchingExpired}"/>
+        <f:viewParam name="searchStartDate" value="#{raManageRequestsBean.customSearchStartDate}"/>
+        <f:viewParam name="searchEndDate" value="#{raManageRequestsBean.customSearchEndDate}"/>
+        <f:viewParam name="searchExpiresDays" value="#{raManageRequestsBean.customSearchExpiresDays}"/>
+        
+        <f:event type="preRenderView" listener="#{raManageRequestsBean.searchAndFilter}"/>
+    </f:metadata>
+    <ui:define name="content">
+        <h:panelGroup layout="block" class="header" id="title">
+            <h1><h:outputText value="#{msg.manage_requests_page_title}"/></h1>
+        </h:panelGroup>
+        <h:outputText value="#{msg.manage_requests_page_error_unauthorized}" rendered="#{!raAccessBean.authorizedToManageRequests}"/>
+        <h:panelGroup layout="block" styleClass="content-body" rendered="#{raAccessBean.authorizedToManageRequests}">
+            <h:form id="manageRequestsForm" class="pure-form">
+                
+                <h:panelGroup layout="block" styleClass="tabButtonBar">
+                    <h:outputLink value="managerequests.xhtml" styleClass="tabButton #{raManageRequestsBean.viewingNeedsApproval ? 'active' : ''}">
+                        <f:param name="tab" value="to_approve"/>
+                        <h:outputText value="#{msg.manage_requests_page_view_needs_approval}"/>
+                    </h:outputLink>
+                    
+                    <h:outputLink value="managerequests.xhtml" styleClass="tabButton #{raManageRequestsBean.viewingPendingApproval ? 'active' : ''}">
+                        <f:param name="tab" value="pending"/>
+                        <h:outputText value="#{msg.manage_requests_page_view_pending_approval}"/>
+                    </h:outputLink>
+                    
+                    <h:outputLink value="managerequests.xhtml" styleClass="tabButton #{raManageRequestsBean.viewingProcessed ? 'active' : ''}">
+                        <f:param name="tab" value="processed"/>
+                        <f:param name="sortAsc" value="false"/>
+                        <h:outputText value="#{msg.manage_requests_page_view_processed}"/>
+                    </h:outputLink>
+                    
+                    <h:outputLink value="managerequests.xhtml" styleClass="tabButton #{raManageRequestsBean.viewingCustom ? 'active' : ''}">
+                        <f:param name="tab" value="custom_search"/>
+                        <f:param name="sortAsc" value="false"/>
+                        <h:outputText value="#{msg.manage_requests_page_view_custom}"/>
+                    </h:outputLink>
+                </h:panelGroup>
+                
+                <h:panelGroup id="customSearchOptions" layout="block" rendered="#{raManageRequestsBean.viewingCustom}" styleClass="internal-frame">
+                    <h:panelGroup layout="block" styleClass="pure-control-group">
+                        <h:outputText value="#{msg.manage_requests_page_search_status}" styleClass="bodyText"/>
+                        
+                        <h:selectBooleanCheckbox id="searchWaiting" value="#{raManageRequestsBean.customSearchingWaiting}"/>
+                        <h:outputLabel for="searchWaiting" value="#{msg.manage_requests_page_search_waiting}"/>
+                        
+                        <h:selectBooleanCheckbox id="searchProcessed" value="#{raManageRequestsBean.customSearchingProcessed}"/>
+                        <h:outputLabel for="searchProcessed" value="#{msg.manage_requests_page_search_processed}"/>
+                        
+                        <h:selectBooleanCheckbox id="searchExpired" value="#{raManageRequestsBean.customSearchingExpired}"/>
+                        <h:outputLabel for="searchExpired" value="#{msg.manage_requests_page_search_expired}"/>
+                    </h:panelGroup>
+                    
+                    <h:panelGroup layout="block" styleClass="pure-control-group">
+                        <h:outputLabel for="searchStartDate" value="#{msg.manage_requests_page_search_start_date}" styleClass="startDate"/>
+                        <h:inputText id="searchStartDate" value="#{raManageRequestsBean.customSearchStartDate}" size="10" title="YYYY-MM-dd" styleClass="jsTitleAsPlaceHolder startDate"
+                                validatorMessage="#{msg.manage_requests_page_search_invalid_start_date}">
+                            <f:validateRegex pattern="\s*([0-9]{4,4}-[0-9][0-9]-[0-9][0-9]\s*)?"/>
+                        </h:inputText>
+                        
+                        <h:outputLabel for="searchEndDate" value="#{msg.manage_requests_page_search_end_date}" styleClass="endDate"/>
+                        <h:inputText id="searchEndDate" value="#{raManageRequestsBean.customSearchEndDate}" size="10" title="YYYY-MM-dd" styleClass="jsTitleAsPlaceHolder endDate"
+                                validatorMessage="#{msg.manage_requests_page_search_invalid_end_date}">
+                            <f:validateRegex pattern="\s*([0-9]{4,4}-[0-9][0-9]-[0-9][0-9]\s*)?"/>
+                        </h:inputText>
+                        <h:message for="searchStartDate" id="searchStartDateMessage" styleClass="showErrorMessage"/>
+                        <h:message for="searchEndDate" id="searchEndDateMessage" styleClass="showErrorMessage"/>
+                    </h:panelGroup>
+                    
+                    <h:panelGroup layout="block" styleClass="pure-control-group">
+                        <h:outputLabel for="searchExpiresDays" value="#{msg.manage_requests_page_search_expires_days_1}"/>
+                        <h:inputText id="searchExpiresDays" value="#{raManageRequestsBean.customSearchExpiresDays}" size="3"
+                                validatorMessage="#{msg.generic_invalid_number}">
+                            <f:validateRegex pattern="\s*([0-9]+\s*)?"/>
+                        </h:inputText>
+                        <h:outputText value="&nbsp;#{msg.manage_requests_page_search_expires_days_2}" styleClass="bodyText"/>
+                        <h:message for="searchExpiresDays" id="searchExpiresDaysMessage" styleClass="showErrorMessage"/>
+                    </h:panelGroup>
+                    
+                    <h:panelGroup layout="block" styleClass="pure-control-group">
+                        <h:commandButton id="customSearchCommand" action="#{raManageRequestsBean.searchAndFilter}"
+                            value="#{msg.manage_requests_page_custom_search_command}" styleClass="pure-button ra-button"/>
+                    </h:panelGroup>
+                </h:panelGroup>
+
+                <h:panelGroup id="filteredResults" layout="block" style="margin-top: 10px;">
+                    <h:outputText rendered="#{empty raManageRequestsBean.filteredResults}" value="#{msg.manage_requests_page_info_noresult}"/>
+                    <h:outputText styleClass="fineprint" rendered="#{raManageRequestsBean.moreResultsAvailable}" value="#{msg.manage_requests_page_info_moreresults}"/>
+                    <h:dataTable id="manageRequestTable" rendered="#{not empty raManageRequestsBean.filteredResults}" value="#{raManageRequestsBean.filteredResults}" var="raRequest"
+                        styleClass="pure-table" rowClasses=",pure-table-odd">
+                        <h:column>
+		                    <ui:remove>
+		                    <!--
+		                    For mobile this table is formatted to be responsive using CSS magic. Since it's a table it's not responsive by default.
+		                    The headings of the table is set in the the CSS in an @media query. Look for the table id, manageRequestTable, in the CSS
+		                    to find the div conversions. This needs to change if columns are added/removed below.
+		                    -->
+		                    </ui:remove>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortID" value="#{msg.manage_requests_page_colhead_id} #{raManageRequestsBean.sortedByID}"/>
+                                <h:commandButton id="sortID" action="#{raManageRequestsBean.sortByID}" value="#{msg.manage_requests_page_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":manageRequestsForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'manageRequestsForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'manageRequestsForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRequest.id}" style="white-space: nowrap"/>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortRequestDate" value="#{msg.manage_requests_page_colhead_request_date} #{raManageRequestsBean.sortedByRequestDate}"/>
+                                <h:commandButton id="sortRequestDate" action="#{raManageRequestsBean.sortByRequestDate}" value="#{msg.manage_requests_page_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":manageRequestsForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'manageRequestsForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'manageRequestsForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRequest.requestDate}" title="${msg.generic_timeformat_iso}"/>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortCA" value="#{msg.manage_requests_page_colhead_ca} #{raManageRequestsBean.sortedByCA}"/>
+                                <h:commandButton id="sortCA" action="#{raManageRequestsBean.sortByCA}" value="#{msg.manage_requests_page_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":manageRequestsForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'manageRequestsForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'manageRequestsForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRequest.ca}" />
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortType" value="#{msg.manage_requests_page_colhead_type} #{raManageRequestsBean.sortedByType}"/>
+                                <h:commandButton id="sortType" action="#{raManageRequestsBean.sortByType}" value="#{msg.manage_requests_page_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":manageRequestsForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'manageRequestsForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'manageRequestsForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRequest.type}" />
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortDisplayName" value="#{msg.manage_requests_page_colhead_name} #{raManageRequestsBean.sortedByDisplayName}"/>
+                                <h:commandButton id="sortDisplayName" action="#{raManageRequestsBean.sortByDisplayName}" value="#{msg.manage_requests_page_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":manageRequestsForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'manageRequestsForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'manageRequestsForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRequest.displayName}" title="#{raRequest.detail}" />
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortRequesterName" value="#{msg.manage_requests_page_colhead_requester_name} #{raManageRequestsBean.sortedByRequesterName}"/>
+                                <h:commandButton id="sortRequesterName" action="#{raManageRequestsBean.sortByRequesterName}" value="#{msg.manage_requests_page_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":manageRequestsForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'manageRequestsForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'manageRequestsForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRequest.requesterName}" title="#{raRequest.detail}" />
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">
+                                <h:outputLabel for="sortStatus" value="#{msg.manage_requests_page_colhead_request_status} #{raManageRequestsBean.sortedByStatus}"/>
+                                <h:commandButton id="sortStatus" action="#{raManageRequestsBean.sortByStatus}" value="#{msg.manage_requests_page_sort_command}" style="display: none;">
+                                    <f:ajax execute="@this" render=":manageRequestsForm:filteredResults"
+                                        onevent="function(data){ejbca.ra.onAjaxEvent(data,'manageRequestsForm:filteredResults');}"
+                                        onerror="function(data){ejbca.ra.onAjaxError(data,'manageRequestsForm:filteredResults');}"/>
+                                </h:commandButton>
+                            </f:facet>
+                            <h:outputText value="#{raRequest.status}" />
+                        </h:column>
+                        <h:column>
+                            <h:link id="viewMoreButton" styleClass="viewMoreLink" outcome="managerequest" includeViewParams="true">
+                                <f:param name="id" value="#{raRequest.id}"/>
+                                <h:outputText value="#{msg.manage_requests_page_review_command}"/>
+                            </h:link>
+                        </h:column>
+                    </h:dataTable>
+                </h:panelGroup>
+            </h:form>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:composite="http://java.sun.com/jsf/composite"
+	xmlns:component="http://java.sun.com/jsf/composite/component"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	xmlns:t="http://myfaces.apache.org/tomahawk">
+<ui:remove>
+	<!--
+    /*************************************************************************
+     *                                                                       *
+     *  EJBCA: The OpenSource Certificate Authority                          *
+     *                                                                       *
+     *  This software is free software; you can redistribute it and/or       *
+     *  modify it under the terms of the GNU Lesser General Public           *
+     *  License as published by the Free Software Foundation; either         *
+     *  version 2.1 of the License, or any later version.                    *
+     *                                                                       *
+     *  See terms of license at gnu.org.                                     *
+     *                                                                       *
+     *************************************************************************/
+
+     version: $Id$
+     -->
+</ui:remove>
+<f:view locale="#{raLocaleBean.locale}" encoding="UTF-8">
+	<h:head dir="#{raLocaleBean.direction}" />
+	<h:body>
+		<composite:interface>
+			<composite:attribute name="raRequestPreview" required="true" />
+			<composite:attribute name="styleLabel" required="false"
+				default="pure-u-lg-1-3" />
+			<composite:attribute name="styleValue" required="false"
+				default="pure-u-lg-2-3 ra-outputText" />
+			<composite:attribute name="styleOdd" required="false"
+				default="row-odd" />
+			<composite:attribute name="styleEven" required="false"
+				default="row-even" />
+		</composite:interface>
+
+		<composite:implementation>
+			<fieldset>
+				<h:outputLabel for="issuerDn"
+					value="#{msg.component_certdetails_field_issuerdn}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}" />
+				<h:outputText id="issuerDn"
+					value="#{cc.attrs.raRequestPreview.getUnescapedRdnValue(cc.attrs.raRequestPreview.issuerDn)}"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd} monospace" />
+					
+				<h:outputLabel for="subjectDn"
+					value="#{msg.component_certdetails_field_subjectdn}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}" />
+				<h:outputText id="subjectDn"
+					value="#{cc.attrs.raRequestPreview.getUnescapedRdnValue(cc.attrs.raRequestPreview.subjectDn)}"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd} monospace" />
+
+				<h:outputLabel for="subjectAlternativeName" rendered="#{cc.attrs.raRequestPreview.subjectAlternativeNameUsed}"
+					value="#{msg.component_certdetails_field_subjectan}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}" />
+				<h:outputText id="subjectAlternativeName" rendered="#{cc.attrs.raRequestPreview.subjectAlternativeNameUsed}"
+					value="#{cc.attrs.raRequestPreview.subjectAlternativeName}"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd} monospace" />
+
+				<h:outputLabel for="subjectDirectoryAttributes" rendered="#{cc.attrs.raRequestPreview.subjectDirectoryAttributesUsed}"
+					value="#{msg.component_certdetails_field_subjectda}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}" />
+				<h:outputText id="subjectDirectoryAttributes" rendered="#{cc.attrs.raRequestPreview.subjectDirectoryAttributesUsed}"
+					value="#{cc.attrs.raRequestPreview.subjectDirectoryAttributes}"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd} monospace" />
+					
+				<h:outputLabel for="publicKeySpec"
+					value="#{msg.component_certdetails_field_publickeyspec}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}" />
+				<h:outputText id="publicKeySpec"
+					value="#{cc.attrs.raRequestPreview.publicKeyAlgorithm}"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd} monospace" />
+				
+				<h:outputLabel for="validity"
+					value="#{msg.component_certdetails_field_validity}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}" />
+				<h:outputText id="validity"
+					value="#{cc.attrs.raRequestPreview.validity}"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd} monospace" />
+
+				<h:outputLabel for="keyusage"
+					value="#{msg.component_certdetails_field_keyusage}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}"
+					rendered="#{cc.attrs.raRequestPreview.more}" />
+				<h:panelGroup id="keyusage"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}"
+					rendered="#{cc.attrs.raRequestPreview.more}">
+					<ui:repeat var="keyUsageIndex"
+						value="#{cc.attrs.raRequestPreview.keyUsages}"
+						varStatus="status">
+						<h:outputText value=", " rendered="#{status.index!=0}" />
+						<h:outputText value="#{'Key usage '.concat(keyUsageIndex)}"
+							rendered="#{msg['component_certdetails_field_keyusage_'.concat(keyUsageIndex)].equals('???component_certdetails_field_keyusage_'.concat(keyUsageIndex).concat('???'))}" />
+						<h:outputText
+							value="#{msg['component_certdetails_field_keyusage_'.concat(keyUsageIndex)]}"
+							rendered="#{not msg['component_certdetails_field_keyusage_'.concat(keyUsageIndex)].equals('???component_certdetails_field_keyusage_'.concat(keyUsageIndex).concat('???'))}" />
+					</ui:repeat>
+				</h:panelGroup>
+
+				<h:outputLabel for="extendedkeyusage"
+					value="#{msg.component_certdetails_field_extendedkeyusage}"
+					styleClass="#{cc.attrs.styleLabel} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}"
+					rendered="#{cc.attrs.raRequestPreview.more}" />
+				<h:panelGroup id="extendedkeyusage"
+					styleClass="#{cc.attrs.styleValue} #{cc.attrs.raRequestPreview.even ? cc.attrs.styleEven : cc.attrs.styleOdd}"
+					rendered="#{cc.attrs.raRequestPreview.more}">
+					<ui:repeat var="extendedKeyUsageOid"
+						value="#{cc.attrs.raRequestPreview.extendedKeyUsages}"
+						varStatus="status">
+						<h:outputText value=", " rendered="#{status.index!=0}" />
+						<h:outputText value="#{extendedKeyUsageOid}"
+							rendered="#{msg['extendedkeyusage_'.concat(extendedKeyUsageOid)].equals('???extendedkeyusage_'.concat(extendedKeyUsageOid).concat('???'))}" />
+						<h:outputText
+							value="#{msg['extendedkeyusage_'.concat(extendedKeyUsageOid)]}"
+							rendered="#{not msg['extendedkeyusage_'.concat(extendedKeyUsageOid)].equals('???extendedkeyusage_'.concat(extendedKeyUsageOid).concat('???'))}" />
+					</ui:repeat>
+				</h:panelGroup>
+			</fieldset>
+		</composite:implementation>
+	</h:body>
+</f:view>
+</html>
