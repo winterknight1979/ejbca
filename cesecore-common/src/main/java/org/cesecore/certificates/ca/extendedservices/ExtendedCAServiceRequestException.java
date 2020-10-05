@@ -13,7 +13,7 @@
 package org.cesecore.certificates.ca.extendedservices;
 
 /**
- * Error processing the extended CA Service request
+ * Error processing the extended CA Service request.
  *
  * @version $Id: ExtendedCAServiceRequestException.java 17625 2013-09-20
  *     07:12:06Z netmackan $
@@ -36,7 +36,7 @@ public class ExtendedCAServiceRequestException extends java.lang.Exception {
    *
    * @param msg the detail message.
    */
-  public ExtendedCAServiceRequestException(String msg) {
+  public ExtendedCAServiceRequestException(final String msg) {
     super(msg);
   }
 
@@ -46,7 +46,7 @@ public class ExtendedCAServiceRequestException extends java.lang.Exception {
    *
    * @param e the detail message.
    */
-  public ExtendedCAServiceRequestException(Exception e) {
+  public ExtendedCAServiceRequestException(final Exception e) {
     super(e);
   }
 }

@@ -41,31 +41,37 @@ import org.cesecore.keys.token.CryptoToken;
 public abstract class CvcCA extends CA implements Serializable {
 
   private static final long serialVersionUID = 3L;
-  private static final Logger log = Logger.getLogger(CvcCA.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CvcCA.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /**
    * Version of this class, if this is increased the upgrade() method will be
-   * called automatically
+   * called automatically.
    */
   public static final float LATEST_VERSION = 4;
 
   /**
    * Creates a new instance of CA, this constructor should be used when a new CA
-   * is created
+   * is created.
    *
    * @param cainfo info
    */
-  public void init(CVCCAInfo cainfo) {
+  public void init(final CVCCAInfo cainfo) {
     super.init(cainfo);
     data.put(CA.CATYPE, Integer.valueOf(CAInfo.CATYPE_CVC));
     data.put(VERSION, Float.valueOf(LATEST_VERSION));
   }
 
-  public static CvcCA getInstance(CVCCAInfo cainfo) {
+  /**
+   *
+   * @param cainfo Info
+   * @return Instance
+   */
+  public static CvcCA getInstance(final CVCCAInfo cainfo) {
     // For future: Type here should be extracted from cainfo to select between
     // different implementations
     CvcCA ret = (CvcCA) createCAImpl("EAC");
@@ -75,14 +81,22 @@ public abstract class CvcCA extends CA implements Serializable {
     return ret;
   }
 
+  /** @param data Data
+ * @param caId ID
+ * @param subjectDN DN
+ * @param name Name
+ * @param status Status
+ * @param updateTime Time
+ * @param expireTime Time
+ * @return singleton instance. */
   public static CvcCA getInstance(
-      HashMap<Object, Object> data,
-      int caId,
-      String subjectDN,
-      String name,
-      int status,
-      Date updateTime,
-      Date expireTime) {
+      final HashMap<Object, Object> data,
+      final int caId,
+      final String subjectDN,
+      final String name,
+      final int status,
+      final Date updateTime,
+      final Date expireTime) {
     // For future: Type here should be extracted from data to select between
     // different implementations
     CvcCA ret = (CvcCA) createCAImpl("EAC");
@@ -92,6 +106,7 @@ public abstract class CvcCA extends CA implements Serializable {
     return ret;
   }
 
+  /** @return Class Loader */
   public static ServiceLoader<? extends CvcPlugin> getImplementationClasses() {
     ServiceLoader<? extends CvcPlugin> serviceLoader =
         ServiceLoader.load(CvcPlugin.class);
@@ -105,8 +120,8 @@ public abstract class CvcCA extends CA implements Serializable {
     ServiceLoader<? extends CvcPlugin> serviceLoader =
         getImplementationClasses();
     for (CvcPlugin cvcPlugin : serviceLoader) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "ServiceLoader found CvcPlugin implementation: "
                 + cvcPlugin.getCvcType());
       }
@@ -115,7 +130,7 @@ public abstract class CvcCA extends CA implements Serializable {
       }
     }
     // No implementation found, it is probably an Enterprise only feature
-    log.info("CVC CA is not available in this version of EJBCA.");
+    LOG.info("CVC CA is not available in this version of EJBCA.");
     return null;
   }
 
@@ -132,13 +147,13 @@ public abstract class CvcCA extends CA implements Serializable {
    */
   @SuppressWarnings("deprecation")
   public void init(
-      HashMap<Object, Object> data,
-      int caId,
-      String subjectDN,
-      String name,
-      int status,
-      Date updateTime,
-      Date expireTime) {
+      final HashMap<Object, Object> data,
+      final int caId,
+      final String subjectDN,
+      final String name,
+      final int status,
+      final Date updateTime,
+      final Date expireTime) {
     super.init(data);
     setExpireTime(expireTime);
     final List<ExtendedCAServiceInfo> externalcaserviceinfos =
@@ -199,43 +214,45 @@ public abstract class CvcCA extends CA implements Serializable {
     setCAId(caId);
   }
 
+  /** @return CVC type. */
   public abstract String getCvcType();
 
   @Override
   public byte[] createPKCS7(
-      CryptoToken cryptoToken, X509Certificate cert, boolean includeChain) {
-    log.info(intres.getLocalizedMessage("cvc.info.nocvcpkcs7"));
+      final CryptoToken cryptoToken,
+      final X509Certificate cert, final boolean includeChain) {
+    LOG.info(INTRES.getLocalizedMessage("cvc.info.nocvcpkcs7"));
     return null;
   }
 
   @Override
-  public byte[] createPKCS7Rollover(CryptoToken cryptoToken) {
-    log.info(intres.getLocalizedMessage("cvc.info.nocvcpkcs7"));
+  public byte[] createPKCS7Rollover(final CryptoToken cryptoToken) {
+    LOG.info(INTRES.getLocalizedMessage("cvc.info.nocvcpkcs7"));
     return null;
   }
 
   @Override
   public X509CRLHolder generateCRL(
-      CryptoToken cryptoToken,
-      Collection<RevokedCertInfo> certs,
-      int crlnumber) {
-    String msg = intres.getLocalizedMessage("createcrl.nocrlcreate", "CVC");
-    log.info(msg);
+      final CryptoToken cryptoToken,
+      final Collection<RevokedCertInfo> certs,
+      final int crlnumber) {
+    String msg = INTRES.getLocalizedMessage("createcrl.nocrlcreate", "CVC");
+    LOG.info(msg);
     return null;
   }
 
   @Override
   public X509CRLHolder generateDeltaCRL(
-      CryptoToken cryptoToken,
-      Collection<RevokedCertInfo> certs,
-      int crlnumber,
-      int basecrlnumber) {
-    String msg = intres.getLocalizedMessage("createcrl.nocrlcreate", "CVC");
-    log.info(msg);
+      final CryptoToken cryptoToken,
+      final Collection<RevokedCertInfo> certs,
+      final int crlnumber,
+      final int basecrlnumber) {
+    String msg = INTRES.getLocalizedMessage("createcrl.nocrlcreate", "CVC");
+    LOG.info(msg);
     return null;
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
   @Override
   public float getLatestVersion() {
     return LATEST_VERSION;
@@ -247,7 +264,7 @@ public abstract class CvcCA extends CA implements Serializable {
   public void upgrade() {
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
-      log.info("Upgrading CVCCA with version " + getVersion());
+      LOG.info("Upgrading CVCCA with version " + getVersion());
 
       // Put upgrade code here...
 
@@ -303,14 +320,15 @@ public abstract class CvcCA extends CA implements Serializable {
 
   @Override
   public byte[] decryptData(
-      CryptoToken cryptoToken, byte[] data, int cAKeyPurpose) {
+      final CryptoToken cryptoToken, final byte[] data,
+      final int cAKeyPurpose) {
     throw new IllegalArgumentException(
         "decryptData not implemented for CVC CA");
   }
 
   @Override
   public byte[] encryptData(
-      CryptoToken cryptoToken, byte[] data, int keyPurpose) {
+      final CryptoToken cryptoToken, final byte[] data, final int keyPurpose) {
     throw new IllegalArgumentException(
         "encryptData not implemented for CVC CA");
   }

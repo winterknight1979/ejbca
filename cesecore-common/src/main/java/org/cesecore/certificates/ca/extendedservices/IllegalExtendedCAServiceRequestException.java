@@ -13,7 +13,7 @@
 package org.cesecore.certificates.ca.extendedservices;
 
 /**
- * Used for illegal (invalid) CA Service Requests
+ * Used for illegal (invalid) CA Service Requests.
  *
  * @version $Id: IllegalExtendedCAServiceRequestException.java 17625 2013-09-20
  *     07:12:06Z netmackan $
@@ -36,7 +36,7 @@ public class IllegalExtendedCAServiceRequestException extends Exception {
    *
    * @param msg the detail message.
    */
-  public IllegalExtendedCAServiceRequestException(String msg) {
+  public IllegalExtendedCAServiceRequestException(final String msg) {
     super(msg);
   }
 
@@ -46,7 +46,7 @@ public class IllegalExtendedCAServiceRequestException extends Exception {
    *
    * @param e the detail message.
    */
-  public IllegalExtendedCAServiceRequestException(Exception e) {
+  public IllegalExtendedCAServiceRequestException(final Exception e) {
     super(e);
   }
 }

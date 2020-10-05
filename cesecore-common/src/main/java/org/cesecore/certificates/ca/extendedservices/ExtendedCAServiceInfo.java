@@ -27,23 +27,29 @@ public abstract class ExtendedCAServiceInfo implements Serializable {
 
   /** Constants indicating the status of the service. */
   public static final int STATUS_INACTIVE = 1;
-
+  /** Active. */
   public static final int STATUS_ACTIVE = 2;
-
+  /** Status. */
   private int status = STATUS_INACTIVE;
-
+  /** class. */
   public static final String IMPLEMENTATIONCLASS = "IMPLCLASS";
 
-  public ExtendedCAServiceInfo(int status) {
-    this.status = status;
+  /**
+   * Constructor.
+   * @param aStatus status
+   */
+  public ExtendedCAServiceInfo(final int aStatus) {
+    this.status = aStatus;
   }
 
+  /** @return status */
   public int getStatus() {
     return this.status;
   }
 
-  public void setStatus(final int status) {
-    this.status = status;
+  /** @param aStatus status */
+  public void setStatus(final int aStatus) {
+    this.status = aStatus;
   }
 
   /**

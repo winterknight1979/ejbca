@@ -86,9 +86,9 @@ public interface CvcPlugin {
    *     AvailableCustomCertificateExtensionsConfiguration, Certificate)
    */
   void createOrRemoveLinkCertificate(
-      final CryptoToken cryptoToken,
-      final boolean createLinkCertificate,
-      final CertificateProfile certProfile,
+      CryptoToken cryptoToken,
+      boolean createLinkCertificate,
+      CertificateProfile certProfile,
       AvailableCustomCertificateExtensionsConfiguration cceConfig,
       Certificate oldCaCert)
       throws CryptoTokenOfflineException;

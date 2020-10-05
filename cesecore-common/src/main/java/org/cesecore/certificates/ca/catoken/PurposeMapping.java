@@ -49,8 +49,11 @@ import java.util.Set;
  */
 public final class PurposeMapping {
 
+  /** Map. */
   private final Map<Integer, String> map;
+  /** Map. */
   private final Map<Integer, String> keymap;
+  /** Alias. */
   private final String defaultKeyAlias;
 
   /**
@@ -71,12 +74,12 @@ public final class PurposeMapping {
    * @param properties key string properties
    */
   public PurposeMapping(final Properties properties) {
-    /**
+    /*
      * Map of keypurpose integer (CATokenConstants.CAKEYPURPOSE_CERTSIGN) and
      * alias string as defined in Properties
      */
     map = new Hashtable<Integer, String>();
-    /**
+    /*
      * Map of keypurpose integer (CATokenConstants.CAKEYPURPOSE_CERTSIGN) and
      * key purpose string (CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING) for
      * the properties defined in Properties
@@ -208,6 +211,7 @@ public final class PurposeMapping {
     return set.toArray(new String[set.size()]);
   }
 
+  @Override
   public String toString() {
     return map.toString();
   }

@@ -40,8 +40,8 @@ public enum AccessMatchValueReverseLookupRegistry {
 
   /** Constructor. */
   AccessMatchValueReverseLookupRegistry() {
-    for (final AuthenticationTokenMetaData metaData 
-    		: ServiceLoader.load(AuthenticationTokenMetaData.class)) {
+    for (final AuthenticationTokenMetaData metaData
+            : ServiceLoader.load(AuthenticationTokenMetaData.class)) {
       register(metaData);
     }
   }

@@ -31,29 +31,37 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap
     implements java.io.Serializable {
 
   private static final long serialVersionUID = 4014122870575602909L;
-
+  /** Type. */
   public static final String EXTENDEDCASERVICETYPE = "extendedcaservicetype";
-
-  public final String SERVICENAME = "";
-
+  /** Service. */
+  private final String serviceName = "";
+  /** Status. */
   public static final String STATUS = "status";
 
   /**
    * The CA that the request can be enriched with, in order to let the extended
-   * service access CA key, certificates etc
+   * service access CA key, certificates etc.
    */
   private transient CA ca;
 
-  // Overriding classes needs this constructor
-  public ExtendedCAService(ExtendedCAServiceInfo info) {}
+  /** Overriding classes needs this constructor.
+   *
+   * @param info Info
+   */
+  public ExtendedCAService(final ExtendedCAServiceInfo info) { }
 
-  // Overriding classes needs this constructor
-  public ExtendedCAService(HashMap<?, ?> data) {}
+  /** Overriding classes needs this constructor.
+   *
+   * @param data Data
+   */
+  public ExtendedCAService(final HashMap<?, ?> data) { }
 
-  protected void setStatus(int status) {
+  /** @param status atatus */
+  protected void setStatus(final int status) {
     this.data.put(STATUS, Integer.valueOf(status));
   }
 
+  /** @return status */
   protected int getStatus() {
     return ((Integer) data.get(STATUS)).intValue();
   }
@@ -63,13 +71,14 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap
    * Used to (temporarily) give the service access to CA keys, certificates etc
    * that might be needed for the service to run perform its service.
    *
-   * @param ca the CA from which the service can use private keys to generate
+   * @param aCa the CA from which the service can use private keys to generate
    *     service certificates etc.
    */
-  public final void setCA(final CA ca) {
-    this.ca = ca;
+  public final void setCA(final CA aCa) {
+    this.ca = aCa;
   }
 
+  /** @return CA */
   public final CA getCa() {
     return ca;
   }
@@ -80,30 +89,30 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap
    * is created, or the service of the CA is renewed.
    *
    * @param cryptoToken token
-   * @param ca the CA from which the service can use private keys to generate
+   * @param aCa the CA from which the service can use private keys to generate
    *     service certificates etc. This must not be stored.
    * @param cceConfig containing a list of available custom certificate
    *     extensions
    * @throws Exception on error
    */
   public abstract void init(
-      final CryptoToken cryptoToken,
-      CA ca,
+      CryptoToken cryptoToken,
+      CA aCa,
       AvailableCustomCertificateExtensionsConfiguration cceConfig)
       throws Exception;
 
   /**
-   * Update the ExtendedCAService data
+   * Update the ExtendedCAService data.
    *
    * @param cryptoToken token
    * @param info contains information used to activate the service.
-   * @param ca CA
+   * @param aCa CA
    * @param cceConfig config
    */
   public abstract void update(
-      final CryptoToken cryptoToken,
+      CryptoToken cryptoToken,
       ExtendedCAServiceInfo info,
-      CA ca,
+      CA aCa,
       AvailableCustomCertificateExtensionsConfiguration cceConfig);
 
   /**
@@ -128,9 +137,14 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap
    * @throws CertificateEncodingException if certificate cannot be parsed
    */
   public abstract ExtendedCAServiceResponse extendedService(
-      final CryptoToken cryptoToken, ExtendedCAServiceRequest request)
+      CryptoToken cryptoToken, ExtendedCAServiceRequest request)
       throws ExtendedCAServiceRequestException,
           IllegalExtendedCAServiceRequestException,
           ExtendedCAServiceNotActiveException, CertificateEncodingException,
           CertificateException, OperatorCreationException;
+
+  /** @return Service name. */
+  public String getServiceName() {
+    return serviceName;
+  }
 }

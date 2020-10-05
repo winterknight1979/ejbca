@@ -34,7 +34,7 @@ public class ExtendedCAServiceNotActiveException extends java.lang.Exception {
    *
    * @param msg the detail message.
    */
-  public ExtendedCAServiceNotActiveException(String msg) {
+  public ExtendedCAServiceNotActiveException(final String msg) {
     super(msg);
   }
 
@@ -44,7 +44,7 @@ public class ExtendedCAServiceNotActiveException extends java.lang.Exception {
    *
    * @param e the detail message.
    */
-  public ExtendedCAServiceNotActiveException(Exception e) {
+  public ExtendedCAServiceNotActiveException(final Exception e) {
     super(e);
   }
 }

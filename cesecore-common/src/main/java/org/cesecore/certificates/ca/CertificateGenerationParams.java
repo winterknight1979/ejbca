@@ -38,22 +38,24 @@ import org.cesecore.keys.validation.CertificateValidationDomainService;
 public final class CertificateGenerationParams implements Serializable {
 
   private static final long serialVersionUID = 1L;
-
+  /** Params. */
   private CTSubmissionConfigParams ctSubmissionConfigParams;
+  /** Callback. */
   private CTAuditLogCallback ctAuditLogCallback;
-
+  /** Token. */
   private AuthenticationToken authenticationToken;
+  /** Domain service. */
   private CertificateValidationDomainService certificateValidationDomainService;
 
   /**
    * Sets CT parameters that are not specific to the certificate profile, for
    * example list of available CT logs.
    *
-   * @param ctSubmissionConfigParams parameters
+   * @param aCtSubmissionConfigParams parameters
    */
   public void setCTSubmissionConfigParams(
-      final CTSubmissionConfigParams ctSubmissionConfigParams) {
-    this.ctSubmissionConfigParams = ctSubmissionConfigParams;
+      final CTSubmissionConfigParams aCtSubmissionConfigParams) {
+    this.ctSubmissionConfigParams = aCtSubmissionConfigParams;
   }
 
   /**
@@ -61,10 +63,11 @@ public final class CertificateGenerationParams implements Serializable {
    * called automatically from CertificateCreateSession when generating a
    * certificate.
    *
-   * @param ctAuditLogCallback callback
+   * @param aCtAuditLogCallback callback
    */
-  public void setCTAuditLogCallback(CTAuditLogCallback ctAuditLogCallback) {
-    this.ctAuditLogCallback = ctAuditLogCallback;
+  public void setCTAuditLogCallback(
+          final CTAuditLogCallback aCtAuditLogCallback) {
+    this.ctAuditLogCallback = aCtAuditLogCallback;
   }
 
   /* Package internal methods are called from X509CA */
@@ -90,12 +93,13 @@ public final class CertificateGenerationParams implements Serializable {
   /**
    * Sets the validation domain service reference.
    *
-   * @param certificateValidationDomainService the domain service reference.
+   * @param aCertificateValidationDomainService the domain service reference.
    */
   public void setCertificateValidationDomainService(
-      CertificateValidationDomainService certificateValidationDomainService) {
+    final CertificateValidationDomainService
+        aCertificateValidationDomainService) {
     this.certificateValidationDomainService =
-        certificateValidationDomainService;
+        aCertificateValidationDomainService;
   }
 
   /**
@@ -110,9 +114,10 @@ public final class CertificateGenerationParams implements Serializable {
   /**
    * Sets the authentication token.
    *
-   * @param authenticationToken the token.
+   * @param aAuthenticationToken the token.
    */
-  public void setAuthenticationToken(AuthenticationToken authenticationToken) {
-    this.authenticationToken = authenticationToken;
+  public void setAuthenticationToken(
+          final AuthenticationToken aAuthenticationToken) {
+    this.authenticationToken = aAuthenticationToken;
   }
 }

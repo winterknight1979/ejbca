@@ -56,5 +56,5 @@ public interface SernoGenerator {
    *     implementation
    * @throws NoSuchAlgorithmException if the requesed algorithm cannot be found
    */
-  void setAlgorithm(final String algo) throws NoSuchAlgorithmException;
+  void setAlgorithm(String algo) throws NoSuchAlgorithmException;
 }

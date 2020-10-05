@@ -41,7 +41,7 @@ public class CANameChangeRenewalException extends CesecoreException {
    *
    * @param msg the detail message.
    */
-  public CANameChangeRenewalException(String msg) {
+  public CANameChangeRenewalException(final String msg) {
     super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR, msg);
   }
 
@@ -51,7 +51,7 @@ public class CANameChangeRenewalException extends CesecoreException {
    *
    * @param e the detail message.
    */
-  public CANameChangeRenewalException(Exception e) {
+  public CANameChangeRenewalException(final Exception e) {
     super(e);
   }
 }

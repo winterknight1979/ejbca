@@ -35,9 +35,11 @@
 	Changes from Sun for EJBCA:
 	* Allow files to be up to 5000 lines
 	* Allow single word comments, case statements, and imports to be longer than 80 chars
+	* Don't complain about unknown jdoc tags (we use @apiNote, and Eclipse picks up all other non-standards) 
 	* Don't require jdoc on @Override
 	* Allow protected visibility
 	* Allow magic numbers in HashCode().
+	* +/- 8, 10 and 16 are not Magic.
 	
 	Other than TODO comments, all acceptable deviations from this style should be
 	suppressed in the per-module suppression file.
@@ -119,7 +121,9 @@
     <!-- See https://checkstyle.org/config_javadoc.html -->
     <module name="InvalidJavadocPosition"/>
     <module name="JavadocMethod"/>
-    <module name="JavadocType"/>
+    <module name="JavadocType">
+    	<property name="allowUnknownTags" value="true"/>
+    </module>
     <module name="JavadocVariable"/>
     <module name="JavadocStyle"/>
     <module name="MissingJavadocMethod"/>
@@ -184,6 +188,7 @@
     <module name="IllegalInstantiation"/>
     <module name="InnerAssignment"/>
     <module name="MagicNumber">
+    	<property name="ignoreNumbers" value="-16,-10, -8, -2, -1,0,1,2,8,10,16"/>
     	<property name="ignoreHashCodeMethod" value="true"/>
     </module>
     <module name="MissingSwitchDefault"/>

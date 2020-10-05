@@ -31,13 +31,15 @@ import org.cesecore.util.Base64;
 import org.cesecore.util.CertTools;
 
 /**
- * A cache for storing CA certificates
+ * A cache for storing CA certificates.
  *
  * @version $Id: CaCertificateCache.java 27419 2017-12-05 13:18:18Z anatom $
  */
 public enum CaCertificateCache {
+  /** Singleton instance. */
   INSTANCE;
 
+    /** Logger. */
   private final Logger log = Logger.getLogger(CaCertificateCache.class);
 
   /** Mapping from subjectDN to key in the certs HashMap. */
@@ -53,9 +55,13 @@ public enum CaCertificateCache {
   private Set<X509Certificate> rootCertificates =
       new HashSet<X509Certificate>();
 
-  /** Cache time counter, set and used by loadCertificates */
+  /** Cache time counter, set and used by loadCertificates. */
   private long certValidTo = 0;
-
+  /**
+   *
+   * @param id ID
+   * @return Cert
+   */
   public X509Certificate findLatestBySubjectDN(final HashID id) {
     final X509Certificate ret = certsFromSubjectDN.get(id.getKey());
     if (ret == null && log.isDebugEnabled()) {
@@ -67,6 +73,8 @@ public enum CaCertificateCache {
     return ret;
   }
 
+  /** @param id ID
+ * @return cert */
   public X509Certificate[] findLatestByIssuerDN(final HashID id) {
     final Set<X509Certificate> sCert = certsFromIssuerDN.get(id.getKey());
     if (sCert == null || sCert.isEmpty()) {
@@ -81,10 +89,14 @@ public enum CaCertificateCache {
     return sCert.toArray(new X509Certificate[sCert.size()]);
   }
 
+  /** @return root certs */
   public X509Certificate[] getRootCertificates() {
     return rootCertificates.toArray(new X509Certificate[0]);
   }
 
+  /**
+   *  @param id ID
+ * @return cert */
   public X509Certificate findBySubjectKeyIdentifier(final HashID id) {
     final X509Certificate ret = certsFromSubjectKeyIdentifier.get(id.getKey());
     if (ret == null && log.isDebugEnabled()) {
@@ -96,6 +108,7 @@ public enum CaCertificateCache {
     return ret;
   }
 
+  /** @return true if cache has expired */
   public boolean isCacheExpired() {
     return certValidTo < System.currentTimeMillis();
   }
@@ -208,8 +221,8 @@ public enum CaCertificateCache {
       final StringWriter sw = new StringWriter();
       final PrintWriter pw = new PrintWriter(sw, true);
       pw.println("Found the following CA certificates :");
-      for (Entry<Integer, X509Certificate> key :
-          newCertsFromSubjectKeyIdentifier.entrySet()) {
+      for (Entry<Integer, X509Certificate> key
+          : newCertsFromSubjectKeyIdentifier.entrySet()) {
         final Certificate cert = key.getValue();
         pw.print(CertTools.getSubjectDN(cert));
         pw.print(',');

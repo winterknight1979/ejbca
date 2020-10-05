@@ -67,29 +67,29 @@ import org.cesecore.internal.InternalResources;
  * @version $Id: SernoGeneratorRandom.java 31966 2019-03-25 10:19:57Z anatom $
  */
 public class SernoGeneratorRandom implements SernoGenerator {
-  /** Log4j instance */
-  private static final Logger log =
+  /** Log4j instance. */
+  private static final Logger LOG =
       Logger.getLogger(SernoGeneratorRandom.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /**
-   * RFC5280, section 4.1.2.2, specifies using max 20 octets for serial number
+   * RFC5280, section 4.1.2.2, specifies using max 20 octets for serial number.
    */
   private static final int SERNO_MAX_LENGTH = 20;
 
   /**
    * random generator algorithm, defaults to FIPS approve SHA1PRNG in
    * constructor The algorithm is specified globally in
-   * CesecoreConfiguration.getCaSerialNumberAlgorithm()
+   * CesecoreConfiguration.getCaSerialNumberAlgorithm().
    */
   private String algorithm;
 
-  /** number of bytes to generate, fixed size serial numbers */
+  /** number of bytes to generate, fixed size serial numbers. */
   private int noOctets;
 
-  /** random generator */
+  /** random generator. */
   private SecureRandom random;
 
   /**
@@ -103,7 +103,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
    * @param noOctets size
    * @return An instance of the serial number generator.
    */
-  public static synchronized SernoGenerator instance(Integer noOctets) {
+  public static synchronized SernoGenerator instance(final Integer noOctets) {
     SernoGeneratorRandom instance = instances.get(noOctets);
     if (instance == null) {
       instance = new SernoGeneratorRandom(noOctets);
@@ -114,29 +114,29 @@ public class SernoGeneratorRandom implements SernoGenerator {
 
   /**
    * DO NOT USE: Protected only to do testing of this implementation use {@link
-   * #instance(Integer)} instead
+   * #instance(Integer)} instead.
    *
-   * @param noOctets size
+   * @param aNoOctets size
    */
-  protected SernoGeneratorRandom(Integer noOctets) {
-    if (log.isTraceEnabled()) {
-      log.trace(">SernoGenerator()");
+  protected SernoGeneratorRandom(final Integer aNoOctets) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">SernoGenerator()");
     }
     this.algorithm = CesecoreConfiguration.getCaSerialNumberAlgorithm();
     if (this.algorithm == null) {
       this.algorithm = "SHA1PRNG";
     }
-    if ((noOctets > SERNO_MAX_LENGTH
-        || noOctets < 0)) { // We allow 0 octets for testing
+    if ((aNoOctets > SERNO_MAX_LENGTH
+        || aNoOctets < 0)) { // We allow 0 octets for testing
       throw new IllegalArgumentException(
           "ca.serialnumberoctetsize must be between 0 and "
               + SERNO_MAX_LENGTH
               + " bytes for this serial number generator.");
     }
-    this.noOctets = noOctets;
+    this.noOctets = aNoOctets;
     init();
-    if (log.isTraceEnabled()) {
-      log.trace("<SernoGenerator()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<SernoGenerator()");
     }
   }
 
@@ -150,7 +150,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
       if (!StringUtils.isEmpty(algorithm)
           && !StringUtils.containsIgnoreCase(algorithm, "default")) {
         random = SecureRandom.getInstance(algorithm);
-        log.info("Using " + algorithm + " serialNumber RNG algorithm.");
+        LOG.info("Using " + algorithm + " serialNumber RNG algorithm.");
       } else if (!StringUtils.isEmpty(algorithm)
           && StringUtils.equalsIgnoreCase(algorithm, "defaultstrong")) {
         // If defaultstrong is specified and we use >=JDK8 try the
@@ -163,7 +163,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
           final Method methodGetInstanceStrong =
               SecureRandom.class.getDeclaredMethod("getInstanceStrong");
           random = (SecureRandom) methodGetInstanceStrong.invoke(null);
-          log.info(
+          LOG.info(
               "Using SecureRandom.getInstanceStrong() with "
                   + random.getAlgorithm()
                   + " for serialNumber RNG algorithm.");
@@ -185,7 +185,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
         // On JDK8/Linux this gives you a NativePRNG, while
         // SecureRandom.getInstanceStrong() gives a NativePRNGBlocking.
         random = new SecureRandom();
-        log.info(
+        LOG.info(
             "Using default "
                 + random.getAlgorithm()
                 + " serialNumber RNG algorithm.");
@@ -218,10 +218,14 @@ public class SernoGeneratorRandom implements SernoGenerator {
     }
     while (true) {
       /*
-      Note that initBitsOfEntropy are not left intact by the following subsequent filtering operations:
-      - Values discarded to avoid encoding in less than noOctets (including zero value).
-      - Serial numbers previously assigned to other certificates (filtered later, not here).
-      So the real entropy provided for generated serial numbers is always less than initBitsOfEntropy.
+      Note that initBitsOfEntropy are not left intact by the
+       following subsequent filtering operations:
+      - Values discarded to avoid encoding in less
+      than noOctets (including zero value).
+      - Serial numbers previously assigned to other
+      certificates (filtered later, not here).
+      So the real entropy provided for generated
+       serial numbers is always less than initBitsOfEntropy.
        */
       // initBitsOfEntropy is 1 less than octet size, because we always use
       // positive integers, which in
@@ -234,11 +238,12 @@ public class SernoGeneratorRandom implements SernoGenerator {
       if (checkSernoValidity(serno)) {
         return serno;
       } else {
-        String msg = intres.getLocalizedMessage("sernogenerator.discarding");
-        log.info(msg);
+        String msg = INTRES.getLocalizedMessage("sernogenerator.discarding");
+        LOG.info(msg);
       }
     }
   }
+
 
   /**
    * This validates that the argument is a non-zero number to be encoded
@@ -278,7 +283,7 @@ public class SernoGeneratorRandom implements SernoGenerator {
   }
 
   /**
-   * Available for testing so we can compare that we actually use what we think
+   * Available for testing so we can compare that we actually use what we think.
    *
    * @return the random generator algorithm as reported by the underlying Java
    *     random number generator.

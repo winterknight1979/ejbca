@@ -35,7 +35,13 @@ public class SignRequestSignatureException extends CesecoreException {
     super(ErrorCode.BAD_REQUEST_SIGNATURE, message);
   }
 
-  public SignRequestSignatureException(final String message, Throwable cause) {
+  /**
+   *
+   * @param message Message
+   * @param cause Cause
+   */
+  public SignRequestSignatureException(final String message,
+          final Throwable cause) {
     super(ErrorCode.BAD_REQUEST_SIGNATURE, message, cause);
   }
 }

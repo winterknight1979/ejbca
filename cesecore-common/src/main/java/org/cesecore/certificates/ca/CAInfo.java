@@ -36,7 +36,9 @@ import org.cesecore.util.StringTools;
 public abstract class CAInfo implements Serializable {
 
   private static final long serialVersionUID = 2L;
+  /** Type. */
   public static final int CATYPE_X509 = 1;
+  /** Type. */
   public static final int CATYPE_CVC = 2;
 
   /** Constants indicating that the CA is selfsigned. */
@@ -49,48 +51,68 @@ public abstract class CAInfo implements Serializable {
    * not below this value should be created
    */
   public static final int SPECIALCAIDBORDER = 10;
-
+  /** DN. */
   protected String subjectdn;
+  /** ID. */
   protected int caid;
+  /** Name. */
   protected String name;
   /**
    * CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when
-   * editing CA)
+   * editing CA).
    */
   protected int status = 0;
-
+  /** Validity. */
   protected String encodedValidity;
+  /** Time. */
   protected Date expiretime;
+  /** Time. */
   protected Date updatetime;
-  /** CATYPE_X509 or CATYPE_CVC */
+  /** CATYPE_X509 or CATYPE_CVC. */
   protected int catype;
-  /** A CAId or CAInfo.SELFSIGNED */
+  /** A CAId or CAInfo.SELFSIGNED. */
   protected int signedby;
 
+  /** Chain. */
   protected Collection<CertificateWrapper> certificatechain;
+  /** Chain. */
   protected Collection<CertificateWrapper> renewedcertificatechain;
+  /** Chain. */
   protected transient List<Certificate> certificatechainCached;
+  /** Chain. */
   protected transient Collection<Certificate> renewedcertificatechainCached;
+  /** Token. */
   protected CAToken catoken;
+  /** Desc. */
   protected String description;
+  /** Reason. */
   protected int revocationReason;
+  /** Reason. */
   protected Date revocationDate;
+  /** Profile. */
   protected int certificateprofileid;
+  /** Profile. */
   protected int defaultCertificateProfileId;
-  /** Default value 1 day */
+  /** Default value 1 day. */
   protected long crlperiod = 1 * SimpleTime.MILLISECONDS_PER_DAY;
-  /** Default value 0 */
+  /** Default value 0. */
   protected long crlIssueInterval = 0;
-  /** Default value 10 minutes */
+  /** Default value 10 minutes. */
   protected long crlOverlapTime = 10 * SimpleTime.MILLISECONDS_PER_MINUTE;
-  /** Default value 0 = disabled */
+  /** Default value 0 = disabled. */
   protected long deltacrlperiod = 0;
 
+  /** Publishers. */
   protected Collection<Integer> crlpublishers;
+  /** Validators. */
   protected Collection<Integer> validators;
+  /** Expired. */
   protected boolean keepExpiredCertsOnCRL = false;
+  /** User. */
   protected boolean finishuser;
+  /** Info. */
   protected Collection<ExtendedCAServiceInfo> extendedcaserviceinfos;
+  /** Conflict. */
   protected boolean useNoConflictCertificateData =
       false; // By Default we use normal certificate data table.
 
@@ -112,39 +134,55 @@ public abstract class CAInfo implements Serializable {
    */
   @Deprecated protected int numOfReqApprovals;
 
+  /** Approvals. */
   private LinkedHashMap<ApprovalRequestType, Integer> approvals;
 
+  /** Healthcheck. */
   protected boolean includeInHealthCheck;
+  /** PK. */
   protected boolean doEnforceUniquePublicKeys;
+  /** DN. */
   protected boolean doEnforceUniqueDistinguishedName;
+  /** SN. */
   protected boolean doEnforceUniqueSubjectDNSerialnumber;
+  /** History. */
   protected boolean useCertReqHistory;
+  /** Storage. */
   protected boolean useUserStorage;
+  /** Storage. */
   protected boolean useCertificateStorage;
+  /** Accept. */
   protected boolean acceptRevocationNonExistingEntry;
 
+  /** @return DN */
   public String getSubjectDN() {
     return subjectdn;
   }
 
-  public void setSubjectDN(final String subjectDn) {
-    this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
+  /** @param aSubjectDn DN */
+  public void setSubjectDN(final String aSubjectDn) {
+    this.subjectdn =
+        CertTools.stringToBCDNString(StringTools.strip(aSubjectDn));
   }
 
+  /** @return ID */
   public int getCAId() {
     return this.caid;
   }
 
-  public void setCAId(final int caid) {
-    this.caid = caid;
+  /** @param aCaid ID */
+  public void setCAId(final int aCaid) {
+    this.caid = aCaid;
   }
 
+  /** @return name */
   public String getName() {
     return this.name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /** @param aName name */
+  public void setName(final String aName) {
+    this.name = aName;
   }
 
   /**
@@ -157,8 +195,9 @@ public abstract class CAInfo implements Serializable {
     return status;
   }
 
-  public void setStatus(int status) {
-    this.status = status;
+  /** @param aStatus status */
+  public void setStatus(final int aStatus) {
+    this.status = aStatus;
   }
 
   /** @return CAInfo.CATYPE_X509 or CAInfo.CATYPE_CVC */
@@ -166,10 +205,12 @@ public abstract class CAInfo implements Serializable {
     return catype;
   }
 
-  public void setCAType(int catype) {
-    this.catype = catype;
+  /** @param aCatype type */
+  public void setCAType(final int aCatype) {
+    this.catype = aCatype;
   }
 
+  /** @return type */
   public String getCaTypeAsString() {
     if (catype == CAInfo.CATYPE_CVC) {
       return "CVC";
@@ -185,32 +226,39 @@ public abstract class CAInfo implements Serializable {
     return signedby;
   }
 
-  public void setSignedBy(int signedby) {
-    this.signedby = signedby;
+  /** @param aSignedby signer */
+  public void setSignedBy(final int aSignedby) {
+    this.signedby = aSignedby;
   }
 
-  public void setEncodedValidity(String encodedValidity) {
-    this.encodedValidity = encodedValidity;
+  /** @param aEncodedValidity validity */
+  public void setEncodedValidity(final String aEncodedValidity) {
+    this.encodedValidity = aEncodedValidity;
   }
 
+  /** @return validity */
   public String getEncodedValidity() {
     return encodedValidity;
   }
 
+  /** @return time */
   public Date getExpireTime() {
     return this.expiretime;
   }
 
-  public void setExpireTime(final Date expiretime) {
-    this.expiretime = expiretime;
+  /** @param aExpiretime time */
+  public void setExpireTime(final Date aExpiretime) {
+    this.expiretime = aExpiretime;
   }
 
+  /** @return date */
   public Date getUpdateTime() {
     return this.updatetime;
   }
 
-  public void setUpdateTime(final Date updatetime) {
-    this.updatetime = updatetime;
+  /** @param aUpdatetime time */
+  public void setUpdateTime(final Date aUpdatetime) {
+    this.updatetime = aUpdatetime;
   }
 
   /**
@@ -230,11 +278,13 @@ public abstract class CAInfo implements Serializable {
     return certificatechainCached;
   }
 
-  public void setCertificateChain(List<Certificate> certificatechain) {
-    this.certificatechainCached = certificatechain;
-    this.certificatechain = EJBTools.wrapCertCollection(certificatechain);
+  /** @param aCertificatechain chain */
+  public void setCertificateChain(final List<Certificate> aCertificatechain) {
+    this.certificatechainCached = aCertificatechain;
+    this.certificatechain = EJBTools.wrapCertCollection(aCertificatechain);
   }
 
+  /** @return chain */
   public Collection<Certificate> getRenewedCertificateChain() {
     if (renewedcertificatechain == null) {
       return null;
@@ -246,47 +296,57 @@ public abstract class CAInfo implements Serializable {
     return renewedcertificatechainCached;
   }
 
+  /** @param aCertificatechain chain */
   public void setRenewedCertificateChain(
-      Collection<Certificate> certificatechain) {
-    this.renewedcertificatechainCached = certificatechain;
+     final Collection<Certificate> aCertificatechain) {
+    this.renewedcertificatechainCached = aCertificatechain;
     this.renewedcertificatechain =
-        EJBTools.wrapCertCollection(certificatechain);
+        EJBTools.wrapCertCollection(aCertificatechain);
   }
 
+  /** @return token */
   public CAToken getCAToken() {
     return this.catoken;
   }
 
-  public void setCAToken(CAToken catoken) {
-    this.catoken = catoken;
+  /** @param aCatoken token */
+  public void setCAToken(final CAToken aCatoken) {
+    this.catoken = aCatoken;
   }
 
+  /** @return description */
   public String getDescription() {
     return this.description;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
+  /** @param aDescription desc */
+  public void setDescription(final String aDescription) {
+    this.description = aDescription;
   }
 
+  /** @return reason */
   public int getRevocationReason() {
     return this.revocationReason;
   }
 
-  public void setRevocationReason(final int revocationReason) {
-    this.revocationReason = revocationReason;
+  /** @param aRevocationReason reason */
+  public void setRevocationReason(final int aRevocationReason) {
+    this.revocationReason = aRevocationReason;
   }
 
+  /** @return date */
   public Date getRevocationDate() {
     return this.revocationDate;
   }
 
-  public void setRevocationDate(final Date revocationDate) {
-    this.revocationDate = revocationDate;
+  /** @param aRevocationDate date */
+  public void setRevocationDate(final Date aRevocationDate) {
+    this.revocationDate = aRevocationDate;
   }
 
-  public void setCertificateProfileId(int _certificateprofileid) {
-    this.certificateprofileid = _certificateprofileid;
+  /** @param aCertificateprofileid ID */
+  public void setCertificateProfileId(final int aCertificateprofileid) {
+    this.certificateprofileid = aCertificateprofileid;
   }
 
   /** @return the ID of the certificate profile for this CA */
@@ -301,51 +361,63 @@ public abstract class CAInfo implements Serializable {
   public int getDefaultCertificateProfileId() {
     return defaultCertificateProfileId;
   }
-
-  public void setDefaultCertificateProfileId(int defaultCertificateProfileId) {
-    this.defaultCertificateProfileId = defaultCertificateProfileId;
+  /** @param aDefaultCertificateProfileId ID */
+  public void setDefaultCertificateProfileId(
+          final int aDefaultCertificateProfileId) {
+    this.defaultCertificateProfileId = aDefaultCertificateProfileId;
   }
 
+  /** @return period */
   public long getCRLPeriod() {
     return crlperiod;
   }
 
-  public void setCRLPeriod(long crlperiod) {
-    this.crlperiod = crlperiod;
+  /** @param aCrlperiod period */
+  public void setCRLPeriod(final long aCrlperiod) {
+    this.crlperiod = aCrlperiod;
   }
 
+  /** @return period */
   public long getDeltaCRLPeriod() {
     return deltacrlperiod;
   }
 
-  public void setDeltaCRLPeriod(long deltacrlperiod) {
-    this.deltacrlperiod = deltacrlperiod;
+  /** @param aDeltacrlperiod period */
+  public void setDeltaCRLPeriod(final long aDeltacrlperiod) {
+    this.deltacrlperiod = aDeltacrlperiod;
   }
 
+  /** @return interval */
   public long getCRLIssueInterval() {
     return crlIssueInterval;
   }
 
-  public void setCRLIssueInterval(long crlissueinterval) {
+  /** @param crlissueinterval interval */
+  public void setCRLIssueInterval(final long crlissueinterval) {
     this.crlIssueInterval = crlissueinterval;
   }
 
+  /** @return time */
   public long getCRLOverlapTime() {
     return crlOverlapTime;
   }
 
-  public void setCRLOverlapTime(long crloverlaptime) {
+  /** @param crloverlaptime time */
+  public void setCRLOverlapTime(final long crloverlaptime) {
     this.crlOverlapTime = crloverlaptime;
   }
 
+  /** @return publishers */
   public Collection<Integer> getCRLPublishers() {
     return crlpublishers;
   }
 
-  public void setCRLPublishers(Collection<Integer> crlpublishers) {
-    this.crlpublishers = crlpublishers;
+  /** @param aCrlpublishers publihers */
+  public void setCRLPublishers(final Collection<Integer> aCrlpublishers) {
+    this.crlpublishers = aCrlpublishers;
   }
 
+  /** @return validators */
   public Collection<Integer> getValidators() {
     if (validators == null) {
       // Make sure we never return null for upgraded CAs, avoiding possible NPE
@@ -354,32 +426,39 @@ public abstract class CAInfo implements Serializable {
     return validators;
   }
 
-  public void setValidators(Collection<Integer> validators) {
-    this.validators = validators;
+  /** @param aValidators validators */
+  public void setValidators(final Collection<Integer> aValidators) {
+    this.validators = aValidators;
   }
 
+  /** @return bool */
   public boolean getKeepExpiredCertsOnCRL() {
     return this.keepExpiredCertsOnCRL;
   }
 
-  public void setKeepExpiredCertsOnCRL(boolean keepExpiredCertsOnCRL) {
-    this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;
+  /** @param aKeepExpiredCertsOnCRL bool */
+  public void setKeepExpiredCertsOnCRL(final boolean aKeepExpiredCertsOnCRL) {
+    this.keepExpiredCertsOnCRL = aKeepExpiredCertsOnCRL;
   }
 
+  /** @return user */
   public boolean getFinishUser() {
     return finishuser;
   }
 
-  public void setFinishUser(boolean finishuser) {
-    this.finishuser = finishuser;
+  /** @param aFinishuser user */
+  public void setFinishUser(final boolean aFinishuser) {
+    this.finishuser = aFinishuser;
   }
 
+  /** @return bool */
   public boolean getIncludeInHealthCheck() {
     return this.includeInHealthCheck;
   }
 
-  public void setIncludeInHealthCheck(boolean includeInHealthCheck) {
-    this.includeInHealthCheck = includeInHealthCheck;
+  /** @param aIncludeInHealthCheck bool */
+  public void setIncludeInHealthCheck(final boolean aIncludeInHealthCheck) {
+    this.includeInHealthCheck = aIncludeInHealthCheck;
   }
 
   /**
@@ -391,9 +470,10 @@ public abstract class CAInfo implements Serializable {
     return this.extendedcaserviceinfos;
   }
 
+  /** @param aExtendedcaserviceinfos info */
   public void setExtendedCAServiceInfos(
-      Collection<ExtendedCAServiceInfo> extendedcaserviceinfos) {
-    this.extendedcaserviceinfos = extendedcaserviceinfos;
+     final  Collection<ExtendedCAServiceInfo> aExtendedcaserviceinfos) {
+    this.extendedcaserviceinfos = aExtendedcaserviceinfos;
   }
 
   /**
@@ -404,15 +484,17 @@ public abstract class CAInfo implements Serializable {
     return approvals;
   }
 
-  public void setApprovals(Map<ApprovalRequestType, Integer> approvals) {
-    if (approvals == null) {
-      approvals = new LinkedHashMap<ApprovalRequestType, Integer>();
+  /** @param aApprovals approvals */
+  public void setApprovals(Map<ApprovalRequestType, Integer> aApprovals) {
+    if (aApprovals == null) {
+      aApprovals = new LinkedHashMap<ApprovalRequestType, Integer>();
     }
-    this.approvals = new LinkedHashMap<ApprovalRequestType, Integer>(approvals);
+    this.approvals =
+            new LinkedHashMap<ApprovalRequestType, Integer>(aApprovals);
   }
 
   /**
-   * Returns the ID of an approval profile
+   * Returns the ID of an approval profile.
    *
    * @return profilw
    * @deprecated since 6.8.0. Use getApprovals() instead;
@@ -435,7 +517,7 @@ public abstract class CAInfo implements Serializable {
 
   /**
    * Returns a collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which
-   * action that requires approvals, default none
+   * action that requires approvals, default none.
    *
    * <p>Never null
    *
@@ -449,14 +531,14 @@ public abstract class CAInfo implements Serializable {
 
   /**
    * Collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which action
-   * that requires approvals
+   * that requires approvals.
    *
-   * @param approvalSettings settings
+   * @param aapprovalSettings settings
    * @deprecated since 6.8.0. Use getApprovals() instead;
    */
   @Deprecated
-  public void setApprovalSettings(Collection<Integer> approvalSettings) {
-    this.approvalSettings = approvalSettings;
+  public void setApprovalSettings(final Collection<Integer> aapprovalSettings) {
+    this.approvalSettings = aapprovalSettings;
   }
 
   /** @return true if the NoConflictCertificateData used. */
@@ -465,12 +547,12 @@ public abstract class CAInfo implements Serializable {
   }
 
   /**
-   * @param useNoConflictCertificateData true means that the
+   * @param auseNoConflictCertificateData true means that the
    *     NoConflictCertificateData will be used instead of CertificateData.
    */
   public void setUseNoConflictCertificateData(
-      final boolean useNoConflictCertificateData) {
-    this.useNoConflictCertificateData = useNoConflictCertificateData;
+      final boolean auseNoConflictCertificateData) {
+    this.useNoConflictCertificateData = auseNoConflictCertificateData;
   }
 
   /**
@@ -482,11 +564,11 @@ public abstract class CAInfo implements Serializable {
   }
 
   /**
-   * @param useCertReqHistory true means that the UserData used at the time of
+   * @param auseCertReqHistory true means that the UserData used at the time of
    *     certificate issuance should be kept in the database.
    */
-  public void setUseCertReqHistory(boolean useCertReqHistory) {
-    this.useCertReqHistory = useCertReqHistory;
+  public void setUseCertReqHistory(final boolean auseCertReqHistory) {
+    this.useCertReqHistory = auseCertReqHistory;
   }
 
   /**
@@ -498,11 +580,11 @@ public abstract class CAInfo implements Serializable {
   }
 
   /**
-   * @param useUserStorage true means that the latest UserData used to issue a
+   * @param auseUserStorage true means that the latest UserData used to issue a
    *     certificate should be kept in the database.
    */
-  public void setUseUserStorage(boolean useUserStorage) {
-    this.useUserStorage = useUserStorage;
+  public void setUseUserStorage(final boolean auseUserStorage) {
+    this.useUserStorage = auseUserStorage;
   }
 
   /** @return true if the issued certificate should be kept in the database. */
@@ -511,11 +593,11 @@ public abstract class CAInfo implements Serializable {
   }
 
   /**
-   * @param useCertificateStorage true means that the issued certificate should
+   * @param auseCertificateStorage true means that the issued certificate should
    *     be kept in the database.
    */
-  public void setUseCertificateStorage(boolean useCertificateStorage) {
-    this.useCertificateStorage = useCertificateStorage;
+  public void setUseCertificateStorage(final boolean auseCertificateStorage) {
+    this.useCertificateStorage = auseCertificateStorage;
   }
 
   /** @return true if revocation for non existing entries is accepted */
@@ -524,12 +606,12 @@ public abstract class CAInfo implements Serializable {
   }
 
   /**
-   * @param acceptRevocationNonExistingEntry true means that revocation for non
+   * @param aacceptRevocationNonExistingEntry true means that revocation for non
    *     existing entry is accepted.
    */
   public void setAcceptRevocationNonExistingEntry(
-      boolean acceptRevocationNonExistingEntry) {
-    this.acceptRevocationNonExistingEntry = acceptRevocationNonExistingEntry;
+      final boolean aacceptRevocationNonExistingEntry) {
+    this.acceptRevocationNonExistingEntry = aacceptRevocationNonExistingEntry;
   }
 
   /**
@@ -540,9 +622,10 @@ public abstract class CAInfo implements Serializable {
     return this.doEnforceUniquePublicKeys;
   }
 
-  /** @param doEnforceUniquePublicKeys boolean */
-  public void setDoEnforceUniquePublicKeys(boolean doEnforceUniquePublicKeys) {
-    this.doEnforceUniquePublicKeys = doEnforceUniquePublicKeys;
+  /** @param adoEnforceUniquePublicKeys boolean */
+  public void setDoEnforceUniquePublicKeys(
+      final boolean adoEnforceUniquePublicKeys) {
+    this.doEnforceUniquePublicKeys = adoEnforceUniquePublicKeys;
   }
 
   /**
@@ -553,16 +636,16 @@ public abstract class CAInfo implements Serializable {
     return this.doEnforceUniqueSubjectDNSerialnumber;
   }
 
-  /** @param doEnforceUniqueSubjectDNSN boolean */
+  /** @param adoEnforceUniqueSubjectDNSN boolean */
   public void setDoEnforceUniqueSubjectDNSerialnumber(
-      boolean doEnforceUniqueSubjectDNSN) {
-    this.doEnforceUniqueSubjectDNSerialnumber = doEnforceUniqueSubjectDNSN;
+      final boolean adoEnforceUniqueSubjectDNSN) {
+    this.doEnforceUniqueSubjectDNSerialnumber = adoEnforceUniqueSubjectDNSN;
   }
 
-  /** @param doEnforceUniqueDistinguishedName boolean */
+  /** @param adoEnforceUniqueDistinguishedName boolean */
   public void setDoEnforceUniqueDistinguishedName(
-      boolean doEnforceUniqueDistinguishedName) {
-    this.doEnforceUniqueDistinguishedName = doEnforceUniqueDistinguishedName;
+      final boolean adoEnforceUniqueDistinguishedName) {
+    this.doEnforceUniqueDistinguishedName = adoEnforceUniqueDistinguishedName;
   }
 
   /**

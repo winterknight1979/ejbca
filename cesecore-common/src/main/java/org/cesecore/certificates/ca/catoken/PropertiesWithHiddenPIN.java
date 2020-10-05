@@ -19,7 +19,7 @@ import org.cesecore.keys.token.CryptoToken;
 
 /**
  * Class for printing properties (for debug purposes) without revealing any pin
- * properties in the log file
+ * properties in the log file.
  *
  * @version $Id: PropertiesWithHiddenPIN.java 17625 2013-09-20 07:12:06Z
  *     netmackan $
@@ -28,13 +28,15 @@ public class PropertiesWithHiddenPIN extends Properties {
 
   private static final long serialVersionUID = -2240419700704551683L;
 
-  public PropertiesWithHiddenPIN() {}
+  /** Constructor. */
+  public PropertiesWithHiddenPIN() { }
 
   /** @param defaults Properties */
-  public PropertiesWithHiddenPIN(Properties defaults) {
+  public PropertiesWithHiddenPIN(final Properties defaults) {
     super(defaults);
   }
 
+  @Override
   public synchronized String toString() {
     int max = size() - 1;
     if (max == -1) {

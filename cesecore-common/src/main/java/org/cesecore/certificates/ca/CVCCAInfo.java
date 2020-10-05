@@ -48,14 +48,14 @@ public class CVCCAInfo extends CAInfo {
    * @param catoken token
    */
   public CVCCAInfo(
-      String subjectdn,
-      String name,
-      int status,
-      int certificateprofileid,
-      String encodedValidity,
-      int signedby,
-      List<Certificate> certificatechain,
-      CAToken catoken) {
+      final String subjectdn,
+      final String name,
+      final int status,
+      final int certificateprofileid,
+      final String encodedValidity,
+      final int signedby,
+      final List<Certificate> certificatechain,
+      final CAToken catoken) {
     this(
         subjectdn,
         name,
@@ -121,47 +121,47 @@ public class CVCCAInfo extends CAInfo {
    * @param extendedcaserviceinfos info
    * @param approvals approvals
    * @param includeInHealthCheck bool
-   * @param _doEnforceUniquePublicKeys bool
-   * @param _doEnforceUniqueDistinguishedName bool
-   * @param _doEnforceUniqueSubjectDNSerialnumber bool
-   * @param _useCertReqHistory bool
-   * @param _useUserStorage bool
-   * @param _useCertificateStorage bool
-   * @param _acceptRevocationNonExistingEntry bool
+   * @param aDoEnforceUniquePublicKeys bool
+   * @param aDoEnforceUniqueDistinguishedName bool
+   * @param aDoEnforceUniqueSubjectDNSerialnumber bool
+   * @param aUseCertReqHistory bool
+   * @param aUseUserStorage bool
+   * @param aUseCertificateStorage bool
+   * @param aAcceptRevocationNonExistingEntry bool
    */
   public CVCCAInfo(
-      String subjectDn,
-      String name,
-      int status,
-      Date updateTime,
-      int certificateprofileid,
-      int defaultCertprofileId,
-      String encodedValidity,
-      Date expiretime,
-      int catype,
-      int signedBy,
-      List<Certificate> certificatechain,
-      CAToken catoken,
-      String description,
-      int revocationReason,
-      Date revocationDate,
-      long crlperiod,
-      long crlIssueInterval,
-      long crlOverlapTime,
-      long deltacrlperiod,
-      Collection<Integer> crlpublishers,
-      Collection<Integer> keyValidators,
-      boolean finishuser,
-      Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
-      Map<ApprovalRequestType, Integer> approvals,
-      boolean includeInHealthCheck,
-      boolean _doEnforceUniquePublicKeys,
-      boolean _doEnforceUniqueDistinguishedName,
-      boolean _doEnforceUniqueSubjectDNSerialnumber,
-      boolean _useCertReqHistory,
-      boolean _useUserStorage,
-      boolean _useCertificateStorage,
-      boolean _acceptRevocationNonExistingEntry) {
+      final String subjectDn,
+      final String name,
+      final int status,
+      final Date updateTime,
+      final int certificateprofileid,
+      final int defaultCertprofileId,
+      final String encodedValidity,
+      final Date expiretime,
+      final int catype,
+      final int signedBy,
+      final List<Certificate> certificatechain,
+      final CAToken catoken,
+      final String description,
+      final int revocationReason,
+      final Date revocationDate,
+      final long crlperiod,
+      final long crlIssueInterval,
+      final long crlOverlapTime,
+      final long deltacrlperiod,
+      final Collection<Integer> crlpublishers,
+      final Collection<Integer> keyValidators,
+      final boolean finishuser,
+      final Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
+      final Map<ApprovalRequestType, Integer> approvals,
+      final boolean includeInHealthCheck,
+      final boolean aDoEnforceUniquePublicKeys,
+      final boolean aDoEnforceUniqueDistinguishedName,
+      final boolean aDoEnforceUniqueSubjectDNSerialnumber,
+      final boolean aUseCertReqHistory,
+      final boolean aUseUserStorage,
+      final boolean aUseCertificateStorage,
+      final boolean aAcceptRevocationNonExistingEntry) {
     this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
     this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
     this.name = name;
@@ -188,14 +188,14 @@ public class CVCCAInfo extends CAInfo {
     this.extendedcaserviceinfos = extendedcaserviceinfos;
     setApprovals(approvals);
     this.includeInHealthCheck = includeInHealthCheck;
-    this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
-    this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
+    this.doEnforceUniquePublicKeys = aDoEnforceUniquePublicKeys;
+    this.doEnforceUniqueDistinguishedName = aDoEnforceUniqueDistinguishedName;
     this.doEnforceUniqueSubjectDNSerialnumber =
-        _doEnforceUniqueSubjectDNSerialnumber;
-    this.useCertReqHistory = _useCertReqHistory;
-    this.useUserStorage = _useUserStorage;
-    this.useCertificateStorage = _useCertificateStorage;
-    this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;
+        aDoEnforceUniqueSubjectDNSerialnumber;
+    this.useCertReqHistory = aUseCertReqHistory;
+    this.useUserStorage = aUseUserStorage;
+    this.useCertificateStorage = aUseCertificateStorage;
+    this.acceptRevocationNonExistingEntry = aAcceptRevocationNonExistingEntry;
   }
 
   /**
@@ -216,38 +216,38 @@ public class CVCCAInfo extends CAInfo {
    * @param extendedcaserviceinfos info
    * @param approvals approvals
    * @param includeInHealthCheck bool
-   * @param _doEnforceUniquePublicKeys bool
-   * @param _doEnforceUniqueDistinguishedName bool
-   * @param _doEnforceUniqueSubjectDNSerialnumber bool
-   * @param _useCertReqHistory bool
-   * @param _useUserStorage bool
-   * @param _useCertificateStorage bool
-   * @param _acceptRevocationNonExistingEntry bool
+   * @param aDoEnforceUniquePublicKeys bool
+   * @param aDoEnforceUniqueDistinguishedName bool
+   * @param aDoEnforceUniqueSubjectDNSerialnumber bool
+   * @param aUseCertReqHistory bool
+   * @param aUseUserStorage bool
+   * @param aUseCertificateStorage bool
+   * @param aAcceptRevocationNonExistingEntry bool
    * @param defaultCertprofileId ID
    */
   public CVCCAInfo(
-      int caid,
-      String encodedValidity,
-      CAToken catoken,
-      String description,
-      long crlperiod,
-      long crlIssueInterval,
-      long crlOverlapTime,
-      long deltacrlperiod,
-      Collection<Integer> crlpublishers,
-      Collection<Integer> keyValidators,
-      boolean finishuser,
-      Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
-      Map<ApprovalRequestType, Integer> approvals,
-      boolean includeInHealthCheck,
-      boolean _doEnforceUniquePublicKeys,
-      boolean _doEnforceUniqueDistinguishedName,
-      boolean _doEnforceUniqueSubjectDNSerialnumber,
-      boolean _useCertReqHistory,
-      boolean _useUserStorage,
-      boolean _useCertificateStorage,
-      boolean _acceptRevocationNonExistingEntry,
-      int defaultCertprofileId) {
+      final int caid,
+      final String encodedValidity,
+      final CAToken catoken,
+      final String description,
+      final long crlperiod,
+      final long crlIssueInterval,
+      final long crlOverlapTime,
+      final long deltacrlperiod,
+      final Collection<Integer> crlpublishers,
+      final Collection<Integer> keyValidators,
+      final boolean finishuser,
+      final Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
+      final Map<ApprovalRequestType, Integer> approvals,
+      final boolean includeInHealthCheck,
+      final boolean aDoEnforceUniquePublicKeys,
+      final boolean aDoEnforceUniqueDistinguishedName,
+      final boolean aDoEnforceUniqueSubjectDNSerialnumber,
+      final boolean aUseCertReqHistory,
+      final boolean aUseUserStorage,
+      final boolean aUseCertificateStorage,
+      final boolean aAcceptRevocationNonExistingEntry,
+      final int defaultCertprofileId) {
     this.caid = caid;
     setEncodedValidity(encodedValidity);
     this.catoken = catoken;
@@ -262,14 +262,14 @@ public class CVCCAInfo extends CAInfo {
     this.extendedcaserviceinfos = extendedcaserviceinfos;
     setApprovals(approvals);
     this.includeInHealthCheck = includeInHealthCheck;
-    this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
-    this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
+    this.doEnforceUniquePublicKeys = aDoEnforceUniquePublicKeys;
+    this.doEnforceUniqueDistinguishedName = aDoEnforceUniqueDistinguishedName;
     this.doEnforceUniqueSubjectDNSerialnumber =
-        _doEnforceUniqueSubjectDNSerialnumber;
-    this.useCertReqHistory = _useCertReqHistory;
-    this.useUserStorage = _useUserStorage;
-    this.useCertificateStorage = _useCertificateStorage;
-    this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;
+        aDoEnforceUniqueSubjectDNSerialnumber;
+    this.useCertReqHistory = aUseCertReqHistory;
+    this.useUserStorage = aUseUserStorage;
+    this.useCertificateStorage = aUseCertificateStorage;
+    this.acceptRevocationNonExistingEntry = aAcceptRevocationNonExistingEntry;
     this.defaultCertificateProfileId = defaultCertprofileId;
   }
 }

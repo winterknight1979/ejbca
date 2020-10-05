@@ -24,5 +24,6 @@ public abstract class ExtendedCAServiceResponse implements Serializable {
 
   private static final long serialVersionUID = -620664487119094080L;
 
-  public ExtendedCAServiceResponse() {}
+  /** Constructor. */
+  public ExtendedCAServiceResponse() { }
 }

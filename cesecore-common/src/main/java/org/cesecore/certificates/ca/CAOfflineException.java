@@ -16,7 +16,7 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to use a CA that is offline
+ * An exception thrown when someone tries to use a CA that is offline.
  *
  * @version $Id: CAOfflineException.java 18868 2014-05-02 06:12:20Z mikekushner
  *     $
@@ -40,7 +40,7 @@ public class CAOfflineException extends CesecoreException {
    *
    * @param msg the detail message.
    */
-  public CAOfflineException(String msg) {
+  public CAOfflineException(final String msg) {
     super(ErrorCode.CA_OFFLINE, msg);
   }
 }

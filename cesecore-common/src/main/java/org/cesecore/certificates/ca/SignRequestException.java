@@ -36,7 +36,7 @@ public class SignRequestException extends CesecoreException {
    *
    * @param message Human redable error message, can not be NULL.
    */
-  public SignRequestException(String message) {
+  public SignRequestException(final String message) {
     super(message);
   }
 }

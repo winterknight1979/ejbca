@@ -13,5 +13,13 @@
  	<suppress checks="ParameterNumberCheck" files="CA.java" lines="1262,1346,1411"/>
  	<suppress checks="FinalParametersCheck" files="CA.java" lines="1267"/> <!-- This actually causes a compilation fail if it is final, checkstyle bug?  -->
  	<suppress checks="UnusedImportsCheck" files="CA.java" lines="44"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="FinalParametersCheck" files="CAInfo.java" lines="488"/> <!-- This actually causes a compilation fail if it is final, checkstyle bug?  -->
+	<suppress checks="MagicNumberCheck" files="CAInfo.java" lines="101"/>	
+ 	<suppress checks="ParameterNumberCheck" files="CVCCAInfo.java" lines="50,132,228"/>
+ 	<suppress checks="ParameterNumberCheck" files="CvcPlugin.java" lines="115"/>
+ 	<suppress checks="FinalParametersCheck" files="CertificateValidity.java" lines="189"/> <!-- This actually causes a compilation fail if it is final, checkstyle bug?  -->
+ 	<suppress checks="ParameterNumberCheck" files="CertificateValidity.java" lines="188"/>	
+	<suppress checks="MethodLengthCheck" files="CertificateValidity.java" lines="188"/>
+	<suppress checks="MagicNumberCheck" files="SernoGeneratorRandom.java" lines="217"/> <!-- Only used for testing  -->	
 	
  </suppressions>

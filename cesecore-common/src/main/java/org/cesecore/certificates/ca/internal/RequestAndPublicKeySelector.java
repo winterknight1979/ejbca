@@ -35,10 +35,12 @@ import org.cesecore.certificates.endentity.ExtendedInformation;
 public class RequestAndPublicKeySelector {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(RequestAndPublicKeySelector.class);
 
+  /** Key. */
   private PublicKey publicKey;
+  /** Message. */
   private RequestMessage requestMessage;
   /**
    * Constructor taking input needed to make decision on which public key and
@@ -93,8 +95,8 @@ public class RequestAndPublicKeySelector {
       } catch (InvalidKeyException
           | NoSuchAlgorithmException
           | NoSuchProviderException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Error occured with extracting public key from"
                   + " endEntityInformation.extendedInformation. Proceeding"
                   + " with one provided separately",
@@ -102,16 +104,17 @@ public class RequestAndPublicKeySelector {
         }
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Public key is provided " + debugPublicKeySource);
-      log.debug("Request is provided " + debugRequestMessageSource);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Public key is provided " + debugPublicKeySource);
+      LOG.debug("Request is provided " + debugRequestMessageSource);
     }
   }
 
+  /** @return key */
   public PublicKey getPublicKey() {
     return publicKey;
   }
-
+  /** @return message */
   public RequestMessage getRequestMessage() {
     return requestMessage;
   }
