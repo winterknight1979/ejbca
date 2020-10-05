@@ -39,8 +39,8 @@ public enum ApprovalRequestType {
       new HashMap<>();
 
   static {
-    for (ApprovalRequestType approvalRequestType :
-        ApprovalRequestType.values()) {
+    for (ApprovalRequestType approvalRequestType 
+        : ApprovalRequestType.values()) {
       REVERSE_LOOKUP_MAP.put(
           approvalRequestType.getIntegerValue(), approvalRequestType);
     }

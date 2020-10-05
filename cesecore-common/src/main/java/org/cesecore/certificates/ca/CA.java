@@ -211,7 +211,7 @@ public abstract class CA extends UpgradeableDataHashMap
   private CAToken caToken = null;
 
   /** No args constructor required for ServiceLocator. */
-  protected CA() {}
+  protected CA() { }
 
   /**
    * Creates a new instance of CA, this constructor should be used when a new CA

@@ -18,4 +18,4 @@ package org.cesecore.audit.enums;
  *
  * @version $Id: ModuleType.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-public interface ModuleType extends ConstantType<ModuleType> {}
+public interface ModuleType extends ConstantType<ModuleType> { }

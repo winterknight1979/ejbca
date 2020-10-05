@@ -71,7 +71,7 @@ public final class CAConstants {
   };
 
   /** Prevents creation of new CAConstants. */
-  private CAConstants() {}
+  private CAConstants() { }
 
   /**
    * Constants used in the SignSessionBean indicating the userdata defined CA

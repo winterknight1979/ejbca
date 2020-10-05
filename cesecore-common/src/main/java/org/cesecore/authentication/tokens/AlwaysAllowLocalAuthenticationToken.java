@@ -35,7 +35,7 @@ public class AlwaysAllowLocalAuthenticationToken
 
   private static final long serialVersionUID = -3942437717641924829L;
   /** MetaData. */
-  public static final AlwaysAllowLocalAuthenticationTokenMetaData metaData =
+  public static final AlwaysAllowLocalAuthenticationTokenMetaData META_DATA =
       new AlwaysAllowLocalAuthenticationTokenMetaData();
 
   /**
@@ -125,7 +125,7 @@ public class AlwaysAllowLocalAuthenticationToken
 
   @Override
   public AlwaysAllowLocalAuthenticationTokenMetaData getMetaData() {
-    return metaData;
+    return META_DATA;
   }
 
   /**

@@ -23,7 +23,7 @@ public class InvalidAuthenticationTokenException extends RuntimeException {
   private static final long serialVersionUID = -8887523864100620342L;
 
   /** Empty exception. */
-  public InvalidAuthenticationTokenException() {}
+  public InvalidAuthenticationTokenException() { }
 
   /**
    * Exception with message.

@@ -191,8 +191,7 @@ public enum EventTypes implements EventType {
   /** Modification of an existing Internal Key Binding. */
   INTERNALKEYBINDING_EDIT,
   /** Removal of an existing Internal Key Binding. */
-  INTERNALKEYBINDING_DELETE,
-  ;
+  INTERNALKEYBINDING_DELETE,;
 
   @Override
   public boolean equals(final EventType value) {

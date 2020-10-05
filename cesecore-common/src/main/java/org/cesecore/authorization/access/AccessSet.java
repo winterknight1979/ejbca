@@ -74,7 +74,7 @@ public final class AccessSet implements Serializable {
   @Deprecated private Collection<String> set;
 
   /** No-args constructor for deserialization only. */
-  public AccessSet() {}
+  public AccessSet() { }
 
   /**
    * Creates an AccessSet with a legacy 6.6.0 access rule set, which can't

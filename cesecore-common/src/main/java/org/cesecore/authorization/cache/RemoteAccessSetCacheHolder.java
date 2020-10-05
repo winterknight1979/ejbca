@@ -46,7 +46,7 @@ public final class RemoteAccessSetCacheHolder {
       new ConcurrentCache<>();
 
   /** Can't be instantiated. */
-  private RemoteAccessSetCacheHolder() {}
+  private RemoteAccessSetCacheHolder() { }
 
   /**
    * Returns a ConcurrentCache object that can be used for caching AccessSets

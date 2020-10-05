@@ -33,7 +33,7 @@ public class AuditLogReportElem implements Serializable {
   private final List<String> reasons = new ArrayList<String>();
 
   /** Constructor. */
-  public AuditLogReportElem() {}
+  public AuditLogReportElem() { }
 
   /**
    * Constructor.
