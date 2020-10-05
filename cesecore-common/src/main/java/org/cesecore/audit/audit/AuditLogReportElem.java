@@ -23,98 +23,94 @@ import java.util.List;
  */
 public class AuditLogReportElem implements Serializable {
 
-    private static final long serialVersionUID = -7018231147212983227L;
+  private static final long serialVersionUID = -7018231147212983227L;
 
-    /** First. */
-    private Long first;
-    /** Second. */
-    private Long second;
-    /** Reasons. */
-    private final List<String> reasons = new ArrayList<String>();
+  /** First. */
+  private Long first;
+  /** Second. */
+  private Long second;
+  /** Reasons. */
+  private final List<String> reasons = new ArrayList<String>();
 
-    /**
-     * Constructor.
-     */
-    public AuditLogReportElem() {
-    }
+  /** Constructor. */
+  public AuditLogReportElem() {}
 
-    /**
-     * Constructor.
-     * @param firstElem First element
-     * @param secondElem Second element
-     * @param reasonsList Reasons
-     */
-    public AuditLogReportElem(
-            final Long firstElem,
-            final Long secondElem,
-            final List<String> reasonsList) {
-        this.first = firstElem;
-        this.second = secondElem;
-        this.reasons.addAll(reasonsList);
-    }
+  /**
+   * Constructor.
+   *
+   * @param firstElem First element
+   * @param secondElem Second element
+   * @param reasonsList Reasons
+   */
+  public AuditLogReportElem(
+      final Long firstElem,
+      final Long secondElem,
+      final List<String> reasonsList) {
+    this.first = firstElem;
+    this.second = secondElem;
+    this.reasons.addAll(reasonsList);
+  }
 
-    /**
-     * Constructor.
-     * @param firstElem First element
-     * @param secondElem Second element
-     * @param reason Reason
-     */
-    public AuditLogReportElem(
-            final Long firstElem,
-            final Long secondElem,
-            final String reason) {
-        this.first = firstElem;
-        this.second = secondElem;
-        this.reasons.add(reason);
-    }
+  /**
+   * Constructor.
+   *
+   * @param firstElem First element
+   * @param secondElem Second element
+   * @param reason Reason
+   */
+  public AuditLogReportElem(
+      final Long firstElem, final Long secondElem, final String reason) {
+    this.first = firstElem;
+    this.second = secondElem;
+    this.reasons.add(reason);
+  }
 
-    /**
-     * Gets the first for this instance.
-     *
-     * @return The first.
-     */
-    public Long getFirst() {
-        return this.first;
-    }
-    /**
-     * Sets the first for this instance.
-     *
-     * @param newFirst The first.
-     */
-    public void setFirst(final Long newFirst) {
-        this.first = newFirst;
-    }
-    /**
-     * Gets the second for this instance.
-     *
-     * @return The second.
-     */
-    public Long getSecond() {
-        return this.second;
-    }
-    /**
-     * Sets the second for this instance.
-     *
-     * @param newSecond The second.
-     */
-    public void setSecond(final Long newSecond) {
-        this.second = newSecond;
-    }
-    /**
-     * Gets the reasons for this instance.
-     *
-     * @return The reasons.
-     */
-    public List<String> getReasons() {
-        return this.reasons;
-    }
-    /**
-     * Sets the reasons for this instance.
-     *
-     * @param reason The reasons.
-     */
-    public void setReason(final String reason) {
-        this.reasons.add(reason);
-    }
-
+  /**
+   * Gets the first for this instance.
+   *
+   * @return The first.
+   */
+  public Long getFirst() {
+    return this.first;
+  }
+  /**
+   * Sets the first for this instance.
+   *
+   * @param newFirst The first.
+   */
+  public void setFirst(final Long newFirst) {
+    this.first = newFirst;
+  }
+  /**
+   * Gets the second for this instance.
+   *
+   * @return The second.
+   */
+  public Long getSecond() {
+    return this.second;
+  }
+  /**
+   * Sets the second for this instance.
+   *
+   * @param newSecond The second.
+   */
+  public void setSecond(final Long newSecond) {
+    this.second = newSecond;
+  }
+  /**
+   * Gets the reasons for this instance.
+   *
+   * @return The reasons.
+   */
+  public List<String> getReasons() {
+    return this.reasons;
+  }
+  /**
+   * Sets the reasons for this instance.
+   *
+   * @param reason The reasons.
+   */
+  public void setReason(final String reason) {
+    this.reasons.add(reason);
+  }
 }

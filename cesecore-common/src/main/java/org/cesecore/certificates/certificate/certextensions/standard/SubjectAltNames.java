@@ -13,7 +13,6 @@
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.x509.Extension;
@@ -25,37 +24,43 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
 
 /**
- * Class for standard X509 certificate extension.
- * See rfc3280 or later for spec of this extension.
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
  *
  * @version $Id: SubjectAltNames.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
 public class SubjectAltNames extends StandardCertificateExtension {
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(SubjectAltNames.class);
+  private static final long serialVersionUID = 1L;
+  private static final Logger log = Logger.getLogger(SubjectAltNames.class);
 
-    @Override
-    public void init(final CertificateProfile certProf) {
-        super.setOID(Extension.subjectAlternativeName.getId());
-        super.setCriticalFlag(certProf.getSubjectAlternativeNameCritical());
-    }
+  @Override
+  public void init(final CertificateProfile certProf) {
+    super.setOID(Extension.subjectAlternativeName.getId());
+    super.setCriticalFlag(certProf.getSubjectAlternativeNameCritical());
+  }
 
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
-        GeneralNames ret = null;
-        String altName = subject.getSubjectAltName();
-        if(certProfile.getUseSubjectAltNameSubSet()){
-            altName = certProfile.createSubjectAltNameSubSet(altName);
-        }
-        if ( (altName != null) && (altName.length() > 0) ) {
-            ret = CertTools.getGeneralNamesFromAltName(altName);
-        }
-        if (ret == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("No altnames trying to make SubjectAltName extension: "+altName);
-            }
-        }
-        return ret;
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      CertificateValidity val) {
+    GeneralNames ret = null;
+    String altName = subject.getSubjectAltName();
+    if (certProfile.getUseSubjectAltNameSubSet()) {
+      altName = certProfile.createSubjectAltNameSubSet(altName);
     }
+    if ((altName != null) && (altName.length() > 0)) {
+      ret = CertTools.getGeneralNamesFromAltName(altName);
+    }
+    if (ret == null) {
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "No altnames trying to make SubjectAltName extension: " + altName);
+      }
+    }
+    return ret;
+  }
 }

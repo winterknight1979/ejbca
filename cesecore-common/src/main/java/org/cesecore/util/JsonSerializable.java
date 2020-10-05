@@ -17,13 +17,15 @@ import org.json.simple.JSONObject;
 
 /**
  * Interface implemented by classes which can be converted into JSON.
+ *
  * @version $Id: JsonSerializable.java 27761 2018-01-06 19:07:47Z bastianf $
  */
 public interface JsonSerializable {
-    /**
-     * Get the JSON representation of this object which can be saved to persistent
-     * storage, such as a database, file or network resource.
-     * @return the JSON representation of this object
-     */
-    JSONObject toJson();
+  /**
+   * Get the JSON representation of this object which can be saved to persistent
+   * storage, such as a database, file or network resource.
+   *
+   * @return the JSON representation of this object
+   */
+  JSONObject toJson();
 }

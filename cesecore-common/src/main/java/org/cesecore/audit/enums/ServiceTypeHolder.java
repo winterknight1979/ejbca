@@ -7,29 +7,30 @@ package org.cesecore.audit.enums;
  */
 public class ServiceTypeHolder implements ServiceType {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /** Value. */
-    private final String value;
+  /** Value. */
+  private final String value;
 
-    /**
-     * Constructor.
-     * @param aValue Value
-     */
-    public ServiceTypeHolder(final String aValue) {
-        this.value = aValue;
+  /**
+   * Constructor.
+   *
+   * @param aValue Value
+   */
+  public ServiceTypeHolder(final String aValue) {
+    this.value = aValue;
+  }
+
+  @Override
+  public String toString() {
+    return value;
+  }
+
+  @Override
+  public boolean equals(final ServiceType aValue) {
+    if (aValue == null) {
+      return false;
     }
-
-    @Override
-    public String toString() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(final ServiceType aValue) {
-        if (aValue == null) {
-            return false;
-        }
-        return this.value.equals(aValue.toString());
-    }
+    return this.value.equals(aValue.toString());
+  }
 }

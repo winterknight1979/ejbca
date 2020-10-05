@@ -17,33 +17,36 @@ import org.cesecore.internal.InternalResources;
 /**
  * Validator which will validate an integer to greater or equal to 0
  *
- * @version $Id: PositiveIntegerValidator.java 24964 2017-01-02 08:15:35Z mikekushner $
- *
+ * @version $Id: PositiveIntegerValidator.java 24964 2017-01-02 08:15:35Z
+ *     mikekushner $
  */
-public class PositiveIntegerValidator implements DynamicUiPropertyValidator<Integer> {
+public class PositiveIntegerValidator
+    implements DynamicUiPropertyValidator<Integer> {
 
+  private static final long serialVersionUID = 1L;
 
-    private static final long serialVersionUID = 1L;
+  private static final String VALIDATOR_TYPE = "positiveIntegerValidator";
 
-    private static final String VALIDATOR_TYPE = "positiveIntegerValidator";
+  private static final InternalResources intres =
+      InternalResources.getInstance();
 
-    private static final InternalResources intres = InternalResources.getInstance();
+  @Override
+  public void validate(Integer value) throws PropertyValidationException {
+    validateInteger(value);
+  }
 
-    @Override
-    public void validate(Integer value) throws PropertyValidationException{
-        validateInteger(value);
+  @Override
+  public String getValidatorType() {
+    return VALIDATOR_TYPE;
+  }
+
+  public static void validateInteger(Integer value)
+      throws PropertyValidationException {
+    if (value.intValue() < 0) {
+      throw new PropertyValidationException(
+          intres.getLocalizedMessage(
+              "dynamic.property.validation.positiveinteger.failure",
+              value.toString()));
     }
-
-    @Override
-    public String getValidatorType() {
-        return VALIDATOR_TYPE;
-    }
-
-    public static void validateInteger(Integer value) throws PropertyValidationException{
-        if(value.intValue() < 0) {
-            throw new PropertyValidationException(intres.getLocalizedMessage("dynamic.property.validation.positiveinteger.failure", value.toString()));
-        }
-    }
-
-
+  }
 }

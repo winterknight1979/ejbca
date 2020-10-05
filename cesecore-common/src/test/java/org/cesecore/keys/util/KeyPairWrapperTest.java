@@ -17,29 +17,32 @@ import static org.junit.Assert.assertEquals;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.spec.InvalidKeySpecException;
-
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.util.CryptoProviderTools;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/**
- * @version $Id: KeyPairWrapperTest.java 26057 2017-06-22 08:08:34Z anatom $
- *
- */
+/** @version $Id: KeyPairWrapperTest.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class KeyPairWrapperTest {
 
-    @BeforeClass
-    public static void beforeClass() {
-        CryptoProviderTools.installBCProviderIfNotAvailable();
-    }
+  @BeforeClass
+  public static void beforeClass() {
+    CryptoProviderTools.installBCProviderIfNotAvailable();
+  }
 
-    @Test
-    public void testGetKeyPair() throws InvalidAlgorithmParameterException, InvalidKeySpecException {
-        KeyPair testKeys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
-        KeyPairWrapper testWrapper = new KeyPairWrapper(testKeys);
-        assertEquals("Decoded public key was not identical to encoded.", testKeys.getPublic(), testWrapper.getKeyPair().getPublic());
-        assertEquals("Decoded private key was not identical to encoded.", testKeys.getPrivate(), testWrapper.getKeyPair().getPrivate());
-    }
-
+  @Test
+  public void testGetKeyPair()
+      throws InvalidAlgorithmParameterException, InvalidKeySpecException {
+    KeyPair testKeys =
+        KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+    KeyPairWrapper testWrapper = new KeyPairWrapper(testKeys);
+    assertEquals(
+        "Decoded public key was not identical to encoded.",
+        testKeys.getPublic(),
+        testWrapper.getKeyPair().getPublic());
+    assertEquals(
+        "Decoded private key was not identical to encoded.",
+        testKeys.getPrivate(),
+        testWrapper.getKeyPair().getPrivate());
+  }
 }

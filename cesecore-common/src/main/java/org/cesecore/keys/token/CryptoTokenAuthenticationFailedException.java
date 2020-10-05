@@ -14,30 +14,32 @@ package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
 
-
 /**
  * An exception thrown when authentication to HardCATokens fail.
  *
- * @version $Id: CryptoTokenAuthenticationFailedException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: CryptoTokenAuthenticationFailedException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
-public class CryptoTokenAuthenticationFailedException extends CesecoreException {
+public class CryptoTokenAuthenticationFailedException
+    extends CesecoreException {
 
-    private static final long serialVersionUID = -1444838755654213775L;
+  private static final long serialVersionUID = -1444838755654213775L;
 
+  /**
+   * Creates a new instance of <code>CryptoTokenAuthenticationFailedException
+   * </code> without detail message.
+   */
+  public CryptoTokenAuthenticationFailedException() {
+    super();
+  }
 
-    /**
-     * Creates a new instance of <code>CryptoTokenAuthenticationFailedException</code> without detail message.
-     */
-    public CryptoTokenAuthenticationFailedException() {
-        super();
-    }
-
-
-    /**
-     * Constructs an instance of <code>CryptoTokenAuthenticationFailedException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CryptoTokenAuthenticationFailedException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an instance of <code>CryptoTokenAuthenticationFailedException
+   * </code> with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CryptoTokenAuthenticationFailedException(String msg) {
+    super(msg);
+  }
 }

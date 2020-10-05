@@ -16,28 +16,30 @@ package org.cesecore.util.ui;
  * Any exception in dynamic UI property context which transports a user message.
  * There is no inner exception, only the message MUST BE used.
  *
- * @version $Id: DynamicUiCallbackException.java 28531 2018-03-21 06:57:37Z mikekushner $
- *
+ * @version $Id: DynamicUiCallbackException.java 28531 2018-03-21 06:57:37Z
+ *     mikekushner $
  */
 public final class DynamicUiCallbackException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates an exception with a message.
-     * @param message the message.
-     */
-    public DynamicUiCallbackException(final String message) {
-        super(message);
-    }
+  /**
+   * Creates an exception with a message.
+   *
+   * @param message the message.
+   */
+  public DynamicUiCallbackException(final String message) {
+    super(message);
+  }
 
-    @SuppressWarnings("unused")
-    private DynamicUiCallbackException(final Throwable throwable) {
-        super(throwable);
-    }
+  @SuppressWarnings("unused")
+  private DynamicUiCallbackException(final Throwable throwable) {
+    super(throwable);
+  }
 
-    @SuppressWarnings("unused")
-    private DynamicUiCallbackException(final String message, final Throwable throwable) {
-        super(message, throwable);
-    }
+  @SuppressWarnings("unused")
+  private DynamicUiCallbackException(
+      final String message, final Throwable throwable) {
+    super(message, throwable);
+  }
 }

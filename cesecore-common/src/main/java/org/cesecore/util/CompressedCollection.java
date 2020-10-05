@@ -28,261 +28,291 @@ import java.util.Set;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
-
 import org.apache.commons.collections.SetUtils;
 import org.apache.log4j.Logger;
 
 /**
- * Special Collection that compresses all the added objects to a in memory byte array.
+ * Special Collection that compresses all the added objects to a in memory byte
+ * array.
  *
- * Objects are read from the collection by using a iterator over a decompression InputStream.
- * To avoid memory leaks, the .clear() call should be used when the collection is no longer needed.
+ * <p>Objects are read from the collection by using a iterator over a
+ * decompression InputStream. To avoid memory leaks, the .clear() call should be
+ * used when the collection is no longer needed.
  *
- * The implementation is not thread safe.
+ * <p>The implementation is not thread safe.
  *
- * Example use-case: a RevokedCertInfo takes 248 bytes in serialized form, but averages at only 48
- * bytes in compressed serialized form.
+ * <p>Example use-case: a RevokedCertInfo takes 248 bytes in serialized form,
+ * but averages at only 48 bytes in compressed serialized form.
  *
  * @version $Id: CompressedCollection.java 34193 2020-01-07 15:18:15Z samuellb $
  * @param <T> type
  */
-public class CompressedCollection<T extends Serializable> implements Collection<T> , Serializable {
+public class CompressedCollection<T extends Serializable>
+    implements Collection<T>, Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(CompressedCollection.class);
+  private static final long serialVersionUID = 1L;
+  private static final Logger log =
+      Logger.getLogger(CompressedCollection.class);
 
-    private ByteArrayOutputStream baos = null;
-    private ObjectOutputStream oos = null;
-    private byte[] compressedData = null;
-    private int size = 0;
-    private final List<LookAheadObjectInputStream> oiss = new ArrayList<>();
-    private final Set<Class<? extends Serializable>> acceptedClasses;
+  private ByteArrayOutputStream baos = null;
+  private ObjectOutputStream oos = null;
+  private byte[] compressedData = null;
+  private int size = 0;
+  private final List<LookAheadObjectInputStream> oiss = new ArrayList<>();
+  private final Set<Class<? extends Serializable>> acceptedClasses;
 
-    @SuppressWarnings("unchecked")
-    @SafeVarargs
-    public CompressedCollection(final Class<T> elementClass, final Class<? extends Serializable>... nestedClasses) {
-        acceptedClasses = SetUtils.typedSet(new HashSet<>(nestedClasses.length + 1), Serializable.class); // generic fireworks are not type safe
-        acceptedClasses.add(elementClass);
-        acceptedClasses.addAll(Arrays.asList(nestedClasses));
-        clear();
+  @SuppressWarnings("unchecked")
+  @SafeVarargs
+  public CompressedCollection(
+      final Class<T> elementClass,
+      final Class<? extends Serializable>... nestedClasses) {
+    acceptedClasses =
+        SetUtils.typedSet(
+            new HashSet<>(nestedClasses.length + 1),
+            Serializable.class); // generic fireworks are not type safe
+    acceptedClasses.add(elementClass);
+    acceptedClasses.addAll(Arrays.asList(nestedClasses));
+    clear();
+  }
+
+  @Override
+  public boolean add(final T object) {
+    if (compressedData != null) {
+      throw new IllegalStateException(
+          "closeForWrite() has alread been called without clear() for this"
+              + " CompressedCollection.");
     }
+    boolean ret = false;
+    if (object != null) {
+      try {
+        getObjectOutputStream().writeObject(object);
+        ret = true;
+        size++;
+      } catch (IOException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    return ret;
+  }
 
-    @Override
-    public boolean add(final T object) {
-        if (compressedData!=null) {
-            throw new IllegalStateException("closeForWrite() has alread been called without clear() for this CompressedCollection.");
+  /**
+   * Lazy initialization of our in memory object storage
+   *
+   * @return stream
+   * @throws IOException on error
+   */
+  private ObjectOutputStream getObjectOutputStream() throws IOException {
+    if (oos == null) {
+      baos = new ByteArrayOutputStream();
+      final DeflaterOutputStream dos =
+          new DeflaterOutputStream(
+              baos, new Deflater(Deflater.BEST_COMPRESSION));
+      oos = new ObjectOutputStream(dos);
+    }
+    return oos;
+  }
+
+  @Override
+  public boolean addAll(final Collection<? extends T> objects) {
+    for (final T object : objects) {
+      add(object);
+    }
+    return objects.size() != 0;
+  }
+
+  @Override
+  public void clear() {
+    if (oos != null) {
+      // Clean up OutputStream, unless this has already been done
+      try {
+        oos.close();
+      } catch (IOException e) {
+        log.error(e.getMessage(), e);
+      }
+      oos = null;
+    }
+    size = 0;
+    compressedData = null;
+    // Clean up all InputStreams, unless this has already been done
+    for (final LookAheadObjectInputStream ois : oiss) {
+      try {
+        ois.close();
+      } catch (IOException e) {
+        log.error(e.getMessage(), e);
+      }
+    }
+    oiss.clear();
+  }
+
+  @Override
+  public boolean contains(Object object) {
+    final Iterator<T> iterator = iterator();
+    while (iterator.hasNext()) {
+      final T t = iterator.next();
+      if (t.equals(object)) {
+        try {
+          oiss.get(oiss.size() - 1).close();
+        } catch (IOException e) {
+          throw new IllegalStateException(e);
         }
-        boolean ret = false;
-        if (object!=null) {
-            try {
-                getObjectOutputStream().writeObject(object);
-                ret = true;
-                size++;
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
-            }
+        oiss.remove(oiss.size() - 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean containsAll(final Collection<?> objects) {
+    throw new UnsupportedOperationException(); // This is not really an optional
+                                               // operation for a Collection
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return size == 0;
+  }
+
+  /**
+   * Signal that no more data will be added to this collection. Call before
+   * Serialization.
+   */
+  public void closeForWrite() {
+    if (compressedData == null) {
+      if (oos == null) {
+        // Nothing was added
+        compressedData = new byte[0];
+      } else {
+        // Clean up outputstream now when we are about to read the data
+        try {
+          oos.flush();
+          oos.close();
+          oos = null;
+          compressedData = baos.toByteArray();
+          baos = null;
+          if (log.isDebugEnabled()) {
+            log.debug(
+                "Compressed data of "
+                    + size
+                    + " entries to "
+                    + compressedData.length
+                    + " bytes.");
+          }
+        } catch (IOException e) {
+          log.error(e.getMessage(), e);
         }
+      }
+    }
+  }
+
+  @Override
+  public Iterator<T> iterator() {
+    closeForWrite();
+    // Create a new decompression stream over the data that belongs to the
+    // Iterator
+    final ByteArrayInputStream bais = new ByteArrayInputStream(compressedData);
+    final InflaterInputStream iis = new InflaterInputStream(bais);
+    final LookAheadObjectInputStream ois;
+    if (compressedData.length == 0) {
+      ois = null;
+    } else {
+      try {
+        ois = new LookAheadObjectInputStream(iis);
+        ois.setAcceptedClasses(acceptedClasses);
+        ois.setEnabledMaxObjects(false);
+      } catch (IOException e) {
+        throw new IllegalStateException(e);
+      }
+      oiss.add(ois);
+    }
+    return new Iterator<T>() {
+      private T next = null;
+
+      @Override
+      public boolean hasNext() {
+        try {
+          next = readNext();
+        } catch (NoSuchElementException e) {
+          return false;
+        }
+        return true;
+      }
+
+      @Override
+      public T next() {
+        if (next == null) {
+          return readNext();
+        }
+        T ret = next;
+        next = null;
         return ret;
-    }
+      }
 
-    /** Lazy initialization of our in memory object storage
-     * @return stream
-     * @throws IOException on error */
-    private ObjectOutputStream getObjectOutputStream() throws IOException {
-        if (oos==null) {
-            baos = new ByteArrayOutputStream();
-            final DeflaterOutputStream dos = new DeflaterOutputStream(baos, new Deflater(Deflater.BEST_COMPRESSION));
-            oos = new ObjectOutputStream(dos);
-        }
-        return oos;
-    }
-
-    @Override
-    public boolean addAll(final Collection<? extends T> objects) {
-        for (final T object : objects) {
-            add(object);
-        }
-        return objects.size()!=0;
-    }
-
-    @Override
-    public void clear() {
-        if (oos!=null) {
-            // Clean up OutputStream, unless this has already been done
-            try {
-                oos.close();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-            oos = null;
-        }
-        size = 0;
-        compressedData = null;
-        // Clean up all InputStreams, unless this has already been done
-        for (final LookAheadObjectInputStream ois : oiss) {
-            try {
-                ois.close();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        }
-        oiss.clear();
-    }
-
-    @Override
-    public boolean contains(Object object) {
-        final Iterator<T> iterator = iterator();
-        while (iterator.hasNext()) {
-            final T t = iterator.next();
-            if (t.equals(object)) {
-                try {
-                    oiss.get(oiss.size()-1).close();
-                } catch (IOException e) {
-                    throw new IllegalStateException(e);
-                }
-                oiss.remove(oiss.size()-1);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean containsAll(final Collection<?> objects) {
-        throw new UnsupportedOperationException();  // This is not really an optional operation for a Collection
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size==0;
-    }
-
-    /** Signal that no more data will be added to this collection. Call before Serialization. */
-    public void closeForWrite() {
-        if (compressedData==null) {
-            if (oos==null) {
-                // Nothing was added
-                compressedData = new byte[0];
-            } else {
-                // Clean up outputstream now when we are about to read the data
-                try {
-                    oos.flush();
-                    oos.close();
-                    oos = null;
-                    compressedData = baos.toByteArray();
-                    baos = null;
-                    if (log.isDebugEnabled()) {
-                        log.debug("Compressed data of " + size + " entries to " + compressedData.length + " bytes.");
-                    }
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
-        }
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        closeForWrite();
-        // Create a new decompression stream over the data that belongs to the Iterator
-        final ByteArrayInputStream bais = new ByteArrayInputStream(compressedData);
-        final InflaterInputStream iis = new InflaterInputStream(bais);
-        final LookAheadObjectInputStream ois;
-        if (compressedData.length==0) {
-            ois = null;
-        } else {
-            try {
-                ois = new LookAheadObjectInputStream(iis);
-                ois.setAcceptedClasses(acceptedClasses);
-                ois.setEnabledMaxObjects(false);
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
-            }
-            oiss.add(ois);
-        }
-        return new Iterator<T>() {
-            private T next = null;
-
-            @Override
-            public boolean hasNext() {
-                try {
-                    next = readNext();
-                } catch (NoSuchElementException e) {
-                    return false;
-                }
-                return true;
-            }
-
-            @Override
-            public T next() {
-                if (next==null) {
-                    return readNext();
-                }
-                T ret = next;
-                next = null;
-                return ret;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-
-            @SuppressWarnings("unchecked")
-            private T readNext() {
-                if (ois==null) {
-                    throw new NoSuchElementException();
-                }
-                try {
-                    return (T) ois.readObject();
-                } catch (IOException e) {
-                    cleanUp();
-                    throw new NoSuchElementException();
-                } catch (ClassNotFoundException e) {
-                    cleanUp();
-                    throw new NoSuchElementException();
-                }
-            }
-
-            /** Clean up InputStream right away if we reached the last entry in the stream */
-            private void cleanUp() {
-                oiss.remove(ois);
-                try {
-                    ois.close();
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
-        };
-    }
-
-    @Override
-    public boolean remove(Object arg0) {
+      @Override
+      public void remove() {
         throw new UnsupportedOperationException();
-    }
+      }
 
-    @Override
-    public boolean removeAll(Collection<?> arg0) {
-        throw new UnsupportedOperationException();
-    }
+      @SuppressWarnings("unchecked")
+      private T readNext() {
+        if (ois == null) {
+          throw new NoSuchElementException();
+        }
+        try {
+          return (T) ois.readObject();
+        } catch (IOException e) {
+          cleanUp();
+          throw new NoSuchElementException();
+        } catch (ClassNotFoundException e) {
+          cleanUp();
+          throw new NoSuchElementException();
+        }
+      }
 
-    @Override
-    public boolean retainAll(Collection<?> arg0) {
-        throw new UnsupportedOperationException();
-    }
+      /**
+       * Clean up InputStream right away if we reached the last entry in the
+       * stream
+       */
+      private void cleanUp() {
+        oiss.remove(ois);
+        try {
+          ois.close();
+        } catch (IOException e) {
+          log.error(e.getMessage(), e);
+        }
+      }
+    };
+  }
 
-    @Override
-    public int size() {
-        return size;
-    }
+  @Override
+  public boolean remove(Object arg0) {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public Object[] toArray() {
-        throw new UnsupportedOperationException();  // This is not really an optional operation for a Collection
-    }
+  @Override
+  public boolean removeAll(Collection<?> arg0) {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public <T2> T2[] toArray(final T2[] arg0) {
-        throw new UnsupportedOperationException();  // This is not really an optional operation for a Collection
-    }
+  @Override
+  public boolean retainAll(Collection<?> arg0) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int size() {
+    return size;
+  }
+
+  @Override
+  public Object[] toArray() {
+    throw new UnsupportedOperationException(); // This is not really an optional
+                                               // operation for a Collection
+  }
+
+  @Override
+  public <T2> T2[] toArray(final T2[] arg0) {
+    throw new UnsupportedOperationException(); // This is not really an optional
+                                               // operation for a Collection
+  }
 }

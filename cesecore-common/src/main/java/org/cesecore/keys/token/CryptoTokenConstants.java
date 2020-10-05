@@ -13,15 +13,16 @@
 package org.cesecore.keys.token;
 
 /**
- * @version $Id: CryptoTokenConstants.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: CryptoTokenConstants.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 public final class CryptoTokenConstants {
 
-    /** constants needed for soft crypto tokens */
-    protected static final String SIGNKEYSPEC       = "SIGNKEYSPEC";
-    protected static final String ENCKEYSPEC        = "ENCKEYSPEC";
-    protected static final String SIGNKEYALGORITHM  = "SIGNKEYALGORITHM";
-    protected static final String ENCKEYALGORITHM   = "ENCKEYALGORITHM";
-    protected static final String KEYSTORE          = "KEYSTORE";
+  /** constants needed for soft crypto tokens */
+  protected static final String SIGNKEYSPEC = "SIGNKEYSPEC";
 
+  protected static final String ENCKEYSPEC = "ENCKEYSPEC";
+  protected static final String SIGNKEYALGORITHM = "SIGNKEYALGORITHM";
+  protected static final String ENCKEYALGORITHM = "ENCKEYALGORITHM";
+  protected static final String KEYSTORE = "KEYSTORE";
 }

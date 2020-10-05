@@ -15,74 +15,80 @@ package org.cesecore.keys.validation;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.cesecore.util.IndexEnum;
 
 /**
  * Contains different actions which occur whenever a Validator in EJBCA fails.
- * @version $Id: KeyValidationFailedActions.java 30982 2019-01-04 12:53:31Z samuellb $
+ *
+ * @version $Id: KeyValidationFailedActions.java 30982 2019-01-04 12:53:31Z
+ *     samuellb $
  */
 public enum KeyValidationFailedActions implements IndexEnum {
-    DO_NOTHING(0, "VALIDATORFAILEDACTION_DO_NOTHING"),
-    LOG_INFO(1, "VALIDATORFAILEDACTION_LOG_INFO"),
-    LOG_WARN(2, "VALIDATORFAILEDACTION_LOG_WARN"),
-    LOG_ERROR(3, "VALIDATORFAILEDACTION_LOG_ERROR"),
-    ABORT_CERTIFICATE_ISSUANCE(4, "VALIDATORFAILEDACTION_ABORT_CERTIFICATE_ISSUANCE");
+  DO_NOTHING(0, "VALIDATORFAILEDACTION_DO_NOTHING"),
+  LOG_INFO(1, "VALIDATORFAILEDACTION_LOG_INFO"),
+  LOG_WARN(2, "VALIDATORFAILEDACTION_LOG_WARN"),
+  LOG_ERROR(3, "VALIDATORFAILEDACTION_LOG_ERROR"),
+  ABORT_CERTIFICATE_ISSUANCE(
+      4, "VALIDATORFAILEDACTION_ABORT_CERTIFICATE_ISSUANCE");
 
-    private int index;
-    private String label;
+  private int index;
+  private String label;
 
-    /**
-     * Creates a new instance.
-     *
-     * @param index index
-     * @param label resource key or label.
-     */
-    private KeyValidationFailedActions(final int index, final String label) {
-        this.index = index;
-        this.label = label;
+  /**
+   * Creates a new instance.
+   *
+   * @param index index
+   * @param label resource key or label.
+   */
+  private KeyValidationFailedActions(final int index, final String label) {
+    this.index = index;
+    this.label = label;
+  }
+
+  /**
+   * Gets the index.
+   *
+   * @return index
+   */
+  @Override
+  public int getIndex() {
+    return index;
+  }
+
+  /**
+   * Gets the resource key or label.
+   *
+   * @return label
+   */
+  public String getLabel() {
+    return label;
+  }
+
+  /**
+   * Gets an Integer list instance containing all index.
+   *
+   * @return indices
+   */
+  public static final List<Integer> index() {
+    final List<Integer> result = new ArrayList<Integer>();
+    for (KeyValidationFailedActions condition : values()) {
+      result.add(condition.getIndex());
     }
+    return result;
+  }
 
-    /**
-     * Gets the index.
-     * @return index
-     */
-    @Override
-    public int getIndex() {
-        return index;
+  /**
+   * Retrieve an action from its index.
+   *
+   * @param index the index of the action
+   * @return the corresponding action enum or null if not found
+   */
+  public static KeyValidationFailedActions fromIndex(final int index) {
+    for (final KeyValidationFailedActions action : values()) {
+      if (action.getIndex() == index) {
+        return action;
+      }
     }
-
-    /**
-     * Gets the resource key or label.
-     * @return label
-     */
-    public String getLabel() {
-        return label;
-    }
-
-    /**
-     * Gets an Integer list instance containing all index.
-     * @return indices
-     */
-    public static final List<Integer> index() {
-        final List<Integer> result = new ArrayList<Integer>();
-        for (KeyValidationFailedActions condition : values()) {
-            result.add(condition.getIndex());
-        }
-        return result;
-    }
-
-    /**
-     * Retrieve an action from its index.
-     * @param index the index of the action
-     * @return the corresponding action enum or null if not found
-     */
-    public static KeyValidationFailedActions fromIndex(final int index) {
-        for (final KeyValidationFailedActions action : values()) {
-            if (action.getIndex() == index) {
-                return action;
-            }
-        }
-        return null;
-    }
+    return null;
+  }
 }

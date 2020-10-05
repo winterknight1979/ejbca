@@ -17,199 +17,213 @@ import java.security.cert.Certificate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.naming.OperationNotSupportedException;
-
 import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
 import org.cesecore.util.ui.DynamicUiProperty;
 
 /**
- * Value object for remote invocation from JVMs where the implementation class is not available.
+ * Value object for remote invocation from JVMs where the implementation class
+ * is not available.
  *
- * @version $Id: InternalKeyBindingInfo.java 28496 2018-03-16 12:13:55Z henriks $
+ * @version $Id: InternalKeyBindingInfo.java 28496 2018-03-16 12:13:55Z henriks
+ *     $
  */
 public class InternalKeyBindingInfo implements InternalKeyBinding {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    final private String implementationAlias;
-    final private int id;
-    final private String name;
-    final private InternalKeyBindingStatus status;
-    final private InternalKeyBindingOperationalStatus operationalStatus;
-    final private String certificateId;
-    final private int cryptoTokenId;
-    final private String keyPairAlias;
-    final private String nextKeyPairAlias;
-    final private Map<String, DynamicUiProperty<? extends Serializable>> properties;
-    final private List<InternalKeyBindingTrustEntry> trustedCertificateReferences;
-    final private List<String> ocspExtensions;
-    final private String signatureAlgorithm;
+  private final String implementationAlias;
+  private final int id;
+  private final String name;
+  private final InternalKeyBindingStatus status;
+  private final InternalKeyBindingOperationalStatus operationalStatus;
+  private final String certificateId;
+  private final int cryptoTokenId;
+  private final String keyPairAlias;
+  private final String nextKeyPairAlias;
+  private final Map<String, DynamicUiProperty<? extends Serializable>>
+      properties;
+  private final List<InternalKeyBindingTrustEntry> trustedCertificateReferences;
+  private final List<String> ocspExtensions;
+  private final String signatureAlgorithm;
 
-    public InternalKeyBindingInfo(InternalKeyBinding internalKeyBinding) {
-        this.implementationAlias = internalKeyBinding.getImplementationAlias();
-        this.id = internalKeyBinding.getId();
-        this.name = internalKeyBinding.getName();
-        this.status = internalKeyBinding.getStatus();
-        this.operationalStatus = internalKeyBinding.getOperationalStatus();
-        this.certificateId = internalKeyBinding.getCertificateId();
-        this.cryptoTokenId = internalKeyBinding.getCryptoTokenId();
-        this.keyPairAlias = internalKeyBinding.getKeyPairAlias();
-        this.nextKeyPairAlias = internalKeyBinding.getNextKeyPairAlias();
-        this.properties = internalKeyBinding.getCopyOfProperties();
-        this.trustedCertificateReferences = internalKeyBinding.getTrustedCertificateReferences();
-        this.ocspExtensions = internalKeyBinding.getOcspExtensions();
-        this.signatureAlgorithm = internalKeyBinding.getSignatureAlgorithm();
-    }
+  public InternalKeyBindingInfo(InternalKeyBinding internalKeyBinding) {
+    this.implementationAlias = internalKeyBinding.getImplementationAlias();
+    this.id = internalKeyBinding.getId();
+    this.name = internalKeyBinding.getName();
+    this.status = internalKeyBinding.getStatus();
+    this.operationalStatus = internalKeyBinding.getOperationalStatus();
+    this.certificateId = internalKeyBinding.getCertificateId();
+    this.cryptoTokenId = internalKeyBinding.getCryptoTokenId();
+    this.keyPairAlias = internalKeyBinding.getKeyPairAlias();
+    this.nextKeyPairAlias = internalKeyBinding.getNextKeyPairAlias();
+    this.properties = internalKeyBinding.getCopyOfProperties();
+    this.trustedCertificateReferences =
+        internalKeyBinding.getTrustedCertificateReferences();
+    this.ocspExtensions = internalKeyBinding.getOcspExtensions();
+    this.signatureAlgorithm = internalKeyBinding.getSignatureAlgorithm();
+  }
 
-    @Override
-    public void init(int id, String name, InternalKeyBindingStatus status, String certificateId, int cryptoTokenId, String keyPairAlias,
-            LinkedHashMap<Object, Object> dataMapToLoad) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void init(
+      int id,
+      String name,
+      InternalKeyBindingStatus status,
+      String certificateId,
+      int cryptoTokenId,
+      String keyPairAlias,
+      LinkedHashMap<Object, Object> dataMapToLoad) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public LinkedHashMap<Object, Object> getDataMapToPersist() {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public LinkedHashMap<Object, Object> getDataMapToPersist() {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public String getImplementationAlias() {
-        return implementationAlias;
-    }
+  @Override
+  public String getImplementationAlias() {
+    return implementationAlias;
+  }
 
-    @Override
-    public String getNextKeyPairAlias() {
-        return nextKeyPairAlias;
-    }
+  @Override
+  public String getNextKeyPairAlias() {
+    return nextKeyPairAlias;
+  }
 
-    @Override
-    public void setNextKeyPairAlias(String nextKeyPairAlias) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setNextKeyPairAlias(String nextKeyPairAlias) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public void updateCertificateIdAndCurrentKeyAlias(String certificateId) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void updateCertificateIdAndCurrentKeyAlias(String certificateId) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public void generateNextKeyPairAlias() {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void generateNextKeyPairAlias() {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public void assertCertificateCompatability(Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) throws CertificateImportException {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void assertCertificateCompatability(
+      Certificate certificate,
+      final AvailableExtendedKeyUsagesConfiguration ekuConfig)
+      throws CertificateImportException {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public int getId() {
-        return id;
-    }
+  @Override
+  public int getId() {
+    return id;
+  }
 
-    @Override
-    public String getName() {
-        return name;
-    }
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    @Override
-    public void setName(String name) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setName(String name) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public InternalKeyBindingStatus getStatus() {
-        return status;
-    }
+  @Override
+  public InternalKeyBindingStatus getStatus() {
+    return status;
+  }
 
-    @Override
-    public void setStatus(InternalKeyBindingStatus status) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setStatus(InternalKeyBindingStatus status) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public InternalKeyBindingOperationalStatus getOperationalStatus() {
-        return operationalStatus;
-    }
+  @Override
+  public InternalKeyBindingOperationalStatus getOperationalStatus() {
+    return operationalStatus;
+  }
 
-    @Override
-    public void setOperationalStatus(InternalKeyBindingOperationalStatus opStatus) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setOperationalStatus(
+      InternalKeyBindingOperationalStatus opStatus) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public String getCertificateId() {
-        return certificateId;
-    }
+  @Override
+  public String getCertificateId() {
+    return certificateId;
+  }
 
-    @Override
-    public void setCertificateId(String certificateId) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setCertificateId(String certificateId) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public int getCryptoTokenId() {
-        return cryptoTokenId;
-    }
+  @Override
+  public int getCryptoTokenId() {
+    return cryptoTokenId;
+  }
 
-    @Override
-    public void setCryptoTokenId(int cryptoTokenId) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setCryptoTokenId(int cryptoTokenId) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public String getKeyPairAlias() {
-        return keyPairAlias;
-    }
+  @Override
+  public String getKeyPairAlias() {
+    return keyPairAlias;
+  }
 
-    @Override
-    public void setKeyPairAlias(String keyPairAlias) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setKeyPairAlias(String keyPairAlias) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public DynamicUiProperty<? extends Serializable> getProperty(String name) {
-        return properties.get(name);
-    }
+  @Override
+  public DynamicUiProperty<? extends Serializable> getProperty(String name) {
+    return properties.get(name);
+  }
 
-    @Override
-    public void setProperty(String name, Serializable value) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setProperty(String name, Serializable value) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public Map<String, DynamicUiProperty<? extends Serializable>> getCopyOfProperties() {
-        return properties;
-    }
+  @Override
+  public Map<String, DynamicUiProperty<? extends Serializable>>
+      getCopyOfProperties() {
+    return properties;
+  }
 
-    @Override
-    public List<InternalKeyBindingTrustEntry> getTrustedCertificateReferences() {
-        return trustedCertificateReferences;
-    }
+  @Override
+  public List<InternalKeyBindingTrustEntry> getTrustedCertificateReferences() {
+    return trustedCertificateReferences;
+  }
 
-    @Override
-    public void setTrustedCertificateReferences(List<InternalKeyBindingTrustEntry> trustedCertificateReferences) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setTrustedCertificateReferences(
+      List<InternalKeyBindingTrustEntry> trustedCertificateReferences) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public String getSignatureAlgorithm() {
-        return signatureAlgorithm;
-    }
+  @Override
+  public String getSignatureAlgorithm() {
+    return signatureAlgorithm;
+  }
 
-    @Override
-    public void setSignatureAlgorithm(String signatureAlgorithm) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setSignatureAlgorithm(String signatureAlgorithm) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 
-    @Override
-    public List<String> getOcspExtensions() {
-        return ocspExtensions;
-    }
+  @Override
+  public List<String> getOcspExtensions() {
+    return ocspExtensions;
+  }
 
-    @Override
-    public void setOcspExtensions(List<String> ocspExtensions) {
-        throw new RuntimeException(new OperationNotSupportedException());
-    }
+  @Override
+  public void setOcspExtensions(List<String> ocspExtensions) {
+    throw new RuntimeException(new OperationNotSupportedException());
+  }
 }

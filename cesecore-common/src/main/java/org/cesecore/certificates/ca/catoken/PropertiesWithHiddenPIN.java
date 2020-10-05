@@ -15,53 +15,55 @@ package org.cesecore.certificates.ca.catoken;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
-
 import org.cesecore.keys.token.CryptoToken;
 
 /**
- * Class for printing properties (for debug purposes) without revealing any pin properties in the log file
+ * Class for printing properties (for debug purposes) without revealing any pin
+ * properties in the log file
  *
- * @version $Id: PropertiesWithHiddenPIN.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: PropertiesWithHiddenPIN.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class PropertiesWithHiddenPIN extends Properties {
 
-    private static final long serialVersionUID = -2240419700704551683L;
+  private static final long serialVersionUID = -2240419700704551683L;
 
-    public PropertiesWithHiddenPIN() {
+  public PropertiesWithHiddenPIN() {}
+
+  /** @param defaults Properties */
+  public PropertiesWithHiddenPIN(Properties defaults) {
+    super(defaults);
+  }
+
+  public synchronized String toString() {
+    int max = size() - 1;
+    if (max == -1) {
+      return "{}";
     }
 
-    /**
-     * @param defaults Properties
-     */
-    public PropertiesWithHiddenPIN(Properties defaults) {
-        super(defaults);
+    final StringBuilder sb = new StringBuilder();
+    final Iterator<Map.Entry<Object, Object>> it = entrySet().iterator();
+
+    sb.append('{');
+    for (int i = 0; ; i++) {
+      final Map.Entry<Object, Object> e = (Map.Entry<Object, Object>) it.next();
+      final String key = (String) e.getKey();
+      final String readValue = (String) e.getValue();
+      final String value =
+          readValue != null
+                  && readValue.length() > 0
+                  && key.trim()
+                      .equalsIgnoreCase(CryptoToken.AUTOACTIVATE_PIN_PROPERTY)
+              ? "xxxx"
+              : readValue;
+      sb.append(key);
+      sb.append('=');
+      sb.append(value);
+
+      if (i == max) {
+        return sb.append('}').toString();
+      }
+      sb.append(", ");
     }
-
-    public synchronized String toString() {
-        int max = size() - 1;
-        if (max == -1) {
-            return "{}";
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        final Iterator<Map.Entry<Object, Object>> it = entrySet().iterator();
-
-        sb.append('{');
-        for (int i = 0;; i++) {
-            final Map.Entry<Object, Object> e = (Map.Entry<Object, Object>) it.next();
-            final String key = (String) e.getKey();
-            final String readValue = (String) e.getValue();
-            final String value = readValue != null && readValue.length() > 0 && key.trim().equalsIgnoreCase(CryptoToken.AUTOACTIVATE_PIN_PROPERTY) ? "xxxx"
-                    : readValue;
-            sb.append(key);
-            sb.append('=');
-            sb.append(value);
-
-            if (i == max) {
-                return sb.append('}').toString();
-            }
-            sb.append(", ");
-        }
-    }
-
+  }
 }

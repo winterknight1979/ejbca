@@ -13,23 +13,29 @@
 package org.cesecore.certificates.certificatetransparency;
 
 import java.security.cert.X509Certificate;
-
 import org.cesecore.certificates.ca.X509CA;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * Callback for audit logging CT pre-certificate submission during certificate generation in X509CA.
+ * Callback for audit logging CT pre-certificate submission during certificate
+ * generation in X509CA.
  *
  * @version $Id: CTAuditLogCallback.java 18908 2014-05-08 23:28:24Z samuellb $
  */
 public interface CTAuditLogCallback {
 
-    /**
-     * Called after a pre-certificate has been submitted to CT logs, or on failure to submit it.
-     * @param issuer issuer
-     * @param subject subject
-     * @param precert certificate
-     * @param success boolean
-     */
-    void logPreCertSubmission(X509CA issuer, EndEntityInformation subject, X509Certificate precert, boolean success);
+  /**
+   * Called after a pre-certificate has been submitted to CT logs, or on failure
+   * to submit it.
+   *
+   * @param issuer issuer
+   * @param subject subject
+   * @param precert certificate
+   * @param success boolean
+   */
+  void logPreCertSubmission(
+      X509CA issuer,
+      EndEntityInformation subject,
+      X509Certificate precert,
+      boolean success);
 }

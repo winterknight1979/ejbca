@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
-
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.CertTools;
@@ -28,22 +27,32 @@ import org.junit.Test;
  * Unit tests for the HashID class
  *
  * @version $Id: HashIDTest.java 22129 2015-11-02 10:08:41Z mikekushner $
- *
  */
 public class HashIDTest {
 
-    @BeforeClass
-    public static void beforeClass() {
-        CryptoProviderTools.installBCProviderIfNotAvailable();
-    }
+  @BeforeClass
+  public static void beforeClass() {
+    CryptoProviderTools.installBCProviderIfNotAvailable();
+  }
 
-    @Test
-    public void testSubjectDn() throws Exception {
-        KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
-        final String subjectDn = "CN=HashIDTest,O=Test,C=SE";
-        X509Certificate testCertificate = CertTools.genSelfCert(subjectDn, 365, null, keys.getPrivate(), keys.getPublic(),
-                AlgorithmConstants.SIGALG_SHA1_WITH_RSA, true);
-        assertEquals(HashID.getFromSubjectDN(testCertificate).getKey(), HashID.getFromDNString(subjectDn).getKey());
-        assertEquals(HashID.getFromSubjectDN(testCertificate).getKey(), HashID.getFromDNString(CertTools.reverseDN(subjectDn)).getKey());
-    }
+  @Test
+  public void testSubjectDn() throws Exception {
+    KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
+    final String subjectDn = "CN=HashIDTest,O=Test,C=SE";
+    X509Certificate testCertificate =
+        CertTools.genSelfCert(
+            subjectDn,
+            365,
+            null,
+            keys.getPrivate(),
+            keys.getPublic(),
+            AlgorithmConstants.SIGALG_SHA1_WITH_RSA,
+            true);
+    assertEquals(
+        HashID.getFromSubjectDN(testCertificate).getKey(),
+        HashID.getFromDNString(subjectDn).getKey());
+    assertEquals(
+        HashID.getFromSubjectDN(testCertificate).getKey(),
+        HashID.getFromDNString(CertTools.reverseDN(subjectDn)).getKey());
+  }
 }

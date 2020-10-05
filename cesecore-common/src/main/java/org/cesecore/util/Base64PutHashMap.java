@@ -17,31 +17,32 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * An implementation of HashMap that base64 encodes all String's that you 'put', it encodes them to form "B64:&lt;base64 encoded string&gt;". It only
- * encodes objects of type String.
+ * An implementation of HashMap that base64 encodes all String's that you 'put',
+ * it encodes them to form "B64:&lt;base64 encoded string&gt;". It only encodes
+ * objects of type String.
  *
  * @version $Id: Base64PutHashMap.java 24742 2016-11-15 13:59:14Z jeklund $
  */
 public class Base64PutHashMap extends LinkedHashMap<Object, Object> {
 
-    private static final long serialVersionUID = 785586648964618032L;
+  private static final long serialVersionUID = 785586648964618032L;
 
-    public Base64PutHashMap() {
-        super();
-    }
+  public Base64PutHashMap() {
+    super();
+  }
 
-    public Base64PutHashMap(Map<?, ?> m) {
-        super(m);
-    }
+  public Base64PutHashMap(Map<?, ?> m) {
+    super(m);
+  }
 
-    public Object put(Object key, Object value) {
-        if (value == null) {
-            return super.put(key, value);
-        }
-        if (value instanceof String) {
-            String s = StringTools.putBase64String((String) value, true);
-            return super.put(key, s);
-        }
-        return super.put(key, value);
+  public Object put(Object key, Object value) {
+    if (value == null) {
+      return super.put(key, value);
     }
+    if (value instanceof String) {
+      String s = StringTools.putBase64String((String) value, true);
+      return super.put(key, s);
+    }
+    return super.put(key, value);
+  }
 }

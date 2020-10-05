@@ -18,49 +18,48 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-
 import org.apache.commons.collections.CollectionUtils;
 
 /**
  * Reads in the implementations of the Validator interface.
  *
  * @version $Id: ValidatorFactory.java 27845 2018-01-10 15:15:37Z mikekushner $
- *
  */
 public enum ValidatorFactory {
-    INSTANCE;
+  INSTANCE;
 
-    private Map<String, Validator> identifierToImplementationMap = new HashMap<>();
+  private Map<String, Validator> identifierToImplementationMap =
+      new HashMap<>();
 
-    private ValidatorFactory() {
-        ServiceLoader<Validator> svcloader = ServiceLoader.load(Validator.class);
-        for(Validator type : svcloader) {
-            type.initialize();
-            identifierToImplementationMap.put(type.getValidatorTypeIdentifier(), type);
+  private ValidatorFactory() {
+    ServiceLoader<Validator> svcloader = ServiceLoader.load(Validator.class);
+    for (Validator type : svcloader) {
+      type.initialize();
+      identifierToImplementationMap.put(
+          type.getValidatorTypeIdentifier(), type);
+    }
+  }
+
+  public Collection<Validator> getAllImplementations() {
+    return identifierToImplementationMap.values();
+  }
+
+  public Collection<Validator> getAllImplementations(
+      final List<Class<?>> excludeClasses) {
+    if (CollectionUtils.isNotEmpty(excludeClasses)) {
+      final Collection<Validator> result = new ArrayList<Validator>();
+      for (Validator validator : getAllImplementations()) {
+        if (!excludeClasses.contains(validator.getClass())) {
+          result.add(validator);
         }
+      }
+      return result;
+    } else {
+      return getAllImplementations();
     }
+  }
 
-    public Collection<Validator> getAllImplementations() {
-        return identifierToImplementationMap.values();
-    }
-
-    public Collection<Validator> getAllImplementations(final List<Class<?>> excludeClasses) {
-        if (CollectionUtils.isNotEmpty(excludeClasses)) {
-            final Collection<Validator> result = new ArrayList<Validator>();
-            for (Validator validator : getAllImplementations()) {
-                if (!excludeClasses.contains(validator.getClass())) {
-                    result.add(validator);
-                }
-            }
-            return result;
-        } else {
-            return getAllImplementations();
-        }
-    }
-
-    public Validator getArcheType(String identifier) {
-        return identifierToImplementationMap.get(identifier).clone();
-    }
-
-
+  public Validator getArcheType(String identifier) {
+    return identifierToImplementationMap.get(identifier).clone();
+  }
 }

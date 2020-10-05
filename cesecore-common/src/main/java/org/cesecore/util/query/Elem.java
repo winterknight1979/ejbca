@@ -14,12 +14,10 @@ package org.cesecore.util.query;
 
 import java.io.Serializable;
 
-
 /**
- * Represents one Query Element. It might be a @see Term, @see Operation or clause ( @see Order )
+ * Represents one Query Element. It might be a @see Term, @see Operation or
+ * clause ( @see Order )
  *
  * @version $Id: Elem.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-public interface  Elem extends Serializable {
-
-}
+public interface Elem extends Serializable {}

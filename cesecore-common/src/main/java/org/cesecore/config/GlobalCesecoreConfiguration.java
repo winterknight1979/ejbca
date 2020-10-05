@@ -18,69 +18,88 @@ import org.cesecore.internal.InternalResources;
 /**
  * Handles global CESeCore configuration values.
  *
- * @version $Id: GlobalCesecoreConfiguration.java 23515 2016-05-20 10:08:20Z jeklund $
- *
+ * @version $Id: GlobalCesecoreConfiguration.java 23515 2016-05-20 10:08:20Z
+ *     jeklund $
  */
 public class GlobalCesecoreConfiguration extends ConfigurationBase {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private static final InternalResources intres = InternalResources.getInstance();
+  private static final InternalResources intres =
+      InternalResources.getInstance();
 
-    /** A fixed maximum value to ensure that  */
-    private static final int FIXED_MAXIMUM_QUERY_COUNT = 25_000;
+  /** A fixed maximum value to ensure that */
+  private static final int FIXED_MAXIMUM_QUERY_COUNT = 25_000;
 
-    public static final String CESECORE_CONFIGURATION_ID = "CESECORE_CONFIGURATION";
+  public static final String CESECORE_CONFIGURATION_ID =
+      "CESECORE_CONFIGURATION";
 
-    private static final String MAXIMUM_QUERY_COUNT_KEY = "maximum.query.count";
-    private static final String MAXIMUM_QUERY_TIMEOUT_KEY = "maximum.query.timeout";
+  private static final String MAXIMUM_QUERY_COUNT_KEY = "maximum.query.count";
+  private static final String MAXIMUM_QUERY_TIMEOUT_KEY =
+      "maximum.query.timeout";
 
-    @Override
-    public void upgrade() {
+  @Override
+  public void upgrade() {}
 
+  @Override
+  public String getConfigurationId() {
+    return CESECORE_CONFIGURATION_ID;
+  }
+
+  /** @return the maximum size of the result from SQL select queries */
+  public int getMaximumQueryCount() {
+    Object num = data.get(MAXIMUM_QUERY_COUNT_KEY);
+    if (num == null) {
+      return 500;
+    } else {
+      return ((Integer) num).intValue();
     }
+  }
 
-    @Override
-    public String getConfigurationId() {
-        return CESECORE_CONFIGURATION_ID;
+  /**
+   * Set's the maximum query count
+   *
+   * @param maximumQueryCount the maximum query count
+   * @throws InvalidConfigurationException if value was negative or above the
+   *     limit set by {@link
+   *     GlobalCesecoreConfiguration#MAXIMUM_QUERY_COUNT_KEY}
+   */
+  public void setMaximumQueryCount(int maximumQueryCount)
+      throws InvalidConfigurationException {
+    if (maximumQueryCount > FIXED_MAXIMUM_QUERY_COUNT) {
+      throw new InvalidConfigurationException(
+          intres.getLocalizedMessage(
+              "globalconfig.error.querysizetoolarge",
+              maximumQueryCount,
+              FIXED_MAXIMUM_QUERY_COUNT));
     }
+    if (maximumQueryCount < 1) {
+      throw new InvalidConfigurationException(
+          intres.getLocalizedMessage("globalconfig.error.querysizetoolow"));
+    }
+    data.put(MAXIMUM_QUERY_COUNT_KEY, Integer.valueOf(maximumQueryCount));
+  }
 
-    /** @return the maximum size of the result from SQL select queries */
-    public int getMaximumQueryCount() {
-        Object num = data.get(MAXIMUM_QUERY_COUNT_KEY);
-        if(num == null){
-            return 500;
-        } else {
-            return ((Integer) num).intValue();
-        }
-    }
+  /**
+   * @return database dependent query timeout hint in milliseconds or 0 if this
+   *     is disabled.
+   */
+  public long getMaximumQueryTimeout() {
+    final Object num = data.get(MAXIMUM_QUERY_TIMEOUT_KEY);
+    return num == null ? 10000L : ((Long) num).longValue();
+  }
 
-    /**
-     * Set's the maximum query count
-     *
-     * @param maximumQueryCount the maximum query count
-     * @throws InvalidConfigurationException if value was negative or above the limit set by {@link GlobalCesecoreConfiguration#MAXIMUM_QUERY_COUNT_KEY}
-     */
-    public void setMaximumQueryCount(int maximumQueryCount) throws InvalidConfigurationException {
-        if (maximumQueryCount > FIXED_MAXIMUM_QUERY_COUNT) {
-            throw new InvalidConfigurationException(intres.getLocalizedMessage("globalconfig.error.querysizetoolarge", maximumQueryCount, FIXED_MAXIMUM_QUERY_COUNT));
-        }
-        if (maximumQueryCount < 1) {
-            throw new InvalidConfigurationException(intres.getLocalizedMessage("globalconfig.error.querysizetoolow"));
-        }
-        data.put(MAXIMUM_QUERY_COUNT_KEY, Integer.valueOf(maximumQueryCount));
-    }
-
-    /** @return database dependent query timeout hint in milliseconds or 0 if this is disabled. */
-    public long getMaximumQueryTimeout() {
-        final Object num = data.get(MAXIMUM_QUERY_TIMEOUT_KEY);
-        return num==null ? 10000L : ((Long) num).longValue();
-    }
-
-    /** Set's the database dependent query timeout hint in milliseconds or 0 if this is disabled.
-     * @param maximumQueryTimeoutMs Max timeout
-     * @throws InvalidConfigurationException on error */
-    public void setMaximumQueryTimeout(final long maximumQueryTimeoutMs) throws InvalidConfigurationException {
-        data.put(MAXIMUM_QUERY_TIMEOUT_KEY, Long.valueOf(maximumQueryTimeoutMs < 0L ? 0L : maximumQueryTimeoutMs));
-    }
+  /**
+   * Set's the database dependent query timeout hint in milliseconds or 0 if
+   * this is disabled.
+   *
+   * @param maximumQueryTimeoutMs Max timeout
+   * @throws InvalidConfigurationException on error
+   */
+  public void setMaximumQueryTimeout(final long maximumQueryTimeoutMs)
+      throws InvalidConfigurationException {
+    data.put(
+        MAXIMUM_QUERY_TIMEOUT_KEY,
+        Long.valueOf(maximumQueryTimeoutMs < 0L ? 0L : maximumQueryTimeoutMs));
+  }
 }

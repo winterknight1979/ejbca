@@ -1,4 +1,2 @@
-/**
- * Enums for audit.
- */
+/** Enums for audit. */
 package org.cesecore.audit.enums;

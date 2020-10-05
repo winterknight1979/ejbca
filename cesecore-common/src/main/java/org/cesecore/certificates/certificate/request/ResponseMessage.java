@@ -24,9 +24,9 @@ import java.security.cert.CertificateEncodingException;
 import java.util.Collection;
 
 /**
- * Base interface for response messages sent from the CA. Implementors of this interface must also
- * implement Serializable if they are to be sent to any EJB business methods.
- * Example: <code>
+ * Base interface for response messages sent from the CA. Implementors of this
+ * interface must also implement Serializable if they are to be sent to any EJB
+ * business methods. Example: <code>
  * ResponseMessage resp = new ResponseMessage();
  * resp.setCertificate(cert); resp.setStatus(OK);
  * if (resp.requireSignKeyInfo()) {
@@ -40,173 +40,184 @@ import java.util.Collection;
  */
 public interface ResponseMessage extends Serializable {
 
-    /**
-     * Sets the CRL (if present) in the response message.
-     *
-     * @param crl crl in the response message.
-     */
-    void setCrl(CRL crl);
+  /**
+   * Sets the CRL (if present) in the response message.
+   *
+   * @param crl crl in the response message.
+   */
+  void setCrl(CRL crl);
 
-    /**
-     * Determines if the CA certificate should be included in the response message, if
-     * applicable for the response message type.
-     *
-     * @param incCACert true or false
-     */
-    void setIncludeCACert(boolean incCACert);
+  /**
+   * Determines if the CA certificate should be included in the response
+   * message, if applicable for the response message type.
+   *
+   * @param incCACert true or false
+   */
+  void setIncludeCACert(boolean incCACert);
 
-    /**
-     * Explicitly sets the CA certificate if it is not the same as the signer certificate. Used if
-     * IncludeCACert is set to true and the CA certificate is not the same as the signer certificate.
-     *
-     * @param caCert a Certificate
-     */
-    void setCACert(Certificate caCert);
+  /**
+   * Explicitly sets the CA certificate if it is not the same as the signer
+   * certificate. Used if IncludeCACert is set to true and the CA certificate is
+   * not the same as the signer certificate.
+   *
+   * @param caCert a Certificate
+   */
+  void setCACert(Certificate caCert);
 
-    /**
-     * Gets the response message in the default encoding format.
-     *
-     * @return the response message in the default encoding format.
-     *
-     * @throws CertificateEncodingException if encoding of certificate fails.
-     */
-    byte[] getResponseMessage() throws CertificateEncodingException;
+  /**
+   * Gets the response message in the default encoding format.
+   *
+   * @return the response message in the default encoding format.
+   * @throws CertificateEncodingException if encoding of certificate fails.
+   */
+  byte[] getResponseMessage() throws CertificateEncodingException;
 
-    /**
-     * Sets the status of the response message.
-     *
-     * @param status status of the response.
-     */
-    void setStatus(ResponseStatus status);
+  /**
+   * Sets the status of the response message.
+   *
+   * @param status status of the response.
+   */
+  void setStatus(ResponseStatus status);
 
-    /**
-     * Gets the status of the response message.
-     *
-     * @return status status of the response.
-     */
-     ResponseStatus getStatus();
+  /**
+   * Gets the status of the response message.
+   *
+   * @return status status of the response.
+   */
+  ResponseStatus getStatus();
 
-    /**
-     * Sets info about reason for failure.
-     *
-     * @param failInfo reason for failure.
-     */
-    void setFailInfo(FailInfo failInfo);
+  /**
+   * Sets info about reason for failure.
+   *
+   * @param failInfo reason for failure.
+   */
+  void setFailInfo(FailInfo failInfo);
 
-    /**
-     * Gets info about reason for failure.
-     *
-     * @return failInfo reason for failure.
-     */
-    FailInfo getFailInfo();
+  /**
+   * Gets info about reason for failure.
+   *
+   * @return failInfo reason for failure.
+   */
+  FailInfo getFailInfo();
 
-    /**
-     * Sets clear text info about reason for failure.
-     *
-     * @param failText description about failure.
-     */
-    void setFailText(String failText);
+  /**
+   * Sets clear text info about reason for failure.
+   *
+   * @param failText description about failure.
+   */
+  void setFailText(String failText);
 
-    /**
-     * Gets clear text info about reason for failure.
-     *
-     * @return failText description about failure.
-     */
-    String getFailText();
+  /**
+   * Gets clear text info about reason for failure.
+   *
+   * @return failText description about failure.
+   */
+  String getFailText();
 
-    /**
-     * Create encrypts and creates signatures as needed to produce a complete response message.  If
-     * needed setSignKeyInfo must be called before this method. After this is
-     * called the response message can be retrieved with getResponseMessage();
-     *
-     * @return True if signature/encryption was successful, false if it failed, request should not
-     *         be sent back it failed.
-     *
-     * @throws InvalidKeyException If the key used for signing/encryption is invalid.
-     * @throws NoSuchProviderException if there is an error with the Provider.
-     * @throws NoSuchAlgorithmException if the signature on the request is done with an unhandled
-     *         algorithm.
-     * @throws CertificateEncodingException  if there is a problem extracting the certificate information.
-     * @throws CRLException if there is a problem extracting the CRL information
-     *
-     */
-    boolean create()
-            throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, CertificateEncodingException, CRLException;
+  /**
+   * Create encrypts and creates signatures as needed to produce a complete
+   * response message. If needed setSignKeyInfo must be called before this
+   * method. After this is called the response message can be retrieved with
+   * getResponseMessage();
+   *
+   * @return True if signature/encryption was successful, false if it failed,
+   *     request should not be sent back it failed.
+   * @throws InvalidKeyException If the key used for signing/encryption is
+   *     invalid.
+   * @throws NoSuchProviderException if there is an error with the Provider.
+   * @throws NoSuchAlgorithmException if the signature on the request is done
+   *     with an unhandled algorithm.
+   * @throws CertificateEncodingException if there is a problem extracting the
+   *     certificate information.
+   * @throws CRLException if there is a problem extracting the CRL information
+   */
+  boolean create()
+      throws InvalidKeyException, NoSuchAlgorithmException,
+          NoSuchProviderException, CertificateEncodingException, CRLException;
 
-    /**
-     * indicates if this message needs recipients public and private key to sign. If this returns
-     * true, setSignKeyInfo() should be called.
-     *
-     * @return True if public and private key is needed.
-     */
-    boolean requireSignKeyInfo();
+  /**
+   * indicates if this message needs recipients public and private key to sign.
+   * If this returns true, setSignKeyInfo() should be called.
+   *
+   * @return True if public and private key is needed.
+   */
+  boolean requireSignKeyInfo();
 
-    /**
-     * Sets the public and private key needed to sign the message. Must be set if
-     * requireSignKeyInfo() returns true.
-     *
-     * @param certs certificate containing the public key.
-     * @param key private key.
-     * @param provider the provider to use, if the private key is on a HSM you must use a special provider. If null is given, the default BC provider is used.
-     *
-     * @see #requireSignKeyInfo()
-     */
-    void setSignKeyInfo(Collection<Certificate> certs, PrivateKey key, String provider);
+  /**
+   * Sets the public and private key needed to sign the message. Must be set if
+   * requireSignKeyInfo() returns true.
+   *
+   * @param certs certificate containing the public key.
+   * @param key private key.
+   * @param provider the provider to use, if the private key is on a HSM you
+   *     must use a special provider. If null is given, the default BC provider
+   *     is used.
+   * @see #requireSignKeyInfo()
+   */
+  void setSignKeyInfo(
+      Collection<Certificate> certs, PrivateKey key, String provider);
 
-    /**
-     * Sets a senderNonce if it should be present in the response
-     *
-     * @param senderNonce a string of base64 encoded bytes
-     */
-    void setSenderNonce(String senderNonce);
+  /**
+   * Sets a senderNonce if it should be present in the response
+   *
+   * @param senderNonce a string of base64 encoded bytes
+   */
+  void setSenderNonce(String senderNonce);
 
-    /**
-     * Sets a recipient if it should be present in the response
-     *
-     * @param recipientNonce a string of base64 encoded bytes
-     */
-    void setRecipientNonce(String recipientNonce);
+  /**
+   * Sets a recipient if it should be present in the response
+   *
+   * @param recipientNonce a string of base64 encoded bytes
+   */
+  void setRecipientNonce(String recipientNonce);
 
-    /**
-     * Sets a transaction identifier if it should be present in the response
-     *
-     * @param transactionId transaction id
-     */
-    void setTransactionId(String transactionId);
+  /**
+   * Sets a transaction identifier if it should be present in the response
+   *
+   * @param transactionId transaction id
+   */
+  void setTransactionId(String transactionId);
 
-    /**
-     * Sets recipient key info, key id or similar. This is usually the request key info from the request message.
-     *
-     * @param recipientKeyInfo key info
-     */
-    void setRecipientKeyInfo(byte[] recipientKeyInfo);
+  /**
+   * Sets recipient key info, key id or similar. This is usually the request key
+   * info from the request message.
+   *
+   * @param recipientKeyInfo key info
+   */
+  void setRecipientKeyInfo(byte[] recipientKeyInfo);
 
-    /**
-     * Sets preferred digest algorithm for the response message, if applicable.
-     * If this is not called, a default is used.
-     *
-     * @param digest String oid of digest algorithm ex CMSSignedDataGenerator.SHA1, SHA256 etc
-     */
-    void setPreferredDigestAlg(String digest);
+  /**
+   * Sets preferred digest algorithm for the response message, if applicable. If
+   * this is not called, a default is used.
+   *
+   * @param digest String oid of digest algorithm ex
+   *     CMSSignedDataGenerator.SHA1, SHA256 etc
+   */
+  void setPreferredDigestAlg(String digest);
 
-    /** Sometimes (CMP) the response identifier sent depends on which request identifier was used,
-     * even if the messages themselves are the same mesages.
-     *
-     * @param reqtype which type of request message this response is in response to
-     */
-    void setRequestType(int reqtype);
+  /**
+   * Sometimes (CMP) the response identifier sent depends on which request
+   * identifier was used, even if the messages themselves are the same mesages.
+   *
+   * @param reqtype which type of request message this response is in response
+   *     to
+   */
+  void setRequestType(int reqtype);
 
-    /**
-     * For some types of request-responses there is a need for a requetsId to match the request and the
-     * response together.
-     * @param reqid the id from the request matching to this response
-     */
-    void setRequestId(int reqid);
+  /**
+   * For some types of request-responses there is a need for a requetsId to
+   * match the request and the response together.
+   *
+   * @param reqid the id from the request matching to this response
+   */
+  void setRequestId(int reqid);
 
-    /**
-     * For some types of requests, the protection used depends on parameters from the request,
-     * for example password based protection where algorithms, keyId etc is the same in the response as in the request
-     * @param reqMsg the request from where to pick protection parameters
-     */
-    void setProtectionParamsFromRequest(RequestMessage reqMsg);
+  /**
+   * For some types of requests, the protection used depends on parameters from
+   * the request, for example password based protection where algorithms, keyId
+   * etc is the same in the response as in the request
+   *
+   * @param reqMsg the request from where to pick protection parameters
+   */
+  void setProtectionParamsFromRequest(RequestMessage reqMsg);
 }

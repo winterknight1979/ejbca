@@ -15,24 +15,22 @@ package org.cesecore.util.ui;
 /**
  * Thrown to show that a set property failed validation.
  *
- * @version $Id: PropertyValidationException.java 24964 2017-01-02 08:15:35Z mikekushner $
- *
+ * @version $Id: PropertyValidationException.java 24964 2017-01-02 08:15:35Z
+ *     mikekushner $
  */
 public class PropertyValidationException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public PropertyValidationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public PropertyValidationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public PropertyValidationException(String message) {
-        super(message);
-    }
+  public PropertyValidationException(String message) {
+    super(message);
+  }
 
-    public PropertyValidationException(Throwable cause) {
-        super(cause);
-    }
-
-
+  public PropertyValidationException(Throwable cause) {
+    super(cause);
+  }
 }

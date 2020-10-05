@@ -19,38 +19,62 @@ import java.util.Map;
  * Represents a type of approval request.
  *
  * @version $Id: ApprovalRequestType.java 29813 2018-09-05 15:01:59Z bastianf $
- *
  */
 public enum ApprovalRequestType {
-    ADDEDITENDENTITY(1, "APPROVEADDEDITENDENTITY"),
-    KEYRECOVER(2, "APPROVEKEYRECOVER"),
-    REVOCATION(3, "APPROVEREVOCATION"),
-    ACTIVATECA(4, "APPROVEACTIVATECA");
+  /** Add. */
+  ADDEDITENDENTITY(1, "APPROVEADDEDITENDENTITY"),
+  /** Recover. */
+  KEYRECOVER(2, "APPROVEKEYRECOVER"),
+  /** Revoke. */
+  REVOCATION(3, "APPROVEREVOCATION"),
+  /** Activate. */
+  ACTIVATECA(4, "APPROVEACTIVATECA");
 
-    private final  int integerValue;
-    private final String languageString;
-    private static final Map<Integer, ApprovalRequestType> reverseLookupMap = new HashMap<>();
+  /** Value. */
+  private final int integerValue;
+  /** Language. */
+  private final String languageString;
+  /** Map of request types. */
+  private static final Map<Integer, ApprovalRequestType> REVERSE_LOOKUP_MAP =
+      new HashMap<>();
 
-    static {
-        for(ApprovalRequestType approvalRequestType : ApprovalRequestType.values()) {
-            reverseLookupMap.put(approvalRequestType.getIntegerValue(), approvalRequestType);
-        }
+  static {
+    for (ApprovalRequestType approvalRequestType :
+        ApprovalRequestType.values()) {
+      REVERSE_LOOKUP_MAP.put(
+          approvalRequestType.getIntegerValue(), approvalRequestType);
     }
+  }
 
-    private ApprovalRequestType(int integerValue, String languageString) {
-        this.integerValue = integerValue;
-        this.languageString = languageString;
-    }
+  /**
+   * Constructor.
+   *
+   * @param anIntegerValue Value
+   * @param aLanguageString Language
+   */
+  ApprovalRequestType(final int anIntegerValue, final String aLanguageString) {
+    this.integerValue = anIntegerValue;
+    this.languageString = aLanguageString;
+  }
 
-    public int getIntegerValue() {
-        return integerValue;
-    }
+  /** @return value */
+  public int getIntegerValue() {
+    return integerValue;
+  }
 
-    public String getLanguageString() {
-        return languageString;
-    }
+  /** @return language */
+  public String getLanguageString() {
+    return languageString;
+  }
 
-    public static ApprovalRequestType getFromIntegerValue(int integerValue) {
-        return reverseLookupMap.get(integerValue);
-    }
+  /**
+   * Get request type.
+   *
+   * @param integerValue Value.
+   * @return Type
+   */
+  public static ApprovalRequestType getFromIntegerValue(
+      final int integerValue) {
+    return REVERSE_LOOKUP_MAP.get(integerValue);
+  }
 }

@@ -11,6 +11,8 @@
  	<suppress checks="ConstantNameCheck" files="AlwaysAllowLocalAuthenticationToken.java" lines="41" />		
 	<suppress checks="MagicNumberCheck" files="X509CertificateAuthenticationToken.java" lines="180"/>	
 	<suppress checks="MethodLengthCheck" files="X509CertificateAuthenticationToken.java" lines="150"/>
-	
+ 	<suppress checks="ParameterNumberCheck" files="CA.java" lines="1406,1491,1567"/>
+ 	<suppress checks="FinalParametersCheck" files="CA.java" lines="1408"/> <!-- This actually causes a compilation fail if it is final, checkstyle bug?  -->
+ 	<suppress checks="UnusedImportsCheck" files="CA.java" lines="45"/> <!-- Used in Jdoc. -->
 	
  </suppressions>

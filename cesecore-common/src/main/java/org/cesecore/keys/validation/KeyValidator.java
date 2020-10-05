@@ -15,29 +15,37 @@ package org.cesecore.keys.validation;
 
 import java.security.PublicKey;
 import java.util.List;
-
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.util.ui.DynamicUiModelAware;
 
 /**
- * Base interface for key validators. All key validators must implement this interface.
+ * Base interface for key validators. All key validators must implement this
+ * interface.
  *
  * @version $Id: KeyValidator.java 28140 2018-01-30 12:40:30Z andresjakobs $
- *
  */
-public interface KeyValidator extends Validator, ValidityAwareValidator, DynamicUiModelAware {
+public interface KeyValidator
+    extends Validator, ValidityAwareValidator, DynamicUiModelAware {
 
-    /** List of accepted date formats for notBefore and notAfter filter. */
-    static final String[] DATE_FORMAT = new String[] { "yyyy-MM-dd HH:mm:ssZZ", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd" };
+  /** List of accepted date formats for notBefore and notAfter filter. */
+  static final String[] DATE_FORMAT =
+      new String[] {
+        "yyyy-MM-dd HH:mm:ssZZ", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"
+      };
 
-    /**
-     * Method that validates the public key.
-     *
-     * @param publicKey the public key to validate.
-     * @param certificateProfiles the Certificate Profile as input for validation
-     * @return the error messages or an empty list if the public key was validated successfully.
-     * @throws ValidatorNotApplicableException when this validator is not applicable for the input, for example ECC keys as input to an RSA key validator
-     * @throws ValidationException if the certificate issuance MUST be aborted.
-     */
-    List<String> validate(PublicKey publicKey, CertificateProfile certificateProfiles) throws ValidatorNotApplicableException, ValidationException;
+  /**
+   * Method that validates the public key.
+   *
+   * @param publicKey the public key to validate.
+   * @param certificateProfiles the Certificate Profile as input for validation
+   * @return the error messages or an empty list if the public key was validated
+   *     successfully.
+   * @throws ValidatorNotApplicableException when this validator is not
+   *     applicable for the input, for example ECC keys as input to an RSA key
+   *     validator
+   * @throws ValidationException if the certificate issuance MUST be aborted.
+   */
+  List<String> validate(
+      PublicKey publicKey, CertificateProfile certificateProfiles)
+      throws ValidatorNotApplicableException, ValidationException;
 }

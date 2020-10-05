@@ -14,7 +14,6 @@ package org.cesecore.certificates.ocsp.cache;
 
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.config.GlobalOcspConfiguration;
 import org.cesecore.configuration.ConfigurationBase;
@@ -23,75 +22,78 @@ import org.cesecore.configuration.ConfigurationCache;
 /**
  * Class Holding cache variable for the OCSP configuration
  *
- * @version $Id: GlobalOcspConfigurationCache.java 20003 2014-10-16 17:14:03Z mikekushner $
+ * @version $Id: GlobalOcspConfigurationCache.java 20003 2014-10-16 17:14:03Z
+ *     mikekushner $
  */
 public final class GlobalOcspConfigurationCache implements ConfigurationCache {
 
-    /**
-     * Cache variable containing the ocsp configuration. This cache may be
-     * unsynchronized between multiple instances of EJBCA, but is common to all
-     * threads in the same VM. Set volatile to make it thread friendly.
-     */
-    private volatile GlobalOcspConfiguration ocspConfigurationCache = null;
-    /** help variable used to control that OcspConfiguration update isn't performed to often. */
-    private volatile long lastupdatetime = -1;
+  /**
+   * Cache variable containing the ocsp configuration. This cache may be
+   * unsynchronized between multiple instances of EJBCA, but is common to all
+   * threads in the same VM. Set volatile to make it thread friendly.
+   */
+  private volatile GlobalOcspConfiguration ocspConfigurationCache = null;
+  /**
+   * help variable used to control that OcspConfiguration update isn't performed
+   * to often.
+   */
+  private volatile long lastupdatetime = -1;
 
-    public GlobalOcspConfigurationCache() {
-        // Do nothing
+  public GlobalOcspConfigurationCache() {
+    // Do nothing
+  }
+
+  @Override
+  public boolean needsUpdate() {
+    if (ocspConfigurationCache != null
+        && lastupdatetime
+                + CesecoreConfiguration.getCacheGlobalOcspConfigurationTime()
+            > System.currentTimeMillis()) {
+      return false;
     }
+    return true;
+  }
 
+  public void clearCache() {
+    ocspConfigurationCache = null;
+  }
 
-    @Override
-    public boolean needsUpdate() {
-        if (ocspConfigurationCache != null && lastupdatetime + CesecoreConfiguration.getCacheGlobalOcspConfigurationTime() > System.currentTimeMillis()) {
-            return false;
-        }
-        return true;
-    }
+  @Override
+  public String getConfigId() {
+    return GlobalOcspConfiguration.OCSP_CONFIGURATION_ID;
+  }
 
-    public void clearCache() {
-        ocspConfigurationCache = null;
-    }
+  @Override
+  public void saveData() {
+    ocspConfigurationCache.saveData();
+  }
 
-    @Override
-    public String getConfigId() {
-        return GlobalOcspConfiguration.OCSP_CONFIGURATION_ID;
-    }
+  @Override
+  public ConfigurationBase getConfiguration() {
+    return ocspConfigurationCache;
+  }
 
-    @Override
-    public void saveData() {
-       ocspConfigurationCache.saveData();
-    }
+  @SuppressWarnings("rawtypes")
+  @Override
+  public ConfigurationBase getConfiguration(HashMap data) {
+    ConfigurationBase returnval = new GlobalOcspConfiguration();
+    returnval.loadData(data);
+    return returnval;
+  }
 
-    @Override
-    public ConfigurationBase getConfiguration() {
-        return ocspConfigurationCache;
-    }
+  @Override
+  public void updateConfiguration(final ConfigurationBase configuration) {
+    this.ocspConfigurationCache = (GlobalOcspConfiguration) configuration;
+    lastupdatetime = System.currentTimeMillis();
+  }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public ConfigurationBase getConfiguration(HashMap data) {
-        ConfigurationBase returnval = new GlobalOcspConfiguration();
-        returnval.loadData(data);
-        return returnval;
-    }
+  @Override
+  public ConfigurationBase getNewConfiguration() {
+    return new GlobalOcspConfiguration();
+  }
 
-
-    @Override
-    public void updateConfiguration(final ConfigurationBase configuration) {
-        this.ocspConfigurationCache = (GlobalOcspConfiguration) configuration;
-        lastupdatetime = System.currentTimeMillis();
-
-    }
-
-    @Override
-    public ConfigurationBase getNewConfiguration() {
-       return new GlobalOcspConfiguration();
-    }
-
-
-    @Override
-    public Properties getAllProperties() {
-        throw new UnsupportedOperationException("Not implemented for OCSP cache");
-    }
+  @Override
+  public Properties getAllProperties() {
+    throw new UnsupportedOperationException("Not implemented for OCSP cache");
+  }
 }

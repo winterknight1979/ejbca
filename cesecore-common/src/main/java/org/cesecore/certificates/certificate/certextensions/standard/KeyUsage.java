@@ -13,7 +13,6 @@
 package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.x509.Extension;
@@ -26,37 +25,42 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.cesecore.util.CertTools;
 
 /**
- * Class for standard X509 certificate extension.
- * See rfc3280 or later for spec of this extension.
+ * Class for standard X509 certificate extension. See rfc3280 or later for spec
+ * of this extension.
  *
  * @version $Id: KeyUsage.java 22092 2015-10-26 13:58:55Z mikekushner $
  */
 public class KeyUsage extends StandardCertificateExtension {
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(KeyUsage.class);
+  private static final long serialVersionUID = 1L;
+  private static final Logger log = Logger.getLogger(KeyUsage.class);
 
-    @Override
-    public void init(final CertificateProfile certProf) {
-        super.setOID(Extension.keyUsage.getId());
-        super.setCriticalFlag(certProf.getKeyUsageCritical());
-    }
+  @Override
+  public void init(final CertificateProfile certProf) {
+    super.setOID(Extension.keyUsage.getId());
+    super.setCriticalFlag(certProf.getKeyUsageCritical());
+  }
 
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws
-            CertificateExtensionException {
-        // Key usage
-        X509KeyUsage ret = null;
-        final int keyUsage = CertTools.sunKeyUsageToBC(certProfile.getKeyUsage());
-        if (log.isDebugEnabled()) {
-            log.debug("Using KeyUsage from profile: "+keyUsage);
-        }
-        if (keyUsage >=0) {
-            ret = new X509KeyUsage(keyUsage);
-        }
-        if (ret == null) {
-            log.error("KeyUsage missconfigured, key usage flag invalid: "+keyUsage);
-        }
-        return ret;
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      CertificateValidity val)
+      throws CertificateExtensionException {
+    // Key usage
+    X509KeyUsage ret = null;
+    final int keyUsage = CertTools.sunKeyUsageToBC(certProfile.getKeyUsage());
+    if (log.isDebugEnabled()) {
+      log.debug("Using KeyUsage from profile: " + keyUsage);
     }
+    if (keyUsage >= 0) {
+      ret = new X509KeyUsage(keyUsage);
+    }
+    if (ret == null) {
+      log.error("KeyUsage missconfigured, key usage flag invalid: " + keyUsage);
+    }
+    return ret;
+  }
 }

@@ -21,24 +21,24 @@ import org.cesecore.CesecoreException;
  */
 public class IllegalNonceException extends CesecoreException {
 
-    private static final long serialVersionUID = 6774153561528947365L;
+  private static final long serialVersionUID = 6774153561528947365L;
 
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human readable error message, can not be NULL.
-     */
-    public IllegalNonceException(final String message) {
-        super(message);
-    }
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass <code>Exception</code>.
-     *
-     * @param exception exception to be embedded.
-     */
-    public IllegalNonceException(final Exception exception) {
-        super(exception);
-    }
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human readable error message, can not be NULL.
+   */
+  public IllegalNonceException(final String message) {
+    super(message);
+  }
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass <code>Exception</code>.
+   *
+   * @param exception exception to be embedded.
+   */
+  public IllegalNonceException(final Exception exception) {
+    super(exception);
+  }
 }

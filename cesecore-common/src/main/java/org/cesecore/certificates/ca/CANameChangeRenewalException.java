@@ -13,41 +13,45 @@
 package org.cesecore.certificates.ca;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
-
 
 /**
  * An exception thrown when CA Name Change renewal could not be completed.
  *
- * @version $Id: CANameChangeRenewalException.java 26057 2017-06-22 08:08:34Z anatom $
+ * @version $Id: CANameChangeRenewalException.java 26057 2017-06-22 08:08:34Z
+ *     anatom $
  */
-@ApplicationException(rollback=true)
+@ApplicationException(rollback = true)
 public class CANameChangeRenewalException extends CesecoreException {
 
-    private static final long serialVersionUID = 1542504214401684378L;
+  private static final long serialVersionUID = 1542504214401684378L;
 
-    /**
-     * Creates a new instance of <code>CANameChangeRenewalException</code> without detail message.
-     */
-    public CANameChangeRenewalException() {
-        super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR);
-    }
+  /**
+   * Creates a new instance of <code>CANameChangeRenewalException</code> without
+   * detail message.
+   */
+  public CANameChangeRenewalException() {
+    super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR);
+  }
 
-    /**
-     * Constructs an instance of <code>CANameChangeRenewalException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CANameChangeRenewalException(String msg) {
-        super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR, msg);
-    }
+  /**
+   * Constructs an instance of <code>CANameChangeRenewalException</code> with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CANameChangeRenewalException(String msg) {
+    super(ErrorCode.CA_NAME_CHANGE_RENEWAL_ERROR, msg);
+  }
 
-    /**
-     * Constructs an instance of <code>CANameChangeRenewalException</code> with the specified cause.
-     * @param e the detail message.
-     */
-    public CANameChangeRenewalException(Exception e) {
-        super(e);
-    }
+  /**
+   * Constructs an instance of <code>CANameChangeRenewalException</code> with
+   * the specified cause.
+   *
+   * @param e the detail message.
+   */
+  public CANameChangeRenewalException(Exception e) {
+    super(e);
+  }
 }

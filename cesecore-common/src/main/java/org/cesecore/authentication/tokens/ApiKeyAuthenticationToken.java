@@ -15,22 +15,22 @@
 
 package org.cesecore.authentication.tokens;
 
-//import java.security.Principal;
-//import java.util.HashSet;
+// import java.security.Principal;
+// import java.util.HashSet;
 //
-//import org.apache.commons.lang.StringUtils;
-//import org.cesecore.authentication.AuthenticationFailedException;
-//import org.cesecore.authorization.user.AccessUserAspect;
-//import org.cesecore.authorization.user.matchvalues.ApiKeyAccessMatchValue;
-//import org.cesecore.keys.util.KeyTools;
+// import org.apache.commons.lang.StringUtils;
+// import org.cesecore.authentication.AuthenticationFailedException;
+// import org.cesecore.authorization.user.AccessUserAspect;
+// import org.cesecore.authorization.user.matchvalues.ApiKeyAccessMatchValue;
+// import org.cesecore.keys.util.KeyTools;
 //
-///**
+/// **
 // * TODO Not done at all
 // * @version $Id: ApiKeyAuthenticationToken.java
 //                 29044 2018-05-29 07:20:54Z henriks $
 // *
 // */
-//public class ApiKeyAuthenticationToken extends AuthenticationToken {
+// public class ApiKeyAuthenticationToken extends AuthenticationToken {
 //
 //    private static final ApiKeyAuthenticationTokenMetaData metaData =
 //                new ApiKeyAuthenticationTokenMetaData();
@@ -117,5 +117,4 @@ package org.cesecore.authentication.tokens;
 //    private String generateSha256Hash(String input) {
 //        return KeyTools.getSha256Fingerprint(input);
 //    }
-//}
-
+// }

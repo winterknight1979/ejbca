@@ -14,7 +14,6 @@ package org.cesecore.util.query;
 
 import java.io.Serializable;
 import java.util.AbstractMap;
-
 import org.cesecore.util.query.clauses.Order;
 import org.cesecore.util.query.elems.LogicOperator;
 import org.cesecore.util.query.elems.Operation;
@@ -28,89 +27,96 @@ import org.cesecore.util.query.elems.Term;
  */
 public class Criteria implements Serializable {
 
-    private static final long serialVersionUID = 3186042047323993627L;
+  private static final long serialVersionUID = 3186042047323993627L;
 
-    public static Elem eq(final String name, final Object value) {
-        return new Term(RelationalOperator.EQ, name, value);
-    }
+  public static Elem eq(final String name, final Object value) {
+    return new Term(RelationalOperator.EQ, name, value);
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended "not equal to" condition */
-    public static Elem neq(final String name, final Object value) {
-        return new Term(RelationalOperator.NEQ, name, value);
-    }
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended "not equal to" condition
+   */
+  public static Elem neq(final String name, final Object value) {
+    return new Term(RelationalOperator.NEQ, name, value);
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended "greater than or equal to" condition */
-    public static Elem geq(final String name, final Object value) {
-        return new Term(RelationalOperator.GE, name, value);
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended "greater than or equal to" condition
+   */
+  public static Elem geq(final String name, final Object value) {
+    return new Term(RelationalOperator.GE, name, value);
+  }
 
-    }
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended "greater than" condition
+   */
+  public static Elem grt(final String name, final Object value) {
+    return new Term(RelationalOperator.GT, name, value);
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended "greater than" condition */
-    public static Elem grt(final String name, final Object value) {
-        return new Term(RelationalOperator.GT, name, value);
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended "less than or equal to" condition
+   */
+  public static Elem leq(final String name, final Object value) {
+    return new Term(RelationalOperator.LE, name, value);
+  }
 
-    }
+  /**
+   * @param name name
+   * @param value value
+   * @return the query with an appended "less than to" condition
+   */
+  public static Elem lsr(final String name, final Object value) {
+    return new Term(RelationalOperator.LT, name, value);
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended "less than or equal to" condition */
-    public static Elem leq(final String name, final Object value) {
-        return new Term(RelationalOperator.LE, name, value);
+  /**
+   * @param name name
+   * @param after after
+   * @param before before
+   * @return the query with an appended "between" condition
+   */
+  public static Elem between(
+      final String name, final Object after, final Object before) {
+    return new Term(
+        RelationalOperator.BETWEEN,
+        name,
+        new AbstractMap.SimpleEntry<Object, Object>(after, before));
+  }
 
-    }
+  public static Elem like(final String name, final Object value) {
+    return new Term(RelationalOperator.LIKE, name, value);
+  }
 
-    /** @param name name
-     * @param value value
-     * @return the query with an appended "less than to" condition */
-    public static Elem lsr(final String name, final Object value) {
-        return new Term(RelationalOperator.LT, name, value);
+  public static Elem isNull(final String name) {
+    return new Term(RelationalOperator.NULL, name, null);
+  }
 
-    }
+  public static Elem isNotNull(final String name) {
+    return new Term(RelationalOperator.NOTNULL, name, null);
+  }
 
-    /**@param name name
-     * @param after after
-     * @param before before
-     *  @return the query with an appended "between" condition */
-    public static Elem between(final String name, final Object after,
-            final Object before) {
-        return new Term(RelationalOperator.BETWEEN, name,
-                new  AbstractMap.SimpleEntry<Object, Object>(after, before));
+  public static Elem and(final Elem first, final Elem second) {
+    return new Operation(LogicOperator.AND, (Term) first, second);
+  }
 
-    }
+  public static Elem or(final Elem first, final Elem second) {
+    return new Operation(LogicOperator.OR, (Term) first, second);
+  }
 
-    public static Elem like(final String name, final Object value) {
-        return new Term(RelationalOperator.LIKE, name, value);
-    }
+  public static Elem orderAsc(final String name) {
+    return new Order(name, Order.Value.ASC);
+  }
 
-    public static Elem isNull(final String name) {
-        return new Term(RelationalOperator.NULL, name, null);
-    }
-
-    public static Elem isNotNull(final String name) {
-        return new Term(RelationalOperator.NOTNULL, name, null);
-    }
-
-    public static Elem and(final Elem first, final Elem second) {
-        return new Operation(LogicOperator.AND, (Term)first, second);
-    }
-
-    public static Elem or(final Elem first, final Elem second) {
-        return new Operation(LogicOperator.OR, (Term)first, second);
-    }
-
-    public static Elem orderAsc(final String name) {
-        return new Order(name, Order.Value.ASC);
-    }
-
-    public static Elem orderDesc(final String name) {
-        return new Order(name, Order.Value.DESC);
-    }
-
-
+  public static Elem orderDesc(final String name) {
+    return new Order(name, Order.Value.DESC);
+  }
 }

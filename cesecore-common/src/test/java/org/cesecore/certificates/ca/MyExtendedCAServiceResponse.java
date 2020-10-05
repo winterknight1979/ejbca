@@ -15,10 +15,10 @@ package org.cesecore.certificates.ca;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
 
 /**
- * @version $Id: MyExtendedCAServiceResponse.java 22147 2015-11-03 16:24:00Z mikekushner $
+ * @version $Id: MyExtendedCAServiceResponse.java 22147 2015-11-03 16:24:00Z
+ *     mikekushner $
  */
 public class MyExtendedCAServiceResponse extends ExtendedCAServiceResponse {
 
-    private static final long serialVersionUID = 1L;
-
+  private static final long serialVersionUID = 1L;
 }

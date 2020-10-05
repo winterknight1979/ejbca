@@ -18,23 +18,24 @@ import org.cesecore.ErrorCode;
 /**
  * Error due to invalid signature on certificate request.
  *
- * @version $Id: SignRequestSignatureException.java 21194 2015-05-04 16:40:31Z jeklund $
+ * @version $Id: SignRequestSignatureException.java 21194 2015-05-04 16:40:31Z
+ *     jeklund $
  */
 public class SignRequestSignatureException extends CesecoreException {
 
-    private static final long serialVersionUID = -8038529907771953827L;
+  private static final long serialVersionUID = -8038529907771953827L;
 
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * base class <code>Exception</code>.
-     *
-     * @param message Human readable error message, can not be NULL.
-     */
-    public SignRequestSignatureException(final String message) {
-        super(ErrorCode.BAD_REQUEST_SIGNATURE, message);
-    }
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in base class <code>Exception</code>.
+   *
+   * @param message Human readable error message, can not be NULL.
+   */
+  public SignRequestSignatureException(final String message) {
+    super(ErrorCode.BAD_REQUEST_SIGNATURE, message);
+  }
 
-    public SignRequestSignatureException(final String message, Throwable cause) {
-        super(ErrorCode.BAD_REQUEST_SIGNATURE, message, cause);
-    }
+  public SignRequestSignatureException(final String message, Throwable cause) {
+    super(ErrorCode.BAD_REQUEST_SIGNATURE, message, cause);
+  }
 }

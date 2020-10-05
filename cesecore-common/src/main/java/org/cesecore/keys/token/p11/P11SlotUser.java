@@ -13,32 +13,34 @@
 package org.cesecore.keys.token.p11;
 
 /**
- * All users of the {@link P11Slot} slot must implement this interface. The user may decide whether deactivation is allowed or not. Deactivation of a
- * user is done when the {@link P11Slot} object wants to reset P11 session (disconnect and reconnect).
- * <p>
- * If deactivation is allowed and {@link #deactivate()} called the user should:<br>
- * Deactivate itself (answer false to {@link #isActive()}) and call {@link P11Slot#logoutFromSlotIfNoTokensActive()} Then
- * {@link P11Slot#getProvider()} must be called before using the provider again.
- * </p>
- * <p>
- * If deactivation is not allowed then the user may just continue to answer true to {@link #isActive()}.
- * </p>
+ * All users of the {@link P11Slot} slot must implement this interface. The user
+ * may decide whether deactivation is allowed or not. Deactivation of a user is
+ * done when the {@link P11Slot} object wants to reset P11 session (disconnect
+ * and reconnect).
+ *
+ * <p>If deactivation is allowed and {@link #deactivate()} called the user
+ * should:<br>
+ * Deactivate itself (answer false to {@link #isActive()}) and call {@link
+ * P11Slot#logoutFromSlotIfNoTokensActive()} Then {@link P11Slot#getProvider()}
+ * must be called before using the provider again.
+ *
+ * <p>If deactivation is not allowed then the user may just continue to answer
+ * true to {@link #isActive()}.
  *
  * @version $Id: P11SlotUser.java 17625 2013-09-20 07:12:06Z netmackan $
- *
  */
 public interface P11SlotUser {
-    /**
-     * Called by the {@link P11Slot} when resetting the slot.
-     *
-     * @throws Exception on error
-     */
-    void deactivate() throws Exception;
+  /**
+   * Called by the {@link P11Slot} when resetting the slot.
+   *
+   * @throws Exception on error
+   */
+  void deactivate() throws Exception;
 
-    /**
-     * The user should return true if not accepting a slot reset.
-     *
-     * @return true if the slot is being used.
-     */
-    boolean isActive();
+  /**
+   * The user should return true if not accepting a slot reset.
+   *
+   * @return true if the slot is being used.
+   */
+  boolean isActive();
 }

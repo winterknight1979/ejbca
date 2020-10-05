@@ -15,30 +15,29 @@ package org.cesecore.keys.token.p11.exception;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 
 /**
- * Thrown to signify that a slot was not found. Differs from {@link CryptoTokenOfflineException} by virtue of
- * the latter being thrown when a slot exists, but for some reason is unavailable.
+ * Thrown to signify that a slot was not found. Differs from {@link
+ * CryptoTokenOfflineException} by virtue of the latter being thrown when a slot
+ * exists, but for some reason is unavailable.
  *
  * @version $Id: NoSuchSlotException.java 19902 2014-09-30 14:32:24Z anatom $
- *
  */
 public class NoSuchSlotException extends Exception {
 
-    private static final long serialVersionUID = -1943802946146748726L;
+  private static final long serialVersionUID = -1943802946146748726L;
 
-    public NoSuchSlotException() {
-        super();
-    }
+  public NoSuchSlotException() {
+    super();
+  }
 
-    public NoSuchSlotException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public NoSuchSlotException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public NoSuchSlotException(String message) {
-        super(message);
-    }
+  public NoSuchSlotException(String message) {
+    super(message);
+  }
 
-    public NoSuchSlotException(Throwable cause) {
-        super(cause);
-    }
-
+  public NoSuchSlotException(Throwable cause) {
+    super(cause);
+  }
 }

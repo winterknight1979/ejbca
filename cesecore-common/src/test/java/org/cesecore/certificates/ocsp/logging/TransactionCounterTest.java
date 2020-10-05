@@ -17,14 +17,14 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
- * @version $Id: TransactionCounterTest.java 14320 2012-03-13 08:07:14Z mikekushner $
- *
+ * @version $Id: TransactionCounterTest.java 14320 2012-03-13 08:07:14Z
+ *     mikekushner $
  */
 public class TransactionCounterTest {
 
-    @Test
-    public void testTransactionCounter() {
-        assertEquals(0, TransactionCounter.INSTANCE.getTransactionNumber());
-        assertEquals(1, TransactionCounter.INSTANCE.getTransactionNumber());
-    }
+  @Test
+  public void testTransactionCounter() {
+    assertEquals(0, TransactionCounter.INSTANCE.getTransactionNumber());
+    assertEquals(1, TransactionCounter.INSTANCE.getTransactionNumber());
+  }
 }

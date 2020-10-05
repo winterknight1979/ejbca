@@ -15,29 +15,26 @@ package org.cesecore.keys.token;
 /**
  * Thrown when trying to instantiate an unknown crypto token class.
  *
- * @version $Id: CryptoTokenClassNotFoundException.java 20648 2015-02-10 14:19:39Z aveen4711 $
- *
+ * @version $Id: CryptoTokenClassNotFoundException.java 20648 2015-02-10
+ *     14:19:39Z aveen4711 $
  */
 public class CryptoTokenClassNotFoundException extends RuntimeException {
 
-    private static final long serialVersionUID = -7935523503522491237L;
+  private static final long serialVersionUID = -7935523503522491237L;
 
-    public CryptoTokenClassNotFoundException() {
-        super();
-    }
+  public CryptoTokenClassNotFoundException() {
+    super();
+  }
 
-    public CryptoTokenClassNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public CryptoTokenClassNotFoundException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public CryptoTokenClassNotFoundException(String message) {
-        super(message);
-    }
+  public CryptoTokenClassNotFoundException(String message) {
+    super(message);
+  }
 
-    public CryptoTokenClassNotFoundException(Throwable cause) {
-        super(cause);
-    }
-
-
-
+  public CryptoTokenClassNotFoundException(Throwable cause) {
+    super(cause);
+  }
 }

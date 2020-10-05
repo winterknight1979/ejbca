@@ -13,28 +13,35 @@
 package org.cesecore.certificates.certificate.certextensions;
 
 /**
- * Exception thrown of advanced certificate extensions when it is configured with bad properties.
+ * Exception thrown of advanced certificate extensions when it is configured
+ * with bad properties.
  *
- * @version $Id: CertificateExtentionConfigurationException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: CertificateExtentionConfigurationException.java 17625
+ *     2013-09-20 07:12:06Z netmackan $
  */
 public class CertificateExtentionConfigurationException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Exception thrown of advanced certificate extensions when it is configured with bad properties.
-     * @param message Message
-     * @param throwable Cause
-     */
-    public CertificateExtentionConfigurationException(String message, Throwable throwable) {
-        super(message, throwable);
-    }
+  /**
+   * Exception thrown of advanced certificate extensions when it is configured
+   * with bad properties.
+   *
+   * @param message Message
+   * @param throwable Cause
+   */
+  public CertificateExtentionConfigurationException(
+      String message, Throwable throwable) {
+    super(message, throwable);
+  }
 
-    /**
-     * Exception thrown of advanced certificate extensions when it is configured with bad properties.
-     * @param message message
-     */
-    public CertificateExtentionConfigurationException(String message) {
-        super(message);
-    }
+  /**
+   * Exception thrown of advanced certificate extensions when it is configured
+   * with bad properties.
+   *
+   * @param message message
+   */
+  public CertificateExtentionConfigurationException(String message) {
+    super(message);
+  }
 }

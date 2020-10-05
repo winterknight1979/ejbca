@@ -33,7 +33,8 @@
 
 <!-- 
 	Changes from Sun for EJBCA:
-	* Allow single word comments and imports to be longer than 80 chars
+	* Allow files to be up to 5000 lines
+	* Allow single word comments, case statements, and imports to be longer than 80 chars
 	* Don't require jdoc on @Override
 	* Allow protected visibility
 	* Allow magic numbers in HashCode().
@@ -82,10 +83,12 @@
 
   <!-- Checks for Size Violations.                    -->
   <!-- See https://checkstyle.org/config_sizes.html -->
-  <module name="FileLength"/>
+  <module name="FileLength">
+  	<property name="max" value="5000"/>
+  </module>
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
-    <property name="ignorePattern" value="(^import .*;$|^ *\* *[^ ]+$)"/> 
+    <property name="ignorePattern" value="(^import .*;$|^ *\* *[^ ]+$|^ *case *[^ ]+$)"/> 
      <!-- ignore import statements -->
      <!-- Ignore long single word comments -->
   </module>

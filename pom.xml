@@ -70,25 +70,12 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-cmp-war</module>
 		<module>healthcheck-war</module>
 		<module>clearcache-war</module>
-<<<<<<< HEAD
-
-=======
 		<module>admin-gui</module>
 		<module>ra-gui</module>
 		<module>ejbca-cmp-tcp</module>
-		
->>>>>>> master
 		<!-- Test-only modules -->
 
 		<module>ejbca-test-aggregator</module>
-
-
-<<<<<<< HEAD
-		
-=======
-
-
->>>>>>> master
 	</modules>
 
 	<scm>

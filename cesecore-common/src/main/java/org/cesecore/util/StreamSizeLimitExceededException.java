@@ -13,28 +13,29 @@
 package org.cesecore.util;
 
 /**
- * Thrown when there's too much data, e.g. in a stream when using FileTools.streamCopyWithLimit
+ * Thrown when there's too much data, e.g. in a stream when using
+ * FileTools.streamCopyWithLimit
  *
- * @version $Id: StreamSizeLimitExceededException.java 22658 2016-01-28 10:11:11Z mikekushner $
+ * @version $Id: StreamSizeLimitExceededException.java 22658 2016-01-28
+ *     10:11:11Z mikekushner $
  */
 public class StreamSizeLimitExceededException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public StreamSizeLimitExceededException() {
-        super();
-    }
+  public StreamSizeLimitExceededException() {
+    super();
+  }
 
-    public StreamSizeLimitExceededException(String message) {
-        super(message);
-    }
+  public StreamSizeLimitExceededException(String message) {
+    super(message);
+  }
 
-    public StreamSizeLimitExceededException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public StreamSizeLimitExceededException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public StreamSizeLimitExceededException(Throwable cause) {
-        super(cause);
-    }
-
+  public StreamSizeLimitExceededException(Throwable cause) {
+    super(cause);
+  }
 }

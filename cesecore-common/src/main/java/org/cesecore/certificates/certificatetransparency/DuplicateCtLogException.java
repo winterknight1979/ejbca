@@ -14,14 +14,16 @@
 package org.cesecore.certificates.certificatetransparency;
 
 /**
- * Exception which occurs whenever a user tries to add a CT log which already exists within
- * the given scope.
- * @version $Id: DuplicateCtLogException.java 27253 2017-11-21 10:51:02Z bastianf $
+ * Exception which occurs whenever a user tries to add a CT log which already
+ * exists within the given scope.
+ *
+ * @version $Id: DuplicateCtLogException.java 27253 2017-11-21 10:51:02Z
+ *     bastianf $
  */
 public class DuplicateCtLogException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public DuplicateCtLogException(final String message) {
-        super(message);
-    }
+  public DuplicateCtLogException(final String message) {
+    super(message);
+  }
 }

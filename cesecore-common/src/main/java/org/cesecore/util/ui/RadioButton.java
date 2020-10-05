@@ -18,59 +18,51 @@ import java.io.Serializable;
  * POJO for a set of radio buttons in a Dynamic UI Property
  *
  * @version $Id: RadioButton.java 34324 2020-01-17 12:22:39Z henriks $
- *
  */
 public class RadioButton implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private String label;
+  private static final long serialVersionUID = 1L;
+  private String label;
 
-    public RadioButton(final String label) {
-        this.label = label;
+  public RadioButton(final String label) {
+    this.label = label;
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public void setLabel(String label) {
+    this.label = label;
+  }
+
+  @Override
+  public String toString() {
+    return label;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((label == null) ? 0 : label.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    RadioButton other = (RadioButton) obj;
+    if (label == null) {
+      return other.label == null;
     }
+    return label.equals(other.label);
+  }
 
-    public String getLabel() {
-        return label;
-    }
-
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-
-    @Override
-    public String toString() {
-        return label;
-    }
-
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((label == null) ? 0 : label.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        RadioButton other = (RadioButton) obj;
-        if (label == null) {
-            return other.label == null;
-        }
-        return label.equals(other.label);
-    }
-
-    public boolean equals(String encodedValue) {
-        return equals(DynamicUiProperty.getAsObject(encodedValue, RadioButton.class));
-    }
-
-
+  public boolean equals(String encodedValue) {
+    return equals(
+        DynamicUiProperty.getAsObject(encodedValue, RadioButton.class));
+  }
 }

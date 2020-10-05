@@ -15,7 +15,6 @@ package org.cesecore.keybind;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
@@ -23,78 +22,86 @@ import org.cesecore.internal.CommonCacheBase;
 /**
  * Signer Object cache.
  *
- * @version $Id: InternalKeyBindingCache.java 28332 2018-02-20 14:40:52Z anatom $
+ * @version $Id: InternalKeyBindingCache.java 28332 2018-02-20 14:40:52Z anatom
+ *     $
  */
 public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
-    INSTANCE;
+  INSTANCE;
 
-    final private CommonCacheBase<InternalKeyBinding> internalKeyBindingCache = new CommonCacheBase<InternalKeyBinding>() {
+  private final CommonCacheBase<InternalKeyBinding> internalKeyBindingCache =
+      new CommonCacheBase<InternalKeyBinding>() {
         @Override
         protected long getCacheTime() {
-            // We never disable storage of InternalKeyBindings in the cache completely
-            return Math.max(CesecoreConfiguration.getCacheTimeInternalKeyBinding(), 0);
+          // We never disable storage of InternalKeyBindings in the cache
+          // completely
+          return Math.max(
+              CesecoreConfiguration.getCacheTimeInternalKeyBinding(), 0);
         }
+
         @Override
         protected long getMaxCacheLifeTime() {
-            // We never purge InternalKeyBindings unless a database select discovers a missing object.
-            return 0;
-        };
-    };
-
-    @Override
-    public InternalKeyBinding getEntry(final Integer id) {
-        if (id == null) {
-            return null;
+          // We never purge InternalKeyBindings unless a database select
+          // discovers a missing object.
+          return 0;
         }
-        return internalKeyBindingCache.getEntry(id);
-    }
+        ;
+      };
 
-    @Override
-    public InternalKeyBinding getEntry(final int signerId) {
-        return internalKeyBindingCache.getEntry(signerId);
+  @Override
+  public InternalKeyBinding getEntry(final Integer id) {
+    if (id == null) {
+      return null;
     }
+    return internalKeyBindingCache.getEntry(id);
+  }
 
-    @Override
-    public boolean shouldCheckForUpdates(final int signerId) {
-        return internalKeyBindingCache.shouldCheckForUpdates(signerId);
-    }
+  @Override
+  public InternalKeyBinding getEntry(final int signerId) {
+    return internalKeyBindingCache.getEntry(signerId);
+  }
 
-    @Override
-    public void updateWith(int signerId, int digest, String name, InternalKeyBinding object) {
-        internalKeyBindingCache.updateWith(signerId, digest, name, object);
-    }
+  @Override
+  public boolean shouldCheckForUpdates(final int signerId) {
+    return internalKeyBindingCache.shouldCheckForUpdates(signerId);
+  }
 
-    @Override
-    public void removeEntry(int signerId) {
-        internalKeyBindingCache.removeEntry(signerId);
-    }
+  @Override
+  public void updateWith(
+      int signerId, int digest, String name, InternalKeyBinding object) {
+    internalKeyBindingCache.updateWith(signerId, digest, name, object);
+  }
 
-    @Override
-    public String getName(int id) {
-        return internalKeyBindingCache.getName(id);
-    }
+  @Override
+  public void removeEntry(int signerId) {
+    internalKeyBindingCache.removeEntry(signerId);
+  }
 
-    @Override
-    public Map<String,Integer> getNameToIdMap() {
-        return internalKeyBindingCache.getNameToIdMap();
-    }
+  @Override
+  public String getName(int id) {
+    return internalKeyBindingCache.getName(id);
+  }
 
-    @Override
-    public void flush() {
-        internalKeyBindingCache.flush();
-    }
+  @Override
+  public Map<String, Integer> getNameToIdMap() {
+    return internalKeyBindingCache.getNameToIdMap();
+  }
 
-    @Override
-    public void replaceCacheWith(List<Integer> keys) {
-        internalKeyBindingCache.replaceCacheWith(keys);
-    }
+  @Override
+  public void flush() {
+    internalKeyBindingCache.flush();
+  }
 
-    public Set<InternalKeyBinding> getAllValues() {
-       return internalKeyBindingCache.getAllEntries();
-    }
-    @Override
-    public boolean willUpdate(int id, int digest) {
-        return internalKeyBindingCache.willUpdate(id, digest);
-    }
+  @Override
+  public void replaceCacheWith(List<Integer> keys) {
+    internalKeyBindingCache.replaceCacheWith(keys);
+  }
 
+  public Set<InternalKeyBinding> getAllValues() {
+    return internalKeyBindingCache.getAllEntries();
+  }
+
+  @Override
+  public boolean willUpdate(int id, int digest) {
+    return internalKeyBindingCache.willUpdate(id, digest);
+  }
 }

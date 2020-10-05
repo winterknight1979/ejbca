@@ -15,7 +15,6 @@ package org.cesecore.audit.impl;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-
 import org.cesecore.audit.audit.AuditExporter;
 
 /**
@@ -26,61 +25,60 @@ import org.cesecore.audit.audit.AuditExporter;
  */
 public class AuditExportCsv implements AuditExporter {
 
-    /** PrintWriter. */
-    private PrintWriter pw;
-    /** Is the current line empty? */
-    private boolean isThisLineEmpty;
+  /** PrintWriter. */
+  private PrintWriter pw;
+  /** Is the current line empty? */
+  private boolean isThisLineEmpty;
 
-    @Override
-    public void close() throws IOException {
-        pw.close();
-    }
+  @Override
+  public void close() throws IOException {
+    pw.close();
+  }
 
-    @Override
-    public void setOutputStream(final OutputStream outputStream)
-            throws IOException {
-        pw = new PrintWriter(outputStream);
-    }
+  @Override
+  public void setOutputStream(final OutputStream outputStream)
+      throws IOException {
+    pw = new PrintWriter(outputStream);
+  }
 
-    @Override
-    public void writeEndObject() throws IOException {
-        pw.println();
-    }
+  @Override
+  public void writeEndObject() throws IOException {
+    pw.println();
+  }
 
-    @Override
-    public void writeField(final String key, final long value)
-            throws IOException {
-        printTab();
-        pw.print(value);
-        isThisLineEmpty = false;
-    }
+  @Override
+  public void writeField(final String key, final long value)
+      throws IOException {
+    printTab();
+    pw.print(value);
+    isThisLineEmpty = false;
+  }
 
-    @Override
-    public void writeStartObject() throws IOException {
-        isThisLineEmpty = true;
-    }
+  @Override
+  public void writeStartObject() throws IOException {
+    isThisLineEmpty = true;
+  }
 
-    @Override
-    public void writeField(final String key, final String value)
-            throws IOException {
-        printTab();
-        pw.print(value);
-        isThisLineEmpty = false;
-    }
+  @Override
+  public void writeField(final String key, final String value)
+      throws IOException {
+    printTab();
+    pw.print(value);
+    isThisLineEmpty = false;
+  }
 
-    /** Print a tab-char before the value if it is not the
-     *  first one in this row. */
-    private void printTab() {
-        if (!isThisLineEmpty) {
-            pw.print('\t');
-        }
+  /**
+   * Print a tab-char before the value if it is not the first one in this row.
+   */
+  private void printTab() {
+    if (!isThisLineEmpty) {
+      pw.print('\t');
     }
+  }
 
-    @Override
-    public void startObjectLabel(final String label) throws IOException {
-    }
+  @Override
+  public void startObjectLabel(final String label) throws IOException {}
 
-    @Override
-    public void endObjectLabel() throws IOException {
-    }
+  @Override
+  public void endObjectLabel() throws IOException {}
 }

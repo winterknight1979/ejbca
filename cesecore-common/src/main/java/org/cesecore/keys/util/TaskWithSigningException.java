@@ -13,19 +13,21 @@
 package org.cesecore.keys.util;
 
 /**
- * Exception that may be thrown by the {@link ISignOperation#taskWithSigning(String, java.security.Provider)}
- * @version $Id: TaskWithSigningException.java 22566 2016-01-13 08:49:18Z mikekushner $
+ * Exception that may be thrown by the {@link
+ * ISignOperation#taskWithSigning(String, java.security.Provider)}
  *
+ * @version $Id: TaskWithSigningException.java 22566 2016-01-13 08:49:18Z
+ *     mikekushner $
  */
 public class TaskWithSigningException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public TaskWithSigningException(final String message) {
-        super(message);
-    }
+  public TaskWithSigningException(final String message) {
+    super(message);
+  }
 
-    public TaskWithSigningException(final String message, final Exception cause) {
-        super(message, cause);
-    }
+  public TaskWithSigningException(final String message, final Exception cause) {
+    super(message, cause);
+  }
 }

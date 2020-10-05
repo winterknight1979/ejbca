@@ -15,34 +15,35 @@ package org.cesecore.util.query.elems;
 import org.cesecore.util.query.Elem;
 
 /**
- * Operation is a combination of Terms. Terms are logiclly related by logical operators @see LogicOperator
+ * Operation is a combination of Terms. Terms are logiclly related by logical
+ * operators @see LogicOperator
  *
  * @version $Id: Operation.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public final class Operation implements Elem {
 
-    private static final long serialVersionUID = -4989405964837453338L;
-    private final Term term;
-    private final LogicOperator operator;
-    private final Elem element;
+  private static final long serialVersionUID = -4989405964837453338L;
+  private final Term term;
+  private final LogicOperator operator;
+  private final Elem element;
 
-    public Operation(final LogicOperator operator, final Term term1, final Elem element) {
-        super();
-        this.operator = operator;
-        this.term = term1;
-        this.element = element;
-    }
+  public Operation(
+      final LogicOperator operator, final Term term1, final Elem element) {
+    super();
+    this.operator = operator;
+    this.term = term1;
+    this.element = element;
+  }
 
-    public Term getTerm() {
-        return term;
-    }
+  public Term getTerm() {
+    return term;
+  }
 
-    public LogicOperator getOperator() {
-        return operator;
-    }
+  public LogicOperator getOperator() {
+    return operator;
+  }
 
-    public Elem getElement() {
-        return element;
-    }
-
+  public Elem getElement() {
+    return element;
+  }
 }

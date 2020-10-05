@@ -13,32 +13,38 @@
 package org.cesecore.certificates.ca.extendedservices;
 
 /**
- * @version $Id: ExtendedCAServiceNotActiveException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: ExtendedCAServiceNotActiveException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class ExtendedCAServiceNotActiveException extends java.lang.Exception {
 
-    private static final long serialVersionUID = -4585542922703140980L;
+  private static final long serialVersionUID = -4585542922703140980L;
 
-    /**
-     * Creates a new instance of <code>ExtendedCAServiceNotActiveException</code> without detail message.
-     */
-    public ExtendedCAServiceNotActiveException() {
-        super();
-    }
+  /**
+   * Creates a new instance of <code>ExtendedCAServiceNotActiveException</code>
+   * without detail message.
+   */
+  public ExtendedCAServiceNotActiveException() {
+    super();
+  }
 
-    /**
-     * Constructs an instance of <code>ExtendedCAServiceNotActiveException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public ExtendedCAServiceNotActiveException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an instance of <code>ExtendedCAServiceNotActiveException</code>
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ExtendedCAServiceNotActiveException(String msg) {
+    super(msg);
+  }
 
-    /**
-     * Constructs an instance of <code>IllegalExtendedServiceRequestException</code> with the specified cause.
-     * @param e the detail message.
-     */
-    public ExtendedCAServiceNotActiveException(Exception e) {
-        super(e);
-    }
+  /**
+   * Constructs an instance of <code>IllegalExtendedServiceRequestException
+   * </code> with the specified cause.
+   *
+   * @param e the detail message.
+   */
+  public ExtendedCAServiceNotActiveException(Exception e) {
+    super(e);
+  }
 }

@@ -22,42 +22,40 @@ import java.security.Principal;
  */
 public class WebPrincipal implements Principal, Serializable {
 
-    private static final long serialVersionUID = 1L;
-    /** Module. */
-    private final String moduleName;
-    /** Client IP. */
-    private final String clientIPAddress;
+  private static final long serialVersionUID = 1L;
+  /** Module. */
+  private final String moduleName;
+  /** Client IP. */
+  private final String clientIPAddress;
 
-    /**
-     * @param aModuleName Arbitrary identifier of the page or module,
-     *     e.g. "AutoEnrollServlet"
-     * @param theClientIPAddress Remote IP address
-     */
-    public WebPrincipal(final String aModuleName,
-            final String theClientIPAddress) {
-        this.clientIPAddress = theClientIPAddress;
-        this.moduleName = aModuleName;
-    }
+  /**
+   * @param aModuleName Arbitrary identifier of the page or module, e.g.
+   *     "AutoEnrollServlet"
+   * @param theClientIPAddress Remote IP address
+   */
+  public WebPrincipal(
+      final String aModuleName, final String theClientIPAddress) {
+    this.clientIPAddress = theClientIPAddress;
+    this.moduleName = aModuleName;
+  }
 
-    @Override
-    public String getName() {
-        return clientIPAddress;
-    }
+  @Override
+  public String getName() {
+    return clientIPAddress;
+  }
 
-    @Override
-    public String toString() {
-        return moduleName + ": " + clientIPAddress;
-    }
+  @Override
+  public String toString() {
+    return moduleName + ": " + clientIPAddress;
+  }
 
-    /** @return module */
-    public String getModuleName() {
-        return moduleName;
-    }
+  /** @return module */
+  public String getModuleName() {
+    return moduleName;
+  }
 
-    /**
-     * @return IP address
-     */
-    public String getClientIPAddress() {
-        return clientIPAddress;
-    }
+  /** @return IP address */
+  public String getClientIPAddress() {
+    return clientIPAddress;
+  }
 }

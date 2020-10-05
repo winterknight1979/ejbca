@@ -14,7 +14,6 @@ package org.cesecore.certificates.certificate.certextensions.standard;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -30,64 +29,71 @@ import org.cesecore.certificates.certificateprofile.CertificateProfile;
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
 /**
- * Class for ICAO X509 certificate extension.
- * See ICAO MRTD Technical Report LDS and PKI Maintenance 1.0 or later for spec of this extension.
+ * Class for ICAO X509 certificate extension. See ICAO MRTD Technical Report LDS
+ * and PKI Maintenance 1.0 or later for spec of this extension.
  *
- * documentTypeList  EXTENSION  ::=  {
- *     SYNTAX DocumentTypeListSyntax
- *     IDENTIFIED BY id-icao-mrtd-security-extensions-documentTypeList}
- * DocumentTypeListSyntax ::= SEQUENCE {
- *   version DocumentTypeListVersion,
- *   docTypeList SET OF DocumentType }
+ * <p>documentTypeList EXTENSION ::= { SYNTAX DocumentTypeListSyntax IDENTIFIED
+ * BY id-icao-mrtd-security-extensions-documentTypeList} DocumentTypeListSyntax
+ * ::= SEQUENCE { version DocumentTypeListVersion, docTypeList SET OF
+ * DocumentType }
  *
- * DocumentTypeListVersion ::= INTEGER {v0(0)}
+ * <p>DocumentTypeListVersion ::= INTEGER {v0(0)}
  *
- * -- Document Type as contained in MRZ, e.g. "P" or "ID" where a
- * -- single letter denotes all document types starting with that letter
- * DocumentType ::= PrintableString(1..2)
+ * <p>-- Document Type as contained in MRZ, e.g. "P" or "ID" where a -- single
+ * letter denotes all document types starting with that letter DocumentType ::=
+ * PrintableString(1..2)
  *
  * @version $Id: DocumentTypeList.java 24408 2016-09-23 06:56:00Z anatom $
  */
 public class DocumentTypeList extends StandardCertificateExtension {
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(DocumentTypeList.class);
+  private static final long serialVersionUID = 1L;
+  private static final Logger log = Logger.getLogger(DocumentTypeList.class);
 
-    @Override
-    public void init(final CertificateProfile certProf) {
-        super.setOID("2.23.136.1.1.6.2");
-        super.setCriticalFlag(certProf.getDocumentTypeListCritical());
+  @Override
+  public void init(final CertificateProfile certProf) {
+    super.setOID("2.23.136.1.1.6.2");
+    super.setCriticalFlag(certProf.getDocumentTypeListCritical());
+  }
+
+  @Override
+  public ASN1Encodable getValue(
+      final EndEntityInformation subject,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      CertificateValidity val) {
+
+    ArrayList<String> docTypes = certProfile.getDocumentTypeList();
+    if (docTypes.size() == 0) {
+      if (log.isDebugEnabled()) {
+        log.debug("No DocumentTypeList to make a certificate extension");
+      }
+      return null;
     }
 
-    @Override
-    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
-            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
+    ASN1EncodableVector vec = new ASN1EncodableVector();
 
-        ArrayList<String> docTypes = certProfile.getDocumentTypeList();
-        if(docTypes.size() == 0) {
-            if (log.isDebugEnabled()) {
-                log.debug("No DocumentTypeList to make a certificate extension");
-            }
-            return null;
-        }
+    // version
+    vec.add(new ASN1Integer(0));
 
-        ASN1EncodableVector vec = new ASN1EncodableVector();
-
-        // version
-        vec.add(new ASN1Integer(0));
-
-        // Add SET OF DocumentType
-        final ASN1Encodable[] dts = new ASN1Encodable[docTypes.size()];
-        int i = 0;
-        for (final String type : docTypes) {
-            dts[i++] = new DERPrintableString(type);
-        }
-        vec.add(new DERSet(dts)); // the DERSet constructor performs the DER normalization (i.e., it sorts the set)
-
-        ASN1Object gn = new DERSequence(vec);
-        if(log.isTraceEnabled()) {
-            log.trace("Constructed DocumentTypeList: "+ASN1Dump.dumpAsString(gn, true));
-        }
-
-        return gn;
+    // Add SET OF DocumentType
+    final ASN1Encodable[] dts = new ASN1Encodable[docTypes.size()];
+    int i = 0;
+    for (final String type : docTypes) {
+      dts[i++] = new DERPrintableString(type);
     }
+    vec.add(
+        new DERSet(
+            dts)); // the DERSet constructor performs the DER normalization
+                   // (i.e., it sorts the set)
+
+    ASN1Object gn = new DERSequence(vec);
+    if (log.isTraceEnabled()) {
+      log.trace(
+          "Constructed DocumentTypeList: " + ASN1Dump.dumpAsString(gn, true));
+    }
+
+    return gn;
+  }
 }

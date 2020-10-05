@@ -13,19 +13,20 @@
 package org.cesecore.keys.util;
 
 /**
- * Exception thrown by classes in this package when an error occur that
- * should not be handled.
- * @version $Id: KeyUtilRuntimeException.java 22566 2016-01-13 08:49:18Z mikekushner $
+ * Exception thrown by classes in this package when an error occur that should
+ * not be handled.
  *
+ * @version $Id: KeyUtilRuntimeException.java 22566 2016-01-13 08:49:18Z
+ *     mikekushner $
  */
 public class KeyUtilRuntimeException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    KeyUtilRuntimeException( final String message, final Exception cause ) {
-        super(message, cause);
-    }
+  KeyUtilRuntimeException(final String message, final Exception cause) {
+    super(message, cause);
+  }
 
-    KeyUtilRuntimeException( final String message ) {
-        super(message);
-    }
+  KeyUtilRuntimeException(final String message) {
+    super(message);
+  }
 }

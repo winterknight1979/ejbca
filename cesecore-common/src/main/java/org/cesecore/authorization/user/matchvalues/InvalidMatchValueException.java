@@ -17,41 +17,42 @@ package org.cesecore.authorization.user.matchvalues;
  * extend the AccessMatchValue interface failed and could not be recovered.
  *
  * @version $Id: InvalidMatchValueException.java 17625 2013-09-20 07:12:06Z
- *          netmackan $
- *
+ *     netmackan $
  */
 public class InvalidMatchValueException extends RuntimeException {
 
-    private static final long serialVersionUID = -7145630440532075247L;
-    /** Bare exception. */
-    public InvalidMatchValueException() {
-        super();
-    }
+  private static final long serialVersionUID = -7145630440532075247L;
+  /** Bare exception. */
+  public InvalidMatchValueException() {
+    super();
+  }
 
-    /**
-     * Exception with message and cause.
-     * @param message Message
-     * @param cause Cause
-     */
-    public InvalidMatchValueException(
-            final String message, final Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * Exception with message and cause.
+   *
+   * @param message Message
+   * @param cause Cause
+   */
+  public InvalidMatchValueException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    /**
-     * Exception with message.
-     * @param message Message
-     */
-    public InvalidMatchValueException(final String message) {
-        super(message);
-    }
+  /**
+   * Exception with message.
+   *
+   * @param message Message
+   */
+  public InvalidMatchValueException(final String message) {
+    super(message);
+  }
 
-    /**
-     * Exception with cause.
-     * @param cause Cause
-     */
-    public InvalidMatchValueException(final Throwable cause) {
-        super(cause);
-    }
-
+  /**
+   * Exception with cause.
+   *
+   * @param cause Cause
+   */
+  public InvalidMatchValueException(final Throwable cause) {
+    super(cause);
+  }
 }

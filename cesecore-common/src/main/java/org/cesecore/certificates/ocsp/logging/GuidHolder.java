@@ -18,19 +18,17 @@ import org.cesecore.util.GUIDGenerator;
  * Keeps track of a GUID which identifies this instance.
  *
  * @version $Id: GuidHolder.java 17625 2013-09-20 07:12:06Z netmackan $
- *
  */
 public enum GuidHolder {
-    INSTANCE;
+  INSTANCE;
 
-    private GuidHolder() {
-        guid = GUIDGenerator.generateGUID(this);
-    }
+  private GuidHolder() {
+    guid = GUIDGenerator.generateGUID(this);
+  }
 
-    public String getGlobalUid() {
-        return guid;
-    }
+  public String getGlobalUid() {
+    return guid;
+  }
 
-    private final String guid;
-
+  private final String guid;
 }

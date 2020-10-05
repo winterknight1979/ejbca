@@ -15,9 +15,10 @@ package org.cesecore.keybind;
 /**
  * Status representation of an InternalKeyBinding
  *
- * @version $Id: InternalKeyBindingStatus.java 19902 2014-09-30 14:32:24Z anatom $
- *
+ * @version $Id: InternalKeyBindingStatus.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 public enum InternalKeyBindingStatus {
-    ACTIVE, DISABLED;
+  ACTIVE,
+  DISABLED;
 }

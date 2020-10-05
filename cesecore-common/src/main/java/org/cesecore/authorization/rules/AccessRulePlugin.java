@@ -21,13 +21,12 @@ import java.util.Map;
  */
 public interface AccessRulePlugin {
 
-    /**
-     * @return a map of resources (rules) as map keys and their human readable
-     *         counterpart as value (if available or otherwise
-     *         the resource again)
-     */
-    Map<String, String> getRules();
+  /**
+   * @return a map of resources (rules) as map keys and their human readable
+   *     counterpart as value (if available or otherwise the resource again)
+   */
+  Map<String, String> getRules();
 
-    /** @return a category key this rule set belongs to */
-    String getCategory();
+  /** @return a category key this rule set belongs to */
+  String getCategory();
 }

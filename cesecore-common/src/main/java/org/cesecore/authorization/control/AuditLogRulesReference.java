@@ -13,25 +13,23 @@
 package org.cesecore.authorization.control;
 
 import java.util.Map;
-
 import org.cesecore.authorization.rules.AccessRulePlugin;
 
 /**
  * Dynamically defined access rules for the security events audit log.
  *
  * @version $Id: AuditLogRulesReference.java 25428 2017-03-09 14:45:59Z jeklund
- *          $
+ *     $
  */
 public class AuditLogRulesReference implements AccessRulePlugin {
 
-    @Override
-    public Map<String, String> getRules() {
-        return AuditLogRules.getAllResources();
-    }
+  @Override
+  public Map<String, String> getRules() {
+    return AuditLogRules.getAllResources();
+  }
 
-    @Override
-    public String getCategory() {
-        return "AUDITLOGRULES";
-    }
-
+  @Override
+  public String getCategory() {
+    return "AUDITLOGRULES";
+  }
 }

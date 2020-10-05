@@ -10,19 +10,19 @@
 
 package org.cesecore.authorization.user.matchvalues;
 
-//import java.util.Arrays;
-//import java.util.List;
+// import java.util.Arrays;
+// import java.util.List;
 //
-//import org.cesecore.authentication.tokens.ApiKeyAuthenticationTokenMetaData;
-//import org.cesecore.authorization.user.AccessMatchType;
+// import org.cesecore.authentication.tokens.ApiKeyAuthenticationTokenMetaData;
+// import org.cesecore.authorization.user.AccessMatchType;
 //
-///**
+/// **
 // *
 // * @version $Id: ApiKeyAccessMatchValue.java 29044 2018-05-29 07:20:54Z
 // henriks $
 // *
 // */
-//public enum ApiKeyAccessMatchValue implements AccessMatchValue {
+// public enum ApiKeyAccessMatchValue implements AccessMatchValue {
 //    API_KEY(0);
 //
 //    private final int numericValue;
@@ -62,4 +62,4 @@ package org.cesecore.authorization.user.matchvalues;
 //    public String normalizeMatchValue(String value) {
 //        return value != null ? value.trim() : null;
 //    }
-//}
+// }

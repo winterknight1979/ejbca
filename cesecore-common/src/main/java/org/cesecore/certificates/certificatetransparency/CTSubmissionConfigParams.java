@@ -16,46 +16,50 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * Generic configuration parameters for the {@link CertificateTransparency#fetchSCTList} methods,
- * that are not specific to the certificate profiles.
- * @version $Id: CTSubmissionConfigParams.java 27506 2017-12-09 17:18:37Z samuellb $
+ * Generic configuration parameters for the {@link
+ * CertificateTransparency#fetchSCTList} methods, that are not specific to the
+ * certificate profiles.
+ *
+ * @version $Id: CTSubmissionConfigParams.java 27506 2017-12-09 17:18:37Z
+ *     samuellb $
  */
 public final class CTSubmissionConfigParams implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private Map<Integer,CTLogInfo> configuredCTLogs;
-    private GoogleCtPolicy validityPolicy;
+  private Map<Integer, CTLogInfo> configuredCTLogs;
+  private GoogleCtPolicy validityPolicy;
 
-    /**
-     * @return definitions (URL, public key, etc.) of the logs that can be used.
-     */
-    public Map<Integer, CTLogInfo> getConfiguredCTLogs() {
-        return configuredCTLogs;
-    }
+  /**
+   * @return definitions (URL, public key, etc.) of the logs that can be used.
+   */
+  public Map<Integer, CTLogInfo> getConfiguredCTLogs() {
+    return configuredCTLogs;
+  }
 
-    /**
-     * @param configuredCTLogs Logs
-     * @see #getConfiguredCTLogs
-     */
-    public void setConfiguredCTLogs(final Map<Integer, CTLogInfo> configuredCTLogs) {
-        this.configuredCTLogs = configuredCTLogs;
-    }
+  /**
+   * @param configuredCTLogs Logs
+   * @see #getConfiguredCTLogs
+   */
+  public void setConfiguredCTLogs(
+      final Map<Integer, CTLogInfo> configuredCTLogs) {
+    this.configuredCTLogs = configuredCTLogs;
+  }
 
-    /**
-     * Policy for setting min/max SCTs based on the validity
-     * @return policy
-     */
-    public GoogleCtPolicy getValidityPolicy() {
-        return validityPolicy;
-    }
+  /**
+   * Policy for setting min/max SCTs based on the validity
+   *
+   * @return policy
+   */
+  public GoogleCtPolicy getValidityPolicy() {
+    return validityPolicy;
+  }
 
-    /**
-     * @param validityPolicy policy
-     * @see #getValidityPolicy
-     */
-    public void setValidityPolicy(final GoogleCtPolicy validityPolicy) {
-        this.validityPolicy = validityPolicy;
-    }
-
+  /**
+   * @param validityPolicy policy
+   * @see #getValidityPolicy
+   */
+  public void setValidityPolicy(final GoogleCtPolicy validityPolicy) {
+    this.validityPolicy = validityPolicy;
+  }
 }

@@ -18,39 +18,44 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
- * @version $Id: Pkcs11SlotLabelTypeTest.java 19902 2014-09-30 14:32:24Z anatom $
- *
+ * @version $Id: Pkcs11SlotLabelTypeTest.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 public class Pkcs11SlotLabelTypeTest {
 
-    @Test
-    public void testNumberTypeValidator() {
-        Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_NUMBER;
-        assertTrue("Validator did not validate a number.", type.validate("4711"));
-        assertFalse("Validator falsely validated a label", type.validate("foo"));
-        assertFalse("Validator falsely validated an index", type.validate("i7"));
-    }
+  @Test
+  public void testNumberTypeValidator() {
+    Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_NUMBER;
+    assertTrue("Validator did not validate a number.", type.validate("4711"));
+    assertFalse("Validator falsely validated a label", type.validate("foo"));
+    assertFalse("Validator falsely validated an index", type.validate("i7"));
+  }
 
-    @Test
-    public void testIndexTypeValidator() {
-        Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_INDEX;
-        assertFalse("Validator falsely validated a number.", type.validate("4711"));
-        assertFalse("Validator falsely validated a label", type.validate("foo"));
-        assertTrue("Validator did not correctly validate an index", type.validate("i7"));
-    }
+  @Test
+  public void testIndexTypeValidator() {
+    Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_INDEX;
+    assertFalse("Validator falsely validated a number.", type.validate("4711"));
+    assertFalse("Validator falsely validated a label", type.validate("foo"));
+    assertTrue(
+        "Validator did not correctly validate an index", type.validate("i7"));
+  }
 
-    @Test
-    public void testLabelTypeValidator() {
-        Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_LABEL;
-        assertTrue("Validator did not correctly validate a label", type.validate("4711"));
-        assertTrue("Validator did not correctly validate a label", type.validate("foo"));
-        assertTrue("Validator did not correctly validate a label", type.validate("i7"));
-    }
+  @Test
+  public void testLabelTypeValidator() {
+    Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_LABEL;
+    assertTrue(
+        "Validator did not correctly validate a label", type.validate("4711"));
+    assertTrue(
+        "Validator did not correctly validate a label", type.validate("foo"));
+    assertTrue(
+        "Validator did not correctly validate a label", type.validate("i7"));
+  }
 
-    @Test
-    public void testLongLabelValidation() {
-        assertFalse("Label of >32 characters validated.",
-                Pkcs11SlotLabelType.SLOT_LABEL.validate("YeahbutIcantusethewordsoberbecausethatsatermfromthosepeopleandIhavecleansedmyself"));
-    }
-
+  @Test
+  public void testLongLabelValidation() {
+    assertFalse(
+        "Label of >32 characters validated.",
+        Pkcs11SlotLabelType.SLOT_LABEL.validate(
+            "YeahbutIcantusethewordsoberbecausethatsatermfromthosepeopleandIhavecleansedmyself"));
+  }
 }

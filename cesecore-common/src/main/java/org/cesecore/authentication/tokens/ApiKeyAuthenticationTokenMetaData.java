@@ -15,12 +15,12 @@
 
 package org.cesecore.authentication.tokens;
 //
-//import java.util.Arrays;
+// import java.util.Arrays;
 //
-//import org.cesecore.authorization.user.matchvalues.ApiKeyAccessMatchValue;
+// import org.cesecore.authorization.user.matchvalues.ApiKeyAccessMatchValue;
 //
 //
-///**
+/// **
 // * Meta data definition and ServiceLoader marker for
 //   {@link org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken}.
 // *
@@ -28,7 +28,7 @@ package org.cesecore.authentication.tokens;
 //            29044 2018-05-29 07:20:54Z henriks $
 // *
 // */
-//public class ApiKeyAuthenticationTokenMetaData
+// public class ApiKeyAuthenticationTokenMetaData
 //        extends AuthenticationTokenMetaDataBase {
 //
 //    public static final String TOKEN_TYPE = "ApiKeyAuthenticationToken";
@@ -37,4 +37,4 @@ package org.cesecore.authentication.tokens;
 //        super(TOKEN_TYPE, Arrays.asList(ApiKeyAccessMatchValue.values()),
 //                true);
 //    }
-//}
+// }

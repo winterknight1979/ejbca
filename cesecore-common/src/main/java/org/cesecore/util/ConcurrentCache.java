@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.log4j.Logger;
 
 /**
@@ -35,459 +34,516 @@ import org.apache.log4j.Logger;
  * will be allowed to generate data for one particular key, and other threads
  * will block.
  *
- * All methods in this class and inner classes are thread-safe.
+ * <p>All methods in this class and inner classes are thread-safe.
  *
  * @version $Id: ConcurrentCache.java 27456 2017-12-07 10:59:06Z samuellb $
  * @param <K> Key type
  * @param <V> Value type
- *
  */
-public final class ConcurrentCache<K,V> {
+public final class ConcurrentCache<K, V> {
 
-    private static final Logger log = Logger.getLogger(ConcurrentCache.class);
+  private static final Logger log = Logger.getLogger(ConcurrentCache.class);
 
+  /**
+   * Internal entries are stored in the ConcurrentMap
+   *
+   * @param <V> Value type
+   */
+  private static final class InternalEntry<V> {
+    final V value;
+    volatile long expire;
+
+    private InternalEntry(final V value) {
+      this.value = value;
+      this.expire = Long.MAX_VALUE;
+    }
+  }
+
+  /**
+   * A reference to a cache entry, with a get and put method to read/write data
+   * from/to the cache.
+   *
+   * <p>All methods are thread safe, but only one thread should operate on an
+   * Entry object.
+   */
+  public final class Entry {
+    private final K key;
+    private InternalEntry<V> entry;
     /**
-     * Internal entries are stored in the ConcurrentMap
-     * @param <V> Value type
+     * If non-null, then other threads are waiting on this semaphore for data on
+     * the same key in the cache.
      */
-    private final static class InternalEntry<V> {
-        final V value;
-        volatile long expire;
+    private final Object ourSemaphore;
 
-        private InternalEntry(final V value) {
-            this.value = value;
-            this.expire = Long.MAX_VALUE;
-        }
+    private Entry(final K key, final InternalEntry<V> entry) {
+      this.key = key;
+      this.entry = entry;
+      this.ourSemaphore = null;
+    }
+
+    private Entry(
+        final K key, final InternalEntry<V> entry, final Object ourSemaphore) {
+      if (ourSemaphore == null) {
+        throw new IllegalArgumentException("ourSemaphore may not be null");
+      }
+      this.key = key;
+      this.entry = entry;
+      this.ourSemaphore = ourSemaphore;
+    }
+
+    /** @return true if the key existed in the cache. */
+    public boolean isInCache() {
+      return entry != null;
     }
 
     /**
-     * A reference to a cache entry, with a get and put method to read/write data from/to the cache.
+     * @return the value read from the cache when the Entry was created. Calls
+     *     to putValue() on this particular Entry change the return value.
+     */
+    public V getValue() {
+      if (entry == null) {
+        throw new IllegalStateException(
+            "Tried to read from non-existent cache entry");
+      }
+      return entry.value;
+    }
+
+    /**
+     * Updates the value in this Entry as well as in the underlying cache. The
+     * expire time is set to be "infinite". Thread-safe.
      *
-     * All methods are thread safe, but only one thread should operate on an Entry object.
+     * @param value value
      */
-    public final class Entry {
-        private final K key;
-        private InternalEntry<V> entry;
-        /** If non-null, then other threads are waiting on this semaphore for data on the same key in the cache. */
-        private final Object ourSemaphore;
-
-        private Entry(final K key, final InternalEntry<V> entry) {
-            this.key = key;
-            this.entry = entry;
-            this.ourSemaphore = null;
-        }
-
-        private Entry(final K key, final InternalEntry<V> entry, final Object ourSemaphore) {
-            if (ourSemaphore == null) {
-                throw new IllegalArgumentException("ourSemaphore may not be null");
-            }
-            this.key = key;
-            this.entry = entry;
-            this.ourSemaphore = ourSemaphore;
-        }
-
-        /**
-         * @return true if the key existed in the cache.
-         */
-        public boolean isInCache() {
-            return entry != null;
-        }
-
-        /**
-         * @return the value read from the cache when the Entry was created. Calls to putValue() on this particular Entry change the return value.
-         */
-        public V getValue() {
-            if (entry == null) {
-                throw new IllegalStateException("Tried to read from non-existent cache entry");
-            }
-            return entry.value;
-        }
-
-        /**
-         * Updates the value in this Entry as well as in the underlying cache.
-         * The expire time is set to be "infinite". Thread-safe.
-         * @param value value
-         */
-        public void putValue(final V value) {
-            if (key != null) {
-                entry = new InternalEntry<>(value);
-                cache.put(key, entry);
-            }
-        }
-
-        /**
-         * Sets the validity of the value. After the cache entry expires, the next request for it will
-         * fail (on purpose) so it can be updated. Requests that happen while the expired entry is being
-         * updated will still use the expired value, so they don't have to block.
-         * @param validFor Cache validity in milliseconds.
-         */
-        public void setCacheValidity(long validFor) {
-            if (entry != null) {
-                entry.expire = System.currentTimeMillis() + validFor;
-            }
-        }
-
-        /**
-         * Must be called if other threads might be waiting for this cache entry
-         * (i.e. if isInCache() returns false)
-         */
-        public void close() {
-            if (ourSemaphore != null) {
-                synchronized (ourSemaphore) {
-                    semaphores.remove(key);
-                    ourSemaphore.notifyAll();
-                }
-            }
-        }
-    }
-
-    private final ConcurrentHashMap<K,InternalEntry<V>> cache = new ConcurrentHashMap<>();
-    private final ConcurrentMap<K,Object> semaphores = new ConcurrentHashMap<>();
-
-    public static final long NO_LIMIT = -1L;
-
-    /** @see #setEnabled */
-    private volatile boolean enabled = true;
-    /** @see #setCloseOnEviction */
-    private volatile boolean closeOnEviction = false;
-    /** @see #setMaxEntries */
-    private volatile long maxEntries = NO_LIMIT;
-
-    private AtomicLong numEntries = new AtomicLong(0L);
-    private final Set<K> pendingRemoval = Collections.newSetFromMap(new ConcurrentHashMap<K,Boolean>());
-    private final Lock isCleaning = new ReentrantLock();
-    private volatile long lastCleanup = 0L;
-    private volatile long cleanupInterval = 1000L;
-
-    /** Creates an empty concurrent cache */
-    public ConcurrentCache() {
-        // Do nothing
+    public void putValue(final V value) {
+      if (key != null) {
+        entry = new InternalEntry<>(value);
+        cache.put(key, entry);
+      }
     }
 
     /**
-     * Creates a concurrent cache initialized with the mapping defined in the given map.
-     * Can be used for rebuilding the cache in the background for instance.
+     * Sets the validity of the value. After the cache entry expires, the next
+     * request for it will fail (on purpose) so it can be updated. Requests that
+     * happen while the expired entry is being updated will still use the
+     * expired value, so they don't have to block.
      *
-     * @param map map
-     * @param validFor Time in milliseconds which the entry will be valid for, or -1L for forever.
-     * @see ConcurrentCache#getKeys()
+     * @param validFor Cache validity in milliseconds.
      */
-    public ConcurrentCache(final Map<? extends K, ? extends V> map, long validFor) {
-        for (Map.Entry<? extends K, ? extends V> mapEntry : map.entrySet()) {
-            final InternalEntry<V> intEntry = new InternalEntry<V>(mapEntry.getValue());
-            if (validFor != -1L) {
-                intEntry.expire = System.currentTimeMillis() + validFor;
-            }
-            cache.put(mapEntry.getKey(), intEntry);
-        }
+    public void setCacheValidity(long validFor) {
+      if (entry != null) {
+        entry.expire = System.currentTimeMillis() + validFor;
+      }
     }
 
     /**
-     * "Opens" a cache entry. If the entry already exists, then an {@link Entry} that
-     * maps to the existing entry is returned. Otherwise, a semaphore is used
-     * to prevent multiple threads from creating the new cache entry. Only the
-     * first thread is returned an Entry with isInCache()==false, later threads
-     * will block and wait for the first thread.
-     *
-     * For non-existent entries (i.e. isInCache()==false), the caller is expected to put
-     * a value in it and call close() on the Entry.
-     *
-     * @param key      Key in the cache.
-     * @param timeout  Timeout in milliseconds. The call will only be allowed
-     *                 to block for (approximately) this amount of time.
-     * @return An Entry object that maps to an entry in the cache (existing
-     *         or blank), or null if a timeout occurred.
-     * @throws NullPointerException if key is null.
+     * Must be called if other threads might be waiting for this cache entry
+     * (i.e. if isInCache() returns false)
      */
-    public Entry openCacheEntry(final K key, final long timeout) {
-        final long timeAtEntry = System.currentTimeMillis();
-        if (key == null) {
-            throw new NullPointerException("key may not be null");
+    public void close() {
+      if (ourSemaphore != null) {
+        synchronized (ourSemaphore) {
+          semaphores.remove(key);
+          ourSemaphore.notifyAll();
         }
+      }
+    }
+  }
 
-        if (!enabled) {
-            return new Entry(null, null);
-        }
+  private final ConcurrentHashMap<K, InternalEntry<V>> cache =
+      new ConcurrentHashMap<>();
+  private final ConcurrentMap<K, Object> semaphores = new ConcurrentHashMap<>();
 
-        if (maxEntries != NO_LIMIT) {
-            pendingRemoval.remove(key); // always mark as used
-        }
+  public static final long NO_LIMIT = -1L;
 
-        // Fast path if cached
-        InternalEntry<V> entry = cache.get(key);
-        final long toExpire = (entry != null ? entry.expire : 0L);
-        if (entry != null && toExpire > timeAtEntry) {
-            // Found valid entry in cache
-            if (log.isDebugEnabled()) {
-                log.debug("Found valid entry in cache for key "+key);
-                if (log.isTraceEnabled()) {
-                    log.debug("Value: "+entry.value);
-                    log.trace("<ConcurrentCache.openCacheEntry");
-                }
-            }
-            cleanupIfNeeded();
-            return new Entry(key, entry);
-        } else if (entry != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cache entry has expired "+key+", expiry="+entry.expire);
-            }
-            numEntries.decrementAndGet();
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Entry was not present in cache "+key);
-            }
-        }
+  /** @see #setEnabled */
+  private volatile boolean enabled = true;
+  /** @see #setCloseOnEviction */
+  private volatile boolean closeOnEviction = false;
+  /** @see #setMaxEntries */
+  private volatile long maxEntries = NO_LIMIT;
 
-        // Make sure only one thread enters "opens" the cache entry in write mode.
-        // Subsequent attempts to open it will block until the first cache entry has been closed.
-        final Object ourSemaphore = new Object();
-        final Object theirSemaphore = semaphores.putIfAbsent(key, ourSemaphore);
-        if (theirSemaphore == null) {
-            // We were first
-            numEntries.incrementAndGet();
-            cleanupIfHighlyNeeded();
-            return new Entry(key, null, ourSemaphore);
-        }
+  private AtomicLong numEntries = new AtomicLong(0L);
+  private final Set<K> pendingRemoval =
+      Collections.newSetFromMap(new ConcurrentHashMap<K, Boolean>());
+  private final Lock isCleaning = new ReentrantLock();
+  private volatile long lastCleanup = 0L;
+  private volatile long cleanupInterval = 1000L;
 
-        // Someone else was first
+  /** Creates an empty concurrent cache */
+  public ConcurrentCache() {
+    // Do nothing
+  }
 
-        // Check if we can return an existing entry (ECA-4936)
-        if (entry != null) {
-            log.debug("Returning existing cache entry for now");
-            log.trace("<ConcurrentCache.openCacheEntry");
-            cleanupIfNeeded();
-            return new Entry(key, entry);
-        }
+  /**
+   * Creates a concurrent cache initialized with the mapping defined in the
+   * given map. Can be used for rebuilding the cache in the background for
+   * instance.
+   *
+   * @param map map
+   * @param validFor Time in milliseconds which the entry will be valid for, or
+   *     -1L for forever.
+   * @see ConcurrentCache#getKeys()
+   */
+  public ConcurrentCache(
+      final Map<? extends K, ? extends V> map, long validFor) {
+    for (Map.Entry<? extends K, ? extends V> mapEntry : map.entrySet()) {
+      final InternalEntry<V> intEntry =
+          new InternalEntry<V>(mapEntry.getValue());
+      if (validFor != -1L) {
+        intEntry.expire = System.currentTimeMillis() + validFor;
+      }
+      cache.put(mapEntry.getKey(), intEntry);
+    }
+  }
 
-        // Wait for a fresh entry to be created
-        try {
-            synchronized (theirSemaphore) {
-                if (!cache.containsKey(key)) {
-                    cleanupIfNeeded();
-                    theirSemaphore.wait(timeout);
-                    while (!cache.containsKey(key) && System.currentTimeMillis() < timeAtEntry+timeout) {
-                        theirSemaphore.wait(timeout/10L+1L);
-                    }
-                }
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e); // should preferably not be catched
-        }
-
-        // Return cached result from other thread, or null on failure
-        entry = cache.get(key);
-        if (log.isDebugEnabled()) {
-            log.debug("Got "+ (entry != null ? entry.value : "null") + " after waiting for cache");
-            log.trace("<ConcurrentCache.openCacheEntry");
-        }
-        return entry != null ? new Entry(key, entry) : null;
+  /**
+   * "Opens" a cache entry. If the entry already exists, then an {@link Entry}
+   * that maps to the existing entry is returned. Otherwise, a semaphore is used
+   * to prevent multiple threads from creating the new cache entry. Only the
+   * first thread is returned an Entry with isInCache()==false, later threads
+   * will block and wait for the first thread.
+   *
+   * <p>For non-existent entries (i.e. isInCache()==false), the caller is
+   * expected to put a value in it and call close() on the Entry.
+   *
+   * @param key Key in the cache.
+   * @param timeout Timeout in milliseconds. The call will only be allowed to
+   *     block for (approximately) this amount of time.
+   * @return An Entry object that maps to an entry in the cache (existing or
+   *     blank), or null if a timeout occurred.
+   * @throws NullPointerException if key is null.
+   */
+  public Entry openCacheEntry(final K key, final long timeout) {
+    final long timeAtEntry = System.currentTimeMillis();
+    if (key == null) {
+      throw new NullPointerException("key may not be null");
     }
 
-    /**
-     * @return a set of the keys in the cache. Useful for rebuilding the cache in the background.
-     *
-     * @see ConcurrentCache#ConcurrentCache(Map, long)
-     */
-    public Set<K> getKeys() {
-        return new HashSet<>(cache.keySet());
+    if (!enabled) {
+      return new Entry(null, null);
     }
 
-    /**
-     * <p>Enables or disables caching. If disabled, nothing will be cached and openCacheEntry will
-     * always immediately return an non-existent entry (this may also cause concurrent attempts
-     * to fetch/build/etc the same object).</p>
-     *
-     * <p>Disabling the cache doesn't stop any currently "open" cache entries from being written to.</p>
-     *
-     * <p>The default is enabled.</p>
-     * @param enabled bool
-     */
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    if (maxEntries != NO_LIMIT) {
+      pendingRemoval.remove(key); // always mark as used
     }
 
-    /** @return bool
-     * @see ConcurrentCache#setEnabled */
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    /**
-     * <p>Turns on or off automatic closure of values on eviction from the cache.
-     * Automatic closure can only be done on objects that implement the {@link Closeable} interface.
-     * Exceptions from the close() method are debug logged and swallowed.</p>
-     *
-     * <p>The default is false.</p>
-     * @param closeOnEviction bool
-     */
-    public void setCloseOnEviction(boolean closeOnEviction) {
-        this.closeOnEviction = closeOnEviction;
-    }
-
-    /** @return bool
-     * @see ConcurrentCache#setCloseOnEviction */
-    public boolean isCloseOnEviction() {
-        return closeOnEviction;
-    }
-
-    /**
-     * <p>Sets the desired maximum number of entries in the cache. This is not a
-     * strict limit, and the cache may temporarily exceed this number.</p>
-     *
-     * <p>The value {@link ConcurrentCache#NO_LIMIT} (-1) is the default.</p>
-     * @param maxEntries Max number of entries
-     */
-    public void setMaxEntries(long maxEntries) {
-        if (maxEntries == NO_LIMIT || maxEntries > 0L) {
-            this.maxEntries = maxEntries;
-        } else {
-            throw new IllegalArgumentException("max entries must be either a positive value or -1");
+    // Fast path if cached
+    InternalEntry<V> entry = cache.get(key);
+    final long toExpire = (entry != null ? entry.expire : 0L);
+    if (entry != null && toExpire > timeAtEntry) {
+      // Found valid entry in cache
+      if (log.isDebugEnabled()) {
+        log.debug("Found valid entry in cache for key " + key);
+        if (log.isTraceEnabled()) {
+          log.debug("Value: " + entry.value);
+          log.trace("<ConcurrentCache.openCacheEntry");
         }
+      }
+      cleanupIfNeeded();
+      return new Entry(key, entry);
+    } else if (entry != null) {
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "Cache entry has expired " + key + ", expiry=" + entry.expire);
+      }
+      numEntries.decrementAndGet();
+    } else {
+      if (log.isDebugEnabled()) {
+        log.debug("Entry was not present in cache " + key);
+      }
     }
 
-    /** @return max number of entries
-     * @see ConcurrentCache#setMaxEntries */
-    public long getMaxEntries() {
-        return maxEntries;
+    // Make sure only one thread enters "opens" the cache entry in write mode.
+    // Subsequent attempts to open it will block until the first cache entry has
+    // been closed.
+    final Object ourSemaphore = new Object();
+    final Object theirSemaphore = semaphores.putIfAbsent(key, ourSemaphore);
+    if (theirSemaphore == null) {
+      // We were first
+      numEntries.incrementAndGet();
+      cleanupIfHighlyNeeded();
+      return new Entry(key, null, ourSemaphore);
     }
 
-    /**
-     * Sets the minimum time in milliseconds between two cleanup runs.
-     *
-     * The default is 1000 (= 1 second).
-     * @param milliseconds cleanup interval
-     */
-    public void setCleanupInterval(long milliseconds) {
-        cleanupInterval = milliseconds;
+    // Someone else was first
+
+    // Check if we can return an existing entry (ECA-4936)
+    if (entry != null) {
+      log.debug("Returning existing cache entry for now");
+      log.trace("<ConcurrentCache.openCacheEntry");
+      cleanupIfNeeded();
+      return new Entry(key, entry);
     }
 
-    /** @return cleanup interval
-     * @see ConcurrentCache#setCleanupInterval */
-    public long getCleanupInterval() {
-        return cleanupInterval;
+    // Wait for a fresh entry to be created
+    try {
+      synchronized (theirSemaphore) {
+        if (!cache.containsKey(key)) {
+          cleanupIfNeeded();
+          theirSemaphore.wait(timeout);
+          while (!cache.containsKey(key)
+              && System.currentTimeMillis() < timeAtEntry + timeout) {
+            theirSemaphore.wait(timeout / 10L + 1L);
+          }
+        }
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e); // should preferably not be catched
     }
 
-    private void cleanupIfNeeded() {
-        if (maxEntries != NO_LIMIT && numEntries.get() > maxEntries) {
-            cleanup();
-        }
+    // Return cached result from other thread, or null on failure
+    entry = cache.get(key);
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "Got "
+              + (entry != null ? entry.value : "null")
+              + " after waiting for cache");
+      log.trace("<ConcurrentCache.openCacheEntry");
     }
+    return entry != null ? new Entry(key, entry) : null;
+  }
 
-    private void cleanupIfHighlyNeeded() {
-        // More than 1.5 times the limit
-        if (maxEntries != NO_LIMIT && 2L*numEntries.get() > 3L*maxEntries) {
-            cleanup();
-        }
+  /**
+   * @return a set of the keys in the cache. Useful for rebuilding the cache in
+   *     the background.
+   * @see ConcurrentCache#ConcurrentCache(Map, long)
+   */
+  public Set<K> getKeys() {
+    return new HashSet<>(cache.keySet());
+  }
+
+  /**
+   * Enables or disables caching. If disabled, nothing will be cached and
+   * openCacheEntry will always immediately return an non-existent entry (this
+   * may also cause concurrent attempts to fetch/build/etc the same object).
+   *
+   * <p>Disabling the cache doesn't stop any currently "open" cache entries from
+   * being written to.
+   *
+   * <p>The default is enabled.
+   *
+   * @param enabled bool
+   */
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  /**
+   * @return bool
+   * @see ConcurrentCache#setEnabled
+   */
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * Turns on or off automatic closure of values on eviction from the cache.
+   * Automatic closure can only be done on objects that implement the {@link
+   * Closeable} interface. Exceptions from the close() method are debug logged
+   * and swallowed.
+   *
+   * <p>The default is false.
+   *
+   * @param closeOnEviction bool
+   */
+  public void setCloseOnEviction(boolean closeOnEviction) {
+    this.closeOnEviction = closeOnEviction;
+  }
+
+  /**
+   * @return bool
+   * @see ConcurrentCache#setCloseOnEviction
+   */
+  public boolean isCloseOnEviction() {
+    return closeOnEviction;
+  }
+
+  /**
+   * Sets the desired maximum number of entries in the cache. This is not a
+   * strict limit, and the cache may temporarily exceed this number.
+   *
+   * <p>The value {@link ConcurrentCache#NO_LIMIT} (-1) is the default.
+   *
+   * @param maxEntries Max number of entries
+   */
+  public void setMaxEntries(long maxEntries) {
+    if (maxEntries == NO_LIMIT || maxEntries > 0L) {
+      this.maxEntries = maxEntries;
+    } else {
+      throw new IllegalArgumentException(
+          "max entries must be either a positive value or -1");
     }
+  }
 
-    /** Used internally for testing.
-     * @param min min
-     * @param max max */
-    void checkNumberOfEntries(long min, long max) {
-        long a = numEntries.get();
-        long b = cache.size();
-        if (a != b) {
-            throw new IllegalStateException("cache.size() and numEntries does not match ("+a+" and "+b+")");
-        }
-        if (a < min) {
-            throw new IllegalStateException("number of entries ("+a+") is less than minimum ("+min+").");
-        }
-        if (a > max) {
-            throw new IllegalStateException("number of entries ("+a+") is greater than maximum ("+max+").");
-        }
+  /**
+   * @return max number of entries
+   * @see ConcurrentCache#setMaxEntries
+   */
+  public long getMaxEntries() {
+    return maxEntries;
+  }
+
+  /**
+   * Sets the minimum time in milliseconds between two cleanup runs.
+   *
+   * <p>The default is 1000 (= 1 second).
+   *
+   * @param milliseconds cleanup interval
+   */
+  public void setCleanupInterval(long milliseconds) {
+    cleanupInterval = milliseconds;
+  }
+
+  /**
+   * @return cleanup interval
+   * @see ConcurrentCache#setCleanupInterval
+   */
+  public long getCleanupInterval() {
+    return cleanupInterval;
+  }
+
+  private void cleanupIfNeeded() {
+    if (maxEntries != NO_LIMIT && numEntries.get() > maxEntries) {
+      cleanup();
     }
+  }
 
-    /**
-     * Removes expired entries, and randomly selected entries that have not been used since the last call.
-     */
-    private void cleanup() {
-        List<Closeable> valuesToClose = null;
-        final long startTime = System.currentTimeMillis();
-        if (startTime < lastCleanup+cleanupInterval || !isCleaning.tryLock()) {
-            return;
-        }
-        try {
-            final float ratioToRemove;
-            final Random random;
-            if (maxEntries == NO_LIMIT) {
-                ratioToRemove = 0;
-                random = null;
-            } else {
-                // Remove a bit extra
-                ratioToRemove = Math.max(0.0F, 1.0F-0.8F*maxEntries/numEntries.get());
-
-                // Remove items that have not been accessed since they were last marked as "pending removal"
-                if (closeOnEviction) { valuesToClose = new ArrayList<>(); }
-                for (K key : pendingRemoval) {
-                    InternalEntry<V> evicted = cache.remove(key);
-                    if (closeOnEviction && evicted.value instanceof Closeable) {
-                        valuesToClose.add((Closeable)evicted.value);
-                    }
-                    numEntries.decrementAndGet();
-                }
-                pendingRemoval.clear();
-                random = new Random(System.nanoTime());
-            }
-
-            final long now = System.currentTimeMillis();
-            final Iterator<Map.Entry<K,InternalEntry<V>>> iter = cache.entrySet().iterator();
-            while (iter.hasNext()) {
-                final Map.Entry<K,InternalEntry<V>> mapEntry = iter.next();
-                if (mapEntry.getValue().expire <= now) {
-                    iter.remove();
-                    numEntries.decrementAndGet();
-                } else if (maxEntries != NO_LIMIT && random.nextFloat() < ratioToRemove) {
-                    pendingRemoval.add(mapEntry.getKey());
-                }
-            }
-        } finally {
-            isCleaning.unlock();
-
-            final long endTime = System.currentTimeMillis();
-            lastCleanup = endTime;
-            if (log.isDebugEnabled()) {
-                log.debug("Clean up took "+(endTime - startTime)+" ms");
-            }
-        }
-
-        if (valuesToClose != null) {
-            for (final Closeable closable : valuesToClose) {
-                try {
-                    closable.close();
-                } catch (IOException e) {
-                    log.debug("Exception ocurring when closing evicted value.", e);
-                }
-            }
-        }
+  private void cleanupIfHighlyNeeded() {
+    // More than 1.5 times the limit
+    if (maxEntries != NO_LIMIT && 2L * numEntries.get() > 3L * maxEntries) {
+      cleanup();
     }
+  }
 
-    /**
-     * Removes all entries in the cache
-     */
-    public void clear() {
+  /**
+   * Used internally for testing.
+   *
+   * @param min min
+   * @param max max
+   */
+  void checkNumberOfEntries(long min, long max) {
+    long a = numEntries.get();
+    long b = cache.size();
+    if (a != b) {
+      throw new IllegalStateException(
+          "cache.size() and numEntries does not match ("
+              + a
+              + " and "
+              + b
+              + ")");
+    }
+    if (a < min) {
+      throw new IllegalStateException(
+          "number of entries (" + a + ") is less than minimum (" + min + ").");
+    }
+    if (a > max) {
+      throw new IllegalStateException(
+          "number of entries ("
+              + a
+              + ") is greater than maximum ("
+              + max
+              + ").");
+    }
+  }
+
+  /**
+   * Removes expired entries, and randomly selected entries that have not been
+   * used since the last call.
+   */
+  private void cleanup() {
+    List<Closeable> valuesToClose = null;
+    final long startTime = System.currentTimeMillis();
+    if (startTime < lastCleanup + cleanupInterval || !isCleaning.tryLock()) {
+      return;
+    }
+    try {
+      final float ratioToRemove;
+      final Random random;
+      if (maxEntries == NO_LIMIT) {
+        ratioToRemove = 0;
+        random = null;
+      } else {
+        // Remove a bit extra
+        ratioToRemove =
+            Math.max(0.0F, 1.0F - 0.8F * maxEntries / numEntries.get());
+
+        // Remove items that have not been accessed since they were last marked
+        // as "pending removal"
         if (closeOnEviction) {
-            isCleaning.lock();
-            try {
-                for (final InternalEntry<V> entry : cache.values()) {
-                    if (entry.value instanceof Closeable) {
-                        try {
-                            ((Closeable)entry.value).close();
-                        } catch (IOException e) {
-                            log.debug("Exception ocurring when closing value during cache clearing.", e);
-                        }
-                    }
-                }
-                cache.clear();
-            } finally {
-                isCleaning.unlock();
-            }
-        } else {
-            cache.clear();
+          valuesToClose = new ArrayList<>();
         }
-        numEntries.set(0L);
+        for (K key : pendingRemoval) {
+          InternalEntry<V> evicted = cache.remove(key);
+          if (closeOnEviction && evicted.value instanceof Closeable) {
+            valuesToClose.add((Closeable) evicted.value);
+          }
+          numEntries.decrementAndGet();
+        }
         pendingRemoval.clear();
-        lastCleanup = 0L;
+        random = new Random(System.nanoTime());
+      }
+
+      final long now = System.currentTimeMillis();
+      final Iterator<Map.Entry<K, InternalEntry<V>>> iter =
+          cache.entrySet().iterator();
+      while (iter.hasNext()) {
+        final Map.Entry<K, InternalEntry<V>> mapEntry = iter.next();
+        if (mapEntry.getValue().expire <= now) {
+          iter.remove();
+          numEntries.decrementAndGet();
+        } else if (maxEntries != NO_LIMIT
+            && random.nextFloat() < ratioToRemove) {
+          pendingRemoval.add(mapEntry.getKey());
+        }
+      }
+    } finally {
+      isCleaning.unlock();
+
+      final long endTime = System.currentTimeMillis();
+      lastCleanup = endTime;
+      if (log.isDebugEnabled()) {
+        log.debug("Clean up took " + (endTime - startTime) + " ms");
+      }
     }
 
+    if (valuesToClose != null) {
+      for (final Closeable closable : valuesToClose) {
+        try {
+          closable.close();
+        } catch (IOException e) {
+          log.debug("Exception ocurring when closing evicted value.", e);
+        }
+      }
+    }
+  }
+
+  /** Removes all entries in the cache */
+  public void clear() {
+    if (closeOnEviction) {
+      isCleaning.lock();
+      try {
+        for (final InternalEntry<V> entry : cache.values()) {
+          if (entry.value instanceof Closeable) {
+            try {
+              ((Closeable) entry.value).close();
+            } catch (IOException e) {
+              log.debug(
+                  "Exception ocurring when closing value during cache"
+                      + " clearing.",
+                  e);
+            }
+          }
+        }
+        cache.clear();
+      } finally {
+        isCleaning.unlock();
+      }
+    } else {
+      cache.clear();
+    }
+    numEntries.set(0L);
+    pendingRemoval.clear();
+    lastCleanup = 0L;
+  }
 }

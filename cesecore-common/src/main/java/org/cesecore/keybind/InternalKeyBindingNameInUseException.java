@@ -16,44 +16,54 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to create an InternalKeyBinding with an existing name.
+ * An exception thrown when someone tries to create an InternalKeyBinding with
+ * an existing name.
  *
- * @version $Id: InternalKeyBindingNameInUseException.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: InternalKeyBindingNameInUseException.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 public class InternalKeyBindingNameInUseException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
-    public static final ErrorCode INTERNAL_KEY_BINDING_NAME_IN_USE = ErrorCode.INTERNAL_KEY_BINDING_NAME_IN_USE;
+  private static final long serialVersionUID = 1L;
+  public static final ErrorCode INTERNAL_KEY_BINDING_NAME_IN_USE =
+      ErrorCode.INTERNAL_KEY_BINDING_NAME_IN_USE;
 
-    /**
-     * Creates a new instance of <code>InternalKeyBindingNameInUseException</code> without detail message.
-     */
-    public InternalKeyBindingNameInUseException() {
-        super(INTERNAL_KEY_BINDING_NAME_IN_USE);
-    }
+  /**
+   * Creates a new instance of <code>InternalKeyBindingNameInUseException</code>
+   * without detail message.
+   */
+  public InternalKeyBindingNameInUseException() {
+    super(INTERNAL_KEY_BINDING_NAME_IN_USE);
+  }
 
-    /**
-     * Constructs an instance of <code>InternalKeyBindingNameInUseException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public InternalKeyBindingNameInUseException(String msg) {
-        super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg);
-    }
+  /**
+   * Constructs an instance of <code>InternalKeyBindingNameInUseException</code>
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public InternalKeyBindingNameInUseException(String msg) {
+    super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg);
+  }
 
-    /**
-     * Constructs an instance of <code>InternalKeyBindingNameInUseException</code> with the specified detail message.
-     * @param exception the exception that caused this
-     */
-    public InternalKeyBindingNameInUseException(Exception exception) {
-        super(INTERNAL_KEY_BINDING_NAME_IN_USE, exception);
-    }
+  /**
+   * Constructs an instance of <code>InternalKeyBindingNameInUseException</code>
+   * with the specified detail message.
+   *
+   * @param exception the exception that caused this
+   */
+  public InternalKeyBindingNameInUseException(Exception exception) {
+    super(INTERNAL_KEY_BINDING_NAME_IN_USE, exception);
+  }
 
-    /**
-     * Constructs an instance of <code>InternalKeyBindingNameInUseException</code> with the specified detail message.
-     * @param msg the detail message.
-     * @param e the exception that caused this
-     */
-    public InternalKeyBindingNameInUseException(String msg, Exception e) {
-        super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg, e);
-    }
+  /**
+   * Constructs an instance of <code>InternalKeyBindingNameInUseException</code>
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   * @param e the exception that caused this
+   */
+  public InternalKeyBindingNameInUseException(String msg, Exception e) {
+    super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg, e);
+  }
 }

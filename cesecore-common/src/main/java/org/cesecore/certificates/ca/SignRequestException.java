@@ -13,30 +13,30 @@
 package org.cesecore.certificates.ca;
 
 import javax.xml.ws.WebFault;
-
 import org.cesecore.CesecoreException;
 
-
 /**
- * Error due to malformed certificate request. The cause of failure can be related to ASN.1,
- * algorithm or other
+ * Error due to malformed certificate request. The cause of failure can be
+ * related to ASN.1, algorithm or other
  *
- * Probably based on EJCBA's org.ejbca.core.model.ca.SignRequestException r11201
+ * <p>Probably based on EJCBA's org.ejbca.core.model.ca.SignRequestException
+ * r11201
  *
- * @version $Id: SignRequestException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: SignRequestException.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 @WebFault
 public class SignRequestException extends CesecoreException {
 
-    private static final long serialVersionUID = 4368820010501466071L;
+  private static final long serialVersionUID = 4368820010501466071L;
 
-    /**
-     * Constructor used to create exception with an errormessage. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human redable error message, can not be NULL.
-     */
-    public SignRequestException(String message) {
-        super(message);
-    }
+  /**
+   * Constructor used to create exception with an errormessage. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human redable error message, can not be NULL.
+   */
+  public SignRequestException(String message) {
+    super(message);
+  }
 }

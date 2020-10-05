@@ -15,51 +15,71 @@ package org.cesecore.certificates.certificate;
 
 import java.io.Serializable;
 import java.util.Date;
-
 import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.cesecore.certificates.crl.RevocationReasons;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 
-/** Simple class encapsulating the certificate status information needed when making revocation checks.
+/**
+ * Simple class encapsulating the certificate status information needed when
+ * making revocation checks.
  *
  * @version $Id: CertificateStatus.java 22920 2016-03-03 17:44:03Z samuellb $
  */
 public class CertificateStatus implements Serializable {
 
-    private static final long serialVersionUID = 1515679904853388419L;
+  private static final long serialVersionUID = 1515679904853388419L;
 
-    public final static CertificateStatus REVOKED = new CertificateStatus("REVOKED", -1L, RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    public final static CertificateStatus OK = new CertificateStatus("OK", -1L, RevokedCertInfo.NOT_REVOKED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    public final static CertificateStatus NOT_AVAILABLE = new CertificateStatus("NOT_AVAILABLE", -1L, RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED, CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+  public static final CertificateStatus REVOKED =
+      new CertificateStatus(
+          "REVOKED",
+          -1L,
+          RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED,
+          CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+  public static final CertificateStatus OK =
+      new CertificateStatus(
+          "OK",
+          -1L,
+          RevokedCertInfo.NOT_REVOKED,
+          CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
+  public static final CertificateStatus NOT_AVAILABLE =
+      new CertificateStatus(
+          "NOT_AVAILABLE",
+          -1L,
+          RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED,
+          CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
 
-    private final String name;
-    public final Date revocationDate;
-    /** @see RevocationReasons */
-    public final int revocationReason;
-    public final int certificateProfileId;
+  private final String name;
+  public final Date revocationDate;
+  /** @see RevocationReasons */
+  public final int revocationReason;
 
-    public CertificateStatus(String name, long date, int reason, int certProfileId ) {
-        this.name = name;
-        this.revocationDate = new Date(date);
-        this.revocationReason = reason;
-        this.certificateProfileId = certProfileId;
-    }
+  public final int certificateProfileId;
 
-    @Override
-    public String toString() {
-        return this.name;
-    }
+  public CertificateStatus(
+      String name, long date, int reason, int certProfileId) {
+    this.name = name;
+    this.revocationDate = new Date(date);
+    this.revocationReason = reason;
+    this.certificateProfileId = certProfileId;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof CertificateStatus && this.equals((CertificateStatus)obj);
-    }
+  @Override
+  public String toString() {
+    return this.name;
+  }
 
-    public boolean equals(CertificateStatus obj) {
-        return this.name.equals(obj.toString());
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof CertificateStatus
+        && this.equals((CertificateStatus) obj);
+  }
 
-    public boolean isRevoked() {
-        return revocationReason != RevokedCertInfo.NOT_REVOKED && revocationReason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;
-    }
+  public boolean equals(CertificateStatus obj) {
+    return this.name.equals(obj.toString());
+  }
+
+  public boolean isRevoked() {
+    return revocationReason != RevokedCertInfo.NOT_REVOKED
+        && revocationReason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;
+  }
 }

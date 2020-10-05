@@ -18,44 +18,42 @@ import java.util.Set;
 
 /**
  * This class represents a Subject for the purpose of
- * authentication/authorization. javax.security.auth.Subject was not
- * implemented due to being overly coupled with the JAAS paradigm.
- * In order to avoid confusion with the
- * End Entity concept, the word 'user' is avoided in both contexts.
+ * authentication/authorization. javax.security.auth.Subject was not implemented
+ * due to being overly coupled with the JAAS paradigm. In order to avoid
+ * confusion with the End Entity concept, the word 'user' is avoided in both
+ * contexts.
  *
- * TODO: Make proper hashcode/compare methods.
+ * <p>TODO: Make proper hashcode/compare methods.
  *
  * @version $Id: AuthenticationSubject.java 18305 2013-12-16 13:59:56Z anatom $
- *
  */
 public class AuthenticationSubject implements Serializable {
 
-    private static final long serialVersionUID = 793575035911984396L;
-    /** Principals. */
-    protected final Set<Principal> principals;
-    /** Credentials. */
-    protected final Set<?> credentials;
+  private static final long serialVersionUID = 793575035911984396L;
+  /** Principals. */
+  protected final Set<Principal> principals;
+  /** Credentials. */
+  protected final Set<?> credentials;
 
-    /**
-     * Constructor.
-     * @param thePrincipals principals
-     * @param theCredentials Credentials
-     */
-    public AuthenticationSubject(
-            final Set<Principal> thePrincipals, final Set<?> theCredentials) {
-        this.principals = thePrincipals;
-        this.credentials = theCredentials;
-    }
+  /**
+   * Constructor.
+   *
+   * @param thePrincipals principals
+   * @param theCredentials Credentials
+   */
+  public AuthenticationSubject(
+      final Set<Principal> thePrincipals, final Set<?> theCredentials) {
+    this.principals = thePrincipals;
+    this.credentials = theCredentials;
+  }
 
-    /** @return a {@link Set} of principals. */
-    public Set<Principal> getPrincipals() {
-        return principals;
-    }
+  /** @return a {@link Set} of principals. */
+  public Set<Principal> getPrincipals() {
+    return principals;
+  }
 
-
-    /** @return a {@link Set} of Credentials. */
-    public Set<?> getCredentials() {
-        return credentials;
-    }
-
+  /** @return a {@link Set} of Credentials. */
+  public Set<?> getCredentials() {
+    return credentials;
+  }
 }

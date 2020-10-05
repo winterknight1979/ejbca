@@ -15,9 +15,11 @@ package org.cesecore.keybind;
 /**
  * Operational status representation of an InternalKeyBinding
  *
- * @version $Id: InternalKeyBindingOperationalStatus.java 27598 2017-12-20 13:37:58Z aminkh $
- *
+ * @version $Id: InternalKeyBindingOperationalStatus.java 27598 2017-12-20
+ *     13:37:58Z aminkh $
  */
 public enum InternalKeyBindingOperationalStatus {
-    ONLINE, PENDING, OFFLINE;
+  ONLINE,
+  PENDING,
+  OFFLINE;
 }

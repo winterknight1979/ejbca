@@ -21,26 +21,29 @@ import org.cesecore.util.query.Elem;
  */
 public final class Term implements Elem {
 
-    private static final long serialVersionUID = 3569353821030638847L;
-    private final String name;
-    private final Object value;
-    private final RelationalOperator operator;
+  private static final long serialVersionUID = 3569353821030638847L;
+  private final String name;
+  private final Object value;
+  private final RelationalOperator operator;
 
-    public Term(final RelationalOperator operator, final String name, final Object value) {
-        this.name = name;
-        this.value = value;
-        this.operator = operator;
-    }
+  public Term(
+      final RelationalOperator operator,
+      final String name,
+      final Object value) {
+    this.name = name;
+    this.value = value;
+    this.operator = operator;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public Object getValue() {
-        return value;
-    }
+  public Object getValue() {
+    return value;
+  }
 
-    public RelationalOperator getOperator() {
-        return operator;
-    }
+  public RelationalOperator getOperator() {
+    return operator;
+  }
 }

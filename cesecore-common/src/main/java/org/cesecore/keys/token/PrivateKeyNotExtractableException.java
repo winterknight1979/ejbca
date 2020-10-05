@@ -15,41 +15,44 @@ package org.cesecore.keys.token;
 import org.cesecore.CesecoreException;
 
 /**
- * An exception thrown when someone tries to extract a Private Key from a Crypto Token that doesn't allow it.
+ * An exception thrown when someone tries to extract a Private Key from a Crypto
+ * Token that doesn't allow it.
  *
- * @version $Id: PrivateKeyNotExtractableException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: PrivateKeyNotExtractableException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class PrivateKeyNotExtractableException extends CesecoreException {
 
-    private static final long serialVersionUID = -5484077868101864920L;
+  private static final long serialVersionUID = -5484077868101864920L;
 
+  /**
+   * Creates a new instance of <code>PrivateKeyNotExtractableException</code>
+   * with the cause
+   *
+   * @param exception exception
+   */
+  public PrivateKeyNotExtractableException(Exception exception) {
+    super(exception);
+  }
 
-    /**
-     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the cause
-     * @param exception exception
-     */
-    public PrivateKeyNotExtractableException(Exception exception) {
-        super(exception);
-    }
+  /**
+   * Creates a new instance of <code>PrivateKeyNotExtractableException</code>
+   * with the specified detail message and cause
+   *
+   * @param message message
+   * @param cause cause
+   */
+  public PrivateKeyNotExtractableException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-
-    /**
-     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message and cause
-     * @param message message
-     * @param cause cause
-     */
-    public PrivateKeyNotExtractableException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-
-    /**
-     * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message
-     * @param message message
-     */
-    public PrivateKeyNotExtractableException(String message) {
-        super(message);
-    }
-
-
+  /**
+   * Creates a new instance of <code>PrivateKeyNotExtractableException</code>
+   * with the specified detail message
+   *
+   * @param message message
+   */
+  public PrivateKeyNotExtractableException(String message) {
+    super(message);
+  }
 }

@@ -14,26 +14,27 @@
 package org.cesecore.keys.validation;
 
 /**
- * An exception thrown when someone tries to delete a KeyValidator which is referenced by other objects (i.e. CAs).
+ * An exception thrown when someone tries to delete a KeyValidator which is
+ * referenced by other objects (i.e. CAs).
  *
- * @version $Id: CouldNotRemoveKeyValidatorException.java 26057 2017-06-22 08:08:34Z anatom $
+ * @version $Id: CouldNotRemoveKeyValidatorException.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 public class CouldNotRemoveKeyValidatorException extends Exception {
 
-    private static final long serialVersionUID = 4525925695395312951L;
+  private static final long serialVersionUID = 4525925695395312951L;
 
-    /**
-     * Creates a new instance.
-     */
-    public CouldNotRemoveKeyValidatorException() {
-        super( "Could not remove key validator, it is still referenced by a CA.");
-    }
+  /** Creates a new instance. */
+  public CouldNotRemoveKeyValidatorException() {
+    super("Could not remove key validator, it is still referenced by a CA.");
+  }
 
-    /**
-     * Creates a new instance with a detail message.
-     * @param message the detail message.
-     */
-    public CouldNotRemoveKeyValidatorException(String message) {
-        super(message);
-    }
+  /**
+   * Creates a new instance with a detail message.
+   *
+   * @param message the detail message.
+   */
+  public CouldNotRemoveKeyValidatorException(String message) {
+    super(message);
+  }
 }

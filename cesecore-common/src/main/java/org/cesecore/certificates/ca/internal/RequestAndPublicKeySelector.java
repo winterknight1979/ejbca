@@ -16,76 +16,103 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificate.request.RequestMessage;
 import org.cesecore.certificates.certificate.request.RequestMessageUtils;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 
-/** Class used to select which request message and public key to use to issue a certificate, by looking
- * at the various input in priority order.
- * 3. Request inside endEntityInformation has priority over providedPublicKey and providedRequestMessage
- * 2. providedPublicKey has priority over the public key in providedRequestMessage
- * 1. providedRequestMessage and it's public key is used
+/**
+ * Class used to select which request message and public key to use to issue a
+ * certificate, by looking at the various input in priority order. 3. Request
+ * inside endEntityInformation has priority over providedPublicKey and
+ * providedRequestMessage 2. providedPublicKey has priority over the public key
+ * in providedRequestMessage 1. providedRequestMessage and it's public key is
+ * used
  *
- * @version $Id: RequestAndPublicKeySelector.java 26392 2017-08-22 17:49:48Z anatom $
+ * @version $Id: RequestAndPublicKeySelector.java 26392 2017-08-22 17:49:48Z
+ *     anatom $
  */
 public class RequestAndPublicKeySelector {
 
-    /** Class logger. */
-    private static final Logger log = Logger.getLogger(RequestAndPublicKeySelector.class);
+  /** Class logger. */
+  private static final Logger log =
+      Logger.getLogger(RequestAndPublicKeySelector.class);
 
-    private PublicKey publicKey;
-    private RequestMessage requestMessage;
-    /** Constructor taking input needed to make decision on which public key and requets message to use. After construction caller can use the methods
-     * {@link #getPublicKey()} and {@link #getRequestMessage()} to retrieve the selected objects.
-     *
-     * @param providedRequestMessage message
-     * @param providedPublicKey key
-     * @param endEntityInformation info
-     */
-    public RequestAndPublicKeySelector(final RequestMessage providedRequestMessage, final PublicKey providedPublicKey, final ExtendedInformation endEntityInformation) {
-        requestMessage = providedRequestMessage; //The request message was provided outside of endEntityInformation
-        String debugPublicKeySource = null;
-        String debugRequestMessageSource = null;
-        if (providedRequestMessage != null){
-            try {
-                publicKey = providedRequestMessage.getRequestPublicKey();
-                debugPublicKeySource = "from providedRequestMessage";
-                debugRequestMessageSource = "from providedRequestMessage";
-            } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e1) {
-                //Fine since public key can be provided with providedPublicKey or endEntityInformation.extendedInformation.certificateRequest
-            }
-        }
-        //ProvidedPublicKey has priority over providedRequestMessage.requestPublicKey
-        if (providedPublicKey != null){
-            publicKey = providedPublicKey;
-            debugPublicKeySource = "separately";
-        }
-        //Request inside endEntityInformation has priority over providedPublicKey and providedRequestMessage
-        if (endEntityInformation != null && endEntityInformation.getCertificateRequest() != null){
-            requestMessage = RequestMessageUtils.genPKCS10RequestMessage(endEntityInformation.getCertificateRequest());
-            try {
-                publicKey = requestMessage.getRequestPublicKey();
-                debugPublicKeySource = "from endEntity.extendedInformaion.certificateRequest";
-                debugRequestMessageSource = "from endEntity.extendedInformaion.certificateRequest";
-            } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occured with extracting public key from endEntityInformation.extendedInformation. Proceeding with one provided separately", e);
-                }
-            }
-        }
+  private PublicKey publicKey;
+  private RequestMessage requestMessage;
+  /**
+   * Constructor taking input needed to make decision on which public key and
+   * requets message to use. After construction caller can use the methods
+   * {@link #getPublicKey()} and {@link #getRequestMessage()} to retrieve the
+   * selected objects.
+   *
+   * @param providedRequestMessage message
+   * @param providedPublicKey key
+   * @param endEntityInformation info
+   */
+  public RequestAndPublicKeySelector(
+      final RequestMessage providedRequestMessage,
+      final PublicKey providedPublicKey,
+      final ExtendedInformation endEntityInformation) {
+    requestMessage =
+        providedRequestMessage; // The request message was provided outside of
+                                // endEntityInformation
+    String debugPublicKeySource = null;
+    String debugRequestMessageSource = null;
+    if (providedRequestMessage != null) {
+      try {
+        publicKey = providedRequestMessage.getRequestPublicKey();
+        debugPublicKeySource = "from providedRequestMessage";
+        debugRequestMessageSource = "from providedRequestMessage";
+      } catch (InvalidKeyException
+          | NoSuchAlgorithmException
+          | NoSuchProviderException e1) {
+        // Fine since public key can be provided with providedPublicKey or
+        // endEntityInformation.extendedInformation.certificateRequest
+      }
+    }
+    // ProvidedPublicKey has priority over
+    // providedRequestMessage.requestPublicKey
+    if (providedPublicKey != null) {
+      publicKey = providedPublicKey;
+      debugPublicKeySource = "separately";
+    }
+    // Request inside endEntityInformation has priority over providedPublicKey
+    // and providedRequestMessage
+    if (endEntityInformation != null
+        && endEntityInformation.getCertificateRequest() != null) {
+      requestMessage =
+          RequestMessageUtils.genPKCS10RequestMessage(
+              endEntityInformation.getCertificateRequest());
+      try {
+        publicKey = requestMessage.getRequestPublicKey();
+        debugPublicKeySource =
+            "from endEntity.extendedInformaion.certificateRequest";
+        debugRequestMessageSource =
+            "from endEntity.extendedInformaion.certificateRequest";
+      } catch (InvalidKeyException
+          | NoSuchAlgorithmException
+          | NoSuchProviderException e) {
         if (log.isDebugEnabled()) {
-            log.debug("Public key is provided " + debugPublicKeySource);
-            log.debug("Request is provided " + debugRequestMessageSource);
+          log.debug(
+              "Error occured with extracting public key from"
+                  + " endEntityInformation.extendedInformation. Proceeding"
+                  + " with one provided separately",
+              e);
         }
+      }
     }
+    if (log.isDebugEnabled()) {
+      log.debug("Public key is provided " + debugPublicKeySource);
+      log.debug("Request is provided " + debugRequestMessageSource);
+    }
+  }
 
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
+  public PublicKey getPublicKey() {
+    return publicKey;
+  }
 
-    public RequestMessage getRequestMessage() {
-        return requestMessage;
-    }
+  public RequestMessage getRequestMessage() {
+    return requestMessage;
+  }
 }

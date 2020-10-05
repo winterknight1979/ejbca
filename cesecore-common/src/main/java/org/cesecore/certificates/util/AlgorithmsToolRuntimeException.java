@@ -15,17 +15,18 @@ package org.cesecore.certificates.util;
 /**
  * Thrown by methods in @link {@link AlgorithmTools} when an error occurs that
  * can not be handled.
- * @version $Id: AlgorithmsToolRuntimeException.java 22408 2015-12-08 20:19:48Z primelars $
  *
+ * @version $Id: AlgorithmsToolRuntimeException.java 22408 2015-12-08 20:19:48Z
+ *     primelars $
  */
 public class AlgorithmsToolRuntimeException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    AlgorithmsToolRuntimeException(final String message) {
-        super(message);
-    }
+  AlgorithmsToolRuntimeException(final String message) {
+    super(message);
+  }
 
-    AlgorithmsToolRuntimeException(final String message, final Exception cause) {
-        super(message, cause);
-    }
+  AlgorithmsToolRuntimeException(final String message, final Exception cause) {
+    super(message, cause);
+  }
 }

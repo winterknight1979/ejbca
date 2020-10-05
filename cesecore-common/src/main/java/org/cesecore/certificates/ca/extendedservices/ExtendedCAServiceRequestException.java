@@ -12,34 +12,41 @@
  *************************************************************************/
 package org.cesecore.certificates.ca.extendedservices;
 
-/** Error processing the extended CA Service request
+/**
+ * Error processing the extended CA Service request
  *
- * @version $Id: ExtendedCAServiceRequestException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: ExtendedCAServiceRequestException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class ExtendedCAServiceRequestException extends java.lang.Exception {
 
-    private static final long serialVersionUID = -7017580940361778607L;
+  private static final long serialVersionUID = -7017580940361778607L;
 
-    /**
-     * Creates a new instance of <code>ExtendedCAServiceRequestException</code> without detail message.
-     */
-    public ExtendedCAServiceRequestException() {
-        super();
-    }
+  /**
+   * Creates a new instance of <code>ExtendedCAServiceRequestException</code>
+   * without detail message.
+   */
+  public ExtendedCAServiceRequestException() {
+    super();
+  }
 
-    /**
-     * Constructs an instance of <code>ExtendedCAServiceRequestException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public ExtendedCAServiceRequestException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an instance of <code>ExtendedCAServiceRequestException</code>
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ExtendedCAServiceRequestException(String msg) {
+    super(msg);
+  }
 
-    /**
-     * Constructs an instance of <code>ExtendedCAServiceRequestException</code> with the specified cause.
-     * @param e the detail message.
-     */
-    public ExtendedCAServiceRequestException(Exception e) {
-        super(e);
-    }
+  /**
+   * Constructs an instance of <code>ExtendedCAServiceRequestException</code>
+   * with the specified cause.
+   *
+   * @param e the detail message.
+   */
+  public ExtendedCAServiceRequestException(Exception e) {
+    super(e);
+  }
 }

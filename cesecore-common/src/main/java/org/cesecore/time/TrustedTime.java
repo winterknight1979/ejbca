@@ -24,58 +24,91 @@ import java.util.Date;
  */
 public class TrustedTime implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private static final Integer delta = 1;
+  private static final long serialVersionUID = 1L;
+  private static final Integer delta = 1;
 
-    private String source;
-    private Double accuracy;
-    private Integer stratum;
-    private Long previousUpdate; //seconds
-    private Long nextUpdate; //seconds
-    private boolean sync = false;
+  private String source;
+  private Double accuracy;
+  private Integer stratum;
+  private Long previousUpdate; // seconds
+  private Long nextUpdate; // seconds
+  private boolean sync = false;
 
-    public TrustedTime() { }
+  public TrustedTime() {}
 
-    public Integer getStratum() { return stratum; }
-    public void setStratum(final Integer stratum) { this.stratum = stratum; }
+  public Integer getStratum() {
+    return stratum;
+  }
 
-    public Long getPreviousUpdate() { return this.previousUpdate; }
-    public Long getNextUpdate() { return this.nextUpdate; }
+  public void setStratum(final Integer stratum) {
+    this.stratum = stratum;
+  }
 
-    public void setNextUpdate(Integer when, Integer poll) {
-        Long nextUpdate = Long.valueOf(((poll - when) + delta)*1000);
-        if(nextUpdate.longValue() <= 0) {
-            nextUpdate = Long.valueOf(1);
-        }
+  public Long getPreviousUpdate() {
+    return this.previousUpdate;
+  }
 
-        if(this.nextUpdate != null) {
-            this.previousUpdate = this.nextUpdate;
-        }
+  public Long getNextUpdate() {
+    return this.nextUpdate;
+  }
 
-        this.nextUpdate = nextUpdate;
+  public void setNextUpdate(Integer when, Integer poll) {
+    Long nextUpdate = Long.valueOf(((poll - when) + delta) * 1000);
+    if (nextUpdate.longValue() <= 0) {
+      nextUpdate = Long.valueOf(1);
     }
 
-    public boolean isSync() { return this.sync; }
-    public void setSync(boolean sync) { this.sync = sync; }
-
-    public Date getTime() { return new Date(); }
-
-    public String getSource() { return this.source; }
-    public void setSource(String source) { this.source = source; }
-
-
-    public Double getAccuracy() { return accuracy; }
-    public void setAccuracy(final Double accuracy) { this.accuracy = accuracy; }
-
-    public TrustedTime(final Double accuracy) {
-        this.accuracy = accuracy;
+    if (this.nextUpdate != null) {
+      this.previousUpdate = this.nextUpdate;
     }
 
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.accuracy).append(";").append(this.stratum).append(";").
-            append(this.previousUpdate).append(";").append(this.nextUpdate).
-            append(";").append(this.sync).append(this.source);
-        return sb.toString();
-    }
+    this.nextUpdate = nextUpdate;
+  }
+
+  public boolean isSync() {
+    return this.sync;
+  }
+
+  public void setSync(boolean sync) {
+    this.sync = sync;
+  }
+
+  public Date getTime() {
+    return new Date();
+  }
+
+  public String getSource() {
+    return this.source;
+  }
+
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  public Double getAccuracy() {
+    return accuracy;
+  }
+
+  public void setAccuracy(final Double accuracy) {
+    this.accuracy = accuracy;
+  }
+
+  public TrustedTime(final Double accuracy) {
+    this.accuracy = accuracy;
+  }
+
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(this.accuracy)
+        .append(";")
+        .append(this.stratum)
+        .append(";")
+        .append(this.previousUpdate)
+        .append(";")
+        .append(this.nextUpdate)
+        .append(";")
+        .append(this.sync)
+        .append(this.source);
+    return sb.toString();
+  }
 }

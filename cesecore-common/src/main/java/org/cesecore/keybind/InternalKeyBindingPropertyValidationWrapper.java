@@ -20,45 +20,46 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class wraps the result of an internal key binding validation. It contains a defensive copy of the properties map
- * allowing values entered as strings to be recast as their proper values, and also contains lists of invalid values for
- * diagnostic purposes.
+ * This class wraps the result of an internal key binding validation. It
+ * contains a defensive copy of the properties map allowing values entered as
+ * strings to be recast as their proper values, and also contains lists of
+ * invalid values for diagnostic purposes.
  *
- * @version $Id: InternalKeyBindingPropertyValidationWrapper.java 19902 2014-09-30 14:32:24Z anatom $
- *
+ * @version $Id: InternalKeyBindingPropertyValidationWrapper.java 19902
+ *     2014-09-30 14:32:24Z anatom $
  */
 public class InternalKeyBindingPropertyValidationWrapper {
 
-    private Map<String, Class<?>> invalidValues = new HashMap<String, Class<?>>();
-    private List<String> unknownProperties = new ArrayList<String>();
-    private Map<String, Serializable> propertiesCopy = new LinkedHashMap<String, Serializable>();
+  private Map<String, Class<?>> invalidValues = new HashMap<String, Class<?>>();
+  private List<String> unknownProperties = new ArrayList<String>();
+  private Map<String, Serializable> propertiesCopy =
+      new LinkedHashMap<String, Serializable>();
 
-    public boolean arePropertiesValid() {
-        return invalidValues.isEmpty() && unknownProperties.isEmpty();
-    }
+  public boolean arePropertiesValid() {
+    return invalidValues.isEmpty() && unknownProperties.isEmpty();
+  }
 
-    public Map<String, Class<?>> getInvalidValues() {
-        return invalidValues;
-    }
+  public Map<String, Class<?>> getInvalidValues() {
+    return invalidValues;
+  }
 
-    public List<String> getUnknownProperties() {
-        return unknownProperties;
-    }
+  public List<String> getUnknownProperties() {
+    return unknownProperties;
+  }
 
-    public Map<String, Serializable> getPropertiesCopy() {
-        return propertiesCopy;
-    }
+  public Map<String, Serializable> getPropertiesCopy() {
+    return propertiesCopy;
+  }
 
-    public void addInvalidValue(String value, Class<?> expected) {
-        invalidValues.put(value, expected);
-    }
+  public void addInvalidValue(String value, Class<?> expected) {
+    invalidValues.put(value, expected);
+  }
 
-    public void addUnknownProperty(String value) {
-        unknownProperties.add(value);
-    }
+  public void addUnknownProperty(String value) {
+    unknownProperties.add(value);
+  }
 
-    public void addProperty(String key, Serializable value) {
-        propertiesCopy.put(key, value);
-    }
-
+  public void addProperty(String key, Serializable value) {
+    propertiesCopy.put(key, value);
+  }
 }

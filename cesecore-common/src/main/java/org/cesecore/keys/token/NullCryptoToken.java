@@ -22,88 +22,93 @@ import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Properties;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-
-/** This class is used as crypto Token for virtual CAs that does not have a keystore, such as external SubCAs.
+/**
+ * This class is used as crypto Token for virtual CAs that does not have a
+ * keystore, such as external SubCAs.
  *
  * @version $Id: NullCryptoToken.java 22561 2016-01-12 14:35:29Z mikekushner $
  */
 public class NullCryptoToken extends BaseCryptoToken {
 
-    private static final long serialVersionUID = -1L;
+  private static final long serialVersionUID = -1L;
 
-    private int id;
+  private int id;
 
-    public NullCryptoToken() {
-        super();
-    }
+  public NullCryptoToken() {
+    super();
+  }
 
-    @Override
-    public void init(Properties properties, byte[] data, int id) throws Exception {
-        // We only need to set JCA provider, if JCE provider is the same (which is the common case)
-        setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);
-        this.id = id;
-    }
+  @Override
+  public void init(Properties properties, byte[] data, int id)
+      throws Exception {
+    // We only need to set JCA provider, if JCE provider is the same (which is
+    // the common case)
+    setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);
+    this.id = id;
+  }
 
-    @Override
-    public int getId() {
-        return this.id;
-    }
+  @Override
+  public int getId() {
+    return this.id;
+  }
 
-    @Override
-    public Properties getProperties(){
-        return new Properties();
-    }
+  @Override
+  public Properties getProperties() {
+    return new Properties();
+  }
 
-    @Override
-    public PrivateKey getPrivateKey(String alias){
-      return null;
-    }
+  @Override
+  public PrivateKey getPrivateKey(String alias) {
+    return null;
+  }
 
-    @Override
-    public PublicKey getPublicKey(String alias){
-      return null;
-    }
+  @Override
+  public PublicKey getPublicKey(String alias) {
+    return null;
+  }
 
-    @Override
-    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, CryptoTokenOfflineException {
-    }
+  @Override
+  public void deleteEntry(final String alias)
+      throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+          IOException, CryptoTokenOfflineException {}
 
-    @Override
-    public void generateKeyPair(final String keySpec, final String alias) throws InvalidAlgorithmParameterException,
-            CryptoTokenOfflineException {
-    }
+  @Override
+  public void generateKeyPair(final String keySpec, final String alias)
+      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException {}
 
-    @Override
-    public void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws InvalidAlgorithmParameterException,
-            CertificateException, IOException, CryptoTokenOfflineException {
-    }
+  @Override
+  public void generateKeyPair(
+      final AlgorithmParameterSpec spec, final String alias)
+      throws InvalidAlgorithmParameterException, CertificateException,
+          IOException, CryptoTokenOfflineException {}
 
-    @Override
-    public void generateKey(final String algorithm, final int keysize, final String alias) throws NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException, CryptoTokenOfflineException {
-    }
+  @Override
+  public void generateKey(
+      final String algorithm, final int keysize, final String alias)
+      throws NoSuchAlgorithmException, NoSuchProviderException,
+          KeyStoreException, CryptoTokenOfflineException {}
 
-    @Override
-    public void activate(char[] authenticationcode) throws CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException {
-        // Do Nothing
-    }
+  @Override
+  public void activate(char[] authenticationcode)
+      throws CryptoTokenAuthenticationFailedException,
+          CryptoTokenOfflineException {
+    // Do Nothing
+  }
 
-    @Override
-    public void deactivate() {
-       // Do Nothing
-    }
+  @Override
+  public void deactivate() {
+    // Do Nothing
+  }
 
-    @Override
-    public byte[] getTokenData() {
-        return null;
-    }
+  @Override
+  public byte[] getTokenData() {
+    return null;
+  }
 
-    @Override
-    public boolean permitExtractablePrivateKeyForTest() {
-        return doPermitExtractablePrivateKey();
-    }
-
+  @Override
+  public boolean permitExtractablePrivateKeyForTest() {
+    return doPermitExtractablePrivateKey();
+  }
 }
-

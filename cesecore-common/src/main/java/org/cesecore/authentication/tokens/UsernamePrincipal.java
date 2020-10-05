@@ -22,25 +22,27 @@ import java.security.Principal;
  */
 public class UsernamePrincipal implements Principal, Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /** User. */
-    private final String username;
+  /** User. */
+  private final String username;
 
-    /** Constructor.
-     * @param aUsername User
-     * */
-    public UsernamePrincipal(final String aUsername) {
-        this.username = aUsername;
-    }
+  /**
+   * Constructor.
+   *
+   * @param aUsername User
+   */
+  public UsernamePrincipal(final String aUsername) {
+    this.username = aUsername;
+  }
 
-    @Override
-    public String getName() {
-        return username;
-    }
+  @Override
+  public String getName() {
+    return username;
+  }
 
-    @Override
-    public String toString() {
-        return username;
-    }
+  @Override
+  public String toString() {
+    return username;
+  }
 }

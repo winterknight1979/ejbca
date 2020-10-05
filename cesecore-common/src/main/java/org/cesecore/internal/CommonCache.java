@@ -23,53 +23,74 @@ import java.util.Map;
  */
 public interface CommonCache<T> {
 
-    /** @param id ID
-     * @return cached Object or null if none is present. */
-    T getEntry(Integer id);
+  /**
+   * @param id ID
+   * @return cached Object or null if none is present.
+   */
+  T getEntry(Integer id);
 
-    /** @param id ID
-     * @return cached Object or null if none is present. */
-    T getEntry(int id);
+  /**
+   * @param id ID
+   * @return cached Object or null if none is present.
+   */
+  T getEntry(int id);
 
-    /** @param id ID
-     * @return true when the cache for this object has expired or the token is non-existing. */
-    boolean shouldCheckForUpdates(int id);
+  /**
+   * @param id ID
+   * @return true when the cache for this object has expired or the token is
+   *     non-existing.
+   */
+  boolean shouldCheckForUpdates(int id);
 
-    /** Update the cache with the current version read from the database.
-     *
-     * @param id id of the object, typically database id
-     * @param digest typically getProtectString(0).hashCode() of the object;
-     * @param name String name of the object, typically database name
-     * @param object the object to cache
-     */
-    void updateWith(int id, int digest, String name, T object);
+  /**
+   * Update the cache with the current version read from the database.
+   *
+   * @param id id of the object, typically database id
+   * @param digest typically getProtectString(0).hashCode() of the object;
+   * @param name String name of the object, typically database name
+   * @param object the object to cache
+   */
+  void updateWith(int id, int digest, String name, T object);
 
-    /** this method exposes the loginc inside updateWith that determines if an object is the same as the cached object.
-     * If the objects are the same, updateWith will not update the object as an optimization. This method can be used to skip expensive object creation
-     * if the objects are anyway the same and updateWith will not end up doing anything
-     * @param id id of the object, typically database id
-     * @param digest typically getProtectString(0).hashCode() of the object;
-     * @return true if a call to updateWith will perform an actual cache update
-     */
-    boolean willUpdate(int id, int digest);
+  /**
+   * this method exposes the loginc inside updateWith that determines if an
+   * object is the same as the cached object. If the objects are the same,
+   * updateWith will not update the object as an optimization. This method can
+   * be used to skip expensive object creation if the objects are anyway the
+   * same and updateWith will not end up doing anything
+   *
+   * @param id id of the object, typically database id
+   * @param digest typically getProtectString(0).hashCode() of the object;
+   * @return true if a call to updateWith will perform an actual cache update
+   */
+  boolean willUpdate(int id, int digest);
 
-    /** Remove the specified entry from the cache and mapping if it exists.
-     * @param id ID*/
-    void removeEntry(int id);
+  /**
+   * Remove the specified entry from the cache and mapping if it exists.
+   *
+   * @param id ID
+   */
+  void removeEntry(int id);
 
-    /** Provides functionality of an IdToNameMap.
-     * @param id ID
-     * @return return the name from the entry, given the id, or null if it does not exist.
-     */
-    String getName(int id);
+  /**
+   * Provides functionality of an IdToNameMap.
+   *
+   * @param id ID
+   * @return return the name from the entry, given the id, or null if it does
+   *     not exist.
+   */
+  String getName(int id);
 
-    /** @return a copy of the id to name map as a name to id map */
-    Map<String, Integer> getNameToIdMap();
+  /** @return a copy of the id to name map as a name to id map */
+  Map<String, Integer> getNameToIdMap();
 
-    /** Remove all references from this cache */
-    void flush();
+  /** Remove all references from this cache */
+  void flush();
 
-    /** Replace cache with the entries referenced in keys
-     * @param keys keys*/
-    void replaceCacheWith(List<Integer> keys);
+  /**
+   * Replace cache with the entries referenced in keys
+   *
+   * @param keys keys
+   */
+  void replaceCacheWith(List<Integer> keys);
 }
