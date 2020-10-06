@@ -83,9 +83,9 @@ public class RevokeStatus {
 		certificateSN = serno;
 		this.issuerDN = issuerDN;
 		GregorianCalendar cal = new GregorianCalendar ();
-		cal.setTime(info.revocationDate);
+		cal.setTime(info.getRevocationDate());
 		revocationDate = DatatypeFactory.newInstance ().newXMLGregorianCalendar(cal);
-		reason = info.revocationReason;		
+		reason = info.getRevocationReason();		
 	}
 
 	/**

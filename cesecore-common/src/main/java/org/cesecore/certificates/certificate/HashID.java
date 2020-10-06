@@ -30,43 +30,44 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: HashID.java 26020 2017-06-14 12:41:08Z mikekushner $
  */
-public class HashID {
-  /** Log4j instance for Base */
-  private static final Logger log = Logger.getLogger(HashID.class);
+public final class HashID {
+  /** Log4j instance for Base. */
+  private static final Logger LOG = Logger.getLogger(HashID.class);
   /** True if the ID confirms to a RFC4387 ID. */
   private final boolean isOK;
-  /*
+  /**
    * The RFC4387 identification string. This is a base64 encoding of the hash.
    */
   private final String b64;
 
-  /** The b64 with \ substituted with %2B to be used for URLs */
+  /** The b64 with \ substituted with %2B to be used for URLs. */
   private final String b64url;
   /** Key to be used for hash tables. */
   private final Integer key;
 
-  private HashID(byte hash[]) {
+  private HashID(final byte[] hash) {
     final String b64padded = new String(Base64.encode(hash));
-    if (b64padded.length() != 28 || b64padded.charAt(27) != '=') {
+    if (b64padded.length() != HASH_LENGTH + 1
+            || b64padded.charAt(HASH_LENGTH) != '=') {
       this.isOK = false;
       this.b64 = b64padded;
     } else {
       this.isOK = true;
-      this.b64 = b64padded.substring(0, 27);
+      this.b64 = b64padded.substring(0, HASH_LENGTH);
     }
     this.b64url = this.b64.replaceAll("\\+", "%2B");
     this.key = Integer.valueOf(new BigInteger(hash).hashCode());
   }
 
-  private static byte[] hashFromPrincipalDN(X500Principal principal) {
+  private static byte[] hashFromPrincipalDN(final X500Principal principal) {
     return CertTools.generateSHA1Fingerprint(principal.getEncoded());
   }
 
-  private static HashID getFromDN(X500Principal principal) {
+  private static HashID getFromDN(final X500Principal principal) {
     final HashID id = new HashID(hashFromPrincipalDN(principal));
     if (id.isOK) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "The DN '"
                 + principal.getName()
                 + "' is identified by the Hash string '"
@@ -74,7 +75,7 @@ public class HashID {
                 + "' when accessing the VA.");
       }
     } else {
-      log.error(
+      LOG.error(
           "The DN '"
               + principal.getName()
               + "' has a non valid Hash identification string: "
@@ -86,14 +87,14 @@ public class HashID {
    * @param cert The subject DN of the certificate should be the identifier.
    * @return the ID
    */
-  public static HashID getFromSubjectDN(X509Certificate cert) {
+  public static HashID getFromSubjectDN(final X509Certificate cert) {
     return getFromDN(cert.getSubjectX500Principal());
   }
   /**
    * @param cert The issuer DN of the certificate should be the identifier.
    * @return the ID
    */
-  public static HashID getFromIssuerDN(X509Certificate cert) {
+  public static HashID getFromIssuerDN(final X509Certificate cert) {
     return getFromDN(cert.getIssuerX500Principal());
   }
 
@@ -103,7 +104,8 @@ public class HashID {
    * @return the ID
    * @throws CertificateException on failure
    */
-  public static HashID getFromIssuerDN(X509CertificateHolder certificateHolder)
+  public static HashID getFromIssuerDN(
+          final X509CertificateHolder certificateHolder)
       throws CertificateException {
     return getFromIssuerDN(
         new JcaX509CertificateConverter().getCertificate(certificateHolder));
@@ -113,7 +115,7 @@ public class HashID {
    *     transformed in any way.
    * @return the ID.
    */
-  public static HashID getFromDNString(String sDN) {
+  public static HashID getFromDNString(final String sDN) {
     // Note that the DN string has to be encoded to an ASN1 with the BC lib. BC
     // endcoding is EJBCA standard.
     try {
@@ -128,25 +130,28 @@ public class HashID {
       throw new IllegalStateException(e);
     }
   }
+
+  /** Length. */
+  private static final int HASH_LENGTH = 27;
   /**
    * @param s The hash base64 encoded. See RFC4387
    * @return the ID.
    */
-  public static HashID getFromB64(String s) {
-    return new HashID(Base64.decode(s.length() == 27 ? s + '=' : s));
+  public static HashID getFromB64(final String s) {
+    return new HashID(Base64.decode(s.length() == HASH_LENGTH ? s + '=' : s));
   }
   /**
    * @param cert The public key of the certificate will be used as ID.
    * @return the ID.
    */
-  public static HashID getFromKeyID(X509Certificate cert) {
+  public static HashID getFromKeyID(final X509Certificate cert) {
     final HashID id =
         new HashID(
             KeyTools.createSubjectKeyId(cert.getPublicKey())
                 .getKeyIdentifier());
     if (id.isOK) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "The certificate with subject DN '"
                 + cert.getSubjectX500Principal().getName()
                 + "' can be fetched with 'search.cgi?sKIDHash="
@@ -154,7 +159,7 @@ public class HashID {
                 + "' from the VA.");
       }
     } else {
-      log.error(
+      LOG.error(
           "The certificate with subject DN '"
               + cert.getSubjectX500Principal().getName()
               + "' gives a sKIDHash with a not valid format: "
@@ -163,15 +168,19 @@ public class HashID {
     return id;
   }
 
-  public static HashID getFromAuthorityKeyId(X509Certificate cert)
+  /**
+   * @param cert certificate
+   * @return ID
+   * @throws IOException on fail*/
+  public static HashID getFromAuthorityKeyId(final X509Certificate cert)
       throws IOException {
-    final byte hash[] = CertTools.getAuthorityKeyId(cert);
+    final byte[] hash = CertTools.getAuthorityKeyId(cert);
     if (hash == null) {
       return null;
     }
     final HashID id = new HashID(CertTools.getAuthorityKeyId(cert));
     if (!id.isOK) {
-      log.error(
+      LOG.error(
           "The certificate with subject DN '"
               + cert.getSubjectX500Principal().getName()
               + "' don't have a valid AuthorityKeyId: "
@@ -180,14 +189,17 @@ public class HashID {
     return id;
   }
 
+  /** @return base64 encoded URI */
   public String getB64url() {
     return b64url;
   }
 
+  /** @return key. */
   public Integer getKey() {
     return key;
   }
 
+  /** @return base64 encoded. */
   public String getB64() {
     return b64;
   }

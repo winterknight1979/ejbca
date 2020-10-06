@@ -26,13 +26,21 @@ import java.security.cert.Certificate;
 public class CertificateStatusHolder implements Serializable {
 
   private static final long serialVersionUID = -2881054831054645112L;
+  /** Certificate. */
   private final Certificate certificate;
+  /** Status. */
   private final CertificateStatus certificateStatus;
 
+  /** Constructor.
+   *
+   * @param cert Cert
+   * @param status Status
+   */
   public CertificateStatusHolder(
-      Certificate certificate, CertificateStatus certificateStatus) {
-    this.certificate = certificate;
-    this.certificateStatus = certificateStatus;
+      final Certificate cert,
+      final CertificateStatus status) {
+    this.certificate = cert;
+    this.certificateStatus = status;
   }
 
   /** @return the sought certificate. May be null if status was unknown. */
@@ -40,6 +48,7 @@ public class CertificateStatusHolder implements Serializable {
     return certificate;
   }
 
+  /** @return Status. */
   public CertificateStatus getCertificateStatus() {
     return certificateStatus;
   }

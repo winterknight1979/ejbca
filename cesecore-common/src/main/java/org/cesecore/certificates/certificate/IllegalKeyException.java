@@ -24,7 +24,12 @@ public class IllegalKeyException extends CesecoreException {
 
   private static final long serialVersionUID = -3144774253953346584L;
 
-  public IllegalKeyException(String message, Throwable cause) {
+  /** Exception with message and cause.
+   *
+   * @param message Message.
+   * @param cause Cause.
+   */
+  public IllegalKeyException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
@@ -34,7 +39,7 @@ public class IllegalKeyException extends CesecoreException {
    *
    * @param message Human redable error message, can not be NULL.
    */
-  public IllegalKeyException(String message) {
+  public IllegalKeyException(final String message) {
     super(message);
   }
   /**
@@ -43,7 +48,7 @@ public class IllegalKeyException extends CesecoreException {
    *
    * @param e the detail message.
    */
-  public IllegalKeyException(Exception e) {
+  public IllegalKeyException(final Exception e) {
     super(e);
   }
 }

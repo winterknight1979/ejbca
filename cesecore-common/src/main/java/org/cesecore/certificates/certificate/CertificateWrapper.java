@@ -29,5 +29,6 @@ import java.security.cert.Certificate;
  */
 public interface CertificateWrapper extends Serializable {
 
+    /** @return certificate */
   Certificate getCertificate();
 }

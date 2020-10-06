@@ -218,7 +218,7 @@ public class CAInterfaceBean implements Serializable {
         for (final Certificate certificate : signsession.getCertificateChain(caid)) {
             RevokedInfoView revokedinfo = null;
             CertificateStatus revinfo = certificatesession.getStatus(CertTools.getIssuerDN(certificate), CertTools.getSerialNumber(certificate));
-            if (revinfo != null && revinfo.revocationReason != RevokedCertInfo.NOT_REVOKED) {
+            if (revinfo != null && revinfo.getRevocationReason() != RevokedCertInfo.NOT_REVOKED) {
                 revokedinfo = new RevokedInfoView(revinfo, CertTools.getSerialNumber(certificate));
             }
             ret.add(new CertificateView(certificate, revokedinfo));

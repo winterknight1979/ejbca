@@ -332,7 +332,7 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
                             if (caCertificateStatus.equals(CertificateStatus.REVOKED)) {
                                 log.warn("Active CA with subject DN '" + CertTools.getSubjectDN(caCertificate) + "' and serial number "
                                         + CertTools.getSerialNumber(caCertificate) + " has a revoked certificate with reason "
-                                        + caCertificateStatus.revocationReason + ".");
+                                        + caCertificateStatus.getRevocationReason() + ".");
                             }
                             //Check if CA cert is expired
                             if (!CertTools.isCertificateValid(caCertificate, true)) {
@@ -356,7 +356,7 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
                         if (caCertificateStatus.equals(CertificateStatus.REVOKED)) {
                             log.info("External CA with subject DN '" + CertTools.getSubjectDN(caCertificateChain.get(0)) + "' and serial number "
                                     + CertTools.getSerialNumber(caCertificateChain.get(0)) + " has a revoked certificate with reason "
-                                    + caCertificateStatus.revocationReason + ".");
+                                    + caCertificateStatus.getRevocationReason() + ".");
                         }
                         //Check if CA cert is expired
                         if (!CertTools.isCertificateValid(caCertificateChain.get(0), false)) {
@@ -479,25 +479,25 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
         final CertificateStatus certificateStatus = certificateStoreSession.getStatus(issuerDn, serialNumber);
         if (certificateStatus.isRevoked()) {
             final String subjectDn = CertTools.getSubjectDN(caCertificate);
-            if (certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED ||
-                    certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE ||
-                    certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE ||
-                    certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE) {
+            if (certificateStatus.getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED ||
+                    certificateStatus.getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE ||
+                    certificateStatus.getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE ||
+                    certificateStatus.getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE) {
                 final String msg = "CA certificate Subject DN '" + subjectDn + "', Issuer DN '" + issuerDn + "' and serial number " +
                     serialNumber.toString() + " (0x" + serialNumber.toString(16) +
-                    ") is revoked with reason code " +certificateStatus.revocationReason + ". " +
+                    ") is revoked with reason code " +certificateStatus.getRevocationReason() + ". " +
                     "The cACompromise revocation reason will be used for all certs issued by this CA.";
                 if (suppressInfo) {
                     log.debug(msg);
                 } else {
                     log.info(msg);
                 }
-                return new CertificateStatus(certificateStatus.toString(), certificateStatus.revocationDate.getTime(),
-                        RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE, certificateStatus.certificateProfileId);
+                return new CertificateStatus(certificateStatus.toString(), certificateStatus.getRevocationDate().getTime(),
+                        RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE, certificateStatus.getCertificateProfileId());
             }
             final String msg = "CA certificate Subject DN '" + subjectDn + "', Issuer DN '" + issuerDn + "' and serial number " +
                 serialNumber.toString() + " (0x" + serialNumber.toString(16) +
-                ") is revoked with reason code " +certificateStatus.revocationReason + ". " +
+                ") is revoked with reason code " +certificateStatus.getRevocationReason() + ". " +
                 "Status of individual leaf certificate will still be checked.";
             if (suppressInfo) {
                 log.debug(msg);
@@ -1230,14 +1230,14 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
                      * state for all certificates issued by that CA.
                      */
                     // If we've ended up here it's because the signer issuer certificate was revoked. 
-                    certStatus = new RevokedStatus(new RevokedInfo(new ASN1GeneralizedTime(signerIssuerCertStatus.revocationDate),
-                            CRLReason.lookup(signerIssuerCertStatus.revocationReason)));
+                    certStatus = new RevokedStatus(new RevokedInfo(new ASN1GeneralizedTime(signerIssuerCertStatus.getRevocationDate()),
+                            CRLReason.lookup(signerIssuerCertStatus.getRevocationReason())));
                     log.info(intres.getLocalizedMessage("ocsp.signcertissuerrevoked", CertTools.getSerialNumberAsString(caCertificate),
                             CertTools.getSubjectDN(caCertificate)));
                     respItem = new OCSPResponseItem(certId, certStatus, nextUpdate);
                     if (transactionLogger.isEnabled()) {
                         transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_REVOKED);
-                        transactionLogger.paramPut(TransactionLogger.REV_REASON, signerIssuerCertStatus.revocationReason);
+                        transactionLogger.paramPut(TransactionLogger.REV_REASON, signerIssuerCertStatus.getRevocationReason());
                         transactionLogger.writeln();
                     }
                 } else {
@@ -1254,25 +1254,25 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
                         status = certificateStatusHolder.getCertificateStatus();
                     }
                     if (transactionLogger.isEnabled()) {
-                        transactionLogger.paramPut(TransactionLogger.CERT_PROFILE_ID, String.valueOf(status.certificateProfileId));
+                        transactionLogger.paramPut(TransactionLogger.CERT_PROFILE_ID, String.valueOf(status.getCertificateProfileId()));
                     }
                     // If we have an OcspKeyBinding configured for this request, we override the default value
                     if (ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {
                         nextUpdate = ocspSigningCacheEntry.getOcspKeyBinding().getUntilNextUpdate()*1000L;
                     }
                     // If we have an explicit value configured for this certificate profile, we override the the current value with this value
-                    if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
-                            OcspConfiguration.isUntilNextUpdateConfigured(status.certificateProfileId)) {
-                        nextUpdate = OcspConfiguration.getUntilNextUpdate(status.certificateProfileId);
+                    if (status.getCertificateProfileId() != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
+                            OcspConfiguration.isUntilNextUpdateConfigured(status.getCertificateProfileId())) {
+                        nextUpdate = OcspConfiguration.getUntilNextUpdate(status.getCertificateProfileId());
                     }
                     // If we have an OcspKeyBinding configured for this request, we override the default value
                     if (ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {
                         maxAge = ocspSigningCacheEntry.getOcspKeyBinding().getMaxAge()*1000L;
                     }
                     // If we have an explicit value configured for this certificate profile, we override the the current value with this value
-                    if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
-                            OcspConfiguration.isMaxAgeConfigured(status.certificateProfileId)) {
-                        maxAge = OcspConfiguration.getMaxAge(status.certificateProfileId);
+                    if (status.getCertificateProfileId() != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
+                            OcspConfiguration.isMaxAgeConfigured(status.getCertificateProfileId())) {
+                        maxAge = OcspConfiguration.getMaxAge(status.getCertificateProfileId());
                     }
 
                     final String sStatus;
@@ -1331,21 +1331,21 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
                     } else if (status.equals(CertificateStatus.REVOKED)) {
                         // Revocation info available for this cert, handle it
                         sStatus = "revoked";
-                        certStatus = new RevokedStatus(new RevokedInfo(new ASN1GeneralizedTime(status.revocationDate),
-                                CRLReason.lookup(status.revocationReason)));
+                        certStatus = new RevokedStatus(new RevokedInfo(new ASN1GeneralizedTime(status.getRevocationDate()),
+                                CRLReason.lookup(status.getRevocationReason())));
                         if (transactionLogger.isEnabled()) {
                             transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_REVOKED);
-                            transactionLogger.paramPut(TransactionLogger.REV_REASON, status.revocationReason);
+                            transactionLogger.paramPut(TransactionLogger.REV_REASON, status.getRevocationReason());
                         }
                         // If we have an explicit value configured for this certificate profile, we override the the current value with this value
-                        if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
-                                OcspConfiguration.isRevokedUntilNextUpdateConfigured(status.certificateProfileId)) {
-                            nextUpdate = OcspConfiguration.getRevokedUntilNextUpdate(status.certificateProfileId);
+                        if (status.getCertificateProfileId() != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
+                                OcspConfiguration.isRevokedUntilNextUpdateConfigured(status.getCertificateProfileId())) {
+                            nextUpdate = OcspConfiguration.getRevokedUntilNextUpdate(status.getCertificateProfileId());
                         }
                         // If we have an explicit value configured for this certificate profile, we override the the current value with this value
-                        if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
-                                OcspConfiguration.isRevokedMaxAgeConfigured(status.certificateProfileId)) {
-                            maxAge = OcspConfiguration.getRevokedMaxAge(status.certificateProfileId);
+                        if (status.getCertificateProfileId() != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &&
+                                OcspConfiguration.isRevokedMaxAgeConfigured(status.getCertificateProfileId())) {
+                            maxAge = OcspConfiguration.getRevokedMaxAge(status.getCertificateProfileId());
                         }
                     } else {
                         sStatus = "good";
@@ -1357,7 +1357,7 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
                     }
                     if (log.isDebugEnabled()) {
                         log.debug("Set nextUpdate=" + nextUpdate + ", and maxAge=" + maxAge + " for certificateProfileId="
-                                + status.certificateProfileId);
+                                + status.getCertificateProfileId());
                     }
                     log.info(intres.getLocalizedMessage("ocsp.infoaddedstatusinfo", sStatus, certId.getSerialNumber().toString(16), caCertificateSubjectDn));
                     respItem = new OCSPResponseItem(certId, certStatus, nextUpdate);

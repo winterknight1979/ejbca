@@ -45,50 +45,52 @@ public class CertificateCreateException extends CesecoreException {
    * @see CertificateCreateException
    * @param msg the detail message.
    */
-  public CertificateCreateException(String msg) {
+  public CertificateCreateException(final String msg) {
     super(msg);
   }
 
   /**
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CertificateCreateException
    * @param e causing exception that will be wrapped
    */
-  public CertificateCreateException(Exception e) {
+  public CertificateCreateException(final Exception e) {
     super(e);
   }
 
   /**
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CertificateCreateException
    * @param errorCode defines the cause of the exception.
    * @param e causing exception that will be wrapped
    */
-  public CertificateCreateException(ErrorCode errorCode, Exception e) {
+  public CertificateCreateException(
+          final ErrorCode errorCode, final Exception e) {
     super(errorCode, e);
   }
 
   /**
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CertificateCreateException
    * @param e causing exception that will be wrapped
    * @param msg the detail message.
    */
-  public CertificateCreateException(String msg, Exception e) {
+  public CertificateCreateException(final String msg, final Exception e) {
     super(msg, e);
   }
 
   /**
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CertificateCreateException
    * @param errorCode defines the cause of the exception.
    * @param msg Human readable error message, can not be NULL.
    */
-  public CertificateCreateException(ErrorCode errorCode, String msg) {
+  public CertificateCreateException(
+          final  ErrorCode errorCode, final String msg) {
     super(errorCode, msg);
   }
 }

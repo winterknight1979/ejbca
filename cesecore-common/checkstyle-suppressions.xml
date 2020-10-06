@@ -25,4 +25,6 @@
 	<suppress checks="ParameterNumberCheck" files="X509CAInfo.java" lines="101,244,437"/>
  	<suppress checks="MagicNumberCheck" files="AvailableCustomCertificateExtensionsConfiguration.java" lines="229"/>	<!-- Method is deprecated -->
  	<suppress checks="MagicNumberCheck" files="NameConstraint.java" lines="315,222,218"/> <!--  7 here is just 8 - 1 -->	
+	<suppress checks="ParameterNumberCheck" files="CertificateInfo.java" lines="84"/>
+ 	<suppress checks="UnusedImportsCheck" files="CertificateStatus.java" lines="19"/> <!-- Used in Jdoc. -->
  </suppressions>

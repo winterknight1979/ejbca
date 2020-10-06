@@ -19,7 +19,8 @@ package org.cesecore.certificates.certificate;
  * type:
  *
  * <pre>
- * if (((type &amp; USER_ENDUSER) == USER_ENDUSER) &amp;&amp; ((type &amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
+ * if (((type &amp; USER_ENDUSER) == USER_ENDUSER) &amp;&amp;
+ *     ((type &amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
  *    ...
  * </pre>
  *
@@ -37,19 +38,19 @@ package org.cesecore.certificates.certificate;
  */
 public final class CertificateConstants {
 
-  /** Prevents creation of new class */
-  private CertificateConstants() {}
+  /** Prevents creation of new class. */
+  private CertificateConstants() { }
 
   // Certificate status representations
-  /** Certificate doesn't belong to anyone */
+  /** Certificate doesn't belong to anyone. */
   public static final int CERT_UNASSIGNED = 0;
-  /** Assigned, but not yet active */
+  /** Assigned, but not yet active. */
   public static final int CERT_INACTIVE = 10;
   /**
-   * Certificate is a new CA certificate which will become valid in the future
+   * Certificate is a new CA certificate which will become valid in the future.
    */
   public static final int CERT_ROLLOVERPENDING = 11;
-  /** Certificate is active and assigned */
+  /** Certificate is active and assigned. */
   public static final int CERT_ACTIVE = 20;
   /**
    * Certificate is still active and the user is notified that it will soon
@@ -59,12 +60,12 @@ public final class CertificateConstants {
   // there was previously a status 30, CERT_TEMP_REVOKED here as well, but it
   // was not used so
   // it was removed to avoid misunderstandings.
-  /** Certificate is blocked (can be permanently or temporarily) */
+  /** Certificate is blocked (can be permanently or temporarily). */
   public static final int CERT_REVOKED = 40;
   // there was previously a status 50, EXPIRED here as well, but it was not used
   // so
   // it was removed to avoid misunderstandings.
-  /** Certificate is expired and kept for archive purpose */
+  /** Certificate is expired and kept for archive purpose. */
   public static final int CERT_ARCHIVED = 60;
 
   // Constants used in certificate generation and publication.
@@ -88,28 +89,44 @@ public final class CertificateConstants {
   public static final int CERT_TYPE_ENCSIGN = 0x3;
 
   // Certificate request types
+  /** PKCS#10. */
   public static final int CERT_REQ_TYPE_PKCS10 = 0;
+  /** CMRF. */
   public static final int CERT_REQ_TYPE_CRMF = 1;
+  /** SPKAC. */
   public static final int CERT_REQ_TYPE_SPKAC = 2;
+  /** Public key. */
   public static final int CERT_REQ_TYPE_PUBLICKEY = 3;
+  /** CVC. */
   public static final int CERT_REQ_TYPE_CVC = 4;
 
   // Certificate response types
+  /** Single non-PKCS cert. */
   public static final int CERT_RES_TYPE_CERTIFICATE = 0;
+  /** PKCS#7 single cert. */
   public static final int CERT_RES_TYPE_PKCS7 = 1;
+  /** PKCS#7 Chain. */
   public static final int CERT_RES_TYPE_PKCS7WITHCHAIN = 2;
 
-  /** KeyUsage constants */
+  /* KeyUsage constants */
+  /** Signature. */
   public static final int DIGITALSIGNATURE = 0;
-
+  /** Nonrepudiation. */
   public static final int NONREPUDIATION = 1;
+  /** Incrypt keys. */
   public static final int KEYENCIPHERMENT = 2;
+  /** Encrypt data. */
   public static final int DATAENCIPHERMENT = 3;
+  /** Key agreement. */
   public static final int KEYAGREEMENT = 4;
+  /** Sign certificates. */
   public static final int KEYCERTSIGN = 5;
+  /** Sign CRLs. */
   public static final int CRLSIGN = 6;
+  /** Only encrypt. */
   public static final int ENCIPHERONLY = 7;
+  /** Only decrypt. */
   public static final int DECIPHERONLY = 8;
-
+  /** Boundary. */
   public static final int HIGN_REASON_BOUNDRARY = 11;
 }
