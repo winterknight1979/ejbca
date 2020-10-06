@@ -38,28 +38,51 @@ import org.cesecore.util.StringTools;
 public class X509CAInfo extends CAInfo {
 
   private static final long serialVersionUID = 2L;
+  /** Policies. */
   private List<CertificatePolicy> policies;
+  /** ID. */
   private boolean useauthoritykeyidentifier;
+  /** Key. */
   private boolean authoritykeyidentifiercritical;
+  /** CRL. */
   private boolean usecrlnumber;
+  /** Critical. */
   private boolean crlnumbercritical;
+  /** Dist. */
   private String defaultcrldistpoint;
+  /** Issuer. */
   private String defaultcrlissuer;
+  /** Locator. */
   private String defaultocsplocator;
+  /** CRL. */
   private String cadefinedfreshestcrl;
+  /** Name. */
   private String subjectaltname;
+  /** UTF. */
   private boolean useUTF8PolicyText;
+  /** Printable. */
   private boolean usePrintableStringSubjectDN;
+  /** LDAP. */
   private boolean useLdapDNOrder;
+  /** Dist. */
   private boolean useCrlDistributionPointOnCrl;
+  /** Critical. */
   private boolean crlDistributionPointOnCrlCritical;
+  /** Secret. */
   private String cmpRaAuthSecret = "";
+  /** Access. */
   private List<String> authorityInformationAccess;
+  /** URIs. */
   private List<String> certificateAiaDefaultCaIssuerUri;
+  /** Constraints. */
   private List<String> nameConstraintsPermitted;
+  /** Constraints. */
   private List<String> nameConstraintsExcluded;
+  /** CDP. */
   private String externalCdp;
+  /** Changed. */
   private boolean nameChanged;
+  /** SN size. */
   private int caSerialNumberOctetSize;
 
   /**
@@ -81,7 +104,7 @@ public class X509CAInfo extends CAInfo {
       final int status,
       final int certificateProfileId,
       final String encodedValidity,
-      int signedby,
+      final int signedby,
       final Collection<Certificate> certificatechain,
       final CAToken catoken) {
     this(
@@ -154,7 +177,7 @@ public class X509CAInfo extends CAInfo {
    *     {@link CAConstants}
    * @param updateTime the last time this CA was updated, normally the current
    *     date and time
-   * @param subjectaltname the Subject Alternative Name (SAN) of the CA, as
+   * @param asubjectaltname the Subject Alternative Name (SAN) of the CA, as
    *     found in the certificate
    * @param certificateprofileid the ID of the certificate profile for this CA
    * @param defaultCertprofileId the id of default cetificate profile for
@@ -171,11 +194,11 @@ public class X509CAInfo extends CAInfo {
    * @param catoken the CA token for this CA, containing e.g. a reference to the
    *     crypto token
    * @param description a text describing this CA
-   * @param caSerialNumberOctetSize serial number octet size for this CA
+   * @param acaSerialNumberOctetSize serial number octet size for this CA
    * @param revocationReason the reason why this CA was revoked, or -1 if not
    *     revoked
    * @param revocationDate the date of revocation, or null if not revoked
-   * @param policies a policy OID
+   * @param apolicies a policy OID
    * @param crlperiod the CRL validity period in ms
    * @param crlIssueInterval how often in ms the CRLs should be distributed,
    *     e.g. 3600000 will generate a new CRL every hour
@@ -184,38 +207,38 @@ public class X509CAInfo extends CAInfo {
    * @param deltacrlperiod how often Delta CRLs should be distributed
    * @param crlpublishers a collection of publisher IDs for this CA
    * @param keyValidators a collection of key validator IDs for this CA
-   * @param useauthoritykeyidentifier bool
-   * @param authoritykeyidentifiercritical bool
-   * @param usecrlnumber bool
-   * @param crlnumbercritical bool
-   * @param defaultcrldistpoint the URI of the default CRL distribution point
-   * @param defaultcrlissuer Issuer
+   * @param auseauthoritykeyidentifier bool
+   * @param aauthoritykeyidentifiercritical bool
+   * @param ausecrlnumber bool
+   * @param acrlnumbercritical bool
+   * @param adefaultcrldistpoint the URI of the default CRL distribution point
+   * @param adefaultcrlissuer Issuer
    * @param defaultocspservicelocator Locator
-   * @param authorityInformationAccess Acces
-   * @param certificateAiaDefaultCaIssuerUri Issuer URI
-   * @param nameConstraintsPermitted a list of name constraints which should be
+   * @param aauthorityInformationAccess Acces
+   * @param acertificateAiaDefaultCaIssuerUri Issuer URI
+   * @param anameConstraintsPermitted a list of name constraints which should be
    *     permitted
-   * @param nameConstraintsExcluded a list of name constraints which should be
+   * @param anameConstraintsExcluded a list of name constraints which should be
    *     excluded
-   * @param cadefinedfreshestcrl CRL
+   * @param acadefinedfreshestcrl CRL
    * @param finishuser bool
    * @param extendedcaserviceinfos bool
-   * @param useUTF8PolicyText bool
+   * @param auseUTF8PolicyText bool
    * @param approvals a map of approval profiles which should be used for
    *     different operations
-   * @param usePrintableStringSubjectDN bool
-   * @param useLdapDnOrder biik
-   * @param useCrlDistributionPointOnCrl bool
-   * @param crlDistributionPointOnCrlCritical bool
+   * @param ausePrintableStringSubjectDN bool
+   * @param auseLdapDnOrder biik
+   * @param auseCrlDistributionPointOnCrl bool
+   * @param acrlDistributionPointOnCrlCritical bool
    * @param includeInHealthCheck enable healthcheck for this CA
-   * @param _doEnforceUniquePublicKeys bool
-   * @param _doEnforceUniqueDistinguishedName bool
-   * @param _doEnforceUniqueSubjectDNSerialnumber bool
-   * @param _useCertReqHistory bool
-   * @param _useUserStorage bool
-   * @param _useCertificateStorage bool
-   * @param _acceptRevocationNonExistingEntry bool
-   * @param _cmpRaAuthSecret bool
+   * @param adoEnforceUniquePublicKeys bool
+   * @param adoEnforceUniqueDistinguishedName bool
+   * @param adoEnforceUniqueSubjectDNSerialnumber bool
+   * @param auseCertReqHistory bool
+   * @param auseUserStorage bool
+   * @param auseCertificateStorage bool
+   * @param aacceptRevocationNonExistingEntry bool
+   * @param acmpRaAuthSecret bool
    * @param keepExpiredCertsOnCRL bool
    */
   private X509CAInfo(
@@ -223,7 +246,7 @@ public class X509CAInfo extends CAInfo {
       final String name,
       final int status,
       final Date updateTime,
-      final String subjectaltname,
+      final String asubjectaltname,
       final int certificateprofileid,
       final int defaultCertprofileId,
       final boolean useNoConflictCertificateData,
@@ -234,45 +257,45 @@ public class X509CAInfo extends CAInfo {
       final Collection<Certificate> certificatechain,
       final CAToken catoken,
       final String description,
-      final int caSerialNumberOctetSize,
+      final int acaSerialNumberOctetSize,
       final int revocationReason,
       final Date revocationDate,
-      final List<CertificatePolicy> policies,
+      final List<CertificatePolicy> apolicies,
       final long crlperiod,
       final long crlIssueInterval,
       final long crlOverlapTime,
       final long deltacrlperiod,
       final Collection<Integer> crlpublishers,
       final Collection<Integer> keyValidators,
-      final boolean useauthoritykeyidentifier,
-      final boolean authoritykeyidentifiercritical,
-      final boolean usecrlnumber,
-      final boolean crlnumbercritical,
-      final String defaultcrldistpoint,
-      final String defaultcrlissuer,
+      final boolean auseauthoritykeyidentifier,
+      final boolean aauthoritykeyidentifiercritical,
+      final boolean ausecrlnumber,
+      final boolean acrlnumbercritical,
+      final String adefaultcrldistpoint,
+      final String adefaultcrlissuer,
       final String defaultocspservicelocator,
-      final List<String> authorityInformationAccess,
-      final List<String> certificateAiaDefaultCaIssuerUri,
-      final List<String> nameConstraintsPermitted,
-      final List<String> nameConstraintsExcluded,
-      final String cadefinedfreshestcrl,
+      final List<String> aauthorityInformationAccess,
+      final List<String> acertificateAiaDefaultCaIssuerUri,
+      final List<String> anameConstraintsPermitted,
+      final List<String> anameConstraintsExcluded,
+      final String acadefinedfreshestcrl,
       final boolean finishuser,
       final Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
-      final boolean useUTF8PolicyText,
+      final boolean auseUTF8PolicyText,
       final Map<ApprovalRequestType, Integer> approvals,
-      final boolean usePrintableStringSubjectDN,
-      final boolean useLdapDnOrder,
-      final boolean useCrlDistributionPointOnCrl,
-      final boolean crlDistributionPointOnCrlCritical,
+      final boolean ausePrintableStringSubjectDN,
+      final boolean auseLdapDnOrder,
+      final boolean auseCrlDistributionPointOnCrl,
+      final boolean acrlDistributionPointOnCrlCritical,
       final boolean includeInHealthCheck,
-      final boolean _doEnforceUniquePublicKeys,
-      final boolean _doEnforceUniqueDistinguishedName,
-      final boolean _doEnforceUniqueSubjectDNSerialnumber,
-      final boolean _useCertReqHistory,
-      final boolean _useUserStorage,
-      final boolean _useCertificateStorage,
-      final boolean _acceptRevocationNonExistingEntry,
-      final String _cmpRaAuthSecret,
+      final boolean adoEnforceUniquePublicKeys,
+      final boolean adoEnforceUniqueDistinguishedName,
+      final boolean adoEnforceUniqueSubjectDNSerialnumber,
+      final boolean auseCertReqHistory,
+      final boolean auseUserStorage,
+      final boolean auseCertificateStorage,
+      final boolean aacceptRevocationNonExistingEntry,
+      final String acmpRaAuthSecret,
       final boolean keepExpiredCertsOnCRL) {
     this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));
     this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();
@@ -309,49 +332,49 @@ public class X509CAInfo extends CAInfo {
     this.description = description;
     setRevocationReason(revocationReason);
     this.revocationDate = revocationDate;
-    this.policies = policies;
+    this.policies = apolicies;
     this.crlperiod = crlperiod;
     this.crlIssueInterval = crlIssueInterval;
     this.crlOverlapTime = crlOverlapTime;
     this.deltacrlperiod = deltacrlperiod;
     this.crlpublishers = crlpublishers;
     this.validators = keyValidators;
-    this.useauthoritykeyidentifier = useauthoritykeyidentifier;
-    this.authoritykeyidentifiercritical = authoritykeyidentifiercritical;
-    this.usecrlnumber = usecrlnumber;
-    this.crlnumbercritical = crlnumbercritical;
-    this.defaultcrldistpoint = defaultcrldistpoint;
-    this.defaultcrlissuer = defaultcrlissuer;
+    this.useauthoritykeyidentifier = auseauthoritykeyidentifier;
+    this.authoritykeyidentifiercritical = aauthoritykeyidentifiercritical;
+    this.usecrlnumber = ausecrlnumber;
+    this.crlnumbercritical = acrlnumbercritical;
+    this.defaultcrldistpoint = adefaultcrldistpoint;
+    this.defaultcrlissuer = adefaultcrlissuer;
     this.defaultocsplocator = defaultocspservicelocator;
-    this.cadefinedfreshestcrl = cadefinedfreshestcrl;
+    this.cadefinedfreshestcrl = acadefinedfreshestcrl;
     this.finishuser = finishuser;
-    this.subjectaltname = subjectaltname;
+    this.subjectaltname = asubjectaltname;
     this.certificateprofileid = certificateprofileid;
     this.defaultCertificateProfileId = defaultCertprofileId;
     this.extendedcaserviceinfos = extendedcaserviceinfos;
-    this.useUTF8PolicyText = useUTF8PolicyText;
+    this.useUTF8PolicyText = auseUTF8PolicyText;
     setApprovals(approvals);
-    this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;
-    this.useLdapDNOrder = useLdapDnOrder;
-    this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;
-    this.crlDistributionPointOnCrlCritical = crlDistributionPointOnCrlCritical;
+    this.usePrintableStringSubjectDN = ausePrintableStringSubjectDN;
+    this.useLdapDNOrder = auseLdapDnOrder;
+    this.useCrlDistributionPointOnCrl = auseCrlDistributionPointOnCrl;
+    this.crlDistributionPointOnCrlCritical = acrlDistributionPointOnCrlCritical;
     this.includeInHealthCheck = includeInHealthCheck;
-    this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
-    this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
+    this.doEnforceUniquePublicKeys = adoEnforceUniquePublicKeys;
+    this.doEnforceUniqueDistinguishedName = adoEnforceUniqueDistinguishedName;
     this.doEnforceUniqueSubjectDNSerialnumber =
-        _doEnforceUniqueSubjectDNSerialnumber;
-    this.useCertReqHistory = _useCertReqHistory;
-    this.useUserStorage = _useUserStorage;
-    this.useCertificateStorage = _useCertificateStorage;
-    this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;
-    setCmpRaAuthSecret(_cmpRaAuthSecret);
+        adoEnforceUniqueSubjectDNSerialnumber;
+    this.useCertReqHistory = auseCertReqHistory;
+    this.useUserStorage = auseUserStorage;
+    this.useCertificateStorage = auseCertificateStorage;
+    this.acceptRevocationNonExistingEntry = aacceptRevocationNonExistingEntry;
+    setCmpRaAuthSecret(acmpRaAuthSecret);
     this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;
-    this.authorityInformationAccess = authorityInformationAccess;
-    this.certificateAiaDefaultCaIssuerUri = certificateAiaDefaultCaIssuerUri;
-    this.nameConstraintsPermitted = nameConstraintsPermitted;
-    this.nameConstraintsExcluded = nameConstraintsExcluded;
+    this.authorityInformationAccess = aauthorityInformationAccess;
+    this.certificateAiaDefaultCaIssuerUri = acertificateAiaDefaultCaIssuerUri;
+    this.nameConstraintsPermitted = anameConstraintsPermitted;
+    this.nameConstraintsExcluded = anameConstraintsExcluded;
     this.useNoConflictCertificateData = useNoConflictCertificateData;
-    this.caSerialNumberOctetSize = caSerialNumberOctetSize;
+    this.caSerialNumberOctetSize = acaSerialNumberOctetSize;
   }
 
   /**
@@ -368,7 +391,7 @@ public class X509CAInfo extends CAInfo {
    * @param catoken the CA token for this CA, containing e.g. a reference to the
    *     crypto token
    * @param description a text describing this CA
-   * @param caSerialNumberOctetSize serial number octet size for this CA
+   * @param acaSerialNumberOctetSize serial number octet size for this CA
    * @param crlperiod the CRL validity period in ms
    * @param crlIssueInterval how often in ms the CRLs should be distributed,
    *     e.g. 3600000 will generate a new CRL every hour
@@ -377,38 +400,38 @@ public class X509CAInfo extends CAInfo {
    * @param deltacrlperiod how often Delta CRLs should be distributed
    * @param crlpublishers a collection of publisher IDs for this CA
    * @param keyValidators a collection of key validator IDs for this CA
-   * @param useauthoritykeyidentifier bool
-   * @param authoritykeyidentifiercritical bool
-   * @param usecrlnumber bool
-   * @param crlnumbercritical bool
-   * @param defaultcrldistpoint the URI of the default CRL distribution point
-   * @param defaultcrlissuer Issuer
+   * @param auseauthoritykeyidentifier bool
+   * @param aauthoritykeyidentifiercritical bool
+   * @param ausecrlnumber bool
+   * @param acrlnumbercritical bool
+   * @param adefaultcrldistpoint the URI of the default CRL distribution point
+   * @param adefaultcrlissuer Issuer
    * @param defaultocspservicelocator Locator
    * @param crlAuthorityInformationAccess Access info to CRLs
-   * @param certificateAiaDefaultCaIssuerUri Issuer URI
-   * @param nameConstraintsPermitted a list of name constraints which should be
+   * @param acertificateAiaDefaultCaIssuerUri Issuer URI
+   * @param anameConstraintsPermitted a list of name constraints which should be
    *     permitted
-   * @param nameConstraintsExcluded a list of name constraints which should be
+   * @param anameConstraintsExcluded a list of name constraints which should be
    *     excluded
-   * @param cadefinedfreshestcrl CRL
+   * @param acadefinedfreshestcrl CRL
    * @param finishuser bool
    * @param extendedcaserviceinfos bool
-   * @param useUTF8PolicyText bool
+   * @param auseUTF8PolicyText bool
    * @param approvals a map of approval profiles which should be used for
    *     different operations
-   * @param usePrintableStringSubjectDN bool
+   * @param ausePrintableStringSubjectDN bool
    * @param useLdapDnOrder biik
-   * @param useCrlDistributionPointOnCrl bool
-   * @param crlDistributionPointOnCrlCritical bool
+   * @param auseCrlDistributionPointOnCrl bool
+   * @param acrlDistributionPointOnCrlCritical bool
    * @param includeInHealthCheck enable healthcheck for this CA
-   * @param _doEnforceUniquePublicKeys bool
-   * @param _doEnforceUniqueDistinguishedName bool
-   * @param _doEnforceUniqueSubjectDNSerialnumber bool
-   * @param _useCertReqHistory bool
-   * @param _useUserStorage bool
-   * @param _useCertificateStorage bool
-   * @param _acceptRevocationNonExistingEntry bool
-   * @param _cmpRaAuthSecret bool
+   * @param adoEnforceUniquePublicKeys bool
+   * @param adoEnforceUniqueDistinguishedName bool
+   * @param adoEnforceUniqueSubjectDNSerialnumber bool
+   * @param auseCertReqHistory bool
+   * @param auseUserStorage bool
+   * @param auseCertificateStorage bool
+   * @param aacceptRevocationNonExistingEntry bool
+   * @param acmpRaAuthSecret bool
    * @param keepExpiredCertsOnCRL bool
    */
   public X509CAInfo(
@@ -416,42 +439,42 @@ public class X509CAInfo extends CAInfo {
       final String encodedValidity,
       final CAToken catoken,
       final String description,
-      final int caSerialNumberOctetSize,
+      final int acaSerialNumberOctetSize,
       final long crlperiod,
       final long crlIssueInterval,
       final long crlOverlapTime,
       final long deltacrlperiod,
       final Collection<Integer> crlpublishers,
       final Collection<Integer> keyValidators,
-      final boolean useauthoritykeyidentifier,
-      final boolean authoritykeyidentifiercritical,
-      final boolean usecrlnumber,
-      final boolean crlnumbercritical,
-      final String defaultcrldistpoint,
-      final String defaultcrlissuer,
+      final boolean auseauthoritykeyidentifier,
+      final boolean aauthoritykeyidentifiercritical,
+      final boolean ausecrlnumber,
+      final boolean acrlnumbercritical,
+      final String adefaultcrldistpoint,
+      final String adefaultcrlissuer,
       final String defaultocspservicelocator,
       final List<String> crlAuthorityInformationAccess,
-      final List<String> certificateAiaDefaultCaIssuerUri,
-      final List<String> nameConstraintsPermitted,
-      final List<String> nameConstraintsExcluded,
-      final String cadefinedfreshestcrl,
+      final List<String> acertificateAiaDefaultCaIssuerUri,
+      final List<String> anameConstraintsPermitted,
+      final List<String> anameConstraintsExcluded,
+      final String acadefinedfreshestcrl,
       final boolean finishuser,
       final Collection<ExtendedCAServiceInfo> extendedcaserviceinfos,
-      final boolean useUTF8PolicyText,
+      final boolean auseUTF8PolicyText,
       final Map<ApprovalRequestType, Integer> approvals,
-      final boolean usePrintableStringSubjectDN,
+      final boolean ausePrintableStringSubjectDN,
       final boolean useLdapDnOrder,
-      final boolean useCrlDistributionPointOnCrl,
-      final boolean crlDistributionPointOnCrlCritical,
+      final boolean auseCrlDistributionPointOnCrl,
+      final boolean acrlDistributionPointOnCrlCritical,
       final boolean includeInHealthCheck,
-      final boolean _doEnforceUniquePublicKeys,
-      final boolean _doEnforceUniqueDistinguishedName,
-      final boolean _doEnforceUniqueSubjectDNSerialnumber,
-      final boolean _useCertReqHistory,
-      final boolean _useUserStorage,
-      final boolean _useCertificateStorage,
-      final boolean _acceptRevocationNonExistingEntry,
-      final String _cmpRaAuthSecret,
+      final boolean adoEnforceUniquePublicKeys,
+      final boolean adoEnforceUniqueDistinguishedName,
+      final boolean adoEnforceUniqueSubjectDNSerialnumber,
+      final boolean auseCertReqHistory,
+      final boolean auseUserStorage,
+      final boolean auseCertificateStorage,
+      final boolean aacceptRevocationNonExistingEntry,
+      final String acmpRaAuthSecret,
       final boolean keepExpiredCertsOnCRL,
       final int defaultCertprofileId,
       final boolean useNoConflictCertificateData) {
@@ -459,185 +482,210 @@ public class X509CAInfo extends CAInfo {
     this.encodedValidity = encodedValidity;
     this.catoken = catoken;
     this.description = description;
-    this.caSerialNumberOctetSize = caSerialNumberOctetSize;
+    this.caSerialNumberOctetSize = acaSerialNumberOctetSize;
     this.crlperiod = crlperiod;
     this.crlIssueInterval = crlIssueInterval;
     this.crlOverlapTime = crlOverlapTime;
     this.deltacrlperiod = deltacrlperiod;
     this.crlpublishers = crlpublishers;
     this.validators = keyValidators;
-    this.useauthoritykeyidentifier = useauthoritykeyidentifier;
-    this.authoritykeyidentifiercritical = authoritykeyidentifiercritical;
-    this.usecrlnumber = usecrlnumber;
-    this.crlnumbercritical = crlnumbercritical;
-    this.defaultcrldistpoint = defaultcrldistpoint;
-    this.defaultcrlissuer = defaultcrlissuer;
+    this.useauthoritykeyidentifier = auseauthoritykeyidentifier;
+    this.authoritykeyidentifiercritical = aauthoritykeyidentifiercritical;
+    this.usecrlnumber = ausecrlnumber;
+    this.crlnumbercritical = acrlnumbercritical;
+    this.defaultcrldistpoint = adefaultcrldistpoint;
+    this.defaultcrlissuer = adefaultcrlissuer;
     this.defaultocsplocator = defaultocspservicelocator;
-    this.cadefinedfreshestcrl = cadefinedfreshestcrl;
+    this.cadefinedfreshestcrl = acadefinedfreshestcrl;
     this.finishuser = finishuser;
     this.extendedcaserviceinfos = extendedcaserviceinfos;
-    this.useUTF8PolicyText = useUTF8PolicyText;
+    this.useUTF8PolicyText = auseUTF8PolicyText;
     setApprovals(approvals);
-    this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;
+    this.usePrintableStringSubjectDN = ausePrintableStringSubjectDN;
     this.useLdapDNOrder = useLdapDnOrder;
-    this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;
-    this.crlDistributionPointOnCrlCritical = crlDistributionPointOnCrlCritical;
+    this.useCrlDistributionPointOnCrl = auseCrlDistributionPointOnCrl;
+    this.crlDistributionPointOnCrlCritical = acrlDistributionPointOnCrlCritical;
     this.includeInHealthCheck = includeInHealthCheck;
-    this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;
-    this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;
+    this.doEnforceUniquePublicKeys = adoEnforceUniquePublicKeys;
+    this.doEnforceUniqueDistinguishedName = adoEnforceUniqueDistinguishedName;
     this.doEnforceUniqueSubjectDNSerialnumber =
-        _doEnforceUniqueSubjectDNSerialnumber;
-    this.useCertReqHistory = _useCertReqHistory;
-    this.useUserStorage = _useUserStorage;
-    this.useCertificateStorage = _useCertificateStorage;
-    this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;
-    setCmpRaAuthSecret(_cmpRaAuthSecret);
+        adoEnforceUniqueSubjectDNSerialnumber;
+    this.useCertReqHistory = auseCertReqHistory;
+    this.useUserStorage = auseUserStorage;
+    this.useCertificateStorage = auseCertificateStorage;
+    this.acceptRevocationNonExistingEntry = aacceptRevocationNonExistingEntry;
+    setCmpRaAuthSecret(acmpRaAuthSecret);
     this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;
     this.authorityInformationAccess = crlAuthorityInformationAccess;
-    this.certificateAiaDefaultCaIssuerUri = certificateAiaDefaultCaIssuerUri;
-    this.nameConstraintsPermitted = nameConstraintsPermitted;
-    this.nameConstraintsExcluded = nameConstraintsExcluded;
+    this.certificateAiaDefaultCaIssuerUri = acertificateAiaDefaultCaIssuerUri;
+    this.nameConstraintsPermitted = anameConstraintsPermitted;
+    this.nameConstraintsExcluded = anameConstraintsExcluded;
     this.defaultCertificateProfileId = defaultCertprofileId;
     this.useNoConflictCertificateData = useNoConflictCertificateData;
   }
-
+  /** @return policies */
   public List<CertificatePolicy> getPolicies() {
     return this.policies;
   }
 
-  public void setPolicies(final List<CertificatePolicy> policies) {
-    this.policies = policies;
+  /** @param aPolicies policies  */
+  public void setPolicies(final List<CertificatePolicy> aPolicies) {
+    this.policies = aPolicies;
   }
 
+  /** @return boolean */
   public boolean getUseCRLNumber() {
     return usecrlnumber;
   }
-
-  public void setUseCRLNumber(boolean usecrlnumber) {
-    this.usecrlnumber = usecrlnumber;
+  /** @param aUsecrlnumber boolean  */
+  public void setUseCRLNumber(final boolean aUsecrlnumber) {
+    this.usecrlnumber = aUsecrlnumber;
   }
-
+  /** @return boolean */
   public boolean getCRLNumberCritical() {
     return crlnumbercritical;
   }
 
-  public void setCRLNumberCritical(boolean crlnumbercritical) {
-    this.crlnumbercritical = crlnumbercritical;
+  /** @param aCrlnumbercritical boolean */
+  public void setCRLNumberCritical(final boolean aCrlnumbercritical) {
+    this.crlnumbercritical = aCrlnumbercritical;
   }
 
+  /** @return boolean */
   public boolean getUseAuthorityKeyIdentifier() {
     return useauthoritykeyidentifier;
   }
-
-  public void setUseAuthorityKeyIdentifier(boolean useauthoritykeyidentifier) {
-    this.useauthoritykeyidentifier = useauthoritykeyidentifier;
+  /** @param aUseauthoritykeyidentifier boolean */
+  public void setUseAuthorityKeyIdentifier(
+          final boolean aUseauthoritykeyidentifier) {
+    this.useauthoritykeyidentifier = aUseauthoritykeyidentifier;
   }
-
+  /** @return boolean */
   public boolean getAuthorityKeyIdentifierCritical() {
     return authoritykeyidentifiercritical;
   }
-
+  /** @param aAuthoritykeyidentifiercritical boolean */
   public void setAuthorityKeyIdentifierCritical(
-      boolean authoritykeyidentifiercritical) {
-    this.authoritykeyidentifiercritical = authoritykeyidentifiercritical;
+      final boolean aAuthoritykeyidentifiercritical) {
+    this.authoritykeyidentifiercritical = aAuthoritykeyidentifiercritical;
   }
 
+  /** @return dist */
   public String getDefaultCRLDistPoint() {
     return defaultcrldistpoint;
   }
 
-  public void setDefaultCRLDistPoint(String defaultCRLDistPoint) {
-    this.defaultcrldistpoint = defaultCRLDistPoint;
+  /** @param aDefaultCRLDistPoint dist */
+  public void setDefaultCRLDistPoint(final String aDefaultCRLDistPoint) {
+    this.defaultcrldistpoint = aDefaultCRLDistPoint;
   }
 
+  /** @return issuer */
   public String getDefaultCRLIssuer() {
     return defaultcrlissuer;
   }
 
-  public void setDefaultCRLIssuer(String defaultcrlissuer) {
-    this.defaultcrlissuer = defaultcrlissuer;
+  /** @param aDefaultcrlissuer issuer */
+  public void setDefaultCRLIssuer(final String aDefaultcrlissuer) {
+    this.defaultcrlissuer = aDefaultcrlissuer;
   }
 
+  /** @return locator */
   public String getDefaultOCSPServiceLocator() {
     return defaultocsplocator;
   }
-
-  public void setDefaultOCSPServiceLocator(String defaultocsplocator) {
-    this.defaultocsplocator = defaultocsplocator;
+ /** @param aDefaultocsplocator locator */
+  public void setDefaultOCSPServiceLocator(final String aDefaultocsplocator) {
+    this.defaultocsplocator = aDefaultocsplocator;
   }
 
+  /** @return crl */
   public String getCADefinedFreshestCRL() {
     return this.cadefinedfreshestcrl;
   }
 
-  public void setCADefinedFreshestCRL(String cADefinedFreshestCRL) {
+  /**@param cADefinedFreshestCRL CRL */
+  public void setCADefinedFreshestCRL(final String cADefinedFreshestCRL) {
     this.cadefinedfreshestcrl = cADefinedFreshestCRL;
   }
 
+  /** @return name */
   public String getSubjectAltName() {
     return subjectaltname;
   }
 
-  public void setSubjectAltName(final String subjectaltname) {
-    this.subjectaltname = subjectaltname;
+  /** @param aSubjectaltname name */
+  public void setSubjectAltName(final String aSubjectaltname) {
+    this.subjectaltname = aSubjectaltname;
   }
 
+  /** @return boolean */
   public boolean getUseUTF8PolicyText() {
     return useUTF8PolicyText;
   }
-
-  public void setUseUTF8PolicyText(final boolean useUTF8PolicyText) {
-    this.useUTF8PolicyText = useUTF8PolicyText;
+  /** @param aUseUTF8PolicyText boolean */
+  public void setUseUTF8PolicyText(final boolean aUseUTF8PolicyText) {
+    this.useUTF8PolicyText = aUseUTF8PolicyText;
   }
-
+  /** @return boolean */
   public boolean getUsePrintableStringSubjectDN() {
     return usePrintableStringSubjectDN;
   }
 
+  /** @param aUsePrintableStringSubjectDN boolean  */
   public void setUsePrintableStringSubjectDN(
-      final boolean usePrintableStringSubjectDN) {
-    this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;
+      final boolean aUsePrintableStringSubjectDN) {
+    this.usePrintableStringSubjectDN = aUsePrintableStringSubjectDN;
   }
 
+  /** @return boolean */
   public boolean getUseLdapDnOrder() {
     return useLdapDNOrder;
   }
-
-  public void setUseLdapDnOrder(final boolean useLdapDNOrder) {
-    this.useLdapDNOrder = useLdapDNOrder;
+  /** @param aUseLdapDNOrder boolean */
+  public void setUseLdapDnOrder(final boolean aUseLdapDNOrder) {
+    this.useLdapDNOrder = aUseLdapDNOrder;
   }
 
+  /** @return boolean */
   public boolean getUseCrlDistributionPointOnCrl() {
     return this.useCrlDistributionPointOnCrl;
   }
 
+  /** @param aUseCrlDistributionPointOnCrl boolean */
   public void setUseCrlDistributionPointOnCrl(
-      boolean useCrlDistributionPointOnCrl) {
-    this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;
+      final boolean aUseCrlDistributionPointOnCrl) {
+    this.useCrlDistributionPointOnCrl = aUseCrlDistributionPointOnCrl;
   }
 
+  /** @return boolean */
   public boolean getCrlDistributionPointOnCrlCritical() {
     return this.crlDistributionPointOnCrlCritical;
   }
 
+  /** @param aCrlDistributionPointOnCrlCritical boolean */
   public void setCrlDistributionPointOnCrlCritical(
-      boolean crlDistributionPointOnCrlCritical) {
-    this.crlDistributionPointOnCrlCritical = crlDistributionPointOnCrlCritical;
+      final boolean aCrlDistributionPointOnCrlCritical) {
+    this.crlDistributionPointOnCrlCritical = aCrlDistributionPointOnCrlCritical;
   }
 
+  /** @return secret */
   public String getCmpRaAuthSecret() {
     return cmpRaAuthSecret;
   }
 
-  public void setCmpRaAuthSecret(String cmpRaAuthSecret) {
-    this.cmpRaAuthSecret = cmpRaAuthSecret == null ? "" : cmpRaAuthSecret;
+  /** @param aCmpRaAuthSecret cmpRaAuthSecret */
+  public void setCmpRaAuthSecret(final String aCmpRaAuthSecret) {
+    this.cmpRaAuthSecret = aCmpRaAuthSecret == null ? "" : aCmpRaAuthSecret;
   }
 
+  /** @return list */
   public List<String> getAuthorityInformationAccess() {
     return authorityInformationAccess;
   }
 
-  public void setAuthorityInformationAccess(List<String> list) {
+  /** @param list list */
+  public void setAuthorityInformationAccess(final List<String> list) {
     this.authorityInformationAccess = list;
   }
 
@@ -647,7 +695,7 @@ public class X509CAInfo extends CAInfo {
   }
 
   /** @param list the certificateAiaDefaultCaIssuerUri to set */
-  public void setCertificateAiaDefaultCaIssuerUri(List<String> list) {
+  public void setCertificateAiaDefaultCaIssuerUri(final List<String> list) {
     this.certificateAiaDefaultCaIssuerUri = list;
   }
 
@@ -659,7 +707,8 @@ public class X509CAInfo extends CAInfo {
     return nameConstraintsPermitted;
   }
 
-  public void setNameConstraintsPermitted(List<String> encodedNames) {
+  /** @param encodedNames names */
+  public void setNameConstraintsPermitted(final List<String> encodedNames) {
     nameConstraintsPermitted = encodedNames;
   }
 
@@ -671,7 +720,8 @@ public class X509CAInfo extends CAInfo {
     return nameConstraintsExcluded;
   }
 
-  public void setNameConstraintsExcluded(List<String> encodedNames) {
+  /** @param encodedNames Names. */
+  public void setNameConstraintsExcluded(final List<String> encodedNames) {
     nameConstraintsExcluded = encodedNames;
   }
 
@@ -686,10 +736,10 @@ public class X509CAInfo extends CAInfo {
   /**
    * Set what should be a String formatted URL pointing to an external CA's CDP.
    *
-   * @param externalCdp CDP
+   * @param aExternalCdp CDP
    */
-  public void setExternalCdp(final String externalCdp) {
-    this.externalCdp = externalCdp;
+  public void setExternalCdp(final String aExternalCdp) {
+    this.externalCdp = aExternalCdp;
   }
 
   /**
@@ -701,7 +751,7 @@ public class X509CAInfo extends CAInfo {
   }
 
   /**
-   * NameChanged attribute should only be set when X509CA is retrieved from DB
+   * NameChanged attribute should only be set when X509CA is retrieved from DB.
    *
    * @param value new name
    */
@@ -709,12 +759,14 @@ public class X509CAInfo extends CAInfo {
     nameChanged = value;
   }
 
+  /** @return size. */
   public int getCaSerialNumberOctetSize() {
     return caSerialNumberOctetSize;
   }
 
-  public void setCaSerialNumberOctetSize(int caSerialNumberOctetSize) {
-    this.caSerialNumberOctetSize = caSerialNumberOctetSize;
+  /** @param aCaSerialNumberOctetSize size */
+  public void setCaSerialNumberOctetSize(final int aCaSerialNumberOctetSize) {
+    this.caSerialNumberOctetSize = aCaSerialNumberOctetSize;
   }
 
   /** Factory. */
@@ -982,7 +1034,7 @@ public class X509CAInfo extends CAInfo {
      * @param aRevocationDate Date
      * @return builder
      */
-    public X509CAInfoBuilder setRevocationDate (final Date aRevocationDate) {
+    public X509CAInfoBuilder setRevocationDate(final Date aRevocationDate) {
       this.revocationDate = aRevocationDate;
       return this;
     }
