@@ -59,6 +59,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 		<!-- CLI Tools -->
 
+		<module>cli-util</module>
 		<module>ejbca-ws-cli</module>
 
 		<!-- WebApp modules -->
@@ -74,8 +75,9 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ra-gui</module>
 		<module>ejbca-cmp-tcp</module>
 		<!-- Test-only modules -->
-
+		
 		<module>ejbca-test-aggregator</module>
+
 	</modules>
 
 	<scm>
