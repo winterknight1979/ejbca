@@ -1,4 +1,4 @@
-/*************************************************************************
+/**********************a***************************************************
  *                                                                       *
  *  CESeCore: CE Security Core                                           *
  *                                                                       *
@@ -717,367 +717,652 @@ public class X509CAInfo extends CAInfo {
     this.caSerialNumberOctetSize = caSerialNumberOctetSize;
   }
 
+  /** Factory. */
   public static class X509CAInfoBuilder {
+    /** DN. */
     private String subjectDn;
+    /** Name. */
     private String name;
+    /** Status. */
     private int status;
+    /** ID. */
     private int certificateProfileId;
+    /** Validity. */
     private String encodedValidity;
+    /** Signers. */
     private int signedBy;
+    /** Certs. */
     private Collection<Certificate> certificateChain;
+    /** Token. */
     private CAToken caToken;
+    /** Time. */
     private Date updateTime = new Date();
+    /** Name. */
     private String subjectAltName = "";
+    /** ID. */
     private int defaultCertProfileId = 0;
+    /** Boolean. */
     private boolean useNoConflictCertificateData = false;
+    /** Time. */
     private Date expireTime = null;
+    /** Type. */
     private int caType = CAInfo.CATYPE_X509;
+    /** Description. */
     private String description = "";
+    /** SN size. */
     private int caSerialNumberOctetSize = -1;
+    /** Reason. */
     private int revocationReason = -1;
+    /** Date. */
     private Date revocationDate = null;
+    /** Policies. */
     private List<CertificatePolicy> policies = null;
+    /** Period. */
     private long crlPeriod = 1 * SimpleTime.MILLISECONDS_PER_DAY;
+    /** Interval. */
     private long crlIssueInterval = 0L;
+    /** Overlap. */
     private long crlOverlapTime = 10 * SimpleTime.MILLISECONDS_PER_MINUTE;
+    /** CRL change period. */
     private long deltaCrlPeriod = 0L;
+    /** Publishers. */
     private Collection<Integer> crlPublishers = new ArrayList<Integer>();
+    /** Validators. */
     private Collection<Integer> validators = new ArrayList<Integer>();
+    /** Boolean. */
     private boolean useAuthorityKeyIdentifier = true;
+    /** Boolean. */
     private boolean authorityKeyIdentifierCritical = false;
+    /** Boolean. */
     private boolean useCrlNumber = true;
+    /** Boolean. */
     private boolean crlNumberCritical = false;
+    /** Distribution. */
     private String defaultCrlDistPoint = null;
+    /** Issuer. */
     private String defaultCrlIssuer = null;
+    /** Locator. */
     private String defaultOcspCerviceLocator = null;
+    /** Access. */
     private List<String> authorityInformationAccess = null;
+    /** URIs. */
     private List<String> certificateAiaDefaultCaIssuerUri = null;
+    /** Constraints. */
     private List<String> nameConstraintsPermitted = null;
+    /** Constraints. */
     private List<String> nameConstraintsExcluded = null;
+    /** CRL. */
     private String caDefinedFreshestCrl = null;
+    /** Boolean. */
     private boolean finishUser = true;
+    /** Info. */
     private Collection<ExtendedCAServiceInfo> extendedCaServiceInfos =
         new ArrayList<ExtendedCAServiceInfo>();
+    /** Boolean. */
     private boolean useUtf8PolicyText = false;
+    /** Approvals. */
     private Map<ApprovalRequestType, Integer> approvals =
         new HashMap<ApprovalRequestType, Integer>();
+    /** Boolean. */
     private boolean usePrintableStringSubjectDN = false;
+    /** Boolean. */
     private boolean useLdapDnOrder = true;
+    /** Boolean. */
     private boolean useCrlDistributionPointOnCrl = false;
+    /** Boolean. */
     private boolean crlDistributionPointOnCrlCritical = false;
+    /** Boolean. */
     private boolean includeInHealthCheck = true;
+    /** Boolean. */
     private boolean doEnforceUniquePublicKeys = true;
+    /** Boolean. */
     private boolean doEnforceUniqueDistinguishedName = true;
+    /** Boolean. */
     private boolean doEnforceUniqueSubjectDNSerialnumber = false;
+    /** Boolean. */
     private boolean useCertReqHistory = false;
+    /** Boolean. */
     private boolean useUserStorage = true;
+    /** Boolean. */
     private boolean useCertificateStorage = true;
+    /** Boolean. */
     private boolean acceptRevocationNonExistingEntry = false;
+    /** Secret. */
     private String cmpRaAuthSecret = null;
+    /** Boolean. */
     private boolean keepExpiredCertsOnCRL = false;
 
-    public X509CAInfoBuilder setSubjectDn(String subjectDn) {
-      this.subjectDn = subjectDn;
+    /**
+     * @param aSubjectDn DN
+     * @return builder
+     */
+    public X509CAInfoBuilder setSubjectDn(final String aSubjectDn) {
+      this.subjectDn = aSubjectDn;
       return this;
     }
 
-    public X509CAInfoBuilder setName(String name) {
-      this.name = name;
+    /**
+     * @param aName Name
+     * @return builder
+     */
+    public X509CAInfoBuilder setName(final String aName) {
+      this.name = aName;
       return this;
     }
 
-    public X509CAInfoBuilder setStatus(int status) {
-      this.status = status;
+    /**
+     * @param aStatus status
+     * @return builder
+     */
+    public X509CAInfoBuilder setStatus(final int aStatus) {
+      this.status = aStatus;
       return this;
     }
 
-    public X509CAInfoBuilder setCertificateProfileId(int certificateProfileId) {
-      this.certificateProfileId = certificateProfileId;
+    /**
+     * @param aCertificateProfileId ID
+     * @return builder
+     */
+    public X509CAInfoBuilder setCertificateProfileId(
+            final int aCertificateProfileId) {
+      this.certificateProfileId = aCertificateProfileId;
       return this;
     }
 
-    public X509CAInfoBuilder setEncodedValidity(String encodedValidity) {
-      this.encodedValidity = encodedValidity;
+    /**
+     * @param aEncodedValidity validity
+     * @return builder
+     */
+    public X509CAInfoBuilder setEncodedValidity(final String aEncodedValidity) {
+      this.encodedValidity = aEncodedValidity;
       return this;
     }
 
-    public X509CAInfoBuilder setSignedBy(int signedBy) {
-      this.signedBy = signedBy;
+    /**
+     * @param aSignedBy int
+     * @return builder
+     */
+    public X509CAInfoBuilder setSignedBy(final int aSignedBy) {
+      this.signedBy = aSignedBy;
       return this;
     }
 
+    /**
+     * @param aCertificateChain chain
+     * @return builder
+     */
     public X509CAInfoBuilder setCertificateChain(
-        Collection<Certificate> certificateChain) {
-      this.certificateChain = certificateChain;
+        final Collection<Certificate> aCertificateChain) {
+      this.certificateChain = aCertificateChain;
       return this;
     }
 
-    public X509CAInfoBuilder setCaToken(CAToken caToken) {
-      this.caToken = caToken;
+    /**
+     * @param aToken token
+     * @return builder
+     */
+    public X509CAInfoBuilder setCaToken(final CAToken aToken) {
+      this.caToken = aToken;
       return this;
     }
 
-    public X509CAInfoBuilder setUpdateTime(Date updateTime) {
-      this.updateTime = updateTime;
+    /**
+     * @param aUpdateTime time
+     * @return builder
+     */
+    public X509CAInfoBuilder setUpdateTime(final Date aUpdateTime) {
+      this.updateTime = aUpdateTime;
       return this;
     }
 
-    public X509CAInfoBuilder setSubjectAltName(String subjectAltName) {
-      this.subjectAltName = subjectAltName;
+    /**
+     * @param aSubjectAltName Name
+     * @return builder
+     */
+    public X509CAInfoBuilder setSubjectAltName(final String aSubjectAltName) {
+      this.subjectAltName = aSubjectAltName;
       return this;
     }
 
-    public X509CAInfoBuilder setDefaultCertProfileId(int defaultCertProfileId) {
-      this.defaultCertProfileId = defaultCertProfileId;
+    /**
+     * @param aDefaultCertProfileId ID
+     * @return builder
+     */
+    public X509CAInfoBuilder setDefaultCertProfileId(
+            final int aDefaultCertProfileId) {
+      this.defaultCertProfileId = aDefaultCertProfileId;
       return this;
     }
 
+    /**
+     * @param aUseNoConflictCertificateData boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setUseNoConflictCertificateData(
-        boolean useNoConflictCertificateData) {
-      this.useNoConflictCertificateData = useNoConflictCertificateData;
+        final boolean aUseNoConflictCertificateData) {
+      this.useNoConflictCertificateData = aUseNoConflictCertificateData;
       return this;
     }
 
-    public X509CAInfoBuilder setExpireTime(Date expireTime) {
-      this.expireTime = expireTime;
+    /**
+     * @param aExpireTime Time
+     * @return builder
+     */
+    public X509CAInfoBuilder setExpireTime(final Date aExpireTime) {
+      this.expireTime = aExpireTime;
       return this;
     }
 
-    public X509CAInfoBuilder setCaType(int caType) {
-      this.caType = caType;
+    /**
+     * @param aType type
+     * @return builder
+     */
+    public X509CAInfoBuilder setCaType(final int aType) {
+      this.caType = aType;
       return this;
     }
 
-    public X509CAInfoBuilder setDescription(String description) {
-      this.description = description;
+    /**
+     * @param aDescription desc
+     * @return builder
+     */
+    public X509CAInfoBuilder setDescription(final String aDescription) {
+      this.description = aDescription;
+      return this;
+    }
+    /**
+     * @param aRevocationReason Reason
+     * @return builder
+     */
+    public X509CAInfoBuilder setRevocationReason(final int aRevocationReason) {
+      this.revocationReason = aRevocationReason;
+      return this;
+    }
+    /**
+     * @param aRevocationDate Date
+     * @return builder
+     */
+    public X509CAInfoBuilder setRevocationDate (final Date aRevocationDate) {
+      this.revocationDate = aRevocationDate;
       return this;
     }
 
-    public X509CAInfoBuilder setRevocationReason(int revocationReason) {
-      this.revocationReason = revocationReason;
+    /**
+     * @param aPolicies Policies
+     * @return builder
+     */
+    public X509CAInfoBuilder setPolicies(
+            final List<CertificatePolicy> aPolicies) {
+      this.policies = aPolicies;
       return this;
     }
 
-    public X509CAInfoBuilder setRevocationDate(Date revocationDate) {
-      this.revocationDate = revocationDate;
+    /**
+     * @param aCrlPeriod Period
+     * @return builder
+     */
+    public X509CAInfoBuilder setCrlPeriod(final long aCrlPeriod) {
+      this.crlPeriod = aCrlPeriod;
       return this;
     }
 
-    public X509CAInfoBuilder setPolicies(List<CertificatePolicy> policies) {
-      this.policies = policies;
+    /**
+     * @param aCrlIssueInterval Interval
+     * @return builder
+     */
+    public X509CAInfoBuilder setCrlIssueInterval(final long aCrlIssueInterval) {
+      this.crlIssueInterval = aCrlIssueInterval;
       return this;
     }
 
-    public X509CAInfoBuilder setCrlPeriod(long crlPeriod) {
-      this.crlPeriod = crlPeriod;
+    /**
+     * @param aCrlOverlapTime Time
+     * @return builder
+     */
+    public X509CAInfoBuilder setCrlOverlapTime(final long aCrlOverlapTime) {
+      this.crlOverlapTime = aCrlOverlapTime;
       return this;
     }
 
-    public X509CAInfoBuilder setCrlIssueInterval(long crlIssueInterval) {
-      this.crlIssueInterval = crlIssueInterval;
+    /**
+     * @param aDeltaCrlPeriod Period
+     * @return builder
+     */
+    public X509CAInfoBuilder setDeltaCrlPeriod(final long aDeltaCrlPeriod) {
+      this.deltaCrlPeriod = aDeltaCrlPeriod;
       return this;
     }
 
-    public X509CAInfoBuilder setCrlOverlapTime(long crlOverlapTime) {
-      this.crlOverlapTime = crlOverlapTime;
-      return this;
-    }
-
-    public X509CAInfoBuilder setDeltaCrlPeriod(long deltaCrlPeriod) {
-      this.deltaCrlPeriod = deltaCrlPeriod;
-      return this;
-    }
-
+    /**
+     * @param aCrlPublishers Publishers
+     * @return builder
+     */
     public X509CAInfoBuilder setCrlPublishers(
-        Collection<Integer> crlPublishers) {
-      this.crlPublishers = crlPublishers;
+        final Collection<Integer> aCrlPublishers) {
+      this.crlPublishers = aCrlPublishers;
       return this;
     }
 
-    public X509CAInfoBuilder setValidators(Collection<Integer> validators) {
-      this.validators = validators;
+    /**
+     * @param aValidators validators
+     * @return builder
+     */
+    public X509CAInfoBuilder setValidators(
+            final Collection<Integer> aValidators) {
+      this.validators = aValidators;
       return this;
     }
 
+    /**
+     * @param aUseAuthorityKeyIdentifier booleam
+     * @return builder
+     */
     public X509CAInfoBuilder setUseAuthorityKeyIdentifier(
-        boolean useAuthorityKeyIdentifier) {
-      this.useAuthorityKeyIdentifier = useAuthorityKeyIdentifier;
+        final boolean aUseAuthorityKeyIdentifier) {
+      this.useAuthorityKeyIdentifier = aUseAuthorityKeyIdentifier;
       return this;
     }
 
+    /**
+     * @param aAuthorityKeyIdentifierCritical ID
+     * @return builder
+     */
     public X509CAInfoBuilder setAuthorityKeyIdentifierCritical(
-        boolean authorityKeyIdentifierCritical) {
-      this.authorityKeyIdentifierCritical = authorityKeyIdentifierCritical;
+        final boolean aAuthorityKeyIdentifierCritical) {
+      this.authorityKeyIdentifierCritical = aAuthorityKeyIdentifierCritical;
       return this;
     }
 
-    public X509CAInfoBuilder setUseCrlNumber(boolean useCrlNumber) {
-      this.useCrlNumber = useCrlNumber;
+    /**
+     * @param aUseCrlNumber boolean
+     * @return builder
+     */
+    public X509CAInfoBuilder setUseCrlNumber(final boolean aUseCrlNumber) {
+      this.useCrlNumber = aUseCrlNumber;
       return this;
     }
 
-    public X509CAInfoBuilder setCrlNumberCritical(boolean crlNumberCritical) {
-      this.crlNumberCritical = crlNumberCritical;
+    /**
+     * @param aCrlNumberCritical Number
+     * @return Builder
+     */
+    public X509CAInfoBuilder setCrlNumberCritical(
+            final boolean aCrlNumberCritical) {
+      this.crlNumberCritical = aCrlNumberCritical;
       return this;
     }
 
+    /**
+     * @param aDefaultCrlDistPoint Distribution
+     * @return Builder
+     */
     public X509CAInfoBuilder setDefaultCrlDistPoint(
-        String defaultCrlDistPoint) {
-      this.defaultCrlDistPoint = defaultCrlDistPoint;
+        final String aDefaultCrlDistPoint) {
+      this.defaultCrlDistPoint = aDefaultCrlDistPoint;
       return this;
     }
 
-    public X509CAInfoBuilder setDefaultCrlIssuer(String defaultCrlIssuer) {
-      this.defaultCrlIssuer = defaultCrlIssuer;
+    /**
+     * @param aDefaultCrlIssuer CRL issuer
+     * @return Builder
+     */
+    public X509CAInfoBuilder setDefaultCrlIssuer(
+            final String aDefaultCrlIssuer) {
+      this.defaultCrlIssuer = aDefaultCrlIssuer;
       return this;
     }
 
+    /**
+     * @param aDefaultOcspCerviceLocator Locator
+     * @return Builder
+     */
     public X509CAInfoBuilder setDefaultOcspCerviceLocator(
-        String defaultOcspCerviceLocator) {
-      this.defaultOcspCerviceLocator = defaultOcspCerviceLocator;
+        final String aDefaultOcspCerviceLocator) {
+      this.defaultOcspCerviceLocator = aDefaultOcspCerviceLocator;
       return this;
     }
 
+    /**
+     * @param aAuthorityInformationAccess Access
+     * @return Builder
+     */
     public X509CAInfoBuilder setAuthorityInformationAccess(
-        List<String> authorityInformationAccess) {
-      this.authorityInformationAccess = authorityInformationAccess;
+        final List<String> aAuthorityInformationAccess) {
+      this.authorityInformationAccess = aAuthorityInformationAccess;
       return this;
     }
 
+    /**
+     * @param aCertificateAiaDefaultCaIssuerUri URIs
+     * @return Builder
+     */
     public X509CAInfoBuilder setCertificateAiaDefaultCaIssuerUri(
-        List<String> certificateAiaDefaultCaIssuerUri) {
-      this.certificateAiaDefaultCaIssuerUri = certificateAiaDefaultCaIssuerUri;
+        final List<String> aCertificateAiaDefaultCaIssuerUri) {
+      this.certificateAiaDefaultCaIssuerUri = aCertificateAiaDefaultCaIssuerUri;
       return this;
     }
 
+    /**
+     * @param aNameConstraintsPermitted Constraints
+     * @return builder
+     */
     public X509CAInfoBuilder setNameConstraintsPermitted(
-        List<String> nameConstraintsPermitted) {
-      this.nameConstraintsPermitted = nameConstraintsPermitted;
+        final List<String> aNameConstraintsPermitted) {
+      this.nameConstraintsPermitted = aNameConstraintsPermitted;
       return this;
     }
 
+    /**
+     * @param aNameConstraintsExcluded Constraints
+     * @return builder
+     */
     public X509CAInfoBuilder setNameConstraintsExcluded(
-        List<String> nameConstraintsExcluded) {
-      this.nameConstraintsExcluded = nameConstraintsExcluded;
+        final List<String> aNameConstraintsExcluded) {
+      this.nameConstraintsExcluded = aNameConstraintsExcluded;
       return this;
     }
 
+    /**
+     * @param aCaDefinedFreshestCrl CRL
+     * @return Builder
+     */
     public X509CAInfoBuilder setCaDefinedFreshestCrl(
-        String caDefinedFreshestCrl) {
-      this.caDefinedFreshestCrl = caDefinedFreshestCrl;
+        final String aCaDefinedFreshestCrl) {
+      this.caDefinedFreshestCrl = aCaDefinedFreshestCrl;
       return this;
     }
 
-    public X509CAInfoBuilder setFinishUser(boolean finishUser) {
-      this.finishUser = finishUser;
+    /**
+     * @param aFinishUser boolean
+     * @return builder
+     */
+    public X509CAInfoBuilder setFinishUser(final boolean aFinishUser) {
+      this.finishUser = aFinishUser;
       return this;
     }
 
+    /**
+     * @param aExtendedCaServiceInfos Infos
+     * @return Builder
+     */
     public X509CAInfoBuilder setExtendedCaServiceInfos(
-        Collection<ExtendedCAServiceInfo> extendedCaServiceInfos) {
-      this.extendedCaServiceInfos = extendedCaServiceInfos;
+       final Collection<ExtendedCAServiceInfo> aExtendedCaServiceInfos) {
+      this.extendedCaServiceInfos = aExtendedCaServiceInfos;
       return this;
     }
 
-    public X509CAInfoBuilder setUseUtf8PolicyText(boolean useUtf8PolicyText) {
-      this.useUtf8PolicyText = useUtf8PolicyText;
+    /**
+     * @param aUseUtf8PolicyText boolean
+     * @return builder
+     */
+    public X509CAInfoBuilder setUseUtf8PolicyText(
+            final boolean aUseUtf8PolicyText) {
+      this.useUtf8PolicyText = aUseUtf8PolicyText;
       return this;
     }
 
+    /**
+     * @param aApprovals approvals
+     * @return builder
+     */
     public X509CAInfoBuilder setApprovals(
-        Map<ApprovalRequestType, Integer> approvals) {
-      this.approvals = approvals;
+        final Map<ApprovalRequestType, Integer> aApprovals) {
+      this.approvals = aApprovals;
       return this;
     }
 
+    /**
+     * @param aUsePrintableStringSubjectDN boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setUsePrintableStringSubjectDN(
-        boolean usePrintableStringSubjectDN) {
-      this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;
+        final boolean aUsePrintableStringSubjectDN) {
+      this.usePrintableStringSubjectDN = aUsePrintableStringSubjectDN;
       return this;
     }
 
-    public X509CAInfoBuilder setUseLdapDnOrder(boolean useLdapDnOrder) {
-      this.useLdapDnOrder = useLdapDnOrder;
+    /**
+     * @param aUseLdapDnOrder boolean
+     * @return builder
+     */
+    public X509CAInfoBuilder setUseLdapDnOrder(final boolean aUseLdapDnOrder) {
+      this.useLdapDnOrder = aUseLdapDnOrder;
       return this;
     }
 
+    /**
+     * @param aUseCrlDistributionPointOnCrl boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setUseCrlDistributionPointOnCrl(
-        boolean useCrlDistributionPointOnCrl) {
-      this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;
+        final boolean aUseCrlDistributionPointOnCrl) {
+      this.useCrlDistributionPointOnCrl = aUseCrlDistributionPointOnCrl;
       return this;
     }
 
+    /**
+     * @param aCrlDistributionPointOnCrlCritical boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setCrlDistributionPointOnCrlCritical(
-        boolean crlDistributionPointOnCrlCritical) {
+        final boolean aCrlDistributionPointOnCrlCritical) {
       this.crlDistributionPointOnCrlCritical =
-          crlDistributionPointOnCrlCritical;
+          aCrlDistributionPointOnCrlCritical;
       return this;
     }
 
+    /**
+     * @param aIncludeInHealthCheck boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setIncludeInHealthCheck(
-        boolean includeInHealthCheck) {
-      this.includeInHealthCheck = includeInHealthCheck;
+        final boolean aIncludeInHealthCheck) {
+      this.includeInHealthCheck = aIncludeInHealthCheck;
       return this;
     }
 
+    /**
+     * @param aDoEnforceUniquePublicKeys boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setDoEnforceUniquePublicKeys(
-        boolean doEnforceUniquePublicKeys) {
-      this.doEnforceUniquePublicKeys = doEnforceUniquePublicKeys;
+        final boolean aDoEnforceUniquePublicKeys) {
+      this.doEnforceUniquePublicKeys = aDoEnforceUniquePublicKeys;
       return this;
     }
 
+    /**
+     * @param aDoEnforceUniqueDistinguishedName boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setDoEnforceUniqueDistinguishedName(
-        boolean doEnforceUniqueDistinguishedName) {
-      this.doEnforceUniqueDistinguishedName = doEnforceUniqueDistinguishedName;
+        final boolean aDoEnforceUniqueDistinguishedName) {
+      this.doEnforceUniqueDistinguishedName = aDoEnforceUniqueDistinguishedName;
       return this;
     }
 
+    /**
+     * @param aDoEnforceUniqueSubjectDNSerialnumber boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setDoEnforceUniqueSubjectDNSerialnumber(
-        boolean doEnforceUniqueSubjectDNSerialnumber) {
+        final boolean aDoEnforceUniqueSubjectDNSerialnumber) {
       this.doEnforceUniqueSubjectDNSerialnumber =
-          doEnforceUniqueSubjectDNSerialnumber;
+          aDoEnforceUniqueSubjectDNSerialnumber;
       return this;
     }
 
-    public X509CAInfoBuilder setUseCertReqHistory(boolean useCertReqHistory) {
-      this.useCertReqHistory = useCertReqHistory;
+    /**
+     * @param aUseCertReqHistory boolean
+     * @return builder
+     */
+    public X509CAInfoBuilder setUseCertReqHistory(
+            final boolean aUseCertReqHistory) {
+      this.useCertReqHistory = aUseCertReqHistory;
       return this;
     }
 
-    public X509CAInfoBuilder setUseUserStorage(boolean useUserStorage) {
-      this.useUserStorage = useUserStorage;
+    /**
+     * @param aUseUserStorage boolean
+     * @return builder
+     */
+    public X509CAInfoBuilder setUseUserStorage(final boolean aUseUserStorage) {
+      this.useUserStorage = aUseUserStorage;
       return this;
     }
 
+    /**
+     * @param aUseCertificateStorage boolean
+     * @return builder
+     */
     public X509CAInfoBuilder setUseCertificateStorage(
-        boolean useCertificateStorage) {
-      this.useCertificateStorage = useCertificateStorage;
+        final boolean aUseCertificateStorage) {
+      this.useCertificateStorage = aUseCertificateStorage;
       return this;
     }
 
+    /**
+     * @param aAcceptRevocationNonExistingEntry boolean
+     * @return Builder
+     */
     public X509CAInfoBuilder setAcceptRevocationNonExistingEntry(
-        boolean acceptRevocationNonExistingEntry) {
-      this.acceptRevocationNonExistingEntry = acceptRevocationNonExistingEntry;
+        final boolean aAcceptRevocationNonExistingEntry) {
+      this.acceptRevocationNonExistingEntry = aAcceptRevocationNonExistingEntry;
       return this;
     }
 
-    public X509CAInfoBuilder setCmpRaAuthSecret(String cmpRaAuthSecret) {
-      this.cmpRaAuthSecret = cmpRaAuthSecret;
+    /**
+     * @param caCmpRaAuthSecret Secret
+     * @return Builder
+     */
+    public X509CAInfoBuilder setCmpRaAuthSecret(
+            final String caCmpRaAuthSecret) {
+      this.cmpRaAuthSecret = caCmpRaAuthSecret;
       return this;
     }
 
+    /**
+     * @param aKeepExpiredCertsOnCRL Boolean
+     * @return Builder
+     */
     public X509CAInfoBuilder setKeepExpiredCertsOnCRL(
-        boolean keepExpiredCertsOnCRL) {
-      this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;
+        final boolean aKeepExpiredCertsOnCRL) {
+      this.keepExpiredCertsOnCRL = aKeepExpiredCertsOnCRL;
       return this;
     }
-
+    /**
+     * @param aCaSerialNumberOctetSize SN size
+     * @return Builder
+     */
     public X509CAInfoBuilder setCaSerialNumberOctetSize(
-        int caSerialNumberOctetSize) {
-      this.caSerialNumberOctetSize = caSerialNumberOctetSize;
+        final int aCaSerialNumberOctetSize) {
+      this.caSerialNumberOctetSize = aCaSerialNumberOctetSize;
       return this;
     }
 
+    /** Build.
+     * @return X509CAInfo
+     *  */
     public X509CAInfo build() {
       return new X509CAInfo(
           subjectDn,
