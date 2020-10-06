@@ -5,8 +5,9 @@
      "https://checkstyle.org/dtds/suppressions_1_0.dtd">
  <suppressions>
  	
- 	<suppress checks="RegexpSinglelineCheck" files="ejbcaresources.en.properties" lines="19" />
- 	<suppress checks="RegexpSinglelineCheck" files="intresources.en.properties" lines="18-19" />
+ 	<!-- Don't check any generated files -->
+	<suppress checks=".*" files="[/\\]target[/\\]"/>
+
  	<suppress checks="ParameterNumberCheck" files="AuditLogger.java" lines="47"/>	
 	<suppress checks="MagicNumberCheck" files="X509CertificateAuthenticationToken.java" lines="177"/>	
 	<suppress checks="MethodLengthCheck" files="X509CertificateAuthenticationToken.java" lines="150"/>
@@ -22,5 +23,5 @@
 	<suppress checks="ParameterNumberCheck" files="X509CA.java" lines="1279,1179"/>
 	<suppress checks="LineLengthCheck" files="X509CA.java" lines="2501"/> <!-- URL in comment, not caught by config -->
 	<suppress checks="ParameterNumberCheck" files="X509CAInfo.java" lines="101,244,437"/>
-	
+ 	<suppress checks="MagicNumberCheck" files="AvailableCustomCertificateExtensionsConfiguration.java" lines="229"/>	<!-- Method is deprecated -->
  </suppressions>

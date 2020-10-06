@@ -691,6 +691,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<configuration>
 					<suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
 					<configLocation>checkstyle.xml</configLocation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<linkXRef>true</linkXRef>
 				</configuration>
 			</plugin>
 		</plugins>

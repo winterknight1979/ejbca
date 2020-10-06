@@ -17,10 +17,10 @@ package org.cesecore.certificates.certificate.certextensions;
  *     samuellb $
  */
 public enum CertificateExtensionLocation {
-  /** Certificate extension located in a plain certificate */
+  /** Certificate extension located in a plain certificate. */
   CERT,
-  /** Certificate extension located in a link certificate */
+  /** Certificate extension located in a link certificate. */
   LINKCERT,
-  /** Certificate extension located in a Certificate Signing Requests */
+  /** Certificate extension located in a Certificate Signing Requests. */
   CSR;
 }

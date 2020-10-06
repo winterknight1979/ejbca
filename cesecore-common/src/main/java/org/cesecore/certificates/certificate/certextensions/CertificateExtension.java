@@ -40,11 +40,17 @@ public abstract class CertificateExtension implements Serializable {
   // By the time we dropped support for Ejbca 6.4.0, this attribute will not be
   // significant in any way and any references to it can be removed without
   // replacement.
+  /** ID. */
   @Deprecated private int id;
+  /** OID. */
   private String oID;
+  /** Name. */
   private String displayName;
+  /** Critical. */
   private boolean criticalFlag;
+  /** Required. */
   private boolean requiredFlag;
+  /** Properties. */
   private Properties properties;
 
   /** Constructor for creating a Certificate Extension. */
@@ -62,9 +68,9 @@ public abstract class CertificateExtension implements Serializable {
     return oID;
   }
 
-  /** @param oID The unique OID of the extension */
-  public void setOID(String oID) {
-    this.oID = oID.trim();
+  /** @param aoID The unique OID of the extension */
+  public void setOID(final String aoID) {
+    this.oID = aoID.trim();
   }
 
   /** @return This extension's readable name */
@@ -72,9 +78,9 @@ public abstract class CertificateExtension implements Serializable {
     return displayName;
   }
 
-  /** @param displayName The extension's readable name */
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
+  /** @param aDisplayName The extension's readable name */
+  public void setDisplayName(final String aDisplayName) {
+    this.displayName = aDisplayName;
   }
   /**
    * @return flag indicating if the extension should be marked as critical or
@@ -85,11 +91,11 @@ public abstract class CertificateExtension implements Serializable {
   }
 
   /**
-   * @param criticalFlag flag indicating if the extension should be marked as
+   * @param aCriticalFlag flag indicating if the extension should be marked as
    *     critical or not.
    */
-  public void setCriticalFlag(boolean criticalFlag) {
-    this.criticalFlag = criticalFlag;
+  public void setCriticalFlag(final boolean aCriticalFlag) {
+    this.criticalFlag = aCriticalFlag;
   }
 
   /**
@@ -101,11 +107,11 @@ public abstract class CertificateExtension implements Serializable {
   }
 
   /**
-   * @param requiredFlag flag indicating if the extension should be marked as
+   * @param aRequiredFlag flag indicating if the extension should be marked as
    *     required or not.
    */
-  public void setRequiredFlag(final boolean requiredFlag) {
-    this.requiredFlag = requiredFlag;
+  public void setRequiredFlag(final boolean aRequiredFlag) {
+    this.requiredFlag = aRequiredFlag;
   }
 
   /**
@@ -121,27 +127,27 @@ public abstract class CertificateExtension implements Serializable {
   }
 
   /**
-   * Method that initializes the CertificateExtension
+   * Method that initializes the CertificateExtension.
    *
-   * @param id the uniqueID of the extension
-   * @param oID the OID
-   * @param displayName the DN
-   * @param criticalFlag if the extension should be marked as critical or not.
-   * @param requiredFlag if the extension should be marked as required or not.
+   * @param aid the uniqueID of the extension
+   * @param aOID the OID
+   * @param aDispalayName the DN
+   * @param aCriticalFlag if the extension should be marked as critical or not.
+   * @param aRequiredFlag if the extension should be marked as required or not.
    * @param extensionProperties the complete configuration property file.
    */
   public void init(
-      int id,
-      String oID,
-      String displayName,
-      boolean criticalFlag,
-      final boolean requiredFlag,
-      Properties extensionProperties) {
-    this.id = id;
-    this.oID = oID.trim();
-    this.displayName = displayName;
-    this.criticalFlag = criticalFlag;
-    this.requiredFlag = requiredFlag;
+      final int aid,
+      final String aOID,
+      final String aDispalayName,
+      final boolean aCriticalFlag,
+      final boolean aRequiredFlag,
+      final Properties extensionProperties) {
+    this.id = aid;
+    this.oID = aOID.trim();
+    this.displayName = aDispalayName;
+    this.criticalFlag = aCriticalFlag;
+    this.requiredFlag = aRequiredFlag;
     this.properties = extensionProperties;
   }
 
@@ -195,12 +201,12 @@ public abstract class CertificateExtension implements Serializable {
    *     the certificate extensio
    */
   public byte[] getValueEncoded(
-      EndEntityInformation userData,
-      CA ca,
-      CertificateProfile certProfile,
-      PublicKey userPublicKey,
-      PublicKey caPublicKey,
-      CertificateValidity val)
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
       throws CertificateExtensionException {
     final byte[] result;
     final ASN1Encodable value =

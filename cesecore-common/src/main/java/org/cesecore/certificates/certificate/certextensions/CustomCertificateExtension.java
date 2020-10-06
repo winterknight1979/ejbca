@@ -28,6 +28,7 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  */
 public interface CustomCertificateExtension {
 
+    /** Boolean values. */
   String[] BOOLEAN = {"true", "false"};
 
   /** @return the unique id of the extension */

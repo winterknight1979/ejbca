@@ -69,55 +69,70 @@ public class BasicCertificateExtension extends CertificateExtension
 
   private static final long serialVersionUID = 6896964791897238060L;
 
+  /** Logger. */
   @SuppressWarnings("unused")
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(BasicCertificateExtension.class);
 
-  private static final InternalResources intres =
+  /** Internal resource. */
+  private static final InternalResources INT_RES =
       InternalResources.getInstance();
 
+  /** Display name. */
   private static final String DISPLAY_NAME = "Basic Certificate Extension";
 
   private enum Encoding {
+    /** Bitstring. */
     ENCODING_DERBITSTRING("DERBITSTRING"),
+    /** Int. */
     ENCODING_DERINTEGER("DERINTEGER"),
+    /** ASCII. */
     ENCODING_DEROCTETSTRING("DEROCTETSTRING"),
+    /** Boolean. */
     ENCODING_DERBOOLEAN("DERBOOLEAN"),
+    /** Printable. */
     ENCODING_DERPRINTABLESTRING("DERPRINTABLESTRING"),
+    /** UTF-8. */
     ENCODING_DERUTF8STRING("DERUTF8STRING"),
+    /** IA5 String. */
     ENCODING_DERIA5STRING("DERIA5STRING"),
+    /** DER Null. */
     ENCODING_DERNULL("DERNULL"),
+    /** DER Object. */
     ENCODING_DEROBJECT("DEROBJECT"),
+    /** DER OID. */
     ENCODING_DEROID("DERBOJECTIDENTIFIER");
 
-    private static final Map<String, Encoding> lookupMap =
+    /** lookup map. */
+    private static final Map<String, Encoding> LOOKUP_MAP =
         new HashMap<String, Encoding>();
 
     static {
       for (Encoding encoding : Encoding.values()) {
-        lookupMap.put(encoding.value(), encoding);
+        LOOKUP_MAP.put(encoding.value(), encoding);
       }
     }
 
+    /** Value. */
     private final String value;
 
-    private Encoding(String value) {
-      this.value = value;
+    Encoding(final String avalue) {
+      this.value = avalue;
     }
 
     public String value() {
       return value;
     }
 
-    public boolean equals(Encoding otherValue) {
+    public boolean equals(final Encoding otherValue) {
       if (otherValue == null) {
         return false;
       }
       return value.equalsIgnoreCase(otherValue.value());
     }
 
-    public static final Encoding fromString(String value) {
-      return lookupMap.get(StringUtils.upperCase(value, Locale.ROOT));
+    public static Encoding fromString(final String value) {
+      return LOOKUP_MAP.get(StringUtils.upperCase(value, Locale.ROOT));
     }
   }
 
@@ -125,17 +140,22 @@ public class BasicCertificateExtension extends CertificateExtension
    * The value is expected to by hex encoded and is added as an byte array as
    * the extension value.
    */
-  private static String ENCODING_RAW = "RAW";
-
-  private static String ENCODING_DERNULL = "DERNULL";
+  private static final String ENCODING_RAW = "RAW";
+  /** DER null . */
+  private static final String ENCODING_DERNULL = "DERNULL";
 
   // Defined Properties
-  private static String PROPERTY_VALUE = "value";
-  private static String PROPERTY_ENCODING = "encoding";
-  private static String PROPERTY_NVALUES = "nvalues";
-  private static String PROPERTY_DYNAMIC = "dynamic";
+  /** Value. */
+  private static final String PROPERTY_VALUE = "value";
+  /** Encoding. */
+  private static final String PROPERTY_ENCODING = "encoding";
+  /** Nvalues. */
+  private static final String PROPERTY_NVALUES = "nvalues";
+  /** Dynamic. */
+  private static final String PROPERTY_DYNAMIC = "dynamic";
 
-  private static final Map<String, String[]> propertiesMap =
+  /** Properties. */
+  private static final Map<String, String[]> PROPERTIES_MAP =
       new HashMap<String, String[]>();
 
   static {
@@ -148,23 +168,32 @@ public class BasicCertificateExtension extends CertificateExtension
     // Add RAW last
     encodingValues[encodingValues.length - 1] = ENCODING_RAW;
 
-    propertiesMap.put(PROPERTY_ENCODING, encodingValues);
-    propertiesMap.put(PROPERTY_VALUE, new String[] {});
-    propertiesMap.put(PROPERTY_DYNAMIC, CustomCertificateExtension.BOOLEAN);
+    PROPERTIES_MAP.put(PROPERTY_ENCODING, encodingValues);
+    PROPERTIES_MAP.put(PROPERTY_VALUE, new String[] {});
+    PROPERTIES_MAP.put(PROPERTY_DYNAMIC, CustomCertificateExtension.BOOLEAN);
   }
 
   {
     setDisplayName(DISPLAY_NAME);
   }
 
-  /** @deprecated use getValueEncoded instead. */
+  /**
+   * @param userData User
+   * @param ca CA
+   * @param certProfile profile
+   * @param userPublicKey key
+   * @param caPublicKey key
+   * @param val val
+   * @return asn.1
+   * @throws CertificateExtensionException on fail
+   * @deprecated use getValueEncoded instead. */
   public ASN1Encodable getValue(
-      EndEntityInformation userData,
-      CA ca,
-      CertificateProfile certProfile,
-      PublicKey userPublicKey,
-      PublicKey caPublicKey,
-      CertificateValidity val)
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
       throws CertificateExtensionException {
     throw new UnsupportedOperationException("Use getValueEncoded instead");
   }
@@ -188,12 +217,12 @@ public class BasicCertificateExtension extends CertificateExtension
    */
   @Override
   public byte[] getValueEncoded(
-      EndEntityInformation userData,
-      CA ca,
-      CertificateProfile certProfile,
-      PublicKey userPublicKey,
-      PublicKey caPublicKey,
-      CertificateValidity val)
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
       throws CertificateExtensionException {
     String[] values = getValues(userData, null);
     return handleValues(values);
@@ -201,19 +230,19 @@ public class BasicCertificateExtension extends CertificateExtension
 
   @Override
   public byte[] getValueEncoded(
-      EndEntityInformation userData,
-      CA ca,
-      CertificateProfile certProfile,
-      PublicKey userPublicKey,
-      PublicKey caPublicKey,
-      CertificateValidity val,
-      String oid)
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val,
+      final String oid)
       throws CertificateExtensionException {
     String[] values = getValues(userData, oid);
     return handleValues(values);
   }
 
-  private byte[] handleValues(String[] values)
+  private byte[] handleValues(final String[] values)
       throws CertificateExtensionException {
     final byte[] result;
     String encoding =
@@ -226,7 +255,7 @@ public class BasicCertificateExtension extends CertificateExtension
         return null;
       }
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.incorrectvalue",
               Integer.valueOf(getId()),
               getOID()));
@@ -236,7 +265,7 @@ public class BasicCertificateExtension extends CertificateExtension
       if (values.length > 1) {
         // nvalues can not be used together with encoding=RAW
         throw new CertificateExtensionException(
-            intres.getLocalizedMessage(
+            INT_RES.getLocalizedMessage(
                 "certext.certextmissconfigured", Integer.valueOf(getId())));
       } else {
         result = parseRaw(values[0]);
@@ -270,7 +299,8 @@ public class BasicCertificateExtension extends CertificateExtension
    * @return The value(s) for the extension (usually 1) or null if no value
    *     found
    */
-  private String[] getValues(EndEntityInformation userData, final String oid) {
+  private String[] getValues(
+          final EndEntityInformation userData, final String oid) {
     String[] result = null;
 
     boolean dynamic =
@@ -365,7 +395,7 @@ public class BasicCertificateExtension extends CertificateExtension
     return result;
   }
 
-  private ASN1Encodable parseValue(String encoding, String value)
+  private ASN1Encodable parseValue(final String encoding, final String value)
       throws CertificateExtensionException {
 
     ASN1Encodable toret = null;
@@ -374,7 +404,7 @@ public class BasicCertificateExtension extends CertificateExtension
 
     if (encodingType == null) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.incorrectenc",
               encoding,
               Integer.valueOf(getId())));
@@ -383,7 +413,7 @@ public class BasicCertificateExtension extends CertificateExtension
     if (!Encoding.ENCODING_DERNULL.equals(encodingType)
         && ((value == null || value.trim().equals("")) && isRequiredFlag())) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.incorrectvalue",
               Integer.valueOf(getId()),
               getOID()));
@@ -422,7 +452,7 @@ public class BasicCertificateExtension extends CertificateExtension
         break;
       default:
         throw new CertificateExtensionException(
-            intres.getLocalizedMessage(
+            INT_RES.getLocalizedMessage(
                 "certext.basic.incorrectenc",
                 encoding,
                 Integer.valueOf(getId())));
@@ -430,7 +460,7 @@ public class BasicCertificateExtension extends CertificateExtension
     return toret;
   }
 
-  private ASN1Encodable parseDERBitString(String value)
+  private ASN1Encodable parseDERBitString(final String value)
       throws CertificateExtensionException {
     ASN1Encodable retval = null;
     try {
@@ -449,7 +479,7 @@ public class BasicCertificateExtension extends CertificateExtension
       retval = new DERBitString(byteArray, padBits);
     } catch (NumberFormatException e) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -459,14 +489,14 @@ public class BasicCertificateExtension extends CertificateExtension
     return retval;
   }
 
-  private ASN1Encodable parseDEROID(String value)
+  private ASN1Encodable parseDEROID(final String value)
       throws CertificateExtensionException {
     ASN1Encodable retval = null;
     try {
       retval = new ASN1ObjectIdentifier(value);
     } catch (Exception e) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -476,7 +506,7 @@ public class BasicCertificateExtension extends CertificateExtension
     return retval;
   }
 
-  private ASN1Encodable parseDERInteger(String value)
+  private ASN1Encodable parseDERInteger(final String value)
       throws CertificateExtensionException {
     ASN1Encodable retval = null;
     try {
@@ -484,7 +514,7 @@ public class BasicCertificateExtension extends CertificateExtension
       retval = new ASN1Integer(intValue);
     } catch (NumberFormatException e) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -494,7 +524,7 @@ public class BasicCertificateExtension extends CertificateExtension
     return retval;
   }
 
-  private ASN1Encodable parseDEROctetString(String value)
+  private ASN1Encodable parseDEROctetString(final String value)
       throws CertificateExtensionException {
     ASN1Encodable retval = null;
     if (value.matches("^\\p{XDigit}*")) {
@@ -502,7 +532,7 @@ public class BasicCertificateExtension extends CertificateExtension
       retval = new DEROctetString(bytes);
     } else {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -519,7 +549,7 @@ public class BasicCertificateExtension extends CertificateExtension
    * @return DER sequence
    * @throws CertificateExtensionException on fail
    */
-  private ASN1Encodable parseHexEncodedDERObject(String value)
+  private ASN1Encodable parseHexEncodedDERObject(final String value)
       throws CertificateExtensionException {
     ASN1Encodable retval = null;
     if (value.matches("^\\p{XDigit}*")) {
@@ -540,7 +570,7 @@ public class BasicCertificateExtension extends CertificateExtension
         ais.close();
       } catch (Exception e) {
         throw new CertificateExtensionException(
-            intres.getLocalizedMessage(
+            INT_RES.getLocalizedMessage(
                 "certext.basic.illegalvalue",
                 value,
                 Integer.valueOf(getId()),
@@ -548,7 +578,7 @@ public class BasicCertificateExtension extends CertificateExtension
       }
     } else {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -557,7 +587,7 @@ public class BasicCertificateExtension extends CertificateExtension
     return retval;
   }
 
-  private ASN1Encodable parseDERBoolean(String value)
+  private ASN1Encodable parseDERBoolean(final String value)
       throws CertificateExtensionException {
     ASN1Encodable retval = null;
     if (value.equalsIgnoreCase("TRUE")) {
@@ -570,7 +600,7 @@ public class BasicCertificateExtension extends CertificateExtension
 
     if (retval == null) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -580,13 +610,13 @@ public class BasicCertificateExtension extends CertificateExtension
     return retval;
   }
 
-  private ASN1Encodable parseDERPrintableString(String value)
+  private ASN1Encodable parseDERPrintableString(final String value)
       throws CertificateExtensionException {
     try {
       return new DERPrintableString(value, true);
     } catch (IllegalArgumentException e) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -594,17 +624,17 @@ public class BasicCertificateExtension extends CertificateExtension
     }
   }
 
-  private ASN1Encodable parseDERUTF8String(String value) {
+  private ASN1Encodable parseDERUTF8String(final String value) {
     return new DERUTF8String(value);
   }
 
-  private ASN1Encodable parseDERIA5String(String value)
+  private ASN1Encodable parseDERIA5String(final String value)
       throws CertificateExtensionException {
     try {
       return new DERIA5String(value, true);
     } catch (java.lang.IllegalArgumentException e) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               value,
               Integer.valueOf(getId()),
@@ -612,10 +642,11 @@ public class BasicCertificateExtension extends CertificateExtension
     }
   }
 
-  private byte[] parseRaw(String value) throws CertificateExtensionException {
+  private byte[] parseRaw(
+          final String value) throws CertificateExtensionException {
     if (value == null) {
       throw new CertificateExtensionException(
-          intres.getLocalizedMessage(
+          INT_RES.getLocalizedMessage(
               "certext.basic.incorrectvalue",
               Integer.valueOf(getId()),
               getOID()));
@@ -625,6 +656,6 @@ public class BasicCertificateExtension extends CertificateExtension
 
   @Override
   public Map<String, String[]> getAvailableProperties() {
-    return propertiesMap;
+    return PROPERTIES_MAP;
   }
 }

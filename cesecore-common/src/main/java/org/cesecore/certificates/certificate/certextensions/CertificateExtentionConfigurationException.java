@@ -31,7 +31,7 @@ public class CertificateExtentionConfigurationException extends Exception {
    * @param throwable Cause
    */
   public CertificateExtentionConfigurationException(
-      String message, Throwable throwable) {
+      final String message, final Throwable throwable) {
     super(message, throwable);
   }
 
@@ -41,7 +41,7 @@ public class CertificateExtentionConfigurationException extends Exception {
    *
    * @param message message
    */
-  public CertificateExtentionConfigurationException(String message) {
+  public CertificateExtentionConfigurationException(final String message) {
     super(message);
   }
 }

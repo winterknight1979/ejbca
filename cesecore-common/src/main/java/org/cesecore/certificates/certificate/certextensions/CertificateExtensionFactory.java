@@ -53,15 +53,19 @@ import org.cesecore.util.CertTools;
  * @version $Id: CertificateExtensionFactory.java 22142 2015-11-03 14:15:51Z
  *     mikekushner $
  */
-public class CertificateExtensionFactory {
+public final class CertificateExtensionFactory {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateExtensionFactory.class);
-  private static final InternalResources intres =
+  /** Internal resources. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** Singleton instance. */
   private static CertificateExtensionFactory instance = null;
 
+  /** Standard extensions. */
   private HashMap<String, String> standardCertificateExtensions =
       new HashMap<String, String>();
 
@@ -116,7 +120,7 @@ public class CertificateExtensionFactory {
         PrivateKeyUsagePeriod.class.getName());
   }
 
-  private CertificateExtensionFactory() {}
+  private CertificateExtensionFactory() { }
 
   /**
    * Method used to get the instance of the factory. If it is the first time the
@@ -134,7 +138,7 @@ public class CertificateExtensionFactory {
 
   /**
    * Method returning the instance of the standard CertificateExtension given
-   * its object identifier
+   * its object identifier.
    *
    * @param oid OID
    * @param certProf Profile
@@ -152,29 +156,29 @@ public class CertificateExtensionFactory {
                 implClass.getConstructor().newInstance();
         ret.init(certProf);
       } catch (ClassNotFoundException e) {
-        log.error(
-            intres.getLocalizedMessage("certext.noextensionforid", oid), e);
+        LOG.error(
+            INTRES.getLocalizedMessage("certext.noextensionforid", oid), e);
       } catch (InstantiationException e) {
-        log.error(
-            intres.getLocalizedMessage("certext.noextensionforid", oid), e);
+        LOG.error(
+            INTRES.getLocalizedMessage("certext.noextensionforid", oid), e);
       } catch (IllegalAccessException e) {
-        log.error(
-            intres.getLocalizedMessage("certext.noextensionforid", oid), e);
+        LOG.error(
+            INTRES.getLocalizedMessage("certext.noextensionforid", oid), e);
       } catch (InvocationTargetException e) {
-        log.error(
-            intres.getLocalizedMessage("certext.noextensionforid", oid), e);
+        LOG.error(
+            INTRES.getLocalizedMessage("certext.noextensionforid", oid), e);
       } catch (NoSuchMethodException e) {
-        log.error(
-            intres.getLocalizedMessage("certext.noextensionforid", oid), e);
+        LOG.error(
+            INTRES.getLocalizedMessage("certext.noextensionforid", oid), e);
       }
     }
     if (ret == null) {
-      log.error(intres.getLocalizedMessage("certext.noextensionforid", oid));
+      LOG.error(INTRES.getLocalizedMessage("certext.noextensionforid", oid));
     }
     return ret;
   }
 
-  /** Method used for testing to be able to reset class between tests */
+  /** Method used for testing to be able to reset class between tests. */
   protected static void resetExtensions() {
     instance = null;
   }
