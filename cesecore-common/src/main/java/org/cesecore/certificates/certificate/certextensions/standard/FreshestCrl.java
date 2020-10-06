@@ -41,7 +41,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  */
 public class FreshestCrl extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(FreshestCrl.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(FreshestCrl.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -56,7 +57,7 @@ public class FreshestCrl extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     String freshestcrldistpoint = certProfile.getFreshestCRLURI();
     final X509CA x509ca = (X509CA) ca;
@@ -75,8 +76,8 @@ public class FreshestCrl extends StandardCertificateExtension {
         final GeneralName gn =
             new GeneralName(
                 GeneralName.uniformResourceIdentifier, new DERIA5String(uri));
-        if (log.isDebugEnabled()) {
-          log.debug("Added freshest CRL distpoint: " + uri);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Added freshest CRL distpoint: " + uri);
         }
         final ASN1EncodableVector vec = new ASN1EncodableVector();
         vec.add(gn);
@@ -93,7 +94,7 @@ public class FreshestCrl extends StandardCertificateExtension {
       }
     }
     if (ret == null) {
-      log.error("UseFreshestCRL is true, but no URI string defined!");
+      LOG.error("UseFreshestCRL is true, but no URI string defined!");
     }
     return ret;
   }

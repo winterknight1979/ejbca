@@ -45,7 +45,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  */
 public class CertificatePolicies extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(CertificatePolicies.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CertificatePolicies.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -60,7 +61,7 @@ public class CertificatePolicies extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     DERSequence ret = null;
     // The UserNotice policy qualifier can have two different character
@@ -81,7 +82,7 @@ public class CertificatePolicies extends StandardCertificateExtension {
     // qualifier
     // in each round of this for loop
     for (final Iterator<CertificatePolicy> it = policies.iterator();
-        it.hasNext(); ) {
+        it.hasNext();) {
       final CertificatePolicy policy = it.next();
       final ASN1ObjectIdentifier oid =
           new ASN1ObjectIdentifier(policy.getPolicyID());
@@ -101,7 +102,7 @@ public class CertificatePolicies extends StandardCertificateExtension {
     final ASN1EncodableVector seq = new ASN1EncodableVector();
     for (final Iterator<ASN1ObjectIdentifier> it =
             policiesMap.keySet().iterator();
-        it.hasNext(); ) {
+        it.hasNext();) {
       final ASN1ObjectIdentifier oid = it.next();
       final ASN1EncodableVector qualifiers = policiesMap.get(oid);
       if (qualifiers.size() == 0) {
@@ -114,13 +115,13 @@ public class CertificatePolicies extends StandardCertificateExtension {
       ret = new DERSequence(seq);
     }
     if (ret == null) {
-      log.warn("Certificate policies missconfigured, no policies present!");
+      LOG.warn("Certificate policies missconfigured, no policies present!");
     }
     return ret;
   }
 
   /**
-   * Obtains the Policy Qualifier Information object
+   * Obtains the Policy Qualifier Information object.
    *
    * @param policy CertificatePolicy with oid, user notice and cps uri
    * @param displayencoding the encoding used for UserNotice text,

@@ -35,6 +35,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  * @version $Id: PrivateKeyUsagePeriod.java 24737 2016-11-15 13:53:25Z anatom $
  */
 public class PrivateKeyUsagePeriod extends StandardCertificateExtension {
+  /** milliseconds. */
+  private static final int MS_PER_S = 1000;
 
   private static final long serialVersionUID = 1L;
   /** Logger for this class. */
@@ -42,7 +44,7 @@ public class PrivateKeyUsagePeriod extends StandardCertificateExtension {
       Logger.getLogger(PrivateKeyUsagePeriod.class);
 
   @Override
-  public void init(CertificateProfile certProf) {
+  public void init(final CertificateProfile certProf) {
     super.setOID(Extension.privateKeyUsagePeriod.getId());
     super.setCriticalFlag(false);
   }
@@ -54,7 +56,7 @@ public class PrivateKeyUsagePeriod extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     // Construct the start and end dates of PrivateKeyUsagePeriod
     // As start date, use the same as the start date of the certificate
@@ -71,7 +73,7 @@ public class PrivateKeyUsagePeriod extends StandardCertificateExtension {
       start = new Date().getTime() - CertificateValidity.getValidityOffset();
     }
     if (certProfile.isUsePrivateKeyUsagePeriodNotBefore()) {
-      start += certProfile.getPrivateKeyUsagePeriodStartOffset() * 1000;
+      start += certProfile.getPrivateKeyUsagePeriodStartOffset() * MS_PER_S;
     }
     Date notBefore = null;
     Date notAfter = null;
@@ -82,7 +84,7 @@ public class PrivateKeyUsagePeriod extends StandardCertificateExtension {
     if (certProfile.isUsePrivateKeyUsagePeriodNotAfter()) {
       final long validity =
           certProfile.getPrivateKeyUsagePeriodLength(); // seconds
-      notAfter = new Date(start + validity * 1000);
+      notAfter = new Date(start + validity * MS_PER_S);
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("PrivateKeyUsagePeriod.notBefore: " + notBefore);

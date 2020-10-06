@@ -33,7 +33,7 @@ public abstract class StandardCertificateExtension
   private static final long serialVersionUID = 1L;
 
   /**
-   * Method that initializes the CertificateExtension
+   * Method that initializes the CertificateExtension.
    *
    * @param certProf certificateprofile that defines if this extension is used
    *     and critical

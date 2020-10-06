@@ -34,7 +34,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  */
 public class ExtendedKeyUsage extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(ExtendedKeyUsage.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ExtendedKeyUsage.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -50,7 +51,7 @@ public class ExtendedKeyUsage extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     org.bouncycastle.asn1.x509.ExtendedKeyUsage ret = null;
     // Get extended key usage from certificate profile
@@ -71,7 +72,7 @@ public class ExtendedKeyUsage extends StandardCertificateExtension {
       ret = org.bouncycastle.asn1.x509.ExtendedKeyUsage.getInstance(seq);
     }
     if (ret == null) {
-      log.error(
+      LOG.error(
           "ExtendedKeyUsage missconfigured, ExtendedKeyUsage is configured to"
               + " be used but no OIDs are defined in certificate profile");
     }

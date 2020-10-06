@@ -45,7 +45,8 @@ import org.cesecore.util.StringTools;
  */
 public class CrlDistributionPoints extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CrlDistributionPoints.class);
 
   @Override
@@ -61,7 +62,7 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     String crldistpoint = certProfile.getCRLDistributionPointURI();
     String crlissuer = certProfile.getCRLIssuer();
@@ -82,8 +83,8 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
         final GeneralName gn =
             new GeneralName(
                 GeneralName.uniformResourceIdentifier, new DERIA5String(uri));
-        if (log.isDebugEnabled()) {
-          log.debug("Added CRL distpoint: " + uri);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Added CRL distpoint: " + uri);
         }
         final ASN1EncodableVector vec = new ASN1EncodableVector();
         vec.add(gn);
@@ -103,8 +104,8 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
       while (tokenizer.hasMoreTokens()) {
         final String issuer = tokenizer.nextToken();
         final GeneralName gn = new GeneralName(new X500Name(issuer));
-        if (log.isDebugEnabled()) {
-          log.debug("Added CRL issuer: " + issuer);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Added CRL issuer: " + issuer);
         }
         final ASN1EncodableVector vec = new ASN1EncodableVector();
         vec.add(gn);
@@ -141,7 +142,7 @@ public class CrlDistributionPoints extends StandardCertificateExtension {
                   distpoints.toArray(new DistributionPoint[distpoints.size()]));
     }
     if (ret == null) {
-      log.error(
+      LOG.error(
           "CrlDistributionPoints missconfigured, no distribution points"
               + " available.");
     }

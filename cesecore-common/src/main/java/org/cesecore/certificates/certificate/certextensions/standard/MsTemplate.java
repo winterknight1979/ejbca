@@ -46,7 +46,7 @@ public class MsTemplate extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val) {
+      final CertificateValidity val) {
     final String mstemplate = certProfile.getMicrosoftTemplate();
     return new DERBMPString(mstemplate);
   }

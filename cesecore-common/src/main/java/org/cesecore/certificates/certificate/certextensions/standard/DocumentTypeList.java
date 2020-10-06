@@ -47,7 +47,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  */
 public class DocumentTypeList extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(DocumentTypeList.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(DocumentTypeList.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -62,12 +63,12 @@ public class DocumentTypeList extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val) {
+      final CertificateValidity val) {
 
     ArrayList<String> docTypes = certProfile.getDocumentTypeList();
     if (docTypes.size() == 0) {
-      if (log.isDebugEnabled()) {
-        log.debug("No DocumentTypeList to make a certificate extension");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No DocumentTypeList to make a certificate extension");
       }
       return null;
     }
@@ -89,8 +90,8 @@ public class DocumentTypeList extends StandardCertificateExtension {
                    // (i.e., it sorts the set)
 
     ASN1Object gn = new DERSequence(vec);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Constructed DocumentTypeList: " + ASN1Dump.dumpAsString(gn, true));
     }
 

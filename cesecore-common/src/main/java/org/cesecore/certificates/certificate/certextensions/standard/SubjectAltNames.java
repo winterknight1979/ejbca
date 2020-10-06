@@ -31,7 +31,8 @@ import org.cesecore.util.CertTools;
  */
 public class SubjectAltNames extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(SubjectAltNames.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(SubjectAltNames.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -46,7 +47,7 @@ public class SubjectAltNames extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val) {
+      final CertificateValidity val) {
     GeneralNames ret = null;
     String altName = subject.getSubjectAltName();
     if (certProfile.getUseSubjectAltNameSubSet()) {
@@ -56,8 +57,8 @@ public class SubjectAltNames extends StandardCertificateExtension {
       ret = CertTools.getGeneralNamesFromAltName(altName);
     }
     if (ret == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "No altnames trying to make SubjectAltName extension: " + altName);
       }
     }

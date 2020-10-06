@@ -46,7 +46,7 @@ public class OcspNoCheck extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val) {
+      final CertificateValidity val) {
     return DERNull.INSTANCE;
   }
 }

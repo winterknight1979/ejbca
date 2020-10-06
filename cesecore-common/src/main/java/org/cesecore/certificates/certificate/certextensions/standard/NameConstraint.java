@@ -51,19 +51,19 @@ public class NameConstraint extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
 
   @Override
-  public void init(CertificateProfile certProf) {
+  public void init(final CertificateProfile certProf) {
     super.setOID(Extension.nameConstraints.getId());
     super.setCriticalFlag(certProf.getNameConstraintsCritical());
   }
 
   @Override
   public ASN1Encodable getValue(
-      EndEntityInformation userData,
-      CA ca,
-      CertificateProfile certProfile,
-      PublicKey userPublicKey,
-      PublicKey caPublicKey,
-      CertificateValidity val)
+      final EndEntityInformation userData,
+      final CA ca,
+      final CertificateProfile certProfile,
+      final PublicKey userPublicKey,
+      final PublicKey caPublicKey,
+      final CertificateValidity val)
       throws CertificateExtensionException {
     NameConstraints nc = null;
 
@@ -97,7 +97,7 @@ public class NameConstraint extends StandardCertificateExtension {
    * @param list encoded strings
    * @return ASN1 subtree
    */
-  public static GeneralSubtree[] toGeneralSubtrees(List<String> list) {
+  public static GeneralSubtree[] toGeneralSubtrees(final List<String> list) {
     if (list == null) {
       return null;
     }
@@ -136,7 +136,7 @@ public class NameConstraint extends StandardCertificateExtension {
    * @param encoded name constraint
    * @return the GeneralName type code for an encoded Name Constraint.
    */
-  private static int getNameConstraintType(String encoded) {
+  private static int getNameConstraintType(final String encoded) {
     String typeString = encoded.split(":", 2)[0];
     if ("iPAddress".equals(typeString)) {
       return GeneralName.iPAddress;
@@ -161,7 +161,7 @@ public class NameConstraint extends StandardCertificateExtension {
    * @param encoded string
    * @return GeneralName
    */
-  private static Object getNameConstraintData(String encoded) {
+  private static Object getNameConstraintData(final String encoded) {
     int type = getNameConstraintType(encoded);
     String data = encoded.split(":", 2)[1];
 
@@ -195,7 +195,7 @@ public class NameConstraint extends StandardCertificateExtension {
    * @return encoded string
    * @throws CertificateExtensionException if the string can not be parsed.
    */
-  public static String parseNameConstraintEntry(String str)
+  public static String parseNameConstraintEntry(final String str)
       throws CertificateExtensionException {
     if (str.matches("^([0-9]+\\.){3,3}([0-9]+)/[0-9]+$")
         || str.matches(
@@ -268,7 +268,7 @@ public class NameConstraint extends StandardCertificateExtension {
    * @throws CertificateExtensionException if the string cannot be parsed
    * @see #parseNameConstraintEntry
    */
-  public static List<String> parseNameConstraintsList(String input)
+  public static List<String> parseNameConstraintsList(final String input)
       throws CertificateExtensionException {
     List<String> encodedNames = new ArrayList<>();
     if (input != null) {
@@ -290,7 +290,7 @@ public class NameConstraint extends StandardCertificateExtension {
    * @param encoded encoded string
    * @return human-readable
    */
-  public static String formatNameConstraintEntry(String encoded) {
+  public static String formatNameConstraintEntry(final String encoded) {
     if (encoded == null) {
       return "";
     }

@@ -24,4 +24,5 @@
 	<suppress checks="LineLengthCheck" files="X509CA.java" lines="2501"/> <!-- URL in comment, not caught by config -->
 	<suppress checks="ParameterNumberCheck" files="X509CAInfo.java" lines="101,244,437"/>
  	<suppress checks="MagicNumberCheck" files="AvailableCustomCertificateExtensionsConfiguration.java" lines="229"/>	<!-- Method is deprecated -->
+ 	<suppress checks="MagicNumberCheck" files="NameConstraint.java" lines="315,222,218"/> <!--  7 here is just 8 - 1 -->	
  </suppressions>

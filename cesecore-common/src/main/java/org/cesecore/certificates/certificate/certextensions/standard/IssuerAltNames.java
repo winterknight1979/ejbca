@@ -34,7 +34,8 @@ import org.cesecore.util.CertTools;
  */
 public class IssuerAltNames extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(IssuerAltNames.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(IssuerAltNames.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -49,7 +50,7 @@ public class IssuerAltNames extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val) {
+      final CertificateValidity val) {
     GeneralNames ret = null;
     String altName = null;
     if (ca.getCACertificate() != null) {
@@ -63,16 +64,16 @@ public class IssuerAltNames extends StandardCertificateExtension {
             && certProfile.getUseSubjectAltNameSubSet()) {
           altName = certProfile.createSubjectAltNameSubSet(altName);
         }
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Using the SAN value as the IssuerAltName value for Root CA."
                   + " SAN='"
                   + altName
                   + "'");
         }
-      } else if (log.isDebugEnabled()) {
+      } else if (LOG.isDebugEnabled()) {
         // This should never happen
-        log.debug(
+        LOG.debug(
             "Missing CA certificate in CA "
                 + ca.getCAId()
                 + ", and subject is not an X509 Root CA. Will not add"
@@ -83,8 +84,8 @@ public class IssuerAltNames extends StandardCertificateExtension {
       ret = CertTools.getGeneralNamesFromAltName(altName);
     }
     if (ret == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "No altnames (SubjectAltName in issuing CA certificate) trying to"
                 + " make IssuerAltName extension: "
                 + altName);

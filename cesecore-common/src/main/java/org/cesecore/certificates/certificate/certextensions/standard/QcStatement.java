@@ -69,7 +69,8 @@ import org.cesecore.util.CertTools;
  */
 public class QcStatement extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(QcStatement.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(QcStatement.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -84,7 +85,7 @@ public class QcStatement extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     DERSequence ret = null;
     final String names = certProfile.getQCStatementRAName();
@@ -220,7 +221,7 @@ public class QcStatement extends StandardCertificateExtension {
       ret = new DERSequence(vec);
     }
     if (ret == null) {
-      log.error(
+      LOG.error(
           "Qualified certificate statements extension has been enabled, but no"
               + " statements were included!");
       throw new CertificateExtensionException(

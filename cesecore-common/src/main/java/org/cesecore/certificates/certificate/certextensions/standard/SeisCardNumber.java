@@ -35,12 +35,12 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
 public class SeisCardNumber extends StandardCertificateExtension {
 
   private static final long serialVersionUID = 1L;
-
-  private static final Logger log = Logger.getLogger(SeisCardNumber.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(SeisCardNumber.class);
 
   /**
    * OID for creating Smartcard Number Certificate Extension SEIS Cardnumber
-   * Extension according to SS 614330/31
+   * Extension according to SS 614330/31.
    */
   public static final String OID_CARDNUMBER =
       CertificateProfile.OID_CARDNUMBER; // "1.2.752.34.2.1";
@@ -58,17 +58,17 @@ public class SeisCardNumber extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val) {
+      final CertificateValidity val) {
     final String cardnumber = userData.getCardNumber();
     ASN1Encodable ret = null;
     if (StringUtils.isNotEmpty(cardnumber)) {
       ret = new DERPrintableString(cardnumber);
-      if (log.isDebugEnabled()) {
-        log.debug("Seis card numer: " + cardnumber);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Seis card numer: " + cardnumber);
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("Seis card numer is empty");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Seis card numer is empty");
       }
     }
     return ret;

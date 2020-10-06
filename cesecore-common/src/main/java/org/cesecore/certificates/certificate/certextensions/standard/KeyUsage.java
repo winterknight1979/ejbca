@@ -32,7 +32,8 @@ import org.cesecore.util.CertTools;
  */
 public class KeyUsage extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(KeyUsage.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(KeyUsage.class);
 
   @Override
   public void init(final CertificateProfile certProf) {
@@ -47,19 +48,19 @@ public class KeyUsage extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     // Key usage
     X509KeyUsage ret = null;
     final int keyUsage = CertTools.sunKeyUsageToBC(certProfile.getKeyUsage());
-    if (log.isDebugEnabled()) {
-      log.debug("Using KeyUsage from profile: " + keyUsage);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Using KeyUsage from profile: " + keyUsage);
     }
     if (keyUsage >= 0) {
       ret = new X509KeyUsage(keyUsage);
     }
     if (ret == null) {
-      log.error("KeyUsage missconfigured, key usage flag invalid: " + keyUsage);
+      LOG.error("KeyUsage missconfigured, key usage flag invalid: " + keyUsage);
     }
     return ret;
   }

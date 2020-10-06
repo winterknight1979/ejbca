@@ -42,7 +42,8 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  */
 public class AuthorityInformationAccess extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AuthorityInformationAccess.class);
 
   @Override
@@ -58,7 +59,7 @@ public class AuthorityInformationAccess extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     final X509CA x509ca = (X509CA) ca;
     List<String> caIssuerUris = new ArrayList<String>();
@@ -84,9 +85,9 @@ public class AuthorityInformationAccess extends StandardCertificateExtension {
       }
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug("Using certificate AIA (CA Issuer URIs): " + caIssuerUris);
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Using certificate AIA (CA Issuer URIs): " + caIssuerUris);
+      LOG.debug(
           "Using certificate AIA (OCSP Service Locators): "
               + ocspServiceLocatorUrls);
     }
@@ -119,7 +120,7 @@ public class AuthorityInformationAccess extends StandardCertificateExtension {
               new DERSequence(aia));
     }
     if (ret == null) {
-      log.error(
+      LOG.error(
           "AIA extension was used, but neither CA issuer URIs or OCSP service"
               + " locator URLs was defined!");
     }

@@ -46,7 +46,7 @@ public class BasicConstraint extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     // Default value, end entity
     BasicConstraints bc = new BasicConstraints(false);

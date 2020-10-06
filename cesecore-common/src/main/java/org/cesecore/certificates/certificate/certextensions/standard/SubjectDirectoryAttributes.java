@@ -37,7 +37,8 @@ import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
  */
 public class SubjectDirectoryAttributes extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SubjectDirectoryAttributes.class);
 
   @Override
@@ -54,7 +55,7 @@ public class SubjectDirectoryAttributes extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val) {
+      final CertificateValidity val) {
     ASN1Encodable ret = null;
     final String dirAttrString =
         subject.getExtendedInformation() != null
@@ -74,8 +75,8 @@ public class SubjectDirectoryAttributes extends StandardCertificateExtension {
       }
     }
     if (ret == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "No directory attributes trying to create"
                 + " SubjectDirectoryAttributes extension: "
                 + dirAttrString);

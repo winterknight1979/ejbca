@@ -43,7 +43,8 @@ import org.cesecore.util.CertTools;
  */
 public class AuthorityKeyIdentifier extends StandardCertificateExtension {
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AuthorityKeyIdentifier.class);
 
   @Override
@@ -59,7 +60,7 @@ public class AuthorityKeyIdentifier extends StandardCertificateExtension {
       final CertificateProfile certProfile,
       final PublicKey userPublicKey,
       final PublicKey caPublicKey,
-      CertificateValidity val)
+      final CertificateValidity val)
       throws CertificateExtensionException {
     org.bouncycastle.asn1.x509.AuthorityKeyIdentifier ret = null;
     // Default value is that we calculate it from scratch!
@@ -92,8 +93,8 @@ public class AuthorityKeyIdentifier extends StandardCertificateExtension {
         final ASN1Sequence seq = new DERSequence(v);
         ret =
             org.bouncycastle.asn1.x509.AuthorityKeyIdentifier.getInstance(seq);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Using AuthorityKeyIdentifier from CA-certificates"
                   + " SubjectKeyIdentifier.");
         }
