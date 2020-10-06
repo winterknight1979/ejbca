@@ -186,7 +186,7 @@ public class CertificateValidity {
    * @throws IllegalValidityException on fail
    */
   public CertificateValidity(
-      Date now,
+      final Date now,
       final EndEntityInformation subject,
       final CertificateProfile certProfile,
       final Date notBefore,
@@ -238,9 +238,10 @@ public class CertificateValidity {
     }
 
     // ECA-3554 add the offset
-    now = getNowWithOffset(now, certProfile);
+
+    Date newNow = getNowWithOffset(now, certProfile);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Using new start time including offset: " + now);
+      LOG.debug("Using new start time including offset: " + newNow);
     }
 
     // Find out what start and end time to actually use..
@@ -248,11 +249,11 @@ public class CertificateValidity {
       // First Priority has information supplied in Extended information object.
       // This allows RA-users to set the time-span.
       // Second Priority has the information supplied in the method arguments
-      firstDate = getExtendedInformationStartTime(now, subject);
+      firstDate = getExtendedInformationStartTime(newNow, subject);
       if (firstDate == null) {
         firstDate = notBefore;
       }
-      lastDate = getExtendedInformationEndTime(now, subject);
+      lastDate = getExtendedInformationEndTime(newNow, subject);
       if (lastDate == null) {
         lastDate = notAfter;
       }

@@ -1245,7 +1245,7 @@ public abstract class CA extends UpgradeableDataHashMap
    * @param subject end entity information. If it contains certificateRequest
    *     under extendedInformation, it will be used instead of the provided
    *     RequestMessage and publicKey
-   * @param notBefore null or a custom date to use as notBefore date
+   * @param onotBefore null or a custom date to use as notBefore date
    * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g.
    *     X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
    * @param encodedValidity requested validity as SimpleTime string or ISO8601
@@ -1264,15 +1264,19 @@ public abstract class CA extends UpgradeableDataHashMap
       final EndEntityInformation subject,
       final PublicKey publicKey,
       final int keyusage,
-      Date notBefore,
+      final  Date onotBefore,
       final String encodedValidity,
       final CertificateProfile certProfile,
       final String sequence,
       final AvailableCustomCertificateExtensionsConfiguration cceConfig)
       throws Exception {
+
     // Calculate the notAfter date
-    if (notBefore == null) {
+    Date notBefore;
+    if (onotBefore == null) {
       notBefore = new Date();
+    } else {
+        notBefore = onotBefore;
     }
     final Date notAfter;
     if (StringUtils.isNotBlank(encodedValidity)) {

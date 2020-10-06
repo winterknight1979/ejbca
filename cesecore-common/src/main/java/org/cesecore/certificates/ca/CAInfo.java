@@ -485,12 +485,15 @@ public abstract class CAInfo implements Serializable {
   }
 
   /** @param aApprovals approvals */
-  public void setApprovals(Map<ApprovalRequestType, Integer> aApprovals) {
+  public void setApprovals(final Map<ApprovalRequestType, Integer> aApprovals) {
+    LinkedHashMap<ApprovalRequestType, Integer> nApprovals;
     if (aApprovals == null) {
-      aApprovals = new LinkedHashMap<ApprovalRequestType, Integer>();
+      nApprovals = new LinkedHashMap<ApprovalRequestType, Integer>();
+    } else {
+        nApprovals
+          = new LinkedHashMap<ApprovalRequestType, Integer>(aApprovals);
     }
-    this.approvals =
-            new LinkedHashMap<ApprovalRequestType, Integer>(aApprovals);
+    this.approvals = nApprovals;
   }
 
   /**

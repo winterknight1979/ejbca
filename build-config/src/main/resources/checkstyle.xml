@@ -90,7 +90,7 @@
   </module>
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
-    <property name="ignorePattern" value="(^import .*;$|^ *\* *[^ ]+$|^ *case *[^ ]+$)"/> 
+    <property name="ignorePattern" value="(^import .*;$|^ *(\*|\\\\) *[^ ]+$|^ *case *[^ ]+$)"/> 
      <!-- ignore import statements -->
      <!-- Ignore long single word comments -->
   </module>
