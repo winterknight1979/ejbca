@@ -70,8 +70,8 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
     - run: |
-        echo '::set-env name=APPSRV_HOME::~'
-        APPSRV_HOME=~ mvn -fn -B -DskipTests=true clean verify
+        echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
+        mvn -fn -B -DskipTests=true clean verify
         
 
     - name: Perform CodeQL Analysis
