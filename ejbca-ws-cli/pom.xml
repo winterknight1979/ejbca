@@ -52,6 +52,20 @@
 							<attachToMain>false</attachToMain>
 						</configuration>
 					</execution>
+					<execution>
+						<id>unpack-objects</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<configuration>
+							<resourceBundles>
+								<resourceBundle>${project.groupId}:ejbca-ws-common:${project.version}</resourceBundle>
+							</resourceBundles>
+							<outputDirectory>${project.build.directory}/ws-objects</outputDirectory>
+							<attachToMain>false</attachToMain>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 
@@ -115,7 +129,7 @@
 								<property name="gen_classpath"
 									refid="maven.compile.classpath" />
 								<property name="inpath"
-									value="${project.basedir}/objects" />
+									value="${project.build.directory}/ws-objects" />
 								<property name="outpath"
 									value="${project.build.directory}/generated-sources/wsimport" />
 								<ant antfile="${project.basedir}/compare.xml"
