@@ -31,8 +31,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 	<modules>
 		<!-- Shared resource bundle -->
-		<module>build-config</module>
 
+		<module>build-config</module>
 		<module>shared-resources</module>
 
 		<!-- CeSeCore JARs -->
@@ -74,8 +74,9 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>admin-gui</module>
 		<module>ra-gui</module>
 		<module>ejbca-cmp-tcp</module>
+
 		<!-- Test-only modules -->
-		
+
 		<module>ejbca-test-aggregator</module>
 
 	</modules>
@@ -276,10 +277,10 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<version>4.3</version>
 			</dependency>
 			<dependency>
-  <groupId>com.github.quickserverlab</groupId>
-  <artifactId>quickserver-main</artifactId>
-  <version>2.1.0</version>
-	</dependency>
+				<groupId>com.github.quickserverlab</groupId>
+				<artifactId>quickserver-main</artifactId>
+				<version>2.1.0</version>
+			</dependency>
 			<dependency>
 				<groupId>org.owasp</groupId>
 				<artifactId>csrfguard</artifactId>
@@ -464,10 +465,10 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<version>1.2.18</version>
 			</dependency>
 			<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>1.2</version>
-		</dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>jstl</artifactId>
+				<version>1.2</version>
+			</dependency>
 
 		</dependencies>
 	</dependencyManagement>
@@ -501,7 +502,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<version>1.1</version>
 			<scope>provided</scope>
 		</dependency>
-	
+
 
 
 		<!-- test -->
@@ -518,13 +519,32 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		</dependency>
 	</dependencies>
 
-	<!-- Quickserver is not on Central  -->
+	<!-- Quickserver is not on Central, but always try there first for everything 
+		else. -->
+
 	<repositories>
-	    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
+		<repository>
+			<id>1_maven.apache.org</id>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<url>https://repo.maven.apache.org/maven2</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>2_jitpack.io</id>
+			<url>https://jitpack.io</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 	<build>
 		<pluginManagement>
@@ -677,6 +697,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<goalPrefix>spotbugs</goalPrefix>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
