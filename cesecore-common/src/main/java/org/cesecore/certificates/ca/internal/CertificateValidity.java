@@ -265,7 +265,7 @@ public class CertificateValidity {
     // Third priority: If nothing could be set by external information have the
     // default  3 is default values
     if (firstDate == null) {
-      firstDate = now;
+      firstDate = newNow;
     }
     Date certProfileLastDate =
         new Date(getCertificateProfileValidtyEndDate(certProfile, firstDate));
@@ -319,13 +319,13 @@ public class CertificateValidity {
     // current date, i.e. not back dated start dates
     // Unless allowValidityOverride is set, then we allow everything
     // So this check is probably completely unneeded and can never be true
-    if (firstDate.before(now) && !certProfile.getAllowValidityOverride()) {
+    if (firstDate.before(newNow) && !certProfile.getAllowValidityOverride()) {
       LOG.error(
           INTRES.getLocalizedMessage(
               "createcert.errorbeforecurrentdate",
               firstDate,
               subject.getUsername()));
-      firstDate = now;
+      firstDate = newNow;
       // Update valid length from the profile since the starting point has
       // changed
       certProfileLastDate =

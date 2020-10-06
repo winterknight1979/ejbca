@@ -21,7 +21,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for ExternalScriptsWhitelist.
- *
+ * TODO: Make this work on Windows.
  * @version $Id: ExternalScriptsWhitelistTest.java 30973 2019-01-03 14:33:40Z
  *     samuellb $
  */
