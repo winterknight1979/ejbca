@@ -55,7 +55,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>edition-specific-ejb</module>
 		
 		<!-- CLI Tools -->
-		
+
+		<module>cli-util</module>
 		<module>ejbca-ws-cli</module>
 		
 		<!-- WebApp modules -->
@@ -74,8 +75,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<!-- Test-only modules -->
 		
 		<module>ejbca-test-aggregator</module>
-
-
 
 
 	</modules>
