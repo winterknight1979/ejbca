@@ -62,7 +62,7 @@ public abstract class BaseRolesCommand extends EjbcaCliUserCommandBase {
     @Override
     protected abstract Logger getLogger();
 
-    /** @return a Map<resourceName,resource> for authorized resources (cached in this remote JVM) */
+    /** @return a Map&lt;resourceName,resource&gt; for authorized resources (cached in this remote JVM) */
     public Map<String, String> getResourceNameToResourceMap() {
         if (resourceNameToResourceMap==null) {
             final Map<String,String> authorizedResourcesMap = EjbRemoteHelper.INSTANCE.getRemoteSession(AuthorizationSystemSessionRemote.class).
@@ -75,7 +75,7 @@ public abstract class BaseRolesCommand extends EjbcaCliUserCommandBase {
         return resourceNameToResourceMap;
     }
 
-    /** @return a Map<resource,resourceName> for authorized resources (cached in this remote JVM) */
+    /** @return a Map&lt;resource,resourceName&gt; for authorized resources (cached in this remote JVM) */
     public Map<String, String> getResourceToResourceNameMap() {
         if (resourceToResourceNameMap==null) {
             resourceToResourceNameMap = EjbRemoteHelper.INSTANCE.getRemoteSession(AuthorizationSystemSessionRemote.class).

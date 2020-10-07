@@ -21,7 +21,7 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
  * Used for importing certificates from a MS CA dump. The dump is assumed to be produced with
- *  certutil -view -restrict "GeneralFlags>0" /out "UPN,CertificateTemplate,Disposition,RawCertificate" > certdump.txt
+ *  certutil -view -restrict "GeneralFlags&gt;0" /out "UPN,CertificateTemplate,Disposition,RawCertificate" &gt; certdump.txt
  *
  *  The CA has to be imported before this code runs.
  */
