@@ -325,17 +325,17 @@ public class SernoGeneratorTest {
         new Thread(
             new SernoTester(12),
             "12 octets"); // NOPMD we want to use thread here, it's not a JEE
-                          // app
+    // app
     Thread no4 =
         new Thread(
             new SernoTester(16),
             "16 octets"); // NOPMD we want to use thread here, it's not a JEE
-                          // app
+    // app
     Thread no5 =
         new Thread(
             new SernoTester(20),
             "20 octets"); // NOPMD we want to use thread here, it's not a JEE
-                          // app
+    // app
     CacheExceptionHandler handler = new CacheExceptionHandler();
     no1.setUncaughtExceptionHandler(handler);
     no2.setUncaughtExceptionHandler(handler);

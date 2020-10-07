@@ -28,17 +28,17 @@ import org.junit.Test;
 public class DNFieldsUtilTest {
   private static final String trickyValue1 =
       " 10/2=5; 2 backs and a comma\\\\\\\\\\, 8/2=4 2 backs\\\\\\\\"; // last
-                                                                       // comma
-                                                                       // is end
-                                                                       // of
-                                                                       // value
-                                                                       // since
-                                                                       // it is
-                                                                       // a even
-                                                                       // number
-                                                                       // (4) of
-                                                                       // \
-                                                                       // before
+  // comma
+  // is end
+  // of
+  // value
+  // since
+  // it is
+  // a even
+  // number
+  // (4) of
+  // \
+  // before
   private static final String trickyValue2 = "\\,"; // a single comma
   private static final String trickyValue3 =
       "\\\\\\\\\\\\\\,"; // 3 backs and a comma
@@ -49,7 +49,7 @@ public class DNFieldsUtilTest {
   private static final String trickyValue7 = "\\,\\,\\,\\,\\,\\,"; // 6 commas
   private static final String trickyValue8 =
       "\\\\\\,\\,\\,\\\\\\,\\,\\,\\\\"; // 1 back, 3 commas, 1 back, 3 commas, 1
-                                        // back
+  // back
   private static final String key1 = "key1=";
   private static final String key2 = "key2=";
   private static final String c = ",";

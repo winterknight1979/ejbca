@@ -306,9 +306,8 @@ public class CaCertificateCacheTest {
         // cache
         // only handles X.509 Certificates.
         if (!StringUtils.contains(dn, "CVCTest")) {
-          cert
-              .getSubjectDN(); // just to see that we did receive a cert, will
-                               // throw NPE if no cert was returned
+          cert.getSubjectDN(); // just to see that we did receive a cert, will
+          // throw NPE if no cert was returned
         }
       }
     }

@@ -122,7 +122,7 @@ public class RevokedCertInfoTest {
         new CompressedCollection<>(RevokedCertInfo.class);
     b.add(
         REVINFO_2_ONHOLD); // only temporary revocations, and most recent entry
-                           // => wins
+    // => wins
     b.add(REVINFO_1_NOTREVOKED);
     final Collection<RevokedCertInfo> res =
         RevokedCertInfo.mergeByDateAndStatus(a, b, 0);

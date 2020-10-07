@@ -441,7 +441,7 @@ public class SecureXMLDecoderTest {
     final XMLEncoder encoder = new XMLEncoder(baos);
     encoder.writeObject(
         new Random()); // java.util.Random is serializable, but isn't
-                       // whitelisted
+    // whitelisted
     encoder.close();
 
     decodeBad(baos.toByteArray());

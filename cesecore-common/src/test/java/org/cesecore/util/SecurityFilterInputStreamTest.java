@@ -96,8 +96,7 @@ public class SecurityFilterInputStreamTest {
               new SecurityFilterInputStream(
                   new ByteArrayInputStream(byteArrayOutputStream.toByteArray()),
                   0xFFFFF));
-      objectInputStream
-          .readObject(); // would throw Java heap error if
+      objectInputStream.readObject(); // would throw Java heap error if
       // SecurityFilterInputStream is not applied
       fail(
           "No Java heap error happened for StringBuilder exploit (MaxHeap = "

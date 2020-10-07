@@ -169,10 +169,9 @@ public final class ConcurrentCacheTest {
         cache.openCacheEntry("A", 1000);
     assertFalse(
         "Should be forced to update the cache.",
-        entry2
-            .isInCache()); // technically, it is still in the cache, but
-                           // ConcurrentCache will pretend it's not, so the
-                           // caller will update it
+        entry2.isInCache()); // technically, it is still in the cache, but
+    // ConcurrentCache will pretend it's not, so the
+    // caller will update it
 
     // Start a new request for the same entry. Should use the old expired entry
     final long startTime = System.currentTimeMillis();
@@ -251,7 +250,7 @@ public final class ConcurrentCacheTest {
       long timeout =
           System.currentTimeMillis()
               + 2000; // if a thread stops for more than 2 s in cleanup() then
-                      // that's a problem by itself
+      // that's a problem by itself
       for (int i = 0; i < threads.length; i++) {
         if (threads[i].isAlive() && System.currentTimeMillis() < timeout) {
           threads[i].join(2000);

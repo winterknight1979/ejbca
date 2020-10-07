@@ -45,9 +45,9 @@ public class PKCS11TestUtils {
       "/usr/lunasa/lib/libCryptoki2.so";
   private static final String PROTECTSERVER_PKCS11_LINUX_LIB =
       "/opt/PTK/lib/libcryptoki.so"; // this symlink is set by
-                                     // safeNet-install.sh->"5 Set the default
-                                     // cryptoki and/or hsm link". Use it
-                                     // instead of symlinking manually.
+  // safeNet-install.sh->"5 Set the default
+  // cryptoki and/or hsm link". Use it
+  // instead of symlinking manually.
   private static final String PROTECTSERVER_PKCS11_LINUX64_LIB =
       "/opt/ETcpsdk/lib/linux-x86_64/libcryptoki.so";
   private static final String PROTECTSERVER_PKCS11_LINUX32_LIB =

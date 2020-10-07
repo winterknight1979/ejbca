@@ -295,7 +295,8 @@ public class RequestMessageTest {
     dn =
         new X500Name(
             "1.2.840.113549.1.9.3=AttrValue1\\+\\="
-                + " AttrValue2+CN=Test+O=abc"); // very strange, but should still be valid
+                + " AttrValue2+CN=Test+O=abc"); // very strange, but should
+                                                // still be valid
     basicpkcs10 =
         CertTools.genPKCS10CertificationRequest(
             "SHA1WithRSA",
@@ -446,10 +447,10 @@ public class RequestMessageTest {
         new SimpleRequestMessage(keyPair.getPublic(), "dnorder", "foo123");
     req.setRequestDN(
         "C=SE,O=Foo Company,SN=12345,SURNAME=surname,CN=DnOrderTest"); // This
-                                                                       // should
-                                                                       // not
-                                                                       // matter
-                                                                       // now
+    // should
+    // not
+    // matter
+    // now
     X500Name reqname = req.getRequestX500Name();
     assertEquals(
         "C=SE,O=Foo Company,SN=12345,SURNAME=surname,CN=DnOrderTest",

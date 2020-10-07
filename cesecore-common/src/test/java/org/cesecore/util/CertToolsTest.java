@@ -3030,8 +3030,7 @@ public class CertToolsTest {
              + "k32sSlZ7fu/zTPLDiV4CHOom67amngXZWK/WGsVr862EHoWOXoFfIeKIKMZslmM5"
              + "HvPevKBg3IHKBp1BLUTr2b5/yvy5TijeojraOtXipKtRWXyRM4E6YEX1YqwL5nF5"
              + "lr53G4ikW+RSdugCOLbio7vfj7bSK34E4EBQE8jU2+RqiXyMgO8Ni0NitNZxmc8K"
-             + "JDlbioUjBIRX/xElQjdKqYJjUERgZxmk0+zmeF4bAN0nVJtAv6N/JOw7VOsUAea7"
-             + "uICq887NuvFm3bo5s6vFsGlPLbNDgresVimkvhmliuUuA5Q8U38QHZ33oZI1XA==\n"
+             + "JDlbioUjBIRX/xElQjdKqYJjUERgZxmk0+zmeF4bAN0nVJtAv6N/JOw7VOsUAea7uICq887NuvFm3bo5s6vFsGlPLbNDgresVimkvhmliuUuA5Q8U38QHZ33oZI1XA==\n"
              + "-----END CERTIFICATE-----")
             .getBytes();
     X509Certificate cert =
@@ -3082,8 +3081,7 @@ public class CertToolsTest {
              + "6SkqFVCVxx+jha2Z7IX4kv1IsRn2ZYNoxYHkefGPJD4qk1X+MTvEgN2nKUxJQGrJ"
              + "n/vDnGCJjNWwmcoBmp7n3//S4S4CtNMhGXJ61mcx1tK7sIK14xC+MD/33Q675OhO"
              + "84bjb9kdIpqDaYl6x8JuaLlKim9249IAiYm/0IH+aLMyE9LO1+ohUSq4nCoZ30dV"
-             + "5OkLGTRxw1vYfHKgf1BHMOki/PKVxxE5qas5p43xFcdp8r94LeErvlm5NtgJFHA0"
-             + "zSNkEEEgGMdf2/MyB49NTuqyJWtz94Ox0HKvHPCfLtG/Ib4=\n"
+             + "5OkLGTRxw1vYfHKgf1BHMOki/PKVxxE5qas5p43xFcdp8r94LeErvlm5NtgJFHA0zSNkEEEgGMdf2/MyB49NTuqyJWtz94Ox0HKvHPCfLtG/Ib4=\n"
              + "-----END CERTIFICATE-----")
             .getBytes();
     X509Certificate cert =
@@ -3177,8 +3175,8 @@ public class CertToolsTest {
     } catch (
         CertificateParsingException
             e) { // It seems that BC provider while generating certificate wraps
-                 // RuntimeException into CertificateException (which CertTools
-                 // wraps into CertificateParsingException...)
+      // RuntimeException into CertificateException (which CertTools
+      // wraps into CertificateParsingException...)
       // Good
     } catch (Exception e) {
       fail(

@@ -117,7 +117,7 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
 
   @SuppressWarnings(
       "deprecation") // This test will be removed when the deprecated methods it
-                     // tests are.
+  // tests are.
   @Test
   public void testUpgradePropertiesFileFrom5_0_x() {
     Properties slotNumberProperties = new Properties();
