@@ -183,35 +183,37 @@ public interface RequestMessage extends Serializable {
   void setKeyInfo(Certificate cert, PrivateKey key, String provider);
 
   /**
-   * Returns an error number after an error has occurred processing the request
+   * Returns an error number after an error has
+   * occurred processing the request.
    *
    * @return class specific error number
    */
   int getErrorNo();
 
   /**
-   * Returns an error message after an error has occurred processing the request
+   * Returns an error message after an error has
+   * occurred processing the request.
    *
    * @return class specific error message
    */
   String getErrorText();
 
   /**
-   * Returns a senderNonce if present in the request
+   * Returns a senderNonce if present in the request.
    *
    * @return senderNonce as a string of base64 encoded bytes
    */
   String getSenderNonce();
 
   /**
-   * Returns a transaction identifier if present in the request
+   * Returns a transaction identifier if present in the request.
    *
    * @return transaction id
    */
   String getTransactionId();
 
   /**
-   * Returns requesters key info, key id or similar
+   * Returns requesters key info, key id or similar.
    *
    * @return request key info
    */
@@ -268,7 +270,7 @@ public interface RequestMessage extends Serializable {
    *
    * @return the list of CA certificates.
    */
-  public List<Certificate> getAdditionalCaCertificates();
+  List<Certificate> getAdditionalCaCertificates();
 
   /**
    * Sets the list of additional CA certificates (i.e. to be appended to the
@@ -277,7 +279,7 @@ public interface RequestMessage extends Serializable {
    *
    * @param certificates the list of CA certificates.
    */
-  public void setAdditionalCaCertificates(final List<Certificate> certificates);
+   void setAdditionalCaCertificates(List<Certificate> certificates);
 
   /**
    * Gets the list of additional CA certificates to be appended to the PKI
@@ -285,7 +287,7 @@ public interface RequestMessage extends Serializable {
    *
    * @return the list of CA certificates.
    */
-  public List<Certificate> getAdditionalExtraCertsCertificates();
+   List<Certificate> getAdditionalExtraCertsCertificates();
 
   /**
    * Sets the list of additional CA certificates to be appended to the PKI
@@ -293,6 +295,6 @@ public interface RequestMessage extends Serializable {
    *
    * @param certificates the list of CA certificates.
    */
-  public void setAdditionalExtraCertsCertificates(
-      final List<Certificate> certificates);
+   void setAdditionalExtraCertsCertificates(
+      List<Certificate> certificates);
 }

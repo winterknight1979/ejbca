@@ -20,54 +20,54 @@ import java.io.Serializable;
  *
  * @version $Id: FailInfo.java 22446 2015-12-15 03:12:07Z anatom $
  */
-public class FailInfo implements Serializable {
+public final class FailInfo implements Serializable {
 
   private static final long serialVersionUID = 5198024740242161138L;
 
-  /** Unrecognized or unsupported algorithm ident */
+  /** Unrecognized or unsupported algorithm ident. */
   public static final FailInfo BAD_ALGORITHM = new FailInfo(0);
 
-  /** Integrity check failed */
+  /** Integrity check failed. */
   public static final FailInfo BAD_MESSAGE_CHECK = new FailInfo(1);
 
-  /** Transaction not permitted or supported */
+  /** Transaction not permitted or supported. */
   public static final FailInfo BAD_REQUEST = new FailInfo(2);
 
-  /** Message time field was not sufficiently close to the system time */
+  /** Message time field was not sufficiently close to the system time. */
   public static final FailInfo BAD_TIME = new FailInfo(3);
 
-  /** No certificate could be identified matching the provided criteria */
+  /** No certificate could be identified matching the provided criteria. */
   public static final FailInfo BAD_CERTIFICATE_ID = new FailInfo(4);
 
   // The below codes are not specified in the SCEP draft RFC
 
-  /** Request for wrong certificate authority */
+  /** Request for wrong certificate authority. */
   public static final FailInfo WRONG_AUTHORITY = new FailInfo(6);
-  /** Data incorrect, for example request for a non-existing user */
+  /** Data incorrect, for example request for a non-existing user. */
   public static final FailInfo INCORRECT_DATA = new FailInfo(7);
-  /** Verification of Proof of possession failed */
+  /** Verification of Proof of possession failed. */
   public static final FailInfo BAD_POP = new FailInfo(9);
   /**
    * RFC4210 PKIFailureInfo certRevoked. "the certificate has already been
    * revoked"
    */
   public static final FailInfo CERT_REVOKED = new FailInfo(10);
-  /** Not authorized */
+  /** Not authorized. */
   public static final FailInfo NOT_AUTHORIZED = new FailInfo(23);
-  /** (Timeout), system was unavailable and could not be reached */
+  /** (Timeout), system was unavailable and could not be reached. */
   public static final FailInfo SYSTEM_UNAVAILABLE = new FailInfo(24);
   /**
    * The value actually encoded into the response message as the failinfo
-   * attribute
+   * attribute.
    */
   private final int value;
 
-  private FailInfo(int value) {
-    this.value = value;
+  private FailInfo(final int aValue) {
+    this.value = aValue;
   }
 
   /**
-   * Gets the value embedded in the response message as a failinfo attribute
+   * Gets the value embedded in the response message as a failinfo attribute.
    *
    * @return the value to use
    */
@@ -76,7 +76,7 @@ public class FailInfo implements Serializable {
   }
 
   /**
-   * Gets the error integer value
+   * Gets the error integer value.
    *
    * @return the error code
    */
@@ -84,7 +84,8 @@ public class FailInfo implements Serializable {
     return value;
   }
 
-  public boolean equals(Object o) {
+  @Override
+  public boolean equals(final Object o) {
     if (this == o) {
       return true;
     }
@@ -98,10 +99,12 @@ public class FailInfo implements Serializable {
     return true;
   }
 
+  @Override
   public int hashCode() {
     return value;
   }
 
+  @Override
   public String toString() {
     return Integer.toString(value);
   }

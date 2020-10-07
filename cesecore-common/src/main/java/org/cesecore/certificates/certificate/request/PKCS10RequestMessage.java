@@ -60,42 +60,46 @@ public class PKCS10RequestMessage implements RequestMessage {
    */
   static final long serialVersionUID = 3597275157018205137L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(PKCS10RequestMessage.class);
 
-  /** Raw form of the PKCS10 message */
+  /** Raw form of the PKCS10 message. */
   protected byte[] p10msg;
 
-  /** manually set password */
+  /** manually set password. */
   protected String password = null;
 
-  /** manually set username */
+  /** manually set username. */
   protected String username = null;
-
+  /** End date. */
   protected Date notAfter = null;
+  /** Start date. */
   protected Date notBefore = null;
 
   /**
    * If the CA certificate should be included in the response or not, default to
-   * true = yes
+   * true = yes.
    */
   protected boolean includeCACert = true;
 
-  /** preferred digest algorithm to use in replies, if applicable */
+  /** preferred digest algorithm to use in replies, if applicable. */
   private transient String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;
 
   /** The pkcs10 request message, not serialized. */
   protected transient JcaPKCS10CertificationRequest pkcs10 = null;
 
-  /** Type of error */
+  /** Type of error. */
   private int error = 0;
 
-  /** Error text */
+  /** Error text. */
   private String errorText = null;
 
+  /** Extra certs. */
   private List<Certificate> additionalCaCertificates =
       new ArrayList<Certificate>();
 
+  /** Extra certs. */
   private List<Certificate> additionalExtraCertsCertificates =
       new ArrayList<Certificate>();
 
@@ -109,14 +113,14 @@ public class PKCS10RequestMessage implements RequestMessage {
    *
    * @param msg The DER encoded PKCS#10 request.
    */
-  public PKCS10RequestMessage(byte[] msg) {
-    if (log.isTraceEnabled()) {
-      log.trace(">PKCS10RequestMessage(byte[])");
+  public PKCS10RequestMessage(final byte[] msg) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">PKCS10RequestMessage(byte[])");
     }
     this.p10msg = msg;
     init();
-    if (log.isTraceEnabled()) {
-      log.trace("<PKCS10RequestMessage(byte[])");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<PKCS10RequestMessage(byte[])");
     }
   }
 
@@ -126,15 +130,15 @@ public class PKCS10RequestMessage implements RequestMessage {
    * @param p10 the PKCS#10 request
    * @throws IOException on fail
    */
-  public PKCS10RequestMessage(JcaPKCS10CertificationRequest p10)
+  public PKCS10RequestMessage(final JcaPKCS10CertificationRequest p10)
       throws IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(">PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
     }
     p10msg = p10.getEncoded();
     pkcs10 = p10;
-    if (log.isTraceEnabled()) {
-      log.trace("<PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<PKCS10RequestMessage(ExtendedPKCS10CertificationRequest)");
     }
   }
 
@@ -145,7 +149,7 @@ public class PKCS10RequestMessage implements RequestMessage {
     try {
       pkcs10 = new JcaPKCS10CertificationRequest(p10msg);
     } catch (IOException e) {
-      log.warn("PKCS10 not initiated! " + e.getMessage());
+      LOG.warn("PKCS10 not initiated! " + e.getMessage());
     }
   }
 
@@ -167,7 +171,7 @@ public class PKCS10RequestMessage implements RequestMessage {
    *
    * @param pwd password
    */
-  public void setPassword(String pwd) {
+  public void setPassword(final String pwd) {
     this.password = pwd;
   }
 
@@ -181,7 +185,7 @@ public class PKCS10RequestMessage implements RequestMessage {
         init();
       }
     } catch (NullPointerException e) {
-      log.error("PKCS10 not initated! " + e.getMessage());
+      LOG.error("PKCS10 not initated! " + e.getMessage());
       return null;
     }
 
@@ -197,8 +201,8 @@ public class PKCS10RequestMessage implements RequestMessage {
       if (attributes.length == 0) {
         return null;
       }
-      if (log.isDebugEnabled()) {
-        log.debug("got extension request");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("got extension request");
       }
       ASN1Set values = attributes[0].getAttrValues();
       if (values.size() == 0) {
@@ -208,8 +212,8 @@ public class PKCS10RequestMessage implements RequestMessage {
       Extension ext =
           exts.getExtension(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
       if (ext == null) {
-        if (log.isDebugEnabled()) {
-          log.debug("no challenge password extension");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("no challenge password extension");
         }
         return null;
       }
@@ -244,10 +248,10 @@ public class PKCS10RequestMessage implements RequestMessage {
   /**
    * force a username, i.e. ignore the DN/username in the request
    *
-   * @param username username
+   * @param aUsername username
    */
-  public void setUsername(String username) {
-    this.username = username;
+  public void setUsername(final String aUsername) {
+    this.username = aUsername;
   }
 
   /**
@@ -256,10 +260,10 @@ public class PKCS10RequestMessage implements RequestMessage {
    * specified here will only be considered if user-defined validity dates are
    * allowed by the certificate profile, e.g. if Validity override" is enabled.
    *
-   * @param notAfter expiry
+   * @param aNotAfter expiry
    */
-  public void setNotAfter(final Date notAfter) {
-    this.notAfter = notAfter;
+  public void setNotAfter(final Date aNotAfter) {
+    this.notAfter = aNotAfter;
   }
 
   @Override
@@ -274,13 +278,13 @@ public class PKCS10RequestMessage implements RequestMessage {
     X500Name xname = getRequestX500Name();
     String ret = null;
     if (xname == null) {
-      log.info(
+      LOG.info(
           "No requestDN in request, probably we could not read/parse/decrypt"
               + " request.");
     } else {
       RDN[] cnValues = xname.getRDNs(CeSecoreNameStyle.CN);
       if (cnValues.length == 0) {
-        log.info("No CN in DN: " + xname.toString());
+        LOG.info("No CN in DN: " + xname.toString());
       } else {
         AttributeTypeAndValue[] tavs = cnValues[0].getTypesAndValues();
         for (AttributeTypeAndValue tav : tavs) {
@@ -298,8 +302,8 @@ public class PKCS10RequestMessage implements RequestMessage {
         }
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("UserName='" + ret + "'");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("UserName='" + ret + "'");
     }
     return ret;
   }
@@ -340,8 +344,8 @@ public class PKCS10RequestMessage implements RequestMessage {
       dn = dn.replace(" + unstructuredAddress=", ",unstructuredAddress=");
       ret = dn;
     }
-    if (log.isDebugEnabled()) {
-      log.debug("getRequestDN: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getRequestDN: " + ret);
     }
     return ret;
   }
@@ -353,7 +357,7 @@ public class PKCS10RequestMessage implements RequestMessage {
         init();
       }
     } catch (NullPointerException e) {
-      log.error("PKCS10 not inited: " + e.getMessage());
+      LOG.error("PKCS10 not inited: " + e.getMessage());
       return null;
     }
     return X500Name.getInstance(new CeSecoreNameStyle(), pkcs10.getSubject());
@@ -370,14 +374,14 @@ public class PKCS10RequestMessage implements RequestMessage {
           // Finally read the value
           ret = CertTools.getAltNameStringFromExtension(ext);
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug("no subject altName extension");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("no subject altName extension");
           }
         }
       }
     } catch (IllegalArgumentException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "pkcs_9_extensionRequest does not contain Extensions that it"
                 + " should, ignoring invalid encoded extension request.");
       }
@@ -402,7 +406,7 @@ public class PKCS10RequestMessage implements RequestMessage {
         init();
       }
     } catch (NullPointerException e) {
-      log.error("PKCS10 not inited! " + e.getMessage());
+      LOG.error("PKCS10 not inited! " + e.getMessage());
       return null;
     }
     Extensions ret = null;
@@ -414,16 +418,16 @@ public class PKCS10RequestMessage implements RequestMessage {
     Attribute[] attr =
         pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
     if (attr.length != 0) {
-      if (log.isDebugEnabled()) {
-        log.debug("got request extension");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("got request extension");
       }
       ASN1Set values = attr[0].getAttrValues();
       if (values.size() > 0) {
         try {
           ret = Extensions.getInstance(values.getObjectAt(0));
         } catch (IllegalArgumentException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "pkcs_9_extensionRequest does not contain Extensions that it"
                     + " should, ignoring invalid encoded extension request.");
           }
@@ -445,7 +449,7 @@ public class PKCS10RequestMessage implements RequestMessage {
         init();
       }
     } catch (NullPointerException e) {
-      log.error("PKCS10 not inited! " + e.getMessage());
+      LOG.error("PKCS10 not inited! " + e.getMessage());
       return null;
     }
 
@@ -457,10 +461,17 @@ public class PKCS10RequestMessage implements RequestMessage {
     return verify(null);
   }
 
-  public boolean verify(PublicKey pubKey)
+  /**
+   *
+   * @param pubKey Key
+   * @return Verified
+   * @throws InvalidKeyException Key invalid
+   * @throws NoSuchAlgorithmException No algo
+   */
+  public boolean verify(final PublicKey pubKey)
       throws InvalidKeyException, NoSuchAlgorithmException {
-    if (log.isTraceEnabled()) {
-      log.trace(">verify()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">verify()");
     }
     if (pkcs10 == null) {
       init();
@@ -477,13 +488,13 @@ public class PKCS10RequestMessage implements RequestMessage {
       try {
         return pkcs10.isSignatureValid(verifierProvider);
       } catch (PKCSException e) {
-        log.error("Signature could not be processed.", e);
+        LOG.error("Signature could not be processed.", e);
       }
     } catch (OperatorCreationException e) {
-      log.error("Content verifier provider could not be created.", e);
+      LOG.error("Content verifier provider could not be created.", e);
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace("<verify()");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<verify()");
       }
     }
     return false;
@@ -495,7 +506,10 @@ public class PKCS10RequestMessage implements RequestMessage {
   }
 
   @Override
-  public void setKeyInfo(Certificate cert, PrivateKey key, String Provider) {}
+  public void setKeyInfo(final Certificate cert,
+          final PrivateKey key, final String provider) {
+      // NO-OP
+  }
 
   @Override
   public int getErrorNo() {
@@ -543,7 +557,7 @@ public class PKCS10RequestMessage implements RequestMessage {
   }
 
   @Override
-  public void setResponseKeyInfo(PrivateKey key, String provider) {
+  public void setResponseKeyInfo(final PrivateKey key, final String provider) {
     // NOOP
   }
 
@@ -565,7 +579,7 @@ public class PKCS10RequestMessage implements RequestMessage {
 
   @Override
   public void setAdditionalExtraCertsCertificates(
-      List<Certificate> additionalExtraCertsCertificates) {
-    this.additionalExtraCertsCertificates = additionalExtraCertsCertificates;
+      final List<Certificate> aAdditionalExtraCertsCertificates) {
+    this.additionalExtraCertsCertificates = aAdditionalExtraCertsCertificates;
   }
 }

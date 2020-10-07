@@ -48,13 +48,14 @@ import org.ejbca.cvc.exception.ConstructionException;
 import org.ejbca.cvc.exception.ParseException;
 
 /**
- * Utility class to gather a few functions
+ * Utility class to gather a few functions.
  *
  * @version $Id: RequestMessageUtils.java 27126 2017-11-13 09:28:54Z anatom $
  */
 public abstract class RequestMessageUtils {
 
-  private static final Logger log = Logger.getLogger(RequestMessageUtils.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RequestMessageUtils.class);
 
   /**
    * Tries to parse the byte array to create a request message of the correct
@@ -63,12 +64,12 @@ public abstract class RequestMessageUtils {
    * @param request byte array
    * @return IRequestMessage
    */
-  public static RequestMessage parseRequestMessage(byte[] request) {
+  public static RequestMessage parseRequestMessage(final byte[] request) {
     RequestMessage ret = null;
     try {
       ret = genPKCS10RequestMessage(request);
     } catch (IllegalArgumentException e) {
-      log.debug(
+      LOG.debug(
           "Can not parse PKCS10 request, trying CVC instead: "
               + e.getMessage());
       ret = genCVCRequestMessage(request);
@@ -76,7 +77,12 @@ public abstract class RequestMessageUtils {
     return ret;
   }
 
-  public static PKCS10RequestMessage genPKCS10RequestMessage(byte[] bytes) {
+  /**
+   * @param bytes PEM
+   * @return Request message
+   */
+  public static PKCS10RequestMessage genPKCS10RequestMessage(
+          final byte[] bytes) {
     byte[] buffer = getDecodedBytes(bytes);
     if (buffer == null) {
       return null;
@@ -84,7 +90,11 @@ public abstract class RequestMessageUtils {
     return new PKCS10RequestMessage(buffer);
   } // genPKCS10RequestMessageFromPEM
 
-  public static CVCRequestMessage genCVCRequestMessage(byte[] bytes) {
+  /**
+   * @param bytes PEM
+   * @return Request message
+   */
+  public static CVCRequestMessage genCVCRequestMessage(final byte[] bytes) {
     byte[] buffer = getDecodedBytes(bytes);
     if (buffer == null) {
       return null;
@@ -94,18 +104,18 @@ public abstract class RequestMessageUtils {
 
   /**
    * Tries to get decoded, if needed, bytes from a certificate request or
-   * certificate
+   * certificate.
    *
    * @param bytes pem (with headers), plain base64, or binary bytes with a CSR
    *     of certificate
    * @return binary bytes
    */
-  public static byte[] getDecodedBytes(byte[] bytes) {
+  public static byte[] getDecodedBytes(final byte[] bytes) {
     byte[] buffer = null;
     try {
       buffer = getRequestBytes(bytes);
     } catch (IOException e) {
-      log.debug(
+      LOG.debug(
           "Message not base64 encoded? Trying as binary: " + e.getMessage());
       buffer = bytes;
     }
@@ -113,14 +123,15 @@ public abstract class RequestMessageUtils {
   }
 
   /**
-   * Tries to get decoded bytes from a certificate request or certificate
+   * Tries to get decoded bytes from a certificate request or certificate.
    *
    * @param b64Encoded pem (with headers) or plain base64 with a CSR of
    *     certificate
    * @return binary bytes
    * @throws IOException on error
    */
-  public static byte[] getRequestBytes(byte[] b64Encoded) throws IOException {
+  public static byte[] getRequestBytes(
+          final byte[] b64Encoded) throws IOException {
     byte[] buffer = null;
     if (b64Encoded != null && b64Encoded.length > 0) {
       String str = new String(b64Encoded);
@@ -160,6 +171,24 @@ public abstract class RequestMessageUtils {
     return buffer;
   }
 
+  /**
+   * 
+   * @param username User
+   * @param password Pass
+   * @param req Request
+   * @param reqType Type
+   * @return Request message
+   * @throws SignRequestSignatureException faik
+   * @throws InvalidKeyException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws IOException fail 
+   * @throws SignatureException fail 
+   * @throws InvalidKeySpecException fail
+   * @throws ParseException fail 
+   * @throws ConstructionException fail 
+   * @throws NoSuchFieldException fail 
+   */
   public static RequestMessage getRequestMessageFromType(
       final String username,
       final String password,
@@ -179,8 +208,8 @@ public abstract class RequestMessageUtils {
     } else if (reqType == CertificateConstants.CERT_REQ_TYPE_SPKAC) {
       byte[] reqBytes = req.getBytes();
       if (reqBytes != null) {
-        if (log.isDebugEnabled()) {
-          log.debug("Received NS request: " + new String(reqBytes));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Received NS request: " + new String(reqBytes));
         }
         byte[] buffer = Base64.decode(reqBytes);
         if (buffer == null) {
@@ -193,16 +222,16 @@ public abstract class RequestMessageUtils {
         NetscapeCertRequest nscr = new NetscapeCertRequest(spkacSeq);
         // Verify POPO, we don't care about the challenge, it's not important.
         nscr.setChallenge("challenge");
-        if (nscr.verify("challenge") == false) {
-          if (log.isDebugEnabled()) {
-            log.debug("SPKAC POPO verification Failed");
+        if (!nscr.verify("challenge")) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("SPKAC POPO verification Failed");
           }
           throw new SignRequestSignatureException(
               "Invalid signature in NetscapeCertRequest, popo-verification"
                   + " failed.");
         }
-        if (log.isDebugEnabled()) {
-          log.debug("POPO verification successful");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("POPO verification successful");
         }
         PublicKey pubKey = nscr.getPublicKey();
         ret = new SimpleRequestMessage(pubKey, username, password);
@@ -221,44 +250,44 @@ public abstract class RequestMessageUtils {
         if (jcrm.hasProofOfPossession()) {
           switch (jcrm.getProofOfPossessionType()) {
             case JcaCertificateRequestMessage.popRaVerified:
-              {
+
                 // The requestor claims that it is verified by an RA
                 break;
-              }
+
             case JcaCertificateRequestMessage.popSigningKey:
-              {
+
                 // RFC 4211 Section 4.1
                 final POPOSigningKey popoSigningKey =
                     POPOSigningKey.getInstance(
                         jcrm.toASN1Structure().getPopo().getObject());
-                if (log.isDebugEnabled()) {
+                if (LOG.isDebugEnabled()) {
                   if (popoSigningKey != null) {
-                    log.debug(
+                    LOG.debug(
                         "CRMF POPOSigningKey poposkInput:                      "
                             + popoSigningKey.getPoposkInput());
                     if (popoSigningKey.getPoposkInput() != null) {
-                      log.debug(
+                      LOG.debug(
                           "CRMF POPOSigningKey poposkInput PublicKey:         "
                               + "   "
                               + popoSigningKey.getPoposkInput().getPublicKey());
-                      log.debug(
+                      LOG.debug(
                           "CRMF POPOSigningKey poposkInput PublicKeyMAC:      "
                               + "   "
                               + popoSigningKey
                                   .getPoposkInput()
                                   .getPublicKeyMAC());
                     }
-                    log.debug(
+                    LOG.debug(
                         "CRMF POPOSigningKey algorithmIdentifier.algorithm.id: "
                             + popoSigningKey
                                 .getAlgorithmIdentifier()
                                 .getAlgorithm()
                                 .getId());
-                    log.debug(
+                    LOG.debug(
                         "CRMF POPOSigningKey signature:                        "
                             + popoSigningKey.getSignature());
                   } else {
-                    log.debug(
+                    LOG.debug(
                         "CRMF POPOSigningKey is not defined even though POP"
                             + " type is popSigningKey. Validation will fail.");
                   }
@@ -280,8 +309,8 @@ public abstract class RequestMessageUtils {
                         "CRMF POP with PKMAC failed signature or MAC"
                             + " validation.");
                   } else {
-                    if (log.isDebugEnabled()) {
-                      log.debug(
+                    if (LOG.isDebugEnabled()) {
+                      LOG.debug(
                           "CRMF POP with PKMAC passed signature and PKMAC"
                               + " validation.");
                     }
@@ -291,31 +320,31 @@ public abstract class RequestMessageUtils {
                     throw new SignRequestSignatureException(
                         "CRMF POP failed signature validation.");
                   } else {
-                    if (log.isDebugEnabled()) {
-                      log.debug("CRMF POP passed signature validation.");
+                    if (LOG.isDebugEnabled()) {
+                      LOG.debug("CRMF POP passed signature validation.");
                     }
                   }
                 }
                 break;
-              }
+
             case JcaCertificateRequestMessage.popKeyEncipherment:
-              {
+
                 // RFC 4211 Section 4.2 (Not implemented)
-                log.info(
+                LOG.info(
                     "CRMF RFC4211 Section 4.2 KeyEncipherment POP validation"
                         + " is not implemented. Will try to use the request's"
                         + " public key anyway.");
                 break;
-              }
+
             case JcaCertificateRequestMessage.popKeyAgreement:
-              {
+
                 // RFC 4211 Section 4.3 (Not implemented)
-                log.info(
+                LOG.info(
                     "CRMF RFC4211 Section 4.3 KeyAgreement POP validation is"
                         + " not implemented. Will try to use the request's"
                         + " public key anyway.");
                 break;
-              }
+
             default:
               throw new SignRequestSignatureException(
                   "CRMF POP of type "
@@ -375,15 +404,15 @@ public abstract class RequestMessageUtils {
       reqmsg.setUsername(username);
       reqmsg.setPassword(password);
       // Popo is really actually verified by the CA (in SignSessionBean) as well
-      if (reqmsg.verify() == false) {
-        if (log.isDebugEnabled()) {
-          log.debug("CVC POPO verification Failed");
+      if (!reqmsg.verify()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("CVC POPO verification Failed");
         }
         throw new SignRequestSignatureException(
             "Invalid inner signature in CVCRequest, popo-verification failed.");
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug("POPO verification successful");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("POPO verification successful");
         }
       }
       ret = reqmsg;

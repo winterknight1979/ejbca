@@ -37,8 +37,8 @@ import org.cesecore.util.CeSecoreNameStyle;
  *     andresjakobs $
  */
 public class SimpleRequestMessage implements RequestMessage {
-
-  private static final Logger log =
+/** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SimpleRequestMessage.class);
 
   /**
@@ -51,101 +51,102 @@ public class SimpleRequestMessage implements RequestMessage {
    */
   static final long serialVersionUID = 1L;
 
-  /** The public key */
+  /** The public key. */
   protected PublicKeyWrapper pubkey;
 
-  /** manually set password */
+  /** manually set password. */
   protected String password = null;
 
-  /** manually set username */
+  /** manually set username. */
   protected String username = null;
 
   /**
    * If the CA certificate should be included in the response or not, default to
-   * true = yes
+   * true = yes.
    */
   protected boolean includeCACert = true;
 
-  /** preferred digest algorithm to use in replies, if applicable */
+  /** preferred digest algorithm to use in replies, if applicable. */
   private transient String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;
 
-  /** Type of error */
+  /** Type of error. */
   private int error = 0;
 
-  /** Error text */
+  /** Error text. */
   private String errorText = null;
 
-  /** Issue DN, if set manually */
+  /** Issue DN, if set manually. */
   private String issuerDN = null;
 
-  /** request X500Name, if set manually */
+  /** request X500Name, if set manually. */
   private String requestDN = null;
 
-  /** Requested certificate extensions */
+  /** Requested certificate extensions. */
   private Extensions x509Extensions = null;
-
+  /** Start date. */
   private Date validityNotBefore = null;
+  /** End date. */
   private Date validityNotAfter = null;
-
+  /** Extra certs. */
   private List<Certificate> additionalCaCertificates =
       new ArrayList<Certificate>();
-
+  /** Extra certs. */
   private List<Certificate> additionalExtraCertsCertificates =
       new ArrayList<Certificate>();
 
   /**
    * Constructs a new Simple message handler object.
    *
-   * @param pubkey the public key to be certified
-   * @param username username of the EJBCA user
-   * @param password password of the EJBCA user
+   * @param apubkey the public key to be certified
+   * @param aUsername username of the EJBCA user
+   * @param aPassword password of the EJBCA user
    */
   public SimpleRequestMessage(
-      final PublicKey pubkey, final String username, final String password) {
-    this.pubkey = new PublicKeyWrapper(pubkey);
-    this.username = username;
-    this.password = password;
+      final PublicKey apubkey, final String aUsername, final String aPassword) {
+    this.pubkey = new PublicKeyWrapper(apubkey);
+    this.username = aUsername;
+    this.password = aPassword;
   }
 
   /**
    * Constructs a new Simple message handler object.
    *
-   * @param pubkey the public key to be certified
-   * @param username username of the EJBCA user
-   * @param password password of the EJBCA user
-   * @param validityNotAfter the end validity of this certificate
+   * @param aPubkey the public key to be certified
+   * @param aUsername username of the EJBCA user
+   * @param aPassword password of the EJBCA user
+   * @param aValidityNotAfter the end validity of this certificate
    */
   public SimpleRequestMessage(
-      final PublicKey pubkey,
-      final String username,
-      final String password,
-      final Date validityNotAfter) {
-    this.pubkey = new PublicKeyWrapper(pubkey);
-    this.username = username;
-    this.password = password;
-    this.validityNotAfter = validityNotAfter;
+      final PublicKey aPubkey,
+      final String aUsername,
+      final String aPassword,
+      final Date aValidityNotAfter) {
+    this.pubkey = new PublicKeyWrapper(aPubkey);
+    this.username = aUsername;
+    this.password = aPassword;
+    this.validityNotAfter = aValidityNotAfter;
   }
 
   /**
    * Constructs a new Simple message handler object.
    *
-   * @param pubkey the public key to be certified
-   * @param username username of the EJBCA user
-   * @param password password of the EJBCA user
-   * @param validityNotBefore the start validity of this certificate
-   * @param validityNotAfter the end validity of this certificate
+   * @param apubkey the public key to be certified
+   * @param aUsername username of the EJBCA user
+   * @param aPassword password of the EJBCA user
+   * @param aValidityNotBefore the start validity of this certificate
+   * @param aValidityNotAfter the end validity of this certificate
    */
   public SimpleRequestMessage(
-      final PublicKey pubkey,
-      final String username,
-      final String password,
-      final Date validityNotBefore,
-      final Date validityNotAfter) {
-    this.pubkey = new PublicKeyWrapper(pubkey);
-    this.username = username;
-    this.password = password;
-    this.validityNotBefore = validityNotBefore;
-    this.validityNotAfter = validityNotAfter;
+      final PublicKey apubkey,
+      final String aUsername,
+      final String aPassword,
+      final Date aValidityNotBefore,
+      final Date aValidityNotAfter) {
+    this.pubkey = new PublicKeyWrapper(apubkey);
+    this.username = aUsername;
+    this.password = aPassword;
+    this.validityNotBefore = aValidityNotBefore;
+    this.validityNotAfter = aValidityNotAfter;
   }
 
   @Override
@@ -156,11 +157,11 @@ public class SimpleRequestMessage implements RequestMessage {
   }
 
   /**
-   * set a password
+   * set a password.
    *
    * @param pwd password
    */
-  public void setPassword(String pwd) {
+  public void setPassword(final String pwd) {
     this.password = pwd;
   }
 
@@ -170,12 +171,12 @@ public class SimpleRequestMessage implements RequestMessage {
   }
 
   /**
-   * set a username
+   * set a username.
    *
-   * @param username username
+   * @param aUsername username
    */
-  public void setUsername(String username) {
-    this.username = username;
+  public void setUsername(final String aUsername) {
+    this.username = aUsername;
   }
 
   @Override
@@ -190,11 +191,11 @@ public class SimpleRequestMessage implements RequestMessage {
 
   /**
    * Sets the issuer DN manually, since it can not be contained in the request
-   * for this type of simple request message
+   * for this type of simple request message.
    *
    * @param dn issuerDN, in CertTools.stringToBCDnString() format
    */
-  public void setIssuerDN(String dn) {
+  public void setIssuerDN(final String dn) {
     this.issuerDN = dn;
   }
 
@@ -226,7 +227,8 @@ public class SimpleRequestMessage implements RequestMessage {
     return new X500Name(new CeSecoreNameStyle(), this.requestDN);
   }
 
-  public void setRequestDN(String dn) {
+  /** @param dn Request DN */
+  public void setRequestDN(final String dn) {
     this.requestDN = dn;
   }
 
@@ -251,7 +253,7 @@ public class SimpleRequestMessage implements RequestMessage {
   }
 
   /**
-   * Sets request extensions, if any
+   * Sets request extensions, if any.
    *
    * @param extensions extensions
    */
@@ -272,7 +274,10 @@ public class SimpleRequestMessage implements RequestMessage {
   }
 
   @Override
-  public void setKeyInfo(Certificate cert, PrivateKey key, String Provider) {}
+  public void setKeyInfo(final Certificate cert,
+          final PrivateKey key, final String provider) {
+      // NO-OP
+  }
 
   @Override
   public int getErrorNo() {
@@ -320,10 +325,10 @@ public class SimpleRequestMessage implements RequestMessage {
   }
 
   @Override
-  public void setResponseKeyInfo(PrivateKey key, String provider) {
+  public void setResponseKeyInfo(final PrivateKey key, final String provider) {
     // These values are never used for this type of message
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Key and provider were set for a SimpleRequestMessage. These values"
               + " are not used and will be ignored.");
     }
@@ -347,7 +352,7 @@ public class SimpleRequestMessage implements RequestMessage {
 
   @Override
   public void setAdditionalExtraCertsCertificates(
-      List<Certificate> additionalExtraCertsCertificates) {
-    this.additionalExtraCertsCertificates = additionalExtraCertsCertificates;
+       final List<Certificate> aAdditionalExtraCertsCertificates) {
+    this.additionalExtraCertsCertificates = aAdditionalExtraCertsCertificates;
   }
 } // SimpleRequestMessage

@@ -11,7 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/** @version $Id: ResponseStatus.java 27539 2017-12-14 08:38:56Z samuellb $ */
 package org.cesecore.certificates.certificate.request;
 
 import java.io.Serializable;
@@ -26,7 +25,7 @@ public final class ResponseStatus implements Serializable {
 
   private static final long serialVersionUID = -1424581065308042345L;
 
-  /** Request granted */
+  /** Request granted. */
   public static final ResponseStatus SUCCESS = new ResponseStatus(0);
 
   /**
@@ -36,24 +35,24 @@ public final class ResponseStatus implements Serializable {
    */
   public static final ResponseStatus GRANTED_WITH_MODS = new ResponseStatus(1);
 
-  /** Request rejected */
+  /** Request rejected. */
   public static final ResponseStatus FAILURE = new ResponseStatus(2);
 
-  /** Request pending for approval */
+  /** Request pending for approval.*/
   public static final ResponseStatus PENDING = new ResponseStatus(3);
 
   /**
    * The value actually encoded into the response message as a pkiStatus
-   * attribute
+   * attribute.
    */
   private final int value;
 
-  private ResponseStatus(final int value) {
-    this.value = value;
+  private ResponseStatus(final int aValue) {
+    this.value = aValue;
   }
 
   /**
-   * Gets the value embedded in the response message as a pkiStatus attribute
+   * Gets the value embedded in the response message as a pkiStatus attribute.
    *
    * @return the value to use
    */
@@ -61,6 +60,7 @@ public final class ResponseStatus implements Serializable {
     return Integer.toString(value);
   }
 
+  /** @return value */
   public int getValue() {
     return value;
   }

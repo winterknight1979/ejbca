@@ -27,4 +27,5 @@
  	<suppress checks="MagicNumberCheck" files="NameConstraint.java" lines="315,222,218"/> <!--  7 here is just 8 - 1 -->	
 	<suppress checks="ParameterNumberCheck" files="CertificateInfo.java" lines="84"/>
  	<suppress checks="UnusedImportsCheck" files="CertificateStatus.java" lines="19"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MethodLengthCheck" files="RequestMessageUtils.java" lines="192"/>
  </suppressions>

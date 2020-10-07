@@ -158,21 +158,21 @@ public interface ResponseMessage extends Serializable {
       Collection<Certificate> certs, PrivateKey key, String provider);
 
   /**
-   * Sets a senderNonce if it should be present in the response
+   * Sets a senderNonce if it should be present in the response.
    *
    * @param senderNonce a string of base64 encoded bytes
    */
   void setSenderNonce(String senderNonce);
 
   /**
-   * Sets a recipient if it should be present in the response
+   * Sets a recipient if it should be present in the response.
    *
    * @param recipientNonce a string of base64 encoded bytes
    */
   void setRecipientNonce(String recipientNonce);
 
   /**
-   * Sets a transaction identifier if it should be present in the response
+   * Sets a transaction identifier if it should be present in the response.
    *
    * @param transactionId transaction id
    */
@@ -215,7 +215,7 @@ public interface ResponseMessage extends Serializable {
   /**
    * For some types of requests, the protection used depends on parameters from
    * the request, for example password based protection where algorithms, keyId
-   * etc is the same in the response as in the request
+   * etc is the same in the response as in the request.
    *
    * @param reqMsg the request from where to pick protection parameters
    */

@@ -55,23 +55,26 @@ public class CVCRequestMessage implements RequestMessage {
    */
   static final long serialVersionUID = 1L;
 
-  private static final Logger log = Logger.getLogger(CVCRequestMessage.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CVCRequestMessage.class);
 
-  /** Raw form of the CVC message */
+  /** Raw form of the CVC message. */
   protected byte[] cvcmsg;
 
-  /** manually set password */
+  /** manually set password. */
   protected String password = null;
 
-  /** manually set username */
+  /** manually set username. */
   protected String username = null;
 
   /** The cvc request message, not serialized. */
   protected transient CVCertificate cvcert = null;
 
+  /** Extra certificates. */
   private List<Certificate> additionalCaCertificates =
       new ArrayList<Certificate>();
 
+  /** Extra certificates. */
   private List<Certificate> additionalExtraCertsCertificates =
       new ArrayList<Certificate>();
 
@@ -85,7 +88,7 @@ public class CVCRequestMessage implements RequestMessage {
    *
    * @param msg The DER encoded request.
    */
-  public CVCRequestMessage(byte[] msg) {
+  public CVCRequestMessage(final byte[] msg) {
     this.cvcmsg = msg;
     init();
   }
@@ -102,13 +105,13 @@ public class CVCRequestMessage implements RequestMessage {
         cvcert = authreq.getRequest();
       }
     } catch (ParseException e) {
-      log.error("Error in init for CVC request: ", e);
+      LOG.error("Error in init for CVC request: ", e);
       throw new IllegalArgumentException(e);
     } catch (ConstructionException e) {
-      log.error("Error in init for CVC request: ", e);
+      LOG.error("Error in init for CVC request: ", e);
       throw new IllegalArgumentException(e);
     } catch (NoSuchFieldException e) {
-      log.error("Error in init for CVC request: ", e);
+      LOG.error("Error in init for CVC request: ", e);
       throw new IllegalArgumentException(e);
     }
   }
@@ -122,7 +125,7 @@ public class CVCRequestMessage implements RequestMessage {
         init();
       }
     } catch (IllegalArgumentException e) {
-      log.error("CVC not inited!");
+      LOG.error("CVC not inited!");
       return null;
     }
 
@@ -136,11 +139,11 @@ public class CVCRequestMessage implements RequestMessage {
   }
 
   /**
-   * force a password
+   * force a password.
    *
    * @param pwd password
    */
-  public void setPassword(String pwd) {
+  public void setPassword(final String pwd) {
     this.password = pwd;
   }
 
@@ -152,10 +155,10 @@ public class CVCRequestMessage implements RequestMessage {
   /**
    * force a username, i.e. ignore the DN/username in the request
    *
-   * @param username username
+   * @param aUsername username
    */
-  public void setUsername(String username) {
-    this.username = username;
+  public void setUsername(final String aUsername) {
+    this.username = aUsername;
   }
 
   @Override
@@ -169,7 +172,7 @@ public class CVCRequestMessage implements RequestMessage {
           cvcert.getCertificateBody().getHolderReference();
       subject = hr.getMnemonic() + hr.getCountry();
     } catch (NoSuchFieldException e) {
-      log.error(e);
+      LOG.error(e);
     }
     return subject;
   }
@@ -245,10 +248,10 @@ public class CVCRequestMessage implements RequestMessage {
     return verify(null);
   }
 
-  private boolean verify(PublicKey pubKey)
+  private boolean verify(final PublicKey pubKey)
       throws InvalidKeyException, NoSuchAlgorithmException,
           NoSuchProviderException {
-    log.trace(">verify()");
+    LOG.trace(">verify()");
 
     boolean ret = false;
 
@@ -264,17 +267,17 @@ public class CVCRequestMessage implements RequestMessage {
         }
       }
     } catch (NoSuchFieldException e) {
-      log.error("CVC error!", e);
+      LOG.error("CVC error!", e);
     } catch (InvalidKeyException e) {
-      log.error("Error in CVC-request:", e);
+      LOG.error("Error in CVC-request:", e);
       throw e;
     } catch (CertificateException e) {
-      log.error("Error in CVC-signature:", e);
+      LOG.error("Error in CVC-signature:", e);
     } catch (SignatureException e) {
-      log.error("Error in CVC-signature:", e);
+      LOG.error("Error in CVC-signature:", e);
     }
 
-    log.trace("<verify()");
+    LOG.trace("<verify()");
 
     return ret;
   }
@@ -285,7 +288,10 @@ public class CVCRequestMessage implements RequestMessage {
   }
 
   @Override
-  public void setKeyInfo(Certificate cert, PrivateKey key, String Provider) {}
+  public void setKeyInfo(final Certificate cert,
+          final PrivateKey key, final String provider) {
+      // NO-OP
+  }
 
   @Override
   public int getErrorNo() {
@@ -315,7 +321,7 @@ public class CVCRequestMessage implements RequestMessage {
           cvcert.getCertificateBody().getHolderReference().getSequence();
       ret = seq.getBytes();
     } catch (NoSuchFieldException e) {
-      log.error("CVC error!", e);
+      LOG.error("CVC error!", e);
     }
     return ret;
   }
@@ -342,7 +348,7 @@ public class CVCRequestMessage implements RequestMessage {
   }
 
   @Override
-  public void setResponseKeyInfo(PrivateKey key, String provider) {
+  public void setResponseKeyInfo(final PrivateKey key, final String provider) {
     // NOOP
   }
 
@@ -364,12 +370,12 @@ public class CVCRequestMessage implements RequestMessage {
 
   @Override
   public void setAdditionalExtraCertsCertificates(
-      List<Certificate> additionalExtraCertsCertificates) {
-    this.additionalExtraCertsCertificates = additionalExtraCertsCertificates;
+      final List<Certificate> aAdditionalExtraCertsCertificates) {
+    this.additionalExtraCertsCertificates = aAdditionalExtraCertsCertificates;
   }
 
   /**
-   * Specific to CVC request messages, EAC requests contains a sequence
+   * Specific to CVC request messages, EAC requests contains a sequence.
    *
    * @return sequence
    */
@@ -391,7 +397,7 @@ public class CVCRequestMessage implements RequestMessage {
         init();
       }
     } catch (IllegalArgumentException e) {
-      log.error("CVC not inited!", e);
+      LOG.error("CVC not inited!", e);
       return null;
     }
     CardVerifiableCertificate cc = new CardVerifiableCertificate(cvcert);
