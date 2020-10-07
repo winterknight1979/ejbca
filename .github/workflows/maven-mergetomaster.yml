@@ -29,7 +29,7 @@ jobs:
      # We always want to build the whole project, even if some unit tests fail
     # We therefore run Maven with -fn and grep the log file for the failure message to set the exit status.
     - name: Build packages with Maven
-      run: mvn -B package pmd:pmd checkstyle:checkstyle spotbugs:spotbugs  -Pcoverage -fn --file pom.xml | tee build.log
+      run: mvn -B package pmd:pmd checkstyle:checkstyle spotbugs:spotbugs  -Pjboss -Pcoverage -fn --file pom.xml | tee build.log
         #    - uses: jwgmeligmeyling/checkstyle-github-action@master
         #  with:
         #  path: '**/checkstyle-result.xml'

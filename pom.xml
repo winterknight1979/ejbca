@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>goldeneyes.ejbca</groupId>
@@ -60,6 +58,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 		<module>cli-util</module>
 		<module>ejbca-ws-cli</module>
+		<module>ejbca-ejb-cli</module>
 
 		<!-- WebApp modules -->
 
@@ -77,7 +76,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<!-- Test-only modules -->
 
 		<module>ejbca-test-aggregator</module>
-
 
 	</modules>
 
@@ -521,7 +519,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 	<!-- Quickserver is not on Central, but always try there first for everything 
 		else. -->
-
 	<repositories>
 		<repository>
 			<id>1_maven.apache.org</id>
@@ -684,6 +681,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 								<requireMavenVersion>
 									<version>3.6</version>
 								</requireMavenVersion>
+
 							</rules>
 						</configuration>
 					</execution>
@@ -915,6 +913,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				</pluginManagement>
 			</build>
 		</profile>
+		
 		<profile>
 			<id>lint</id>
 			<build>
