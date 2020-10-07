@@ -75,8 +75,9 @@ public abstract class BaseCaAdminCommand extends EjbcaCliUserCommandBase {
 
     /**
      * Retrieves the complete certificate chain from the CA
+     * @param authenticationToken token
      * 
-     * @param human readable name of CA
+     * @param caname human readable name of CA
      * @return a Collection of certificates
      */
     protected Collection<Certificate> getCertChain(AuthenticationToken authenticationToken, String caname) {

@@ -240,6 +240,9 @@ public class CaImportCRLCommand extends BaseCaAdminCommand {
 
     /**
      * Return a CRL reason code from a CRL entry, or RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED if a reson code extension does not exist
+     * @param entry Entry
+     * @return Value
+     * @throws IOException Fail 
      */
     private int getCRLReasonValue(final X509CRLEntry entry) throws IOException {
         int reason = RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;

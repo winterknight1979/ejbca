@@ -23,22 +23,22 @@ public class FieldNotFoundException extends Exception {
     private static final long serialVersionUID = -8695872134807966881L;
 
     /**
-     * @param message
+     * @param message message
      */
     public FieldNotFoundException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause cause
      */
     public FieldNotFoundException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message message
+     * @param cause cause
      */
     public FieldNotFoundException(String message, Throwable cause) {
         super(message, cause);

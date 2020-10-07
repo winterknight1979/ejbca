@@ -90,7 +90,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
         return "updatepublickeyblacklist";
     }
 
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     @Override
     public CommandResult execute(ParameterContainer parameters) {
         log.trace(">execute()");
@@ -376,8 +376,9 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
 
     /**
      * Removes a public key from the public key blacklist.
+     * @param type Type
+     * @param value Value
      * 
-     * @param entry the public key fingerprint.
      * @return {@link #STATUS_GENERALIMPORTERROR} if error, {@link #STATUS_CONSTRAINTVIOLATION} if already existing or {@link #STATUS_OK} if added.
      * @throws Exception any exception.
      */
@@ -413,6 +414,7 @@ public class UpdatePublicKeyBlacklistCommand extends BaseCaAdminCommand {
      * @param redundant redundant counter
      * @param constraintViolation constraint violation counter
      * @param generalImportError general import error counter
+     * @param command command
      */
     private final void printSummary(final int importOk, final int readError, final int redundant, final int constraintViolation,
             final int generalImportError, final String command) {

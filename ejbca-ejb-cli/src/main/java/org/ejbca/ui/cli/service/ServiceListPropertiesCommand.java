@@ -53,6 +53,7 @@ public class ServiceListPropertiesCommand extends BaseServiceCommand {
 
     /**
      * Displays all properties and their values. Used for the -listProperties option. 
+     * @param props Props
      * @return true if at least one property was shown
      */
     private boolean displayPropertiesHelp(Properties props) {

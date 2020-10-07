@@ -289,6 +289,10 @@ public class AddEndEntityCommand extends BaseRaCommand {
 
     /**
      * Returns the tokenid type of the user, returns 0 if invalid tokenname.
+     * @param tokenname Name
+     * @param usehardtokens bool
+     * @param hardtokensession Session
+     * @return ID
      */
     private int getTokenId(String tokenname, boolean usehardtokens, HardTokenSessionRemote hardtokensession) {
         int returnval = 0;

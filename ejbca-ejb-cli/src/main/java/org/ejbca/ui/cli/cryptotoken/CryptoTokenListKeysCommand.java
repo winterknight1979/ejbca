@@ -24,7 +24,7 @@ import org.ejbca.ui.cli.infrastructure.command.CommandResult;
 import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
 
 /**
- * CryptoToken EJB CLI command. See {@link #getDescription()} implementation.
+ * CryptoToken EJB CLI command. 
  * 
  * @version $Id: CryptoTokenListKeysCommand.java 19902 2014-09-30 14:32:24Z anatom $
  */

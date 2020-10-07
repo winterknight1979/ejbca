@@ -70,7 +70,9 @@ public class ServiceInfoCommand extends BaseServiceCommand {
         return CommandResult.SUCCESS;
     }
     
-    /** Displays "name: value" with proper alignment */
+    /** Displays "name: value" with proper alignment 
+     * @param name Name
+     * @param value Value */
     private void info(String name, String value) {
         if (value == null) {
             value = "null";

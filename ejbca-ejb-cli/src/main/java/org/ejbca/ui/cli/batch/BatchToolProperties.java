@@ -45,6 +45,7 @@ public class BatchToolProperties {
 	/**
 	 * Returns the configured keysize
 	 * Default is 2048
+	 * @return spec
 	 */
 	public String getKeySpec(){
 		return batchToolProperties.getProperty(PROPERTY_KEYSPEC,"2048");
@@ -53,6 +54,7 @@ public class BatchToolProperties {
 	/**
 	 * Returns the configured key algorithm
 	 * Default is RSA, can be ECDSA
+	 * @return Alg
 	 */
 	public String getKeyAlg(){
 		return batchToolProperties.getProperty(PROPERTY_KEYALG,"RSA");

@@ -25,7 +25,7 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * CryptoToken EJB CLI command. See {@link #getDescription()} implementation.
+ * CryptoToken EJB CLI command.
  * 
  * @version $Id: CryptoTokenGenerateCommand.java 20288 2014-11-20 14:04:16Z anatom $
  */

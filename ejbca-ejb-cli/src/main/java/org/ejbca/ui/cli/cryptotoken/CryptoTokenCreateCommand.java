@@ -22,7 +22,6 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.keys.token.BaseCryptoToken;
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
-import org.cesecore.keys.token.CryptoTokenInfo;
 import org.cesecore.keys.token.CryptoTokenManagementSessionRemote;
 import org.cesecore.keys.token.CryptoTokenNameInUseException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
@@ -41,7 +40,7 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.ParameterMode;
 import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
 
 /**
- * CryptoToken EJB CLI command. See {@link #getDescription()} implementation.
+ * CryptoToken EJB CLI command. 
  * 
  * @version $Id: CryptoTokenCreateCommand.java 30510 2018-11-15 08:20:55Z anatom $
  */
@@ -247,7 +246,8 @@ public class CryptoTokenCreateCommand extends EjbcaCliUserCommandBase {
         return log;
     }
     
-    /** @return a decrypted version of the parameter or use input if the parameter equals "null" */
+    /** @param commandLineArgument Arg
+     * @return a decrypted version of the parameter or use input if the parameter equals "null" */
     private char[] getAuthenticationCode(final String commandLineArgument) {
         final char[] authenticationCode;
         if (commandLineArgument == null || "null".equalsIgnoreCase(commandLineArgument)) {

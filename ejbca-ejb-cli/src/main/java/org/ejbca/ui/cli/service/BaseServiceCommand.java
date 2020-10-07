@@ -75,7 +75,9 @@ public abstract class BaseServiceCommand extends EjbcaCliUserCommandBase {
         return getAuthenticationToken();
     }
 
-    /** Activates timers for services which change from not active to active */
+    /** Activates timers for services which change from not active to active 
+     * @param serviceName Name
+     * @param wasActive bool */
     public void handleServiceActivation(String serviceName, boolean wasActive) {
         if (!wasActive) {
             final ServiceSessionRemote serviceSession = EjbRemoteHelper.INSTANCE.getRemoteSession(ServiceSessionRemote.class);

@@ -45,6 +45,9 @@ public abstract class BaseServiceModificationCommand extends BaseServiceCommand 
      * 
      * This method handles the -list arguments as well, which show which fields
      * and properties can be set.
+     * @param serviceConfig Cinfig
+     * @param args Args
+     * @return Bool
      */
     protected boolean modifyFromArgs(ServiceConfiguration serviceConfig, String[] args) {
         FieldEditor fieldEditor = new FieldEditor(getLogger());
@@ -79,6 +82,11 @@ public abstract class BaseServiceModificationCommand extends BaseServiceCommand 
      * 
      * First it tries to find a field with the given name, then it tries with the
      * worker/interval/action properties.
+     * @param serviceConfig Config
+     * @param fieldEditor Editor
+     * @param field Field
+     * @param value Value
+     * @return bool
      */
     protected boolean modify(ServiceConfiguration serviceConfig, FieldEditor fieldEditor, String field, String value) {
         boolean found = false;
@@ -126,7 +134,11 @@ public abstract class BaseServiceModificationCommand extends BaseServiceCommand 
         return found;
     }
 
-    /** Handles the -listFields and -listProperties options. */
+    /** Handles the -listFields and -listProperties options. 
+     * @param serviceConfig Cinfig
+     * @param parameters Params
+     * @param command Command
+     * @return bool */
     protected boolean handleListOptions(ServiceConfiguration serviceConfig, ParameterContainer parameters, String command) {
         final FieldEditor fieldEditor = new FieldEditor(getLogger());
         boolean hasOption = false;
@@ -152,6 +164,7 @@ public abstract class BaseServiceModificationCommand extends BaseServiceCommand 
 
     /**
      * Displays all properties and their values. Used for the -listProperties option. 
+     * @param props Props
      * @return true if at least one property was shown
      */
     private boolean displayPropertiesHelp(Properties props) {
@@ -164,7 +177,8 @@ public abstract class BaseServiceModificationCommand extends BaseServiceCommand 
         return displayedOne;
     }
 
-    /** Displays names of fields/properties that weren't found. */
+    /** Displays names of fields/properties that weren't found. 
+     * @param errors Errors*/
     private void displayNotFound(List<String> errors) {
         getLogger().info("");
         getLogger().info("ERROR: One or more names didn't exist either as a field or property:");

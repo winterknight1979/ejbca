@@ -16,6 +16,7 @@ package org.ejbca.ui.cli.hardtoken;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -100,15 +101,15 @@ public class ImportDataCommand extends EjbcaCliUserCommandBase {
             IHardTokenImporter importer;
             try {
                 importer = (IHardTokenImporter) Thread.currentThread().getContextClassLoader().loadClass(props.getProperty("importer.classpath"))
-                        .newInstance();
-            } catch (InstantiationException e) {
+                        .getConstructor().newInstance();
+            } catch (InstantiationException | InvocationTargetException e) {
                 log.error("ERROR: Class " + props.getProperty("importer.classpath") + " defined by 'importer.classpath' could not be instantiated.");
                 return CommandResult.FUNCTIONAL_FAILURE;
             } catch (IllegalAccessException e) {
                 log.error("ERROR: Class " + props.getProperty("importer.classpath")
                         + " defined by 'importer.classpath' could not be instantiated legally.", e);
                 return CommandResult.FUNCTIONAL_FAILURE;
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
                 log.error("ERROR: Class " + props.getProperty("importer.classpath") + " defined by 'importer.classpath' could not be found.");
                 return CommandResult.FUNCTIONAL_FAILURE;
             }

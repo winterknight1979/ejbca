@@ -38,22 +38,23 @@ public interface IHardTokenImporter {
 	 * Is called once before the import of hard token datas is done.
 	 * 
 	 * @param props properties defiened for the importer
-	 * @throws IOException
+	 * @throws IOException fail
 	 */
 	void startImport(Properties props) throws IOException;
 	
 	/**
 	 * Method reading one hard token from a source of data , and i supposed to return
 	 * A HardTokenData from it. That will be added to the database.
+	 * @return Info
+	 * @throws IOException Fail
 	 * 
-	 * @param source can be any ty
-	 * @param null, if this is the last entry in the database.
 	 *
 	 */
 	HardTokenInformation readHardTokenData() throws IOException;
 	
 	/**
 	 * Method responsible for finalizing the importer.
+	 * @throws IOException Fail
 	 * 
 	 */
 	void endImport() throws IOException;	

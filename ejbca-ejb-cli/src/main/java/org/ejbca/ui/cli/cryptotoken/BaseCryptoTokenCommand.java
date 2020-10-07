@@ -49,6 +49,11 @@ public abstract class BaseCryptoTokenCommand extends EjbcaCliUserCommandBase {
     /**
      * Overridable CryptoToken-specific execution methods that will parse and interpret the first parameter
      * (when present) as the name of a CryptoToken and lookup its cryptoTokenId.
+     * @param cryptoTokenId ID
+     * @param parameters Params
+     * @return Result
+     * @throws AuthorizationDeniedException Fail
+     * @throws CryptoTokenOfflineException Fail
      */
     public abstract CommandResult executeCommand(Integer cryptoTokenId, ParameterContainer parameters) throws AuthorizationDeniedException,
             CryptoTokenOfflineException;
@@ -78,7 +83,8 @@ public abstract class BaseCryptoTokenCommand extends EjbcaCliUserCommandBase {
         return getAuthenticationToken();
     }
 
-    /** @return a decrypted version of the parameter or use input if the parameter equals "null" */
+    /** @param commandLineArgument Arg
+     * @return a decrypted version of the parameter or use input if the parameter equals "null" */
     protected char[] getAuthenticationCode(final String commandLineArgument) {
         final char[] authenticationCode;
         if (commandLineArgument == null || "null".equalsIgnoreCase(commandLineArgument)) {         

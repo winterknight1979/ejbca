@@ -29,7 +29,6 @@ import org.ejbca.ui.cli.infrastructure.parameter.ParameterContainer;
  *
  * @version $Id: ListNewEndEntitiesCommand.java 27715 2018-01-02 16:55:19Z mikekushner $
  *
- * @see org.ejbca.core.ejb.ra.UserDataLocal
  */
 public class ListNewEndEntitiesCommand extends BaseRaCommand {
 

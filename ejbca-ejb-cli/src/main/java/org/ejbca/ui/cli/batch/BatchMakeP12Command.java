@@ -194,6 +194,11 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
      *            if pem files should be created
      * @throws IOException
      *             if directory to store keystore cannot be created
+     * @throws KeyStoreException Fail
+     * @throws UnrecoverableKeyException Fail
+     * @throws NoSuchAlgorithmException  Fail
+     * @throws NoSuchProviderException Fail
+     * @throws CertificateException Faoil
      */
     private void storeKeyStore(KeyStore ks, String username, String kspassword, boolean createJKS, boolean createPEM) throws IOException,
             KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, NoSuchProviderException, CertificateException {
@@ -244,7 +249,7 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
      *            username
      * @param password
      *            user's password
-     * @param id
+     * @param caid
      *            of CA used to issue the keystore certificates
      * @param rsaKeys
      *            a previously generated RSA keypair
@@ -509,7 +514,7 @@ public class BatchMakeP12Command extends EjbcaCliUserCommandBase {
      * 
      * Since authentication tokens from the CLI are single use only, this method will take multiple (until a better design is reached). 
      * 
-     * @param status
+     * @param status status
      * @throws Exception
      *             if something goes wrong...
      */

@@ -76,7 +76,8 @@ public abstract class BaseInternalKeyBindingCommand extends EjbcaCliUserCommandB
         return validatedProperties.getPropertiesCopy();
     }
     
-    /** Lists available types and their properties */
+    /** Lists available types and their properties 
+     * @return Props */
     protected String showTypesProperties() {
         final InternalKeyBindingMgmtSessionRemote internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE
                 .getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);

@@ -36,7 +36,6 @@ import org.ejbca.ui.cli.infrastructure.parameter.enums.StandaloneMode;
  *
  * @version $Id: SetEndEntityStatusCommand.java 24892 2016-12-13 20:22:21Z mikekushner $
  *
- * @see org.ejbca.core.ejb.ra.UserDataLocal
  */
 public class SetEndEntityStatusCommand extends BaseRaCommand {
 

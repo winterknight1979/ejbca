@@ -29,6 +29,11 @@ public abstract class RudInternalKeyBindingCommand extends BaseInternalKeyBindin
     /**
      * Overridable InternalKeyBinding-specific execution methods that will parse and interpret the first parameter
      * (when present) as the name of a InternalKeyBinding and lookup its InternalKeyBindingId.
+     * @param internalKeyBindingId ID
+     * @param parameters Params
+     * @return Result
+     * @throws AuthorizationDeniedException Fail
+     * @throws Exception Fail
      */
     public abstract CommandResult executeCommand(Integer internalKeyBindingId, ParameterContainer parameters) throws AuthorizationDeniedException, Exception;
 

@@ -84,7 +84,9 @@ public abstract class BaseRolesCommand extends EjbcaCliUserCommandBase {
         return resourceToResourceNameMap;
     }
     
-    /** @return the full role name with namespace prefixed in brackets. */
+    /** @param namespace Namespace
+     * @param roleName Role
+     * @return the full role name with namespace prefixed in brackets. */
     protected String getFullRoleName(final String namespace, final String roleName) {
         return (StringUtils.isEmpty(namespace) ? "" : "["+namespace+"] ") + "'" + roleName + "'";
     }
