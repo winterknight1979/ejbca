@@ -71,7 +71,7 @@ jobs:
     #    uses a compiled language
     - run: |
         echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
-        mvn -fn -B -DskipTests=true clean verify
+        mvn -fn -B -Pjboss -DskipTests=true clean verify
         
 
     - name: Perform CodeQL Analysis
