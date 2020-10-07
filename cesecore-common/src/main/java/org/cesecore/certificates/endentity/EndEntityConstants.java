@@ -19,51 +19,64 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Constants for End Entity types
+ * Constants for End Entity types.
  *
  * @version $Id: EndEntityConstants.java 27816 2018-01-09 16:19:36Z samuellb $
  */
 public final class EndEntityConstants {
+
+  /** don't instantiate. */
+  private EndEntityConstants() { }
+
   /** The id of a non-existing end entity profile. */
   public static final int NO_END_ENTITY_PROFILE = 0;
   /** The id for the built-in EMPTY end entity profile. */
   public static final int EMPTY_END_ENTITY_PROFILE = 1;
-
+  /** Empty profile. */
   public static final String EMPTY_ENDENTITYPROFILENAME = "EMPTY";
 
   //
   // User status codes
   //
-  public static final int STATUS_NEW = 10; // New user
+  /** New user.*/
+  public static final int STATUS_NEW = 10;
+  /** Generation of user certificate failed. */
   public static final int STATUS_FAILED =
-      11; // Generation of user certificate failed
-  public static final int STATUS_INITIALIZED = 20; // User has been initialized
+          11;
+  /** User has been initialized. */
+  public static final int STATUS_INITIALIZED = 20;
+  /** Generation of user certificate in process. */
   public static final int STATUS_INPROCESS =
-      30; // Generation of user certificate in process
+          30;
+  /** A certificate has been generated for the user. */
   public static final int STATUS_GENERATED =
-      40; // A certificate has been generated for the user
+          40;
+  /** The user has been revoked and should not have any more certificates
+   * issued. */
   public static final int STATUS_REVOKED =
-      50; // The user has been revoked and should not have any more certificates
-          // issued
+          50;
+  /** The user is old and archived. */
   public static final int STATUS_HISTORICAL =
-      60; // The user is old and archived
+          60;
+  /** The user is should use key recovery functions in next certificate
+   * generation. */
   public static final int STATUS_KEYRECOVERY =
-      70; // The user is should use key recovery functions in next certificate
-          // generation.
+          70;
+/** The operation is waiting to be approved before execution. This
+  * status
+  * is never stored in the database, but is used transiently when a request
+  * is not stored because it's waiting for approval. This status is primarily
+  * used to send the right notification note when a request is waiting for
+  * approval.*/
   public static final int STATUS_WAITINGFORADDAPPROVAL =
-      80; // the operation is waiting to be approved before execution. This
-          // status
-  // is never stored in the database, but is used transiently when a request
-  // is not stored because it's waiting for approval. This status is primarily
-  // used to send the right notification note when a request is waiting for
-  // approval.
+      80;
 
   //
   // Token types.
   //
   /**
    * Indicates that a user generated token should be used, i.e not token
-   * generated but we expect a request and will create a certificate
+   * generated but we expect a request and will create a certificate.
    */
   public static final int TOKEN_USERGEN = 1;
   /** Indicates that a p12 token should be generated. */
@@ -82,7 +95,7 @@ public final class EndEntityConstants {
   //
   /**
    * These string values maps a status code to a language string in the admin
-   * GUI language property files
+   * GUI language property files.
    */
   private static final HashMap<Integer, String> STATUS_TEXT_TRANS =
       new HashMap<Integer, String>();
@@ -104,7 +117,11 @@ public final class EndEntityConstants {
         "STATUSWAITINGFORADDAPPROVAL");
   }
 
-  public static String getTranslatableStatusText(int status) {
+  /**
+   * @param status Status code
+   * @return Translatable text
+   */
+  public static String getTranslatableStatusText(final int status) {
     String ret = null;
     Object o = STATUS_TEXT_TRANS.get(Integer.valueOf(status));
     if (o != null) {
@@ -113,7 +130,7 @@ public final class EndEntityConstants {
     return ret;
   }
 
-  /** These string values maps a status code to a plain string */
+  /** These string values maps a status code to a plain string. */
   private static final HashMap<Integer, String> STATUS_TEXT =
       new HashMap<Integer, String>();
 
@@ -128,7 +145,11 @@ public final class EndEntityConstants {
     STATUS_TEXT.put(Integer.valueOf(STATUS_KEYRECOVERY), "KEYRECOVERY");
   }
 
-  public static String getStatusText(int status) {
+  /**
+   * @param status Status code
+   * @return Status text
+   */
+  public static String getStatusText(final int status) {
     String ret = null;
     Object o = STATUS_TEXT.get(Integer.valueOf(status));
     if (o != null) {
@@ -137,6 +158,9 @@ public final class EndEntityConstants {
     return ret;
   }
 
+  /**
+   * @return Collection of all status codes.
+   */
   public static Collection<Integer> getAllStatusCodes() {
     List<Integer> statuses = new ArrayList<Integer>(STATUS_TEXT.keySet());
     Collections.sort(statuses);

@@ -32,4 +32,6 @@
  	<suppress checks="MethodLengthCheck" files="CertificateProfile.java" lines="4015"/>
  	<suppress checks="MagicNumberCheck" files="CertificateProfile.java" lines="1981"/>	<!-- This is just a very big number. -->
  	<suppress checks="MagicNumberCheck" files="CTLogInfo.java" lines="42"/>	<!-- Default timeout. -->
+	<suppress checks="ParameterNumberCheck" files="EndEntityInformation.java" lines="149,205"/>
+ 	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="582,644"/>	<!-- Old API versions used in upgrade process. -->
  </suppressions>

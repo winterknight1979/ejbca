@@ -38,7 +38,8 @@ import org.cesecore.util.StringTools;
  */
 public class EndEntityInformation implements Serializable {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EndEntityInformation.class);
 
   /**
@@ -51,34 +52,47 @@ public class EndEntityInformation implements Serializable {
    */
   private static final long serialVersionUID = 3837505643343885941L;
 
+  /** User. */
   private String username;
+  /** DN. */
   private String subjectDN;
+  /** Cleaned-up DN. */
   private transient String subjectDNClean = null;
+  /** CA. */
   private int caid;
+  /** Name. */
   private String subjectAltName;
+  /** Email. */
   private String subjectEmail;
+  /** Password. */
   private String password;
+  /** Number. */
   private String cardNumber;
-  /** Status of user, from {@link EndEntityConstants#STATUS_NEW} etc */
+  /** Status of user, from {@link EndEntityConstants#STATUS_NEW} etc. */
   private int status;
-
+  /** Type. */
   private int type;
+  /** EE ID. */
   private int endentityprofileid;
+  /** Cert ID. */
   private int certificateprofileid;
+  /** Created. */
   private Date timecreated;
+  /** Modified. */
   private Date timemodified;
-  /** Type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc */
+  /** Type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc. */
   private int tokentype;
 
+  /** Issuer ID. */
   private int hardtokenissuerid;
-  /** ExtendedInformation holding extra data of the End entity */
+  /** ExtendedInformation holding extra data of the End entity. */
   private ExtendedInformation extendedinformation;
 
-  /** Creates new empty EndEntityInformation */
-  public EndEntityInformation() {}
+  /** Creates new empty EndEntityInformation. */
+  public EndEntityInformation() { }
 
   /**
-   * Copy constructor for {@link EndEntityInformation}
+   * Copy constructor for {@link EndEntityInformation}.
    *
    * @param endEntityInformation an end entity to copy
    */
@@ -110,58 +124,58 @@ public class EndEntityInformation implements Serializable {
    * constructor. Password must be set manually though. This is so you should be
    * sure what you do with the password.
    *
-   * @param username the unique username.
+   * @param ausername the unique username.
    * @param dn the DN the subject is given in his certificate.
-   * @param caid CA id of the CA that the user is registered with
+   * @param acaid CA id of the CA that the user is registered with
    * @param subjectaltname the Subject Alternative Name to be used.
    * @param email the email of the subject (may be null).
-   * @param status Status of user, from {@link EndEntityConstants#STATUS_NEW}
+   * @param astatus Status of user, from {@link EndEntityConstants#STATUS_NEW}
    *     etc
-   * @param type Type of user, from {@link EndEntityTypes#ENDUSER} etc, can be
+   * @param atype Type of user, from {@link EndEntityTypes#ENDUSER} etc, can be
    *     "or:ed" together, i.e. EndEntityTypes#ENDUSER | {@link
    *     EndEntityTypes#SENDNOTIFICATION}
-   * @param endentityprofileid the id number of the end entity profile bound to
+   * @param aendentityprofileid the id number of the end entity profile bound to
    *     this user.
-   * @param certificateprofileid the id number of the certificate profile that
+   * @param acertificateprofileid the id number of the certificate profile that
    *     should be generated for the user.
-   * @param timecreated DOCUMENT ME!
-   * @param timemodified DOCUMENT ME!
-   * @param tokentype the type of token, from {@link
+   * @param atimecreated DOCUMENT ME!
+   * @param atimemodified DOCUMENT ME!
+   * @param atokentype the type of token, from {@link
    *     EndEntityConstants#TOKEN_USERGEN} etc
-   * @param hardtokenissuerid if token should be hard, the id of the hard token
+   * @param ahardtokenissuerid if token should be hard, the id of the hard token
    *     issuer, else 0.
    * @param extendedinfo info
    */
   public EndEntityInformation(
-      final String username,
+      final String ausername,
       final String dn,
-      final int caid,
+      final int acaid,
       final String subjectaltname,
       final String email,
-      final int status,
-      final EndEntityType type,
-      final int endentityprofileid,
-      final int certificateprofileid,
-      final Date timecreated,
-      final Date timemodified,
-      final int tokentype,
-      final int hardtokenissuerid,
+      final int astatus,
+      final EndEntityType atype,
+      final int aendentityprofileid,
+      final int acertificateprofileid,
+      final Date atimecreated,
+      final Date atimemodified,
+      final int atokentype,
+      final int ahardtokenissuerid,
       final ExtendedInformation extendedinfo) {
-    setUsername(username);
+    setUsername(ausername);
     setPassword(null);
     setCardNumber(null);
     setDN(dn);
-    setCAId(caid);
+    setCAId(acaid);
     setSubjectAltName(subjectaltname);
     setEmail(email);
-    setStatus(status);
-    setType(type);
-    setEndEntityProfileId(endentityprofileid);
-    setCertificateProfileId(certificateprofileid);
-    setTimeCreated(timecreated);
-    setTimeModified(timemodified);
-    setTokenType(tokentype);
-    setHardTokenIssuerId(hardtokenissuerid);
+    setStatus(astatus);
+    setType(atype);
+    setEndEntityProfileId(aendentityprofileid);
+    setCertificateProfileId(acertificateprofileid);
+    setTimeCreated(atimecreated);
+    setTimeModified(atimemodified);
+    setTokenType(atokentype);
+    setHardTokenIssuerId(ahardtokenissuerid);
     setExtendedInformation(extendedinfo);
     setCardNumber(null);
   }
@@ -171,62 +185,74 @@ public class EndEntityInformation implements Serializable {
    * UserDataSource implementations. Status and dates aren't used in these
    * cases.
    *
-   * @param username the unique username.
+   * @param ausername the unique username.
    * @param dn the DN the subject is given in his certificate.
-   * @param caid the id of the CA that should be used to issue the users
+   * @param acaid the id of the CA that should be used to issue the users
    *     certificate
    * @param subjectaltname the Subject Alternative Name to be used.
    * @param email the email of the subject (may be null).
-   * @param type one of EndEntityTypes.USER_ENDUSER || ...
-   * @param endentityprofileid the id number of the end entity profile bound to
+   * @param atype one of EndEntityTypes.USER_ENDUSER || ...
+   * @param aendentityprofileid the id number of the end entity profile bound to
    *     this user.
-   * @param certificateprofileid the id number of the certificate profile that
+   * @param acertificateprofileid the id number of the certificate profile that
    *     should be generated for the user.
-   * @param tokentype the type of token, from {@link
+   * @param atokentype the type of token, from {@link
    *     EndEntityConstants#TOKEN_USERGEN} etc
-   * @param hardtokenissuerid if token should be hard, the id of the hard token
+   * @param ahardtokenissuerid if token should be hard, the id of the hard token
    *     issuer, else 0.
    * @param extendedinfo info
    */
   public EndEntityInformation(
-      final String username,
+      final String ausername,
       final String dn,
-      final int caid,
+      final int acaid,
       final String subjectaltname,
       final String email,
-      final EndEntityType type,
-      final int endentityprofileid,
-      final int certificateprofileid,
-      final int tokentype,
-      final int hardtokenissuerid,
+      final EndEntityType atype,
+      final int aendentityprofileid,
+      final int acertificateprofileid,
+      final int atokentype,
+      final int ahardtokenissuerid,
       final ExtendedInformation extendedinfo) {
-    setUsername(username);
+    setUsername(ausername);
     setPassword(null);
     setDN(dn);
-    setCAId(caid);
+    setCAId(acaid);
     setSubjectAltName(subjectaltname);
     setEmail(email);
-    setType(type);
-    setEndEntityProfileId(endentityprofileid);
-    setCertificateProfileId(certificateprofileid);
-    setTokenType(tokentype);
-    setHardTokenIssuerId(hardtokenissuerid);
+    setType(atype);
+    setEndEntityProfileId(aendentityprofileid);
+    setCertificateProfileId(acertificateprofileid);
+    setTokenType(atokentype);
+    setHardTokenIssuerId(ahardtokenissuerid);
     setExtendedInformation(extendedinfo);
     setCardNumber(null);
   }
 
-  public void setUsername(String user) {
+  /**
+   * @param user User
+   */
+  public void setUsername(final String user) {
     this.username =
         StringTools.putBase64String(StringTools.stripUsername(user));
   }
 
+  /**
+   * @return User
+   */
   public String getUsername() {
     return StringTools.getBase64String(username);
   }
 
-  public void setDN(String dn) {
-    if (dn == null) {
+  /**
+   * @param odn DN
+   */
+  public void setDN(final String odn) {
+     String dn;
+     if (odn == null) {
       dn = "";
+    } else {
+        dn = odn;
     }
     final StringBuilder removedAllEmpties = new StringBuilder(dn.length());
     final StringBuilder removedTrailingEmpties =
@@ -257,40 +283,67 @@ public class EndEntityInformation implements Serializable {
     return StringTools.getBase64String(subjectDN);
   }
 
+  /**
+   * @return ID
+   */
   public int getCAId() {
     return this.caid;
   }
 
-  public void setCAId(int caid) {
-    this.caid = caid;
+  /**
+   * @param aCaid ID
+   */
+  public void setCAId(final int aCaid) {
+    this.caid = aCaid;
   }
 
-  public void setSubjectAltName(String subjectaltname) {
-    this.subjectAltName = StringTools.putBase64String(subjectaltname);
+  /**
+   * @param aSubjectaltname Name
+   */
+  public void setSubjectAltName(final String aSubjectaltname) {
+    this.subjectAltName = StringTools.putBase64String(aSubjectaltname);
   }
 
+  /**
+   * @return Name
+   */
   public String getSubjectAltName() {
     return StringTools.getBase64String(subjectAltName);
   }
 
-  public void setEmail(String email) {
-    this.subjectEmail = StringTools.putBase64String(email);
+  /**
+   * @param aEmail mail
+   */
+  public void setEmail(final String aEmail) {
+    this.subjectEmail = StringTools.putBase64String(aEmail);
   }
 
+  /**
+   * @return Email
+   */
   public String getEmail() {
     return StringTools.getBase64String(subjectEmail);
   }
 
-  public void setCardNumber(String cardNumber) {
-    this.cardNumber = StringTools.putBase64String(cardNumber);
+  /**
+   * @param aCardNumber Number
+   */
+  public void setCardNumber(final String aCardNumber) {
+    this.cardNumber = StringTools.putBase64String(aCardNumber);
   }
 
+  /**
+   * @return Number
+   */
   public String getCardNumber() {
     return StringTools.getBase64String(cardNumber);
   }
 
-  public void setPassword(String pwd) {
-    this.password = StringTools.putBase64String(pwd);
+  /**
+   * @param aPwd password
+   */
+  public void setPassword(final String aPwd) {
+    this.password = StringTools.putBase64String(aPwd);
   }
 
   /**
@@ -303,68 +356,116 @@ public class EndEntityInformation implements Serializable {
     return StringTools.getBase64String(password);
   }
 
-  public void setStatus(int status) {
-    this.status = status;
+  /**
+   * @param aStatus status
+   */
+  public void setStatus(final int aStatus) {
+    this.status = aStatus;
   }
 
+  /**
+   * @return Status
+   */
   public int getStatus() {
     return status;
   }
 
-  public void setType(EndEntityType type) {
-    this.type = type.getHexValue();
+  /**
+   * @param aType type
+   */
+  public void setType(final EndEntityType aType) {
+    this.type = aType.getHexValue();
   }
 
+  /**
+   * @return Type.
+   */
   public EndEntityType getType() {
     return new EndEntityType(type);
   }
 
-  public void setEndEntityProfileId(int endentityprofileid) {
-    this.endentityprofileid = endentityprofileid;
+  /**
+   * @param aEndentityprofileid ID
+   */
+  public void setEndEntityProfileId(final int aEndentityprofileid) {
+    this.endentityprofileid = aEndentityprofileid;
   }
 
+  /**
+   * @return ID
+   */
   public int getEndEntityProfileId() {
     return this.endentityprofileid;
   }
 
-  public void setCertificateProfileId(int certificateprofileid) {
-    this.certificateprofileid = certificateprofileid;
+  /**
+   * @param aCertificateprofileid ID
+   */
+  public void setCertificateProfileId(final int aCertificateprofileid) {
+    this.certificateprofileid = aCertificateprofileid;
   }
 
+  /**
+   * @return Id
+   */
   public int getCertificateProfileId() {
     return this.certificateprofileid;
   }
 
-  public void setTimeCreated(Date timecreated) {
-    this.timecreated = timecreated;
+  /**
+   * @param aTimecreated time
+   */
+  public void setTimeCreated(final Date aTimecreated) {
+    this.timecreated = aTimecreated;
   }
 
+  /**
+   * @return time
+   */
   public Date getTimeCreated() {
     return this.timecreated;
   }
 
-  public void setTimeModified(Date timemodified) {
-    this.timemodified = timemodified;
+  /**
+   * @param aTimemodified time
+   */
+  public void setTimeModified(final Date aTimemodified) {
+    this.timemodified = aTimemodified;
   }
 
+  /**
+   * @return time
+   */
   public Date getTimeModified() {
     return this.timemodified;
   }
 
+  /**
+   * @return type
+   */
   public int getTokenType() {
     return this.tokentype;
   }
 
-  public void setTokenType(int tokentype) {
-    this.tokentype = tokentype;
+  /**
+   * @param aTokentype type
+   */
+  public void setTokenType(final int aTokentype) {
+    this.tokentype = aTokentype;
   }
 
+  /**
+   * @return ID
+   */
   public int getHardTokenIssuerId() {
     return this.hardtokenissuerid;
   }
 
-  public void setHardTokenIssuerId(int hardtokenissuerid) {
-    this.hardtokenissuerid = hardtokenissuerid;
+  /**
+   * @param aHardtokenissuerid ID
+   */
+  public void setHardTokenIssuerId(final int aHardtokenissuerid) {
+    this.hardtokenissuerid = aHardtokenissuerid;
   }
 
   /**
@@ -386,29 +487,38 @@ public class EndEntityInformation implements Serializable {
    */
   @Deprecated
   public void setAdministrator(final boolean administrator) {
-    final EndEntityType type = getType();
+    final EndEntityType aType = getType();
     if (administrator) {
-      type.addType(EndEntityTypes.ADMINISTRATOR);
+      aType.addType(EndEntityTypes.ADMINISTRATOR);
     } else {
-      type.removeType(EndEntityTypes.ADMINISTRATOR);
+      aType.removeType(EndEntityTypes.ADMINISTRATOR);
     }
-    setType(type);
+    setType(aType);
   }
 
+  /**
+   * @return bool
+   */
   public boolean getKeyRecoverable() {
     return getType().contains(EndEntityTypes.KEYRECOVERABLE);
   }
 
+  /**
+   * @param keyrecoverable bool
+   */
   public void setKeyRecoverable(final boolean keyrecoverable) {
-    final EndEntityType type = getType();
+    final EndEntityType aType = getType();
     if (keyrecoverable) {
-      type.addType(EndEntityTypes.KEYRECOVERABLE);
+      aType.addType(EndEntityTypes.KEYRECOVERABLE);
     } else {
-      type.removeType(EndEntityTypes.KEYRECOVERABLE);
+      aType.removeType(EndEntityTypes.KEYRECOVERABLE);
     }
-    setType(type);
+    setType(aType);
   }
 
+  /**
+   * @return bool
+   */
   public boolean getSendNotification() {
     return getType().contains(EndEntityTypes.SENDNOTIFICATION);
   }
@@ -421,27 +531,33 @@ public class EndEntityInformation implements Serializable {
    * @param sendnotification true or false
    */
   public void setSendNotification(final boolean sendnotification) {
-    final EndEntityType type = getType();
+    final EndEntityType aType = getType();
     if (sendnotification) {
-      type.addType(EndEntityTypes.SENDNOTIFICATION);
+      aType.addType(EndEntityTypes.SENDNOTIFICATION);
     } else {
-      type.removeType(EndEntityTypes.SENDNOTIFICATION);
+      aType.removeType(EndEntityTypes.SENDNOTIFICATION);
     }
-    setType(type);
+    setType(aType);
   }
 
+  /**
+   * @return bool
+   */
   public boolean getPrintUserData() {
     return getType().contains(EndEntityTypes.PRINT);
   }
 
+  /**
+   * @param printUserData bool
+   */
   public void setPrintUserData(final boolean printUserData) {
-    final EndEntityType type = getType();
+    final EndEntityType aType = getType();
     if (printUserData) {
-      type.addType(EndEntityTypes.PRINT);
+      aType.addType(EndEntityTypes.PRINT);
     } else {
-      type.removeType(EndEntityTypes.PRINT);
+      aType.removeType(EndEntityTypes.PRINT);
     }
-    setType(type);
+    setType(aType);
   }
 
   /**
@@ -451,9 +567,10 @@ public class EndEntityInformation implements Serializable {
   public ExtendedInformation getExtendedInformation() {
     return extendedinformation;
   }
-  /** @param extendedinformation The extendedinformation to set. */
-  public void setExtendedInformation(ExtendedInformation extendedinformation) {
-    this.extendedinformation = extendedinformation;
+  /** @param aExtendedinformation The extendedinformation to set. */
+  public void setExtendedInformation(
+          final ExtendedInformation aExtendedinformation) {
+    this.extendedinformation = aExtendedinformation;
   }
 
   /**
@@ -467,7 +584,7 @@ public class EndEntityInformation implements Serializable {
       final String extendedinfostring) {
     ExtendedInformation returnval = null;
     if (extendedinfostring != null && !extendedinfostring.isEmpty()) {
-      try (final SecureXMLDecoder decoder =
+      try (SecureXMLDecoder decoder =
           new SecureXMLDecoder(
               new ByteArrayInputStream(
                   extendedinfostring.getBytes(StandardCharsets.UTF_8)))) {
@@ -480,10 +597,12 @@ public class EndEntityInformation implements Serializable {
             returnval = new ExtendedInformation();
             returnval.loadData(data);
             break;
+          default:
+              // do nothing
         }
       } catch (IOException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Failed to parse ExtendedInformation for End Entity. Data:\n"
                   + extendedinfostring);
         }
@@ -496,6 +615,10 @@ public class EndEntityInformation implements Serializable {
     return returnval;
   }
 
+  /**
+   * @param extendedinformation Info
+   * @return String representation.
+   */
   public static String extendedInformationToStringData(
       final ExtendedInformation extendedinformation) {
     String ret = null;
@@ -503,8 +626,8 @@ public class EndEntityInformation implements Serializable {
       // We must base64 encode string for UTF safety
       final HashMap<Object, Object> b64DataMap = new Base64PutHashMap();
       b64DataMap.putAll(extendedinformation.getRawData());
-      final ByteArrayOutputStream baos = new ByteArrayOutputStream(512);
-      try (final java.beans.XMLEncoder encoder =
+      ByteArrayOutputStream baos = new ByteArrayOutputStream(INFO_SIZE);
+      try (java.beans.XMLEncoder encoder =
           new java.beans.XMLEncoder(baos); ) {
         encoder.writeObject(b64DataMap);
       }
@@ -512,6 +635,9 @@ public class EndEntityInformation implements Serializable {
     }
     return ret;
   }
+
+  /** Maz size of Extended Info buffer. */
+  private static final int INFO_SIZE = 512;
 
   /**
    * @return the DN to be used when creating a certificate (without empty
@@ -576,7 +702,7 @@ public class EndEntityInformation implements Serializable {
    * @return the differences between this map and the parameter, as &lt;key,
    *     [thisValue, otherValue]&gt;
    */
-  public Map<String, String[]> getDiff(EndEntityInformation other) {
+  public Map<String, String[]> getDiff(final EndEntityInformation other) {
     Map<String, String[]> changedValues = new LinkedHashMap<>();
     Map<String, String> thisValues = getDetailMap();
     Map<String, String> otherValues = other.getDetailMap();

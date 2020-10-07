@@ -39,7 +39,7 @@ import org.cesecore.util.ValidityDate;
 /**
  * The model representation of Extended Information about a user. It's used for
  * non-searchable data about a user, like a image, in an effort to minimize the
- * need for database alterations
+ * need for database alterations.
  *
  * <p>TODO: Clean out whatever final static variables which aren't externally
  * references.
@@ -50,31 +50,34 @@ import org.cesecore.util.ValidityDate;
 public class ExtendedInformation extends UpgradeableDataHashMap
     implements Serializable {
 
+    /** Type. */
   public static final String TYPE = "type";
   /**
    * Different types of implementations of extended information, can be used to
-   * have different implementing classes of extended information
+   * have different implementing classes of extended information.
    */
   public static final int TYPE_BASIC = 0;
 
-  private static final Logger log = Logger.getLogger(ExtendedInformation.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** LOG. */
+  private static final Logger LOG = Logger.getLogger(ExtendedInformation.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   private static final long serialVersionUID = 3981761824188420320L;
 
+  /** API Version. */
   private static final float LATEST_VERSION = 4;
 
   /**
    * Used to store subject directory attributes, which are put in an extension
    * in the certificate. SubjectDirectoryAttributes are standard attributes, see
-   * rfc3280
+   * rfc3280.
    */
   public static final String SUBJECTDIRATTRIBUTES = "subjectdirattributes";
   /**
    * Custom data can be used by various custom work-flows and other non-standard
-   * things to store information needed
+   * things to store information needed.
    */
   public static final String CUSTOMDATA = "customdata_";
 
@@ -87,13 +90,13 @@ public class ExtendedInformation extends UpgradeableDataHashMap
 
   /**
    * Identifier for Custom data holding a end time when the users certificate
-   * should be valid extInfo.setCustomData(EndEntityProfile.STARTTIME, "");
+   * should be valid extInfo.setCustomData(EndEntityProfile.STARTTIME, "");.
    */
   public static final String CUSTOM_STARTTIME =
       "STARTTIME"; // EndEntityProfile.STARTTIME;
   /**
    * Identifier for Custom data holding a end time when the users certificate
-   * should be valid extInfo.setCustomData(EndEntityProfile.ENDTIME, "");
+   * should be valid extInfo.setCustomData(EndEntityProfile.ENDTIME, "");.
    */
   public static final String CUSTOM_ENDTIME =
       "ENDTIME"; // EndEntityProfile.ENDTIME;
@@ -107,39 +110,41 @@ public class ExtendedInformation extends UpgradeableDataHashMap
   /**
    * The subject DN exactly as requested in the UserDataVOWS object. Should be
    * stored B64 encoded to avoid possible XML/database encoding issues,
-   * getRawSubjectDn does decoding if it is encoded
+   * getRawSubjectDn does decoding if it is encoded.
    */
   public static final String RAWSUBJECTDN = "RAWSUBJECTDN";
 
   /**
    * The counter is a counter for how many failed login attempts that can be
-   * performed before the userstatus is changed to GENERATED
+   * performed before the userstatus is changed to GENERATED.
    */
   private static final String REMAININGLOGINATTEMPTS = "remainingloginattempts";
 
   /**
    * The maximum number of login attempts before the user is locked by setting
-   * its status to GENERATED
+   * its status to GENERATED.
    */
   private static final String MAXFAILEDLOGINATTEMPTS = "maxfailedloginattempts";
 
   /**
-   * Default value for how many failed login attempts are allow = -1 (unlimited)
+   * Default value for how many failed
+   * login attempts are allow = -1 (unlimited).
    */
   public static final int DEFAULT_MAXLOGINATTEMPTS = -1;
 
   /**
    * Default value for how many of the allowed failed login attempts that are
-   * remaining = -1 (unlimited)
+   * remaining = -1 (unlimited).
    */
   public static final int DEFAULT_REMAININGLOGINATTEMPTS = -1;
 
-  /** Map key for certificate serial number */
+  /** Map key for certificate serial number. */
   private static final String CERTIFICATESERIALNUMBER =
       "CERTIFICATESERIALNUMBER";
-
+  /** constraints. */
   private static final Object NAMECONSTRAINTS_PERMITTED =
       "nameconstraints_permitted";
+  /** Constraints. */
   private static final Object NAMECONSTRAINTS_EXCLUDED =
       "nameconstraints_excluded";
 
@@ -147,35 +152,38 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    * Keystore specifications used for enrolling end entity user with key-pair
    * generated on a server side (KickAssRA).
    */
-  private static String KEYSTORE_ALGORITHM_SUBTYPE =
+  private static final String KEYSTORE_ALGORITHM_SUBTYPE =
       "KEYSTORE_ALGORITHM_SUBTYPE";
 
-  private static String KEYSTORE_ALGORITHM_TYPE = "KEYSTORE_ALGORITHM_TYPE";
+  /** Type. */
+  private static final String KEYSTORE_ALGORITHM_TYPE =
+          "KEYSTORE_ALGORITHM_TYPE";
 
   /**
-   * The ID of the approval request that was submitted to create the end entity
+   * The ID of the approval request that was submitted to create the end entity.
    */
-  private static String ADD_EE_APPROVAL_REQUEST_ID =
+  private static final String ADD_EE_APPROVAL_REQUEST_ID =
       "ADD_EE_APPROVAL_REQUEST_ID";
   /**
-   * The IDs of the approval requests that were submitted to edit the end entity
+   * The IDs of the approval requests that were submitted
+   * to edit the end entity.
    */
-  private static String EDIT_EE_APPROVAL_REQUEST_IDS =
+  private static final String EDIT_EE_APPROVAL_REQUEST_IDS =
       "EDIT_EE_APPROVAL_REQUEST_IDS";
   /**
    * The IDs of the approval requests that were submitted to revoke the end
-   * entity
+   * entity.
    */
-  private static String REVOKE_EE_APPROVAL_REQUEST_IDS =
+  private static final String REVOKE_EE_APPROVAL_REQUEST_IDS =
       "REVOKE_EE_APPROVAL_REQUEST_IDS";
 
   /**
    * Certificate request used for enrolling end entity user with public key
    * provided by user (KickAssRA).
    */
-  private static String CERTIFICATE_REQUEST = "CERTIFICATE_REQUEST";
+  private static final String CERTIFICATE_REQUEST = "CERTIFICATE_REQUEST";
 
-  /** Creates a new instance of ExtendedInformation */
+  /** Creates a new instance of ExtendedInformation. */
   public ExtendedInformation() {
     setType(TYPE_BASIC);
     data.put(SUBJECTDIRATTRIBUTES, "");
@@ -185,7 +193,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
   }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param extendedInformation the ExtendedInformation map top copy
    */
@@ -203,7 +211,11 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return (String) data.get(KEYSTORE_ALGORITHM_SUBTYPE);
   }
 
-  public void setKeyStoreAlgorithmSubType(String keyStoreAlgorithmSubType) {
+  /**
+   * @param keyStoreAlgorithmSubType type
+   */
+  public void setKeyStoreAlgorithmSubType(
+          final String keyStoreAlgorithmSubType) {
     data.put(KEYSTORE_ALGORITHM_SUBTYPE, keyStoreAlgorithmSubType);
   }
 
@@ -215,7 +227,10 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return (String) data.get(KEYSTORE_ALGORITHM_TYPE);
   }
 
-  public void setKeyStoreAlgorithmType(String keyStoreAlgorithmType) {
+  /**
+   * @param keyStoreAlgorithmType Type
+   */
+  public void setKeyStoreAlgorithmType(final String keyStoreAlgorithmType) {
     data.put(KEYSTORE_ALGORITHM_TYPE, keyStoreAlgorithmType);
   }
 
@@ -240,7 +255,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
   }
 
   /** @param certificateRequest a CSR in binary asn.1 format */
-  public void setCertificateRequest(byte[] certificateRequest) {
+  public void setCertificateRequest(final byte[] certificateRequest) {
     if (certificateRequest == null) {
       this.data.remove(CERTIFICATE_REQUEST);
       return;
@@ -252,6 +267,9 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     data.put(CERTIFICATE_REQUEST, str);
   }
 
+  /**
+   * @return attributes
+   */
   public String getSubjectDirectoryAttributes() {
     String ret = (String) data.get(SUBJECTDIRATTRIBUTES);
     if (ret == null) {
@@ -260,7 +278,10 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return ret;
   }
 
-  public void setSubjectDirectoryAttributes(String subjdirattr) {
+  /**
+   * @param subjdirattr attributes
+   */
+  public void setSubjectDirectoryAttributes(final String subjdirattr) {
     if (subjdirattr == null) {
       data.put(SUBJECTDIRATTRIBUTES, "");
     } else {
@@ -281,7 +302,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    *
    * @param remainingLoginAttempts The number to set
    */
-  public void setRemainingLoginAttempts(int remainingLoginAttempts) {
+  public void setRemainingLoginAttempts(final int remainingLoginAttempts) {
     data.put(REMAININGLOGINATTEMPTS, remainingLoginAttempts);
   }
 
@@ -327,7 +348,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    *
    * @param maxLoginAttempts The number to set
    */
-  public void setMaxLoginAttempts(int maxLoginAttempts) {
+  public void setMaxLoginAttempts(final int maxLoginAttempts) {
     data.put(MAXFAILEDLOGINATTEMPTS, maxLoginAttempts);
   }
 
@@ -344,7 +365,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
   }
 
   /** @param sn the serial number to be used for the certificate */
-  public void setCertificateSerialNumber(BigInteger sn) {
+  public void setCertificateSerialNumber(final BigInteger sn) {
     if (sn == null) {
       this.data.remove(CERTIFICATESERIALNUMBER);
       return;
@@ -368,8 +389,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     if (revocationReason != null) {
       ret = Integer.valueOf(revocationReason);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("User issuance revocation reason is " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("User issuance revocation reason is " + ret);
     }
     return ret;
   }
@@ -381,7 +402,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    * @param reason issuance revocation code, a constant from RevokedCertInfo
    *     such as RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD.
    */
-  public void setIssuanceRevocationReason(int reason) {
+  public void setIssuanceRevocationReason(final int reason) {
     setCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON, "" + reason);
   }
 
@@ -394,7 +415,10 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return new ArrayList<String>(Arrays.asList(value.split(";")));
   }
 
-  public void setNameConstraintsPermitted(List<String> encodedNames) {
+  /**
+   * @param encodedNames names
+   */
+  public void setNameConstraintsPermitted(final List<String> encodedNames) {
     if (encodedNames == null) {
       data.remove(NAMECONSTRAINTS_PERMITTED);
     } else {
@@ -411,7 +435,10 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return new ArrayList<>(Arrays.asList(value.split(";")));
   }
 
-  public void setNameConstraintsExcluded(List<String> encodedNames) {
+  /**
+   * @param encodedNames Names
+   */
+  public void setNameConstraintsExcluded(final List<String> encodedNames) {
     if (encodedNames == null) {
       data.remove(NAMECONSTRAINTS_EXCLUDED);
     } else {
@@ -435,7 +462,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    * @param key Key
    * @return a string from the ExtendedInformation map or null.
    */
-  public String getMapData(String key) {
+  public String getMapData(final String key) {
     String ret = null;
     Object o = data.get(key);
     if (o instanceof String) {
@@ -450,17 +477,17 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    * @param key Key
    * @param value Value
    */
-  public void setMapData(String key, String value) {
+  public void setMapData(final String key, final String value) {
     data.put(key, value);
   }
 
   /**
-   * Special method used to retrieve custom set userdata
+   * Special method used to retrieve custom set userdata.
    *
    * @param key Key
    * @return The data or null if no such data have been set for the user
    */
-  public String getCustomData(String key) {
+  public String getCustomData(final String key) {
     return (String) data.get(CUSTOMDATA + key);
   }
 
@@ -470,7 +497,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    * @param key defined key to store the data with
    * @param value string representation of the data
    */
-  public void setExtensionData(String key, String value) {
+  public void setExtensionData(final String key, final String value) {
     data.put(EXTENSIONDATA + key, value);
   }
 
@@ -480,7 +507,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    * @param key Key
    * @return The data or null if no such data have been set for the user
    */
-  public String getExtensionData(String key) {
+  public String getExtensionData(final String key) {
     return (String) data.get(EXTENSIONDATA + key);
   }
 
@@ -504,7 +531,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    * @param key defined key to store the data with
    * @param value string representation of the data
    */
-  public void setCustomData(String key, String value) {
+  public void setCustomData(final String key, final String value) {
     data.put(CUSTOMDATA + key, value);
   }
 
@@ -513,7 +540,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    *
    * @param hmData data
    */
-  public void setData(Object hmData) {
+  public void setData(final Object hmData) {
     loadData(hmData);
   }
 
@@ -526,7 +553,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return saveData();
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
   @Override
   public float getLatestVersion() {
     return LATEST_VERSION;
@@ -538,9 +565,9 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "endentity.extendedinfoupgrade", getVersion());
-      log.info(msg);
+      LOG.info(msg);
 
       if (data.get(SUBJECTDIRATTRIBUTES) == null) {
         data.put(SUBJECTDIRATTRIBUTES, "");
@@ -567,8 +594,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                 newDateFormat.format(oldDateFormat.parse(oldCustomStartTime));
             setCustomData(
                 ExtendedInformation.CUSTOM_STARTTIME, newCustomStartTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_STARTTIME
                       + " from \""
@@ -579,7 +606,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
             }
           }
         } catch (ParseException e) {
-          log.error(
+          LOG.error(
               "Unable to upgrade "
                   + ExtendedInformation.CUSTOM_STARTTIME
                   + " in extended user information.",
@@ -593,8 +620,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
             final String newCustomEndTime =
                 newDateFormat.format(oldDateFormat.parse(oldCustomEndTime));
             setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newCustomEndTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_ENDTIME
                       + " from \""
@@ -605,7 +632,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
             }
           }
         } catch (ParseException e) {
-          log.error(
+          LOG.error(
               "Unable to upgrade "
                   + ExtendedInformation.CUSTOM_ENDTIME
                   + " in extended user information.",
@@ -624,8 +651,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                 ValidityDate.formatAsUTC(
                     DateUtils.parseDateStrictly(oldStartTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_STARTTIME, newStartTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_STARTTIME
                       + " from \""
@@ -635,7 +662,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                       + "\" in EndEntityProfile.");
             }
           } catch (ParseException e) {
-            log.error(
+            LOG.error(
                 "Unable to upgrade "
                     + ExtendedInformation.CUSTOM_STARTTIME
                     + " to UTC in EndEntityProfile! Manual interaction is"
@@ -652,8 +679,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                 ValidityDate.formatAsUTC(
                     DateUtils.parseDateStrictly(oldEndTime, timePatterns));
             setCustomData(ExtendedInformation.CUSTOM_ENDTIME, newEndTime);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Upgraded "
                       + ExtendedInformation.CUSTOM_ENDTIME
                       + " from \""
@@ -663,7 +690,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap
                       + "\" in EndEntityProfile.");
             }
           } catch (ParseException e) {
-            log.error(
+            LOG.error(
                 "Unable to upgrade "
                     + ExtendedInformation.CUSTOM_ENDTIME
                     + " to UTC in EndEntityProfile! Manual interaction is"
@@ -703,10 +730,13 @@ public class ExtendedInformation extends UpgradeableDataHashMap
    *
    * @param type Type
    */
-  private void setType(int type) {
+  private void setType(final int type) {
     data.put(TYPE, type);
   }
 
+  /**
+   * @return ID
+   */
   public Integer getAddEndEntityApprovalRequestId() {
     Object id = data.get(ADD_EE_APPROVAL_REQUEST_ID);
     if (id != null) {
@@ -715,10 +745,16 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return null;
   }
 
-  public void setAddEndEntityApprovalRequestId(Integer requestId) {
+  /**
+   * @param requestId ID
+   */
+  public void setAddEndEntityApprovalRequestId(final Integer requestId) {
     data.put(ADD_EE_APPROVAL_REQUEST_ID, requestId);
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getEditEndEntityApprovalRequestIds() {
     @SuppressWarnings("unchecked")
     ArrayList<Integer> ids =
@@ -729,7 +765,10 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return new ArrayList<Integer>();
   }
 
-  public void addEditEndEntityApprovalRequestId(Integer requestId) {
+  /**
+   * @param requestId ID
+   */
+  public void addEditEndEntityApprovalRequestId(final Integer requestId) {
     Object obj = data.get(EDIT_EE_APPROVAL_REQUEST_IDS);
     @SuppressWarnings("unchecked")
     ArrayList<Integer> ids =
@@ -738,6 +777,9 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     data.put(EDIT_EE_APPROVAL_REQUEST_IDS, ids);
   }
 
+  /**
+   * @return IDs
+   */
   public List<Integer> getRevokeEndEntityApprovalRequestIds() {
     @SuppressWarnings("unchecked")
     ArrayList<Integer> ids =
@@ -748,7 +790,10 @@ public class ExtendedInformation extends UpgradeableDataHashMap
     return new ArrayList<Integer>();
   }
 
-  public void addRevokeEndEntityApprovalRequestId(Integer requestId) {
+  /**
+   * @param requestId ID
+   */
+  public void addRevokeEndEntityApprovalRequestId(final Integer requestId) {
     @SuppressWarnings("unchecked")
     List<Integer> obj =
         (List<Integer>) data.get(REVOKE_EE_APPROVAL_REQUEST_IDS);

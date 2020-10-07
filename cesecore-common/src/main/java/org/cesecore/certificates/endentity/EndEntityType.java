@@ -24,9 +24,10 @@ import java.security.InvalidParameterException;
 public class EndEntityType implements Serializable {
 
   private static final long serialVersionUID = 730921129476820912L;
+  /** Default type (INVALID). */
   private int type = EndEntityTypes.INVALID.hexValue();
 
-  /** Creates an EndEntityType of type USER_INVALID (0x0) */
+  /** Creates an EndEntityType of type USER_INVALID (0x0). */
   public EndEntityType() {
     this.type = EndEntityTypes.INVALID.hexValue();
   }
@@ -34,25 +35,25 @@ public class EndEntityType implements Serializable {
   /**
    * Creates an EndEntityType of the type given in the constructor.
    *
-   * @param type Type of end entity for this EndEntityType to wrap. May not be
+   * @param aType Type of end entity for this EndEntityType to wrap. May not be
    *     null.
    */
-  public EndEntityType(EndEntityTypes type) {
-    if (type == null) {
+  public EndEntityType(final EndEntityTypes aType) {
+    if (aType == null) {
       throw new InvalidParameterException(
           "Cannot create an EndEntityType with input parameter null");
     }
-    this.type = type.hexValue();
+    this.type = aType.hexValue();
   }
 
   /**
    * Creates an EndEntityType using a known type. Value is never checked, so may
    * give unexpected results if not used properly.
    *
-   * @param type a known hex value to set as type.
+   * @param aType a known hex value to set as type.
    */
-  public EndEntityType(int type) {
-    this.type = type;
+  public EndEntityType(final int aType) {
+    this.type = aType;
   }
 
   /**
@@ -61,7 +62,7 @@ public class EndEntityType implements Serializable {
    *
    * @param types varargs list of types.
    */
-  public EndEntityType(EndEntityTypes... types) {
+  public EndEntityType(final EndEntityTypes... types) {
     if (types.length == 0) {
       throw new InvalidParameterException(
           "Cannot create an EndEntityType with input parameter null");
@@ -110,6 +111,9 @@ public class EndEntityType implements Serializable {
     type = endEntityType.removeFromType(type);
   }
 
+  /**
+   * @return type.
+   */
   public int getHexValue() {
     return type;
   }
