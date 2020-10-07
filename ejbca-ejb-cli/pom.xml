@@ -1,24 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>ejbca-ejb-cli</artifactId>
+
 	<name>Remote EJB access CLI</name>
 	<description>Remote EJB access CLI</description>
 
 	<dependencies>
-	<dependency>
-				<groupId>com.thoughtworks.xstream</groupId>
-				<artifactId>xstream</artifactId>
-				<scope>runtime</scope>
-			</dependency>
-	
-	
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>cli-util</artifactId>
@@ -33,10 +37,15 @@
 		</dependency>
 	</dependencies>
 
-
 	<build>
-
 		<resources>
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>ejbca.sh</include>
+				</includes>
+			</resource>
 			<resource>
 				<directory>${project.build.directory}/maven-shared-archive-resource</directory>
 				<filtering>true</filtering>
@@ -66,7 +75,6 @@
 				</includes>
 			</resource>
 		</resources>
-
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
