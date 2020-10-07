@@ -22,63 +22,72 @@ import org.bouncycastle.util.encoders.Base64;
 import org.cesecore.keys.util.KeyTools;
 
 /**
- * Represents a Certificate Transparency log
+ * Represents a Certificate Transparency log.
  *
  * @version $Id: CTLogInfo.java 27471 2017-12-07 15:13:58Z bastianf $
  */
 public final class CTLogInfo implements Serializable {
 
-  private static final Logger log = Logger.getLogger(CTLogInfo.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CTLogInfo.class);
   private static final long serialVersionUID = 1L;
 
+  /** ID. */
   private final int logId;
+  /** PK. */
   private byte[] publicKeyBytes;
+  /** URL. */
   private String url; // base URL, without "add-chain" or "add-pre-chain"
+  /** Timeout. */
   private int timeout = 5000; // milliseconds
+  /** Label. */
   private String label;
+  /** Mandatory. */
   @Deprecated private boolean isMandatory;
+  /** Expiry. */
   private Integer expirationYearRequired;
 
+  /** PK. */
   private transient PublicKey publicKey;
-
-  private static final Random random = new Random();
+  /** Random generator. */
+  private static final Random RANDOM = new Random();
 
   /**
    * Creates a CT log info object, but does not parse the public key yet (so it
-   * can be created from static blocks etc.)
+   * can be created from static blocks etc).
    *
-   * @param url Base URL to the log. The CT log library will automatically
+   * @param aUrl Base URL to the log. The CT log library will automatically
    *     append the strings "add-chain" or "add-pre-chain" depending on whether
    *     EJBCA is submitting a pre-certificate or a regular certificate.
-   * @param publicKeyBytes The ASN1 encoded public key of the log.
-   * @param label to place CT log under.
-   * @param timeout of SCT response in ms.
+   * @param aPublicKeyBytes The ASN1 encoded public key of the log.
+   * @param aLabel to place CT log under.
+   * @param aTimeout of SCT response in ms.
    */
   public CTLogInfo(
-      final String url,
-      final byte[] publicKeyBytes,
-      final String label,
-      final int timeout) {
-    if (!url.endsWith("/")) {
-      log.error(
+      final String aUrl,
+      final byte[] aPublicKeyBytes,
+      final String aLabel,
+      final int aTimeout) {
+    if (!aUrl.endsWith("/")) {
+      LOG.error(
           "CT Log URL must end with a slash. URL: "
-              + url); // EJBCA 6.4 didn't enforce this due to a regression
+              + aUrl); // EJBCA 6.4 didn't enforce this due to a regression
     }
-    if (!url.endsWith("/ct/v1/")) {
-      log.warn("CT Log URL should end with /ct/v1/. URL: " + url);
+    if (!aUrl.endsWith("/ct/v1/")) {
+      LOG.warn("CT Log URL should end with /ct/v1/. URL: " + aUrl);
     }
-    this.logId = random.nextInt();
-    this.url = url;
-    if (publicKeyBytes == null) {
+    this.logId = RANDOM.nextInt();
+    this.url = aUrl;
+    if (aPublicKeyBytes == null) {
       throw new IllegalArgumentException("publicKeyBytes is null");
     }
-    this.publicKeyBytes = publicKeyBytes.clone();
-    if (label != null && label.isEmpty()) {
+    this.publicKeyBytes = aPublicKeyBytes.clone();
+    if (aLabel != null && aLabel.isEmpty()) {
       this.label = "Unlabeled";
     } else {
-      this.label = label;
+      this.label = aLabel;
     }
-    this.timeout = timeout;
+    this.timeout = aTimeout;
   }
 
   private void ensureParsed() {
@@ -95,18 +104,27 @@ public final class CTLogInfo implements Serializable {
     return logId;
   }
 
+  /**
+   * @return PK
+   */
   public PublicKey getLogPublicKey() {
     ensureParsed();
     return publicKey;
   }
 
+  /**
+   * @return PK
+   */
   public byte[] getPublicKeyBytes() {
     return publicKeyBytes;
   }
 
-  public void setLogPublicKey(final byte[] publicKeyBytes) {
+  /**
+   * @param aPublicKeyBytes PK
+   */
+  public void setLogPublicKey(final byte[] aPublicKeyBytes) {
     this.publicKey = null;
-    this.publicKeyBytes = publicKeyBytes;
+    this.publicKeyBytes = aPublicKeyBytes;
   }
 
   /** @return Log Key ID as specified by the RFC, in human-readable format */
@@ -124,14 +142,23 @@ public final class CTLogInfo implements Serializable {
     }
   }
 
+  /**
+   * @return URL
+   */
   public String getUrl() {
     return url;
   }
 
-  public void setUrl(final String url) {
-    this.url = url;
+  /**
+   * @param aUrl URL
+   */
+  public void setUrl(final String aUrl) {
+    this.url = aUrl;
   }
 
+  /**
+   * @return timeout
+   */
   public int getTimeout() {
     return timeout;
   }
@@ -147,19 +174,19 @@ public final class CTLogInfo implements Serializable {
   }
 
   /**
-   * Sets the timeout in milliseconds when sending a request to the log server
+   * Sets the timeout in milliseconds when sending a request to the log server.
    *
-   * @param timeout timeout
+   * @param aTimeout timeout
    */
-  public void setTimeout(final int timeout) {
-    if (timeout < 0) {
+  public void setTimeout(final int aTimeout) {
+    if (aTimeout < 0) {
       throw new IllegalArgumentException("Timeout value is negative");
     }
-    this.timeout = timeout;
+    this.timeout = aTimeout;
   }
 
   /**
-   * Makes sure that a URL ends with /ct/v1/
+   * Makes sure that a URL ends with /ct/v1/.
    *
    * @param urlToFix URL
    * @return fixed URL
@@ -176,12 +203,18 @@ public final class CTLogInfo implements Serializable {
     return url;
   }
 
+  /**
+   * @return label
+   */
   public String getLabel() {
     return label == null ? "Unlabeled" : label;
   }
 
-  public void setLabel(final String label) {
-    this.label = label;
+  /**
+   * @param aLabel label
+   */
+  public void setLabel(final String aLabel) {
+    this.label = aLabel;
   }
 
   /**
@@ -203,16 +236,16 @@ public final class CTLogInfo implements Serializable {
    * must have in order to be accepted, or null if there is no such requirement.
    * See {@link #getExpirationYearRequired()}.
    *
-   * @param expirationYearRequired the expiration year required for new
+   * @param aExpirationYearRequired the expiration year required for new
    *     certificates being published to this CT log, or null if no such
    *     requirement
    */
-  public void setExpirationYearRequired(final Integer expirationYearRequired) {
-    this.expirationYearRequired = expirationYearRequired;
+  public void setExpirationYearRequired(final Integer aExpirationYearRequired) {
+    this.expirationYearRequired = aExpirationYearRequired;
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (o == null || o.getClass() != CTLogInfo.class) {
       return false;
     }

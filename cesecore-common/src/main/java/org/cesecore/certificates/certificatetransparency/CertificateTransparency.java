@@ -32,7 +32,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfile;
  *     bastianf $
  */
 public interface CertificateTransparency {
-
+  /** OID. */
   String SCTLIST_OID = "1.3.6.1.4.1.11129.2.4.2";
 
   /**
@@ -40,12 +40,12 @@ public interface CertificateTransparency {
    * Also, for OCSP and PUBLISHER, the {@link
    * CertificateProfile#isUseCTSubmitExisting} will be respected.
    */
-  public static enum UsageMode {
-    /** Requesting a SCT for a new certificate to be issued */
+  enum UsageMode {
+    /** Requesting a SCT for a new certificate to be issued. */
     CERTIFICATE,
-    /** Requesting a SCT for inclusion in a OCSP response */
+    /** Requesting a SCT for inclusion in a OCSP response. */
     OCSP,
-    /** Publishing a certificate to all CT logs */
+    /** Publishing a certificate to all CT logs. */
     PUBLISHER;
   };
 
@@ -91,7 +91,7 @@ public interface CertificateTransparency {
       throws CTLogException;
 
   /**
-   * Adds a critical extension to prevent the certificate from being used
+   * Adds a critical extension to prevent the certificate from being used.
    *
    * @param precertbuilder builder
    */

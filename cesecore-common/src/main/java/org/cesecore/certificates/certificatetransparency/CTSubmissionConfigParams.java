@@ -26,8 +26,9 @@ import java.util.Map;
 public final class CTSubmissionConfigParams implements Serializable {
 
   private static final long serialVersionUID = 1L;
-
+  /** Logs. */
   private Map<Integer, CTLogInfo> configuredCTLogs;
+  /** Policy. */
   private GoogleCtPolicy validityPolicy;
 
   /**
@@ -38,16 +39,16 @@ public final class CTSubmissionConfigParams implements Serializable {
   }
 
   /**
-   * @param configuredCTLogs Logs
+   * @param aConfiguredCTLogs Logs
    * @see #getConfiguredCTLogs
    */
   public void setConfiguredCTLogs(
-      final Map<Integer, CTLogInfo> configuredCTLogs) {
-    this.configuredCTLogs = configuredCTLogs;
+      final Map<Integer, CTLogInfo> aConfiguredCTLogs) {
+    this.configuredCTLogs = aConfiguredCTLogs;
   }
 
   /**
-   * Policy for setting min/max SCTs based on the validity
+   * Policy for setting min/max SCTs based on the validity.
    *
    * @return policy
    */
@@ -56,10 +57,10 @@ public final class CTSubmissionConfigParams implements Serializable {
   }
 
   /**
-   * @param validityPolicy policy
+   * @param aValidityPolicy policy
    * @see #getValidityPolicy
    */
-  public void setValidityPolicy(final GoogleCtPolicy validityPolicy) {
-    this.validityPolicy = validityPolicy;
+  public void setValidityPolicy(final GoogleCtPolicy aValidityPolicy) {
+    this.validityPolicy = aValidityPolicy;
   }
 }

@@ -20,14 +20,19 @@ package org.cesecore.certificates.certificatetransparency;
  *     samuellb $
  */
 public enum CertificateTransparencyFactory {
-  SINGLETON;
+  /** Singleton instance. */
+    SINGLETON;
 
+    /** Class. */
   private static final String IMPLEMENTATION_CLASSNAME =
-      "org.cesecore.certificates.certificatetransparency.CertificateTransparencyImpl";
+      "org.cesecore.certificates.certificatetransparency."
+      + "CertificateTransparencyImpl";
 
+  /** Instance. */
   private final CertificateTransparency ct;
 
-  private CertificateTransparencyFactory() {
+  /** Pribate constructor. */
+  CertificateTransparencyFactory() {
     CertificateTransparency instance;
     try {
       // No lock is used since the CertificateTransparencyImpl class has no

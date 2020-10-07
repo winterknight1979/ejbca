@@ -30,15 +30,16 @@ import org.apache.commons.lang.StringUtils;
  * @version $Id: CtLogManager.java 28511 2018-03-18 21:24:03Z bastianf $
  */
 public class CtLogManager {
+    /** Logs. */
   private final List<CTLogInfo> ctLogs;
 
   /**
    * Create a new CT log manager responsible for a list of logs specified.
    *
-   * @param ctLogs the logs managed by this CT log manager
+   * @param aCtLogs the logs managed by this CT log manager
    */
-  public CtLogManager(final List<CTLogInfo> ctLogs) {
-    this.ctLogs = ctLogs;
+  public CtLogManager(final List<CTLogInfo> aCtLogs) {
+    this.ctLogs = aCtLogs;
   }
 
   /**
@@ -70,7 +71,7 @@ public class CtLogManager {
         ret,
         new Comparator<String>() {
           @Override
-          public int compare(String label1, String label2) {
+          public int compare(final String label1, final String label2) {
             return label1.compareToIgnoreCase(label2);
           }
         });

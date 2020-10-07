@@ -15,7 +15,7 @@ package org.cesecore.certificates.certificatetransparency;
 import org.cesecore.CesecoreException;
 
 /**
- * Failure to insert a certificate into Certificate Transparency logs
+ * Failure to insert a certificate into Certificate Transparency logs.
  *
  * @version $Id: CTLogException.java 18447 2014-02-05 16:13:00Z samuellb $
  */

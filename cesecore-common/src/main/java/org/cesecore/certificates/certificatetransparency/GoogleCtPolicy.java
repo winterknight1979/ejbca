@@ -26,16 +26,23 @@ public class GoogleCtPolicy implements Serializable {
   private static final long serialVersionUID = 1337L;
 
   /* Constants representing rows from Table 1 */
+  /** Duration. */
   private static final int LESS_THAN_15_MONTHS = 0;
+  /** Duration. */
   private static final int BETWEEN_15_AND_27_MONTHS = 1;
+  /** Duration. */
   private static final int BETWEEN_27_AND_39_MONTHS = 2;
+  /** Duration. */
   private static final int MORE_THAN_39_MONTHS = 3;
 
-  /* Default policy values. Should not be changed unless the policy changes. */
+  /** Default policy values. Should not be changed unless the policy changes. */
   private final int[] minScts =
       new int[] {
         2, 3, 4, 5,
       };
+  /**
+   * Months.
+   */
   private final int[] lessThanMonths =
       new int[] {15, 27, 39, Integer.MAX_VALUE};
 
@@ -146,7 +153,7 @@ public class GoogleCtPolicy implements Serializable {
    * @return Minimum SCTs
    * @see #getNumberOfBreakpoints
    */
-  public int getMinSctsByIndex(int breakpointIndex) {
+  public int getMinSctsByIndex(final int breakpointIndex) {
     return minScts[breakpointIndex];
   }
 
@@ -158,7 +165,7 @@ public class GoogleCtPolicy implements Serializable {
    * @return "Less than months" value, or Integer.MAX_VALUE if infinite
    * @see #getNumberOfBreakpoints
    */
-  public int getLessThanMonthsByIndex(int breakpointIndex) {
+  public int getLessThanMonthsByIndex(final int breakpointIndex) {
     return lessThanMonths[breakpointIndex];
   }
 

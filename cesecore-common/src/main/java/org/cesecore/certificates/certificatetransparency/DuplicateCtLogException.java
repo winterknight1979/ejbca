@@ -23,6 +23,9 @@ package org.cesecore.certificates.certificatetransparency;
 public class DuplicateCtLogException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
+  /**
+   * @param message Message.
+   */
   public DuplicateCtLogException(final String message) {
     super(message);
   }
