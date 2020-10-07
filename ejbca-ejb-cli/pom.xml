@@ -12,6 +12,13 @@
 	<description>Remote EJB access CLI</description>
 
 	<dependencies>
+	
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cli-util</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>shared-resources</artifactId>
