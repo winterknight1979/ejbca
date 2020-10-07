@@ -28,4 +28,7 @@
 	<suppress checks="ParameterNumberCheck" files="CertificateInfo.java" lines="84"/>
  	<suppress checks="UnusedImportsCheck" files="CertificateStatus.java" lines="19"/> <!-- Used in Jdoc. -->
  	<suppress checks="MethodLengthCheck" files="RequestMessageUtils.java" lines="192"/>
+ 	<suppress checks="UnusedImportsCheck" files="CertificateProfile.java" lines="43"/> <!-- Used in Jdoc. -->
+ 	<suppress checks="MethodLengthCheck" files="CertificateProfile.java" lines="4015"/>
+ 	<suppress checks="MagicNumberCheck" files="ACertificateProfile.java" lines="1981"/>	<!-- This is just a very big number. -->
  </suppressions>

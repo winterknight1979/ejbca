@@ -172,7 +172,7 @@ public abstract class RequestMessageUtils {
   }
 
   /**
-   * 
+   *
    * @param username User
    * @param password Pass
    * @param req Request
@@ -182,12 +182,12 @@ public abstract class RequestMessageUtils {
    * @throws InvalidKeyException fail
    * @throws NoSuchAlgorithmException fail
    * @throws NoSuchProviderException fail
-   * @throws IOException fail 
-   * @throws SignatureException fail 
+   * @throws IOException fail
+   * @throws SignatureException fail
    * @throws InvalidKeySpecException fail
-   * @throws ParseException fail 
-   * @throws ConstructionException fail 
-   * @throws NoSuchFieldException fail 
+   * @throws ParseException fail
+   * @throws ConstructionException fail
+   * @throws NoSuchFieldException fail
    */
   public static RequestMessage getRequestMessageFromType(
       final String username,

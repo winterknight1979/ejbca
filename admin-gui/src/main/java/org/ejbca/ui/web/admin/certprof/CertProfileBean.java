@@ -639,10 +639,10 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
         return "".equals(getCertificatePolicies().getRowData().getQualifierId());
     }
     public boolean isCurrentCertificatePolicyQualifierIdCpsUri() {
-        return CertificatePolicy.id_qt_cps.equals(getCertificatePolicies().getRowData().getQualifierId());
+        return CertificatePolicy.ID_QT_CPS.equals(getCertificatePolicies().getRowData().getQualifierId());
     }
     public boolean isCurrentCertificatePolicyQualifierIdUserNotice() {
-        return CertificatePolicy.id_qt_unotice.equals(getCertificatePolicies().getRowData().getQualifierId());
+        return CertificatePolicy.ID_QT_UNNOTICE.equals(getCertificatePolicies().getRowData().getQualifierId());
     }
 
     public CertificatePolicy getNewCertificatePolicy() {
@@ -659,18 +659,18 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
         redirectToComponent("header_x509v3extensions_usages");
     }
     public void actionNewCertificatePolicyQualifierIdCpsUri() throws IOException {
-        getNewCertificatePolicy().setQualifierId(CertificatePolicy.id_qt_cps);
+        getNewCertificatePolicy().setQualifierId(CertificatePolicy.ID_QT_CPS);
         getNewCertificatePolicy().setQualifier("");
         redirectToComponent("header_x509v3extensions_usages");
     }
     public void actionNewCertificatePolicyQualifierIdUserNotice() throws IOException {
-        getNewCertificatePolicy().setQualifierId(CertificatePolicy.id_qt_unotice);
+        getNewCertificatePolicy().setQualifierId(CertificatePolicy.ID_QT_UNNOTICE);
         getNewCertificatePolicy().setQualifier("");
         redirectToComponent("header_x509v3extensions_usages");
     }
     public boolean isNewCertificatePolicyQualifierIdNone() { return "".equals(getNewCertificatePolicy().getQualifierId()); }
-    public boolean isNewCertificatePolicyQualifierIdCpsUri() { return CertificatePolicy.id_qt_cps.equals(getNewCertificatePolicy().getQualifierId()); }
-    public boolean isNewCertificatePolicyQualifierIdUserNotice() { return CertificatePolicy.id_qt_unotice.equals(getNewCertificatePolicy().getQualifierId()); }
+    public boolean isNewCertificatePolicyQualifierIdCpsUri() { return CertificatePolicy.ID_QT_CPS.equals(getNewCertificatePolicy().getQualifierId()); }
+    public boolean isNewCertificatePolicyQualifierIdUserNotice() { return CertificatePolicy.ID_QT_UNNOTICE.equals(getNewCertificatePolicy().getQualifierId()); }
 
     public String addCertificatePolicy() throws IOException {
         CertificatePolicy newCertificatePolicy = getNewCertificatePolicy();

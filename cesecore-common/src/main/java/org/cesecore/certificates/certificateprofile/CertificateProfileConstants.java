@@ -19,7 +19,8 @@ package org.cesecore.certificates.certificateprofile;
  * type:
  *
  * <pre>
- * if (((type &amp; USER_ENDUSER) == USER_ENDUSER) &amp;&amp; ((type &amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
+ * if (((type &amp; USER_ENDUSER) == USER_ENDUSER)
+ *             &amp;&amp; ((type &amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
  *    ...
  * </pre>
  *
@@ -41,17 +42,26 @@ public final class CertificateProfileConstants {
 
   // Certificate profiles.
 
-  /** Used when no certificate profile id value is available */
+  /** Used when no certificate profile id value is available. */
   public static final int CERTPROFILE_NO_PROFILE = 0;
 
+  /** End user. */
   public static final int CERTPROFILE_FIXED_ENDUSER = 1;
+  /** Sub CA. */
   public static final int CERTPROFILE_FIXED_SUBCA = 2;
+  /** Root CA. */
   public static final int CERTPROFILE_FIXED_ROOTCA = 3;
+  /** OCSP Signer. */
   public static final int CERTPROFILE_FIXED_OCSPSIGNER = 4;
+  /** Auth. */
   public static final int CERTPROFILE_FIXED_HARDTOKENAUTH = 5;
+  /** Auth encoding. */
   public static final int CERTPROFILE_FIXED_HARDTOKENAUTHENC = 6;
+  /** Encoding. */
   public static final int CERTPROFILE_FIXED_HARDTOKENENC = 7;
+  /** Sign. */
   public static final int CERTPROFILE_FIXED_HARDTOKENSIGN = 8;
+  /** Fixed server. */
   public static final int CERTPROFILE_FIXED_SERVER = 9;
 
   /**
@@ -88,13 +98,13 @@ public final class CertificateProfileConstants {
    */
   public static final int[] DEFAULT_KEY_LENGTHS = new int[] {512, 1024, 2048};
 
-  /** QC ETSI Type OID: Electronic Signature */
+  /** QC ETSI Type OID: Electronic Signature. */
   public static final String QC_ETSI_TYPE_ESIGN = "0.4.0.1862.1.6.1";
-  /** QC ETSI Type OID: Electronic Seal */
+  /** QC ETSI Type OID: Electronic Seal. */
   public static final String QC_ETSI_TYPE_ESEAL = "0.4.0.1862.1.6.2";
-  /** QC ETSI Type OID: Website Authentication */
+  /** QC ETSI Type OID: Website Authentication. */
   public static final String QC_ETSI_TYPE_WEBAUTH = "0.4.0.1862.1.6.3";
 
-  /** Prevents creation of new class */
-  private CertificateProfileConstants() {}
+  /** Prevents creation of new class. */
+  private CertificateProfileConstants() { }
 }

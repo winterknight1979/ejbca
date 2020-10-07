@@ -1066,7 +1066,7 @@ public class CAInterfaceBean implements Serializable {
         if (!(policyid == null || policyid.trim().equals(""))) {
             final String[] str = policyid.split("\\s+");
             if (str.length > 1) {
-                policies.add(new CertificatePolicy(str[0], CertificatePolicy.id_qt_cps, str[1]));
+                policies.add(new CertificatePolicy(str[0], CertificatePolicy.ID_QT_CPS, str[1]));
             } else {
                 policies.add(new CertificatePolicy((policyid.trim()),null,null));
             }

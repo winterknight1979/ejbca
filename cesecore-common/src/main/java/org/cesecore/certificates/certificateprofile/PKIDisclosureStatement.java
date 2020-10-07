@@ -25,15 +25,21 @@ public final class PKIDisclosureStatement implements Serializable, Cloneable {
 
   private static final long serialVersionUID = 1L;
 
+  /** URL. */
   private String url;
+  /** Language. */
   private String language;
 
-  public PKIDisclosureStatement() {}
-  ;
+  /** Default constructor.*/
+  public PKIDisclosureStatement() { }
 
-  public PKIDisclosureStatement(final String url, final String language) {
-    this.url = url;
-    this.language = language;
+  /**
+   * @param aUrl URL
+   * @param aLanguage Language
+   */
+  public PKIDisclosureStatement(final String aUrl, final String aLanguage) {
+    this.url = aUrl;
+    this.language = aLanguage;
   }
 
   /** @return String with PDS URL. Never null */
@@ -42,12 +48,12 @@ public final class PKIDisclosureStatement implements Serializable, Cloneable {
   }
 
   /**
-   * Sets the PDS URL (EN 319 412-05)
+   * Sets the PDS URL (EN 319 412-05).
    *
-   * @param url URL
+   * @param aUrl URL
    */
-  public void setUrl(final String url) {
-    this.url = url;
+  public void setUrl(final String aUrl) {
+    this.url = aUrl;
   }
 
   /**
@@ -63,10 +69,10 @@ public final class PKIDisclosureStatement implements Serializable, Cloneable {
    * Sets String with PDS Language (EN 319 412-05) Shall be a two letter ISO
    * 639-1 code, i.e. en, sv, fr
    *
-   * @param language language
+   * @param aLanguage language
    */
-  public void setLanguage(final String language) {
-    this.language = language;
+  public void setLanguage(final String aLanguage) {
+    this.language = aLanguage;
   }
 
   @Override
