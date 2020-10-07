@@ -29,44 +29,57 @@ import org.cesecore.util.CompressedCollection;
  */
 public class RevokedCertInfo implements Serializable {
 
-  /** Version number for serialization */
+  /** Version number for serialization. */
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log = Logger.getLogger(RevokedCertInfo.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RevokedCertInfo.class);
 
   /** Constants defining different revocation reasons. */
   public static final int NOT_REVOKED =
       RevocationReasons.NOT_REVOKED.getDatabaseValue();
-
+  /** Unspecified. */
   public static final int REVOCATION_REASON_UNSPECIFIED =
       RevocationReasons.UNSPECIFIED.getDatabaseValue();
+  /** Key compromise. */
   public static final int REVOCATION_REASON_KEYCOMPROMISE =
       RevocationReasons.KEYCOMPROMISE.getDatabaseValue();
+  /** CA compromise. */
   public static final int REVOCATION_REASON_CACOMPROMISE =
       RevocationReasons.CACOMPROMISE.getDatabaseValue();
+  /** Changed. */
   public static final int REVOCATION_REASON_AFFILIATIONCHANGED =
       RevocationReasons.AFFILIATIONCHANGED.getDatabaseValue();
+  /** Superseded. */
   public static final int REVOCATION_REASON_SUPERSEDED =
       RevocationReasons.SUPERSEDED.getDatabaseValue();
+  /** Ceased operating. */
   public static final int REVOCATION_REASON_CESSATIONOFOPERATION =
       RevocationReasons.CESSATIONOFOPERATION.getDatabaseValue();
+  /** Hold. */
   public static final int REVOCATION_REASON_CERTIFICATEHOLD =
       RevocationReasons.CERTIFICATEHOLD.getDatabaseValue();
   // Value 7 is not used, see RFC5280
+  /** Remove. */
   public static final int REVOCATION_REASON_REMOVEFROMCRL =
       RevocationReasons.REMOVEFROMCRL.getDatabaseValue();
+  /** Withdrawn. */
   public static final int REVOCATION_REASON_PRIVILEGESWITHDRAWN =
       RevocationReasons.PRIVILEGESWITHDRAWN.getDatabaseValue();
+  /** Authority compromise. */
   public static final int REVOCATION_REASON_AACOMPROMISE =
       RevocationReasons.AACOMPROMISE.getDatabaseValue();
 
-  /** BigInteger (serialNumber) in byte format, BigInteger.toByteArray() */
+  /** BigInteger (serialNumber) in byte format, BigInteger.toByteArray(). */
   private byte[] userCertificate;
 
+  /** Revocation. */
   private long revocationDate;
+  /** Expiry. */
   private long expireDate;
+  /** Reason. */
   private int reason;
-  /** Fingerprint in byte format, String.getBytes() */
+  /** Fingerprint in byte format, String.getBytes().*/
   private byte[] fingerprint;
 
   /**
@@ -84,22 +97,22 @@ public class RevokedCertInfo implements Serializable {
   /**
    * Constructor filling in the whole object.
    *
-   * @param fingerprint print
+   * @param aFingerprint print
    * @param sernoBigIntegerArray serials
    * @param revdate date
-   * @param reason {@link RevokedCertInfo#REVOCATION_REASON_UNSPECIFIED}
+   * @param aReason {@link RevokedCertInfo#REVOCATION_REASON_UNSPECIFIED}
    * @param expdate date
    */
   public RevokedCertInfo(
-      final byte[] fingerprint,
+      final byte[] aFingerprint,
       final byte[] sernoBigIntegerArray,
       final long revdate,
-      final int reason,
+      final int aReason,
       final long expdate) {
-    this.fingerprint = fingerprint;
+    this.fingerprint = aFingerprint;
     this.userCertificate = sernoBigIntegerArray;
     this.revocationDate = revdate;
-    this.reason = reason;
+    this.reason = aReason;
     this.expireDate = expdate;
   }
 
@@ -179,10 +192,10 @@ public class RevokedCertInfo implements Serializable {
   /**
    * The reason the certificate was revoked.
    *
-   * @param reason {@link RevokedCertInfo#REVOCATION_REASON_UNSPECIFIED}
+   * @param aReason {@link RevokedCertInfo#REVOCATION_REASON_UNSPECIFIED}
    */
-  public void setReason(final int reason) {
-    this.reason = reason;
+  public void setReason(final int aReason) {
+    this.reason = aReason;
   }
 
   @Override
@@ -209,12 +222,20 @@ public class RevokedCertInfo implements Serializable {
     return isPermanentlyRevoked(reason);
   }
 
-  public static boolean isRevoked(int revocationReason) {
+  /**
+   * @param revocationReason reason
+   * @return bool
+   */
+  public static boolean isRevoked(final int revocationReason) {
     return revocationReason != NOT_REVOKED
         && revocationReason != REVOCATION_REASON_REMOVEFROMCRL;
   }
 
-  public static boolean isPermanentlyRevoked(int revocationReason) {
+  /**
+   * @param revocationReason reason
+   * @return bool
+   */
+  public static boolean isPermanentlyRevoked(final int revocationReason) {
     return isRevoked(revocationReason)
         && revocationReason != REVOCATION_REASON_CERTIFICATEHOLD;
   }
@@ -317,8 +338,8 @@ public class RevokedCertInfo implements Serializable {
       mergedRevokedData.add(revoked);
     }
     mergedRevokedData.closeForWrite();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "mergeByDateAndStatus: Merged to "
               + mergedRevokedData.size()
               + " entries");

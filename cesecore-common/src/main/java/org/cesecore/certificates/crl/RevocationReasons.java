@@ -24,49 +24,75 @@ import java.util.Map;
  * @version $Id: RevocationReasons.java 28485 2018-03-14 12:59:48Z anatom $
  */
 public enum RevocationReasons {
+    /** Not revoked. */
   NOT_REVOKED(-1, "NOT_REVOKED", "The Certificate Is Not Revoked"),
+  /** Unspecified. */
   UNSPECIFIED(0, "UNSPECIFIED", "Unspecified"),
+  /** Key compromise. */
   KEYCOMPROMISE(1, "KEY_COMPROMISE", "Key Compromise"),
+  /** CA compromise. */
   CACOMPROMISE(2, "CA_COMPROMISE", "CA Compromise"),
+  /** Changed. */
   AFFILIATIONCHANGED(3, "AFFILIATION_CHANGED", "Affiliation Changed"),
+  /** Superseded. */
   SUPERSEDED(4, "SUPERSEDED", "Superseded"),
+  /** Ceased operating. */
   CESSATIONOFOPERATION(5, "CESSATION_OF_OPERATION", "Cessation of Operation"),
+  /** Hold. */
   CERTIFICATEHOLD(6, "CERTIFICATE_HOLD", "Certificate Hold"),
+  /** Remove. */
   REMOVEFROMCRL(8, "REMOVE_FROM_CRL", "Remove from CRL"),
+  /** Withdrawn. */
   PRIVILEGESWITHDRAWN(9, "PRIVILEGES_WITHDRAWN", "Privileges Withdrawn"),
+  /** Authority compromise. */
   AACOMPROMISE(10, "AA_COMPROMISE", "AA Compromise");
 
+    /** ID. */
   private final int databaseValue;
+  /** String. */
   private final String stringValue;
+  /** Readable. */
   private final String humanReadable;
 
-  private static final Map<Integer, RevocationReasons> databaseLookupMap =
+  /** DV values. */
+  private static final Map<Integer, RevocationReasons> DB_LOOKUP_MAP =
       new HashMap<Integer, RevocationReasons>();
-  private static final Map<String, RevocationReasons> cliLookupMap =
+  /** CLI values. */
+  private static final Map<String, RevocationReasons> CLI_LOOKUP_MAP =
       new HashMap<String, RevocationReasons>();
 
   static {
     for (RevocationReasons reason : RevocationReasons.values()) {
-      databaseLookupMap.put(reason.getDatabaseValue(), reason);
-      cliLookupMap.put(reason.getStringValue(), reason);
+      DB_LOOKUP_MAP.put(reason.getDatabaseValue(), reason);
+      CLI_LOOKUP_MAP.put(reason.getStringValue(), reason);
     }
   }
 
-  private RevocationReasons(
-      final int databaseValue, final String stringValue, String humanReadable) {
-    this.databaseValue = databaseValue;
-    this.stringValue = stringValue;
-    this.humanReadable = humanReadable;
+  RevocationReasons(
+      final int aDatabaseValue,
+      final String aStringValue, final String aHumanReadable) {
+    this.databaseValue = aDatabaseValue;
+    this.stringValue = aStringValue;
+    this.humanReadable = aHumanReadable;
   }
 
+  /**
+   * @return value from DB
+   */
   public int getDatabaseValue() {
     return databaseValue;
   }
 
+  /**
+   * @return Human-readable value
+   */
   public String getHumanReadable() {
     return humanReadable;
   }
 
+  /**
+   * @return Value as string
+   */
   public String getStringValue() {
     return stringValue;
   }
@@ -75,18 +101,19 @@ public enum RevocationReasons {
    * @param databaseValue the database value
    * @return the relevant RevocationReasons object, null if none found.
    */
-  public static RevocationReasons getFromDatabaseValue(int databaseValue) {
-    return databaseLookupMap.get(databaseValue);
+  public static RevocationReasons getFromDatabaseValue(
+          final int databaseValue) {
+    return DB_LOOKUP_MAP.get(databaseValue);
   }
 
   /**
    * @param cliValue the database value
    * @return the relevant RevocationReasons object, null if none found.
    */
-  public static RevocationReasons getFromCliValue(String cliValue) {
+  public static RevocationReasons getFromCliValue(final  String cliValue) {
     if (cliValue == null) {
       return null;
     }
-    return cliLookupMap.get(cliValue);
+    return CLI_LOOKUP_MAP.get(cliValue);
   }
 }
