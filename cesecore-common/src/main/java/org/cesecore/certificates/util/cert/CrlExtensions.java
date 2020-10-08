@@ -39,17 +39,21 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
  *
  * @version $Id: CrlExtensions.java 31830 2019-03-13 21:50:23Z jeklund $
  */
-public class CrlExtensions {
+public final class CrlExtensions {
+
+  private CrlExtensions() { }
+
+    /** Logger. */
   private static Logger log = Logger.getLogger(CrlExtensions.class);
 
   /**
-   * Returns the CRL number if it exists as a CRL extension
+   * Returns the CRL number if it exists as a CRL extension.
    *
    * @param crl CRL
    * @return the CRLnumber, or 0 if no CRL number extension was found or an
    *     error reading it occurred. Never return null.
    */
-  public static BigInteger getCrlNumber(X509CRL crl) {
+  public static BigInteger getCrlNumber(final X509CRL crl) {
     BigInteger ret = BigInteger.valueOf(0);
     try {
       ASN1Primitive obj =
@@ -67,13 +71,13 @@ public class CrlExtensions {
   }
 
   /**
-   * Returns the delta crl indicator number if it exists as a CRL extension
+   * Returns the delta crl indicator number if it exists as a CRL extension.
    *
    * @param crl CRL
    * @return the BaseCRLNumber, or -1 if no delta crl indicator extension was
    *     found or an error reading it occurred. Never return null.
    */
-  public static BigInteger getDeltaCRLIndicator(X509CRL crl) {
+  public static BigInteger getDeltaCRLIndicator(final X509CRL crl) {
     BigInteger ret = BigInteger.valueOf(-1);
     try {
       ASN1Primitive obj =
@@ -92,14 +96,15 @@ public class CrlExtensions {
   }
 
   /**
-   * Return an Extension ASN1Primitive from a CRL
+   * Return an Extension ASN1Primitive from a CRL.
    *
    * @param crl CRL
    * @param oid OID
    * @return an Extension ASN1Primitive from a CRL
    * @throws IOException on error
    */
-  protected static ASN1Primitive getExtensionValue(X509CRL crl, String oid)
+  protected static ASN1Primitive getExtensionValue(
+          final X509CRL crl, final String oid)
       throws IOException {
     if (crl == null) {
       return null;
@@ -160,8 +165,8 @@ public class CrlExtensions {
                 asn1OctetString.getOctets(), ASN1Sequence.class);
         if (asn1Sequence != null) {
           final CRLDistPoint cdp = CRLDistPoint.getInstance(asn1Sequence);
-          for (final DistributionPoint distributionPoint :
-              cdp.getDistributionPoints()) {
+          for (final DistributionPoint distributionPoint
+              : cdp.getDistributionPoints()) {
             freshestCdpUrls.add(
                 ((DERIA5String)
                         ((GeneralNames)

@@ -43,10 +43,14 @@ import org.cesecore.util.CeSecoreNameStyle;
  *
  * @version $Id: DnComponents.java 27374 2017-12-01 12:37:30Z anatom $
  */
-public class DnComponents {
+public final class DnComponents {
+
+    private DnComponents() { }
+
+    /** Logger. */
   private static Logger log = Logger.getLogger(DnComponents.class);
 
-  /** This class should be instantiated immediately */
+  /** This class should be instantiated immediately. */
   private static DnComponents obj = new DnComponents();
 
   /**
@@ -100,7 +104,7 @@ public class DnComponents {
   }
   /**
    * Default values used when constructing DN strings that are put in the
-   * database
+   * database.
    */
   private static String[] dNObjectsForward = {
     "description",
@@ -137,112 +141,193 @@ public class DnComponents {
     "dc",
     "c"
   };
-  // Default values
+  /** Default values. */
   private static String[] dNObjectsReverse = null;
 
-  /**
+  /*
    * These maps and constants are used in the admin-GUI and in End Entity
    * profiles
    */
 
-  /**
-   * These constants can be used when referring to standard, build in components
+  /*
+   * These constants can be used when referring to standard,
+   * build in components.
    */
   // DN components
+  /** Email. */
   public static final String DNEMAILADDRESS = "EMAILADDRESS";
 
+  /** Qual.*/
   public static final String DNQUALIFIER = "DNQUALIFIER";
+  /** UID. */
   public static final String UID = "UID";
+  /** CN. */
   public static final String COMMONNAME = "COMMONNAME";
+  /** SN. */
   public static final String DNSERIALNUMBER = "SERIALNUMBER";
+  /** Given. */
   public static final String GIVENNAME = "GIVENNAME";
+  /** Given. */
   public static final String INITIALS = "INITIALS";
+  /** Surname. */
   public static final String SURNAME = "SURNAME";
+  /** Title. */
   public static final String TITLE = "TITLE";
+  /** Unit. */
   public static final String ORGANIZATIONALUNIT = "ORGANIZATIONALUNIT";
+  /** Org. */
   public static final String ORGANIZATION = "ORGANIZATION";
+  /** Locality. */
   public static final String LOCALITY = "LOCALITY";
+  /** State. */
   public static final String STATEORPROVINCE = "STATEORPROVINCE";
+  /** Domain. */
   public static final String DOMAINCOMPONENT = "DOMAINCOMPONENT";
+  /** Country. */
   public static final String COUNTRY = "COUNTRY";
+  /** Address. */
   public static final String UNSTRUCTUREDADDRESS = "UNSTRUCTUREDADDRESS";
+  /** Name. */
   public static final String UNSTRUCTUREDNAME = "UNSTRUCTUREDNAME";
+  /** Postcode. */
   public static final String POSTALCODE = "POSTALCODE";
+  /** Category. */
   public static final String BUSINESSCATEGORY = "BUSINESSCATEGORY";
+  /** Address. */
   public static final String POSTALADDRESS = "POSTALADDRESS";
+  /** Tel. */
   public static final String TELEPHONENUMBER = "TELEPHONENUMBER";
+  /** Pseud. */
   public static final String PSEUDONYM = "PSEUDONYM";
+  /** Address. */
   public static final String STREETADDRESS = "STREETADDRESS";
+  /** Name. */
   public static final String NAME = "NAME";
+  /** Desc. */
   public static final String DESCRIPTION = "DESCRIPTION";
+  /** Locality. */
   public static final String JURISDICTIONLOCALITY = "JURISDICTIONLOCALITY";
+  /** State. */
   public static final String JURISDICTIONSTATE = "JURISDICTIONSTATE";
+  /** Country. */
   public static final String JURISDICTIONCOUNTRY = "JURISDICTIONCOUNTRY";
+  /** Org. */
   public static final String ORGANIZATIONIDENTIFIER = "ORGANIZATIONIDENTIFIER";
 
   // AltNames
+  /** Email. */
   public static final String RFC822NAME = "RFC822NAME";
+  /** DNS. */
   public static final String DNSNAME = "DNSNAME";
+  /** IP. */
   public static final String IPADDRESS = "IPADDRESS";
+  /** URI. */
   public static final String UNIFORMRESOURCEID = "UNIFORMRESOURCEID";
+  /** Dir. */
   public static final String DIRECTORYNAME = "DIRECTORYNAME";
+  /** UPN. */
   public static final String UPN = "UPN";
+  /** XMPP. */
   public static final String XMPPADDR = "XMPPADDR";
+  /** Server. */
   public static final String SRVNAME = "SRVNAME";
+  /** FASCN. */
   public static final String FASCN = "FASCN";
+  /** GUID. */
   public static final String GUID = "GUID";
+  /** Kerberos. */
   public static final String KRB5PRINCIPAL = "KRB5PRINCIPAL";
+  /** ID. */
   public static final String PERMANENTIDENTIFIER = "PERMANENTIDENTIFIER";
+  /** Method. */
   public static final String SUBJECTIDENTIFICATIONMETHOD =
       "SUBJECTIDENTIFICATIONMETHOD";
   // Below are altNames that are not implemented yet
+  /** Name. */
   public static final String OTHERNAME = "OTHERNAME";
+  /** X400. */
   public static final String X400ADDRESS = "X400ADDRESS";
+  /** Name. */
   public static final String EDIPARTYNAME = "EDIPARTYNAME";
   /// RegisteredID is a standard (rfc5280 otherName that we implement)
+  /** ID. */
   public static final String REGISTEREDID = "REGISTEREDID";
 
   // Subject directory attributes
+  /** DOB. */
   public static final String DATEOFBIRTH = "DATEOFBIRTH";
+  /** POB. */
   public static final String PLACEOFBIRTH = "PLACEOFBIRTH";
+  /** Gender. */
   public static final String GENDER = "GENDER";
+  /** Location. */
   public static final String COUNTRYOFCITIZENSHIP = "COUNTRYOFCITIZENSHIP";
+  /** Location. */
   public static final String COUNTRYOFRESIDENCE = "COUNTRYOFRESIDENCE";
 
+  /** Names. */
   private static HashMap<String, Integer> dnNameToIdMap = new HashMap<>();
+  /** Names. */
   private static HashMap<String, Integer> altNameToIdMap = new HashMap<>();
+  /** IDs. */
   private static HashMap<String, Integer> dirAttrToIdMap = new HashMap<>();
+  /** IDs. */
   private static HashMap<String, Integer> profileNameIdMap = new HashMap<>();
+  /** Names. */
   private static HashMap<Integer, String> dnIdToProfileNameMap =
       new HashMap<>();
+  /** Profiles. */
   private static HashMap<Integer, Integer> dnIdToProfileIdMap = new HashMap<>();
+  /** IDs. */
   private static HashMap<Integer, Integer> profileIdToDnIdMap = new HashMap<>();
+  /** Errors. */
   private static HashMap<Integer, String> dnErrorTextMap = new HashMap<>();
+  /** Languages. */
   private static HashMap<String, String> profileNameLanguageMap =
       new HashMap<>();
+  /** Profiles. */
   private static HashMap<Integer, String> profileIdLanguageMap =
       new HashMap<>();
+  /** Errors. */
   private static HashMap<Integer, String> dnIdErrorMap = new HashMap<>();
+  /** IDs. */
   private static HashMap<Integer, String> dnIdToExtractorFieldMap =
       new HashMap<>();
+  /** Names. */
   private static HashMap<Integer, String> altNameIdToExtractorFieldMap =
       new HashMap<>();
+  /** Attrs. */
   private static HashMap<Integer, String> dirAttrIdToExtractorFieldMap =
       new HashMap<>();
+  /** Fields. */
   private static ArrayList<String> dnProfileFields = new ArrayList<>();
-  private static final TreeSet<String> dnProfileFieldsHashSet = new TreeSet<>();
+  /** Profile fields. */
+  private static final TreeSet<String> DN_PROFILE_FIELDS_SET = new TreeSet<>();
+  /** Languages. */
   private static ArrayList<String> dnLanguageTexts = new ArrayList<>();
+  /** IDs. */
   private static ArrayList<Integer> dnDnIds = new ArrayList<>();
+  /** Names. */
   private static ArrayList<String> altNameFields = new ArrayList<>();
-  private static final TreeSet<String> altNameFieldsHashSet = new TreeSet<>();
+  /** Names. */
+  private static final TreeSet<String> ALT_NAME_FIELDS_SET = new TreeSet<>();
+  /** Names. */
   private static ArrayList<String> altNameLanguageTexts = new ArrayList<>();
+  /** IDs. */
   private static ArrayList<Integer> altNameDnIds = new ArrayList<>();
+  /** Fields. */
   private static ArrayList<String> dirAttrFields = new ArrayList<>();
-  private static final TreeSet<String> dirAttrFieldsHashSet = new TreeSet<>();
+  /** Fields.  */
+  private static final TreeSet<String> DIR_ATTR_FIELDS_SET = new TreeSet<>();
+  /** Languages. */
   private static ArrayList<String> dirAttrLanguageTexts = new ArrayList<>();
+  /** IDs. */
   private static ArrayList<Integer> dirAttrDnIds = new ArrayList<>();
+  /** Fields. */
   private static ArrayList<String> dnExtractorFields = new ArrayList<>();
+  /** Names. */
   private static ArrayList<String> altNameExtractorFields = new ArrayList<>();
+  /** Attrs. */
   private static ArrayList<String> dirAttrExtractorFields = new ArrayList<>();
 
   // Load values from a properties file, if it exists
@@ -250,65 +335,112 @@ public class DnComponents {
     DnComponents.load();
   }
 
+  /**
+   * @param dnName name
+   * @return id
+   */
   public static Integer getDnIdFromDnName(final String dnName) {
     return dnNameToIdMap.get(dnName.toUpperCase(Locale.ROOT));
   }
 
+  /**
+   * @param altName name
+   * @return id
+   */
   public static Integer getDnIdFromAltName(final String altName) {
     return altNameToIdMap.get(altName.toUpperCase(Locale.ROOT));
   }
 
+  /**
+   * @param dirAttr attr
+   * @return id
+   */
   public static Integer getDnIdFromDirAttr(final String dirAttr) {
     return dirAttrToIdMap.get(dirAttr.toUpperCase(Locale.ROOT));
   }
-
-  public static ASN1ObjectIdentifier getOid(String o) {
+  /**
+   * @param o OID
+   * @return ASN1
+   */
+  public static ASN1ObjectIdentifier getOid(final String o) {
     return oids.get(o.toLowerCase(Locale.ROOT));
   }
-
+  /**
+   * @return list
+   */
   public static ArrayList<String> getDnProfileFields() {
     return dnProfileFields;
   }
-
-  public static boolean isDnProfileField(String field) {
-    return dnProfileFieldsHashSet.contains(field);
+  /**
+   * @param field field
+   * @return bool
+   */
+  public static boolean isDnProfileField(final String field) {
+    return DN_PROFILE_FIELDS_SET.contains(field);
   }
-
+  /**
+   * @return list
+   */
   public static ArrayList<String> getDnLanguageTexts() {
     return dnLanguageTexts;
   }
-
+  /**
+   * @return list
+   */
   public static ArrayList<String> getAltNameFields() {
     return altNameFields;
   }
 
-  public static boolean isAltNameField(String field) {
-    return altNameFieldsHashSet.contains(field);
+  /**
+   * @param field field
+   * @return bool
+   */
+  public static boolean isAltNameField(final String field) {
+    return ALT_NAME_FIELDS_SET.contains(field);
   }
 
+  /**
+   * @return list
+   */
   public static ArrayList<String> getAltNameLanguageTexts() {
     return altNameLanguageTexts;
   }
 
+ /**
+  * @return list
+  */
   public static ArrayList<String> getDirAttrFields() {
     return dirAttrFields;
   }
 
-  public static boolean isDirAttrField(String field) {
-    return dirAttrFieldsHashSet.contains(field);
+  /**
+   * @param field field
+   * @return bool
+   */
+  public static boolean isDirAttrField(final String field) {
+    return DIR_ATTR_FIELDS_SET.contains(field);
   }
 
-  // Used by DNFieldExtractor and EntityProfile, don't USE
+  /** Used by DNFieldExtractor and EntityProfile, don't USE.
+ * @return List
+   * */
   public static ArrayList<Integer> getDirAttrDnIds() {
     return dirAttrDnIds;
   }
 
-  // Used by DNFieldExtractor and EntityProfile, don't USE
+
+  /**
+   * Used by DNFieldExtractor and EntityProfile, don't USE.
+   * @return list
+   */
   public static ArrayList<Integer> getAltNameDnIds() {
     return altNameDnIds;
   }
 
-  // Used by DNFieldExtractor and EntityProfile, don't USE
+
+  /** Used by DNFieldExtractor and EntityProfile, don't USE.
+   * @return list
+   */
   public static ArrayList<Integer> getDnDnIds() {
     return dnDnIds;
   }
@@ -318,7 +450,7 @@ public class DnComponents {
     return dnExtractorFields;
   }
 
-  protected static String getDnExtractorFieldFromDnId(int field) {
+  protected static String getDnExtractorFieldFromDnId(final int field) {
     String val = (String) dnIdToExtractorFieldMap.get(Integer.valueOf(field));
     return val;
   }
@@ -328,7 +460,7 @@ public class DnComponents {
     return altNameExtractorFields;
   }
 
-  protected static String getAltNameExtractorFieldFromDnId(int field) {
+  protected static String getAltNameExtractorFieldFromDnId(final int field) {
     String val =
         (String) altNameIdToExtractorFieldMap.get(Integer.valueOf(field));
     return val;
@@ -339,52 +471,61 @@ public class DnComponents {
     return dirAttrExtractorFields;
   }
 
-  protected static String getDirAttrExtractorFieldFromDnId(int field) {
+  protected static String getDirAttrExtractorFieldFromDnId(final int field) {
     String val =
         (String) dirAttrIdToExtractorFieldMap.get(Integer.valueOf(field));
     return val;
   }
 
-  public static String dnIdToProfileName(int dnid) {
+  /**
+   * @param dnid DN
+   * @return Name
+   */
+  public static String dnIdToProfileName(final int dnid) {
     String val = (String) dnIdToProfileNameMap.get(Integer.valueOf(dnid));
     return val;
   }
 
-  public static int dnIdToProfileId(int dnid) {
+  /**
+   * @param dnid DN
+   * @return ID
+   */
+  public static int dnIdToProfileId(final int dnid) {
     Integer val = (Integer) dnIdToProfileIdMap.get(Integer.valueOf(dnid));
     return val.intValue();
   }
 
   /**
    * Method to get a language error constant for the admin-GUI from a profile
-   * name
+   * name.
    *
    * @param name name
    * @return language
    */
-  public static String getLanguageConstantFromProfileName(String name) {
+  public static String getLanguageConstantFromProfileName(final String name) {
     String ret = (String) profileNameLanguageMap.get(name);
     return ret;
   }
 
   /**
-   * Method to get a language error constant for the admin-GUI from a profile id
+   * Method to get a language error constant for
+   * the admin-GUI from a profile id.
    *
    * @param id ID
    * @return language
    */
-  public static String getLanguageConstantFromProfileId(int id) {
+  public static String getLanguageConstantFromProfileId(final int id) {
     String ret = (String) profileIdLanguageMap.get(Integer.valueOf(id));
     return ret;
   }
 
   /**
-   * Method to get a clear text error msg for the admin-GUI from a dn id
+   * Method to get a clear text error msg for the admin-GUI from a dn id.
    *
    * @param id ID
    * @return error text
    */
-  public static String getErrTextFromDnId(int id) {
+  public static String getErrTextFromDnId(final int id) {
     String ret = (String) dnIdErrorMap.get(Integer.valueOf(id));
     return ret;
   }
@@ -412,7 +553,7 @@ public class DnComponents {
    * @param profileid ID
    * @return DN ID
    */
-  public static int profileIdToDnId(int profileid) {
+  public static int profileIdToDnId(final int profileid) {
     Integer val = (Integer) profileIdToDnIdMap.get(Integer.valueOf(profileid));
     if (val == null) {
       log.error("No dn id mapping from profile id " + profileid);
@@ -428,7 +569,7 @@ public class DnComponents {
    * @param ldaporder boolean
    * @return objects
    */
-  public static String[] getDnObjects(boolean ldaporder) {
+  public static String[] getDnObjects(final boolean ldaporder) {
     if (ldaporder) {
       return dNObjectsForward;
     }
@@ -467,6 +608,9 @@ public class DnComponents {
     loadProfileMappingsFromFile("/profilemappings_enterprise.properties");
   }
 
+  /**
+   * @return bool
+   */
   public static boolean enterpriseMappingsExist() {
     return obj.getClass()
             .getResourceAsStream("/profilemappings_enterprise.properties")
@@ -478,7 +622,8 @@ public class DnComponents {
    *
    * @param propertiesFile File
    */
-  private static void loadProfileMappingsFromFile(String propertiesFile) {
+  private static void loadProfileMappingsFromFile(
+          final String propertiesFile) {
     // Read the file to an array of lines
     String line;
 
@@ -533,7 +678,7 @@ public class DnComponents {
               if (type.equals("DN")) {
                 dnNameToIdMap.put(dnname, dnid);
                 dnProfileFields.add(profilename);
-                dnProfileFieldsHashSet.add(profilename);
+                DN_PROFILE_FIELDS_SET.add(profilename);
                 dnLanguageTexts.add(langstr);
                 dnDnIds.add(dnid);
                 dnExtractorFields.add(dnname + "=");
@@ -542,7 +687,7 @@ public class DnComponents {
               if (type.equals("ALTNAME")) {
                 altNameToIdMap.put(dnname, dnid);
                 altNameFields.add(dnname);
-                altNameFieldsHashSet.add(dnname);
+                ALT_NAME_FIELDS_SET.add(dnname);
                 altNameLanguageTexts.add(langstr);
                 altNameDnIds.add(dnid);
                 altNameExtractorFields.add(dnname + "=");
@@ -551,7 +696,7 @@ public class DnComponents {
               if (type.equals("DIRATTR")) {
                 dirAttrToIdMap.put(dnname, dnid);
                 dirAttrFields.add(dnname);
-                dirAttrFieldsHashSet.add(dnname);
+                DIR_ATTR_FIELDS_SET.add(dnname);
                 dirAttrLanguageTexts.add(langstr);
                 dirAttrDnIds.add(dnid);
                 dirAttrExtractorFields.add(dnname + "=");

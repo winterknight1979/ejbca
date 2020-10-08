@@ -42,16 +42,17 @@ import org.cesecore.util.CertTools;
  * @version $Id: SubjectDirAttrExtension.java 25905 2017-05-27 00:53:42Z jeklund
  *     $
  */
-public class SubjectDirAttrExtension extends CertTools {
+public final class SubjectDirAttrExtension extends CertTools {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SubjectDirAttrExtension.class);
 
-  /** inhibits creation of new SubjectDirAttrExtension */
-  private SubjectDirAttrExtension() {}
+  /** inhibits creation of new SubjectDirAttrExtension. */
+  private SubjectDirAttrExtension() { }
 
   /**
-   * SubjectDirectoryAttributes ::= SEQUENCE SIZE (1..MAX) OF Attribute
+   * SubjectDirectoryAttributes ::= SEQUENCE SIZE (1..MAX) OF Attribute.
    *
    * <p>Attribute ::= SEQUENCE { type AttributeType, values SET OF
    * AttributeValue } -- at least one value is required
@@ -72,9 +73,10 @@ public class SubjectDirAttrExtension extends CertTools {
    *     are simply not shown in the resulting string.
    * @throws java.text.ParseException when id_pda_dateOfBirth is malformed
    */
-  public static String getSubjectDirectoryAttributes(Certificate certificate)
+  public static String getSubjectDirectoryAttributes(
+          final Certificate certificate)
       throws ParseException {
-    log.debug("Search for SubjectDirectoryAttributes");
+    LOG.debug("Search for SubjectDirectoryAttributes");
     String result = "";
     if (certificate instanceof X509Certificate) {
       X509Certificate x509cert = (X509Certificate) certificate;
@@ -136,7 +138,7 @@ public class SubjectDirAttrExtension extends CertTools {
   }
 
   /**
-   * From subjectDirAttributes string as defined in getSubjectDirAttribute
+   * From subjectDirAttributes string as defined in getSubjectDirAttribute.
    *
    * @param dirAttr string of SubjectDirectoryAttributes
    * @return A Collection of ASN.1 Attribute (org.bouncycastle.asn1.x509), or an
@@ -144,7 +146,7 @@ public class SubjectDirAttrExtension extends CertTools {
    * @see #getSubjectDirectoryAttributes(Certificate)
    */
   public static Collection<Attribute> getSubjectDirectoryAttributes(
-      String dirAttr) {
+       final String dirAttr) {
     ArrayList<Attribute> ret = new ArrayList<Attribute>();
     Attribute attr = null;
     String value = CertTools.getPartFromDN(dirAttr, "countryOfResidence");
@@ -203,7 +205,7 @@ public class SubjectDirAttrExtension extends CertTools {
                 new ASN1ObjectIdentifier(id_pda_dateOfBirth), new DERSet(vec));
         ret.add(attr);
       } else {
-        log.error(
+        LOG.error(
             "Wrong length of data for 'dateOfBirth', should be of format"
                 + " YYYYMMDD, skipping...");
       }

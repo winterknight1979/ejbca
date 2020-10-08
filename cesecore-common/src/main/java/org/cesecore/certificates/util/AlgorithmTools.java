@@ -73,13 +73,13 @@ import org.ejbca.cvc.OIDField;
  */
 public abstract class AlgorithmTools {
 
-  /** Log4j instance */
-  private static final Logger log = Logger.getLogger(AlgorithmTools.class);
+  /** Log4j instance. */
+  private static final Logger LOG = Logger.getLogger(AlgorithmTools.class);
 
-  /** String used for an unknown keyspec in CA token properties */
+  /** String used for an unknown keyspec in CA token properties. */
   public static final String KEYSPEC_UNKNOWN = "unknown";
 
-  /** Signature algorithms supported by RSA keys */
+  /** Signature algorithms supported by RSA keys. */
   public static final List<String> SIG_ALGS_RSA =
       Collections.unmodifiableList(
           Arrays.asList(
@@ -93,12 +93,12 @@ public abstract class AlgorithmTools {
               AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA,
               AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA));
 
-  /** Signature algorithms supported by DSA keys */
+  /** Signature algorithms supported by DSA keys. */
   public static final List<String> SIG_ALGS_DSA =
       Collections.unmodifiableList(
           Arrays.asList(AlgorithmConstants.SIGALG_SHA1_WITH_DSA));
 
-  /** Signature algorithms supported by ECDSA keys */
+  /** Signature algorithms supported by ECDSA keys. */
   public static final List<String> SIG_ALGS_ECDSA =
       Collections.unmodifiableList(
           Arrays.asList(
@@ -111,12 +111,12 @@ public abstract class AlgorithmTools {
               AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA,
               AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA));
 
-  /** Signature algorithms supported by GOST keys */
+  /** Signature algorithms supported by GOST keys. */
   public static final List<String> SIG_ALGS_ECGOST3410 =
       Collections.unmodifiableList(
           Arrays.asList(AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410));
 
-  /** Signature algorithms supported by DSTU4145 keys */
+  /** Signature algorithms supported by DSTU4145 keys. */
   public static final List<String> SIG_ALGS_DSTU4145 =
       Collections.unmodifiableList(
           Arrays.asList(AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145));
@@ -279,15 +279,15 @@ public abstract class AlgorithmTools {
       }
     } catch (InvalidKeyException e) {
       // Ignore very silently
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Not adding keys that are not allowed to key list: "
                 + e.getMessage());
       }
     } catch (RuntimeException e) {
       // Ignore
-      if (log.isDebugEnabled()) {
-        log.debug(e.getMessage());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e.getMessage());
       }
     }
   }
@@ -378,8 +378,8 @@ public abstract class AlgorithmTools {
    *     null if the key algorithm is not supported
    */
   public static String getKeySpecification(final PublicKey publicKey) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getKeySpecification");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getKeySpecification");
     }
     String keyspec = null;
     if (publicKey instanceof RSAPublicKey) {
@@ -417,8 +417,8 @@ public abstract class AlgorithmTools {
           final BigInteger ax1 = g1.getAffineX();
           final BigInteger ay1 = g1.getAffineY();
           final BigInteger o1 = namedCurve.getOrder();
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "a1=" + a1 + " b1=" + b1 + " fs1=" + fs1 + " ax1=" + ax1
                     + " ay1=" + ay1 + " o1=" + o1 + " c1=" + c1);
           }
@@ -446,8 +446,8 @@ public abstract class AlgorithmTools {
                 && o1.equals(n2)
                 && c1 == h2.intValue()) {
               // We have a matching curve here!
-              if (log.isDebugEnabled()) {
-                log.debug(
+              if (LOG.isDebugEnabled()) {
+                LOG.debug(
                     "a2="
                         + a2
                         + " b2="
@@ -476,28 +476,29 @@ public abstract class AlgorithmTools {
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getKeySpecification: " + keyspec);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getKeySpecification: " + keyspec);
     }
     return keyspec;
   }
 
   /**
    * Check if the curve name is known by the first found PKCS#11 provider or
-   * default (BC) (if no EC capable PKCS#11 provider were found)
+   * default (BC) (if no EC capable PKCS#11 provider were found).
    *
    * @param ecNamedCurveBc Curve
    * @return boolean
    */
-  public static boolean isNamedECKnownInDefaultProvider(String ecNamedCurveBc) {
+  public static boolean isNamedECKnownInDefaultProvider(
+          final String ecNamedCurveBc) {
     final Provider[] providers = Security.getProviders("KeyPairGenerator.EC");
     String providerName = providers[0].getName();
     try {
       for (Provider ecProvider : providers) {
         // This will list something like: SunPKCS11-NSS, BC,
         // SunPKCS11-<library>-slot<slotnumber>
-        if (log.isDebugEnabled()) {
-          log.debug("Found EC capable provider named: " + ecProvider.getName());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Found EC capable provider named: " + ecProvider.getName());
         }
         if (ecProvider.getName().startsWith("SunPKCS11-")
             && !ecProvider.getName().startsWith("SunPKCS11-NSS")) {
@@ -513,7 +514,7 @@ public abstract class AlgorithmTools {
             providerName = ecProvider.getName();
             break;
           } catch (RuntimeException e) {
-            log.info(
+            LOG.info(
                 "Provider "
                     + ecProvider.getName()
                     + " bailed out on EC, ignored.",
@@ -527,8 +528,8 @@ public abstract class AlgorithmTools {
           new ECGenParameterSpec(getEcKeySpecOidFromBcName(ecNamedCurveBc)));
       return true;
     } catch (InvalidAlgorithmParameterException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             ecNamedCurveBc + " is not available in provider " + providerName);
       }
     } catch (NoSuchAlgorithmException e) {
@@ -702,15 +703,16 @@ public abstract class AlgorithmTools {
    * @return Signature algorithm name from the certificate as a human readable
    *     string, for example SHA1WithRSA.
    */
-  public static String getCertSignatureAlgorithmNameAsString(Certificate cert) {
+  public static String getCertSignatureAlgorithmNameAsString(
+          final Certificate cert) {
     final String certSignatureAlgorithm;
-    {
+
       final String certSignatureAlgorithmTmp;
       if (cert instanceof X509Certificate) {
         final X509Certificate x509cert = (X509Certificate) cert;
         certSignatureAlgorithmTmp = x509cert.getSigAlgName();
-        if (log.isDebugEnabled()) {
-          log.debug("certSignatureAlgorithm is: " + certSignatureAlgorithmTmp);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("certSignatureAlgorithm is: " + certSignatureAlgorithmTmp);
         }
       } else if (StringUtils.equals(cert.getType(), "CVC")) {
         final CardVerifiableCertificate cvccert =
@@ -747,7 +749,7 @@ public abstract class AlgorithmTools {
       } else {
         certSignatureAlgorithm = certSignatureAlgorithmTmp;
       }
-    }
+
     // SHA256WithECDSA does not work to be translated in JDK5.
     if (certSignatureAlgorithm.equalsIgnoreCase("1.2.840.10045.4.3.2")) {
       return AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA;
@@ -769,13 +771,13 @@ public abstract class AlgorithmTools {
 
   /**
    * Simple method that looks at the certificate and determines, from EJBCA's
-   * standpoint, which signature algorithm it is
+   * standpoint, which signature algorithm it is.
    *
    * @param cert the cert to examine
    * @return Signature algorithm name from
    *     AlgorithmConstants.SIGALG_SHA1_WITH_RSA etc.
    */
-  public static String getSignatureAlgorithm(Certificate cert) {
+  public static String getSignatureAlgorithm(final Certificate cert) {
     String signatureAlgorithm = null;
     String certSignatureAlgorithm = getCertSignatureAlgorithmNameAsString(cert);
 
@@ -845,8 +847,8 @@ public abstract class AlgorithmTools {
         signatureAlgorithm = AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145;
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("getSignatureAlgorithm: " + signatureAlgorithm);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getSignatureAlgorithm: " + signatureAlgorithm);
     }
     return signatureAlgorithm;
   } // getSignatureAlgorithm
@@ -859,7 +861,7 @@ public abstract class AlgorithmTools {
    * @param sigAlg Algorithm
    * @return name
    */
-  public static String getDigestFromSigAlg(String sigAlg) {
+  public static String getDigestFromSigAlg(final String sigAlg) {
     if (sigAlg.toUpperCase().contains("GOST")
         || sigAlg.toUpperCase().contains("DSTU")) {
       return CMSSignedGenerator.DIGEST_GOST3411;
@@ -921,7 +923,7 @@ public abstract class AlgorithmTools {
 
   /**
    * Calculates which signature algorithm to use given a key type and a digest
-   * algorithm
+   * algorithm.
    *
    * @param digestAlg objectId of a digest algorithm,
    *     CMSSignedGenerator.DIGEST_SHA256 etc
@@ -933,8 +935,8 @@ public abstract class AlgorithmTools {
    */
   public static ASN1ObjectIdentifier getSignAlgOidFromDigestAndKey(
       final String digestAlg, final String keyAlg) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getSignAlg(" + digestAlg + "," + keyAlg + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getSignAlg(" + digestAlg + "," + keyAlg + ")");
     }
     // Default to SHA1WithRSA if everything else fails
     ASN1ObjectIdentifier oid = PKCSObjectIdentifiers.sha1WithRSAEncryption;
@@ -1003,27 +1005,43 @@ public abstract class AlgorithmTools {
         oid = NISTObjectIdentifiers.id_ecdsa_with_sha3_512;
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("getSignAlgOidFromDigestAndKey: " + oid.getId());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getSignAlgOidFromDigestAndKey: " + oid.getId());
     }
     return oid;
   }
 
+  /**
+   * @param digestAlg Digest
+   * @param keyAlg Key
+   * @return Name
+   */
   public static String getAlgorithmNameFromDigestAndKey(
       final String digestAlg, final String keyAlg) {
     return getAlgorithmNameFromOID(
         getSignAlgOidFromDigestAndKey(digestAlg, keyAlg));
   }
 
+  /**
+   * @return bool
+   */
   public static boolean isGost3410Enabled() {
     return CesecoreConfiguration.getOidGost3410() != null;
   }
 
+  /**
+   * @return bool
+   */
   public static boolean isDstu4145Enabled() {
     return CesecoreConfiguration.getOidDstu4145() != null;
   }
 
-  public static boolean isSigAlgEnabled(String sigAlg) {
+  /**
+   * @param sigAlg Algorithm
+   * @return bool
+   */
+  public static boolean isSigAlgEnabled(
+          final String sigAlg) {
     if (AlgorithmConstants.SIGALG_GOST3411_WITH_ECGOST3410.equals(sigAlg)) {
       return isGost3410Enabled();
     } else if (AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145.equals(
@@ -1057,8 +1075,8 @@ public abstract class AlgorithmTools {
    */
   public static List<String> getAllCurveAliasesFromAlias(final String alias) {
     final String lowerCaseAlias = alias.toLowerCase();
-    for (final Entry<String, List<String>> name :
-        getNamedEcCurvesMap(false).entrySet()) {
+    for (final Entry<String, List<String>> name
+        : getNamedEcCurvesMap(false).entrySet()) {
       final String lowerCaseCanonicalName = name.getKey().toLowerCase();
       final List<String> lowerCaseAliases =
           StringTools.toLowerCase(name.getValue());
@@ -1074,13 +1092,14 @@ public abstract class AlgorithmTools {
   }
 
   /**
-   * Returns the name of the algorithm corresponding to the specified OID
+   * Returns the name of the algorithm corresponding to the specified OID.
    *
    * @param sigAlgOid OID
    * @return The name of the algorithm corresponding sigAlgOid or null if the
    *     algorithm is not recognized.
    */
-  public static String getAlgorithmNameFromOID(ASN1ObjectIdentifier sigAlgOid) {
+  public static String getAlgorithmNameFromOID(
+          final ASN1ObjectIdentifier sigAlgOid) {
 
     if (sigAlgOid.equals(PKCSObjectIdentifiers.md5WithRSAEncryption)) {
       return AlgorithmConstants.SIGALG_MD5_WITH_RSA;

@@ -39,10 +39,11 @@ import org.cesecore.util.CertTools;
  */
 public final class QCStatementExtension extends CertTools {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(QCStatementExtension.class);
 
-  /** inhibits creation of new SubjectDirAttrExtension */
+  /** inhibits creation of new SubjectDirAttrExtension. */
   private QCStatementExtension() {
     super();
   }
@@ -140,11 +141,11 @@ public final class QCStatementExtension extends CertTools {
         final long value =
             amount.longValue() * (ten.pow(exp.intValue())).longValue();
         if (value < 0) {
-          log.error("ETSI LimitValue amount is < 0.");
+          LOG.error("ETSI LimitValue amount is < 0.");
         }
         final String curr = mv.getCurrency().getAlphabetic();
         if (curr == null) {
-          log.error("ETSI LimitValue currency is null");
+          LOG.error("ETSI LimitValue currency is null");
         }
         if ((value >= 0) && (curr != null)) {
           ret = value + " " + curr;
@@ -222,7 +223,7 @@ public final class QCStatementExtension extends CertTools {
 
   /**
    * Assumes that the statementoid in the QcStatements Sequence, seq, is a
-   * String and extracts that value from position, pos, of sequence
+   * String and extracts that value from position, pos, of sequence.
    *
    * @param seq ASN.1 sequence
    * @param statementoid OIS

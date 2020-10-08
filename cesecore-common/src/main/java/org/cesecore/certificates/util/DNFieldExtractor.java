@@ -31,95 +31,150 @@ public class DNFieldExtractor implements java.io.Serializable {
 
   private static final long serialVersionUID = -1313839342568999844L;
 
-  private static final Logger log = Logger.getLogger(DNFieldExtractor.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(DNFieldExtractor.class);
   // Public constants
+  /** DN. */
   public static final int TYPE_SUBJECTDN = 0;
+  /** Name.*/
   public static final int TYPE_SUBJECTALTNAME = 1;
+  /** Attrs. */
   public static final int TYPE_SUBJECTDIRATTR = 2;
 
   // Note, these IDs duplicate values in profilemappings.properties
 
   // Subject DN Fields.
+  /** E.*/
   public static final int E = 0;
+  /** UID. */
   public static final int UID = 1;
+  /** CN. */
   public static final int CN = 2;
+  /** SN. */
   public static final int SN = 3;
+  /** Name. */
   public static final int GIVENNAME = 4;
+  /** Name. */
   public static final int INITIALS = 5;
+  /** Name. */
   public static final int SURNAME = 6;
+  /** T. */
   public static final int T = 7;
+  /** OU. */
   public static final int OU = 8;
+  /** O. */
   public static final int O = 9;
+  /** L. */
   public static final int L = 10;
+  /** ST. */
   public static final int ST = 11;
+  /** DC. */
   public static final int DC = 12;
+  /** C. */
   public static final int C = 13;
+  /** Addr.*/
   public static final int UNSTRUCTUREDADDRESS = 14;
+  /** Name. */
   public static final int UNSTRUCTUREDNAME = 15;
+  /** Postcode. */
   public static final int POSTALCODE = 32;
+  /** Cat. */
   public static final int BUSINESSCATEGORY = 33;
+  /** DN. */
   public static final int DN = 34;
+  /** Address. */
   public static final int POSTALADDRESS = 35;
+  /** Tele.*/
   public static final int TELEPHONENUMBER = 36;
+  /** Pseud. */
   public static final int PSEUDONYM = 37;
+  /** Street. */
   public static final int STREET = 38;
+  /** Name. */
   public static final int NAME = 55;
+  /** Desc. */
   public static final int DESCRIPTION = 60;
+  /** OID. */
   public static final int ORGANIZATIONIDENTIFIER = 106;
 
   // Subject Alternative Names.
+  /** Other. */
   public static final int OTHERNAME = 16;
+  /** Email. */
   public static final int RFC822NAME = 17;
+  /** DNS. */
   public static final int DNSNAME = 18;
+  /** IP. */
   public static final int IPADDRESS = 19;
+  /** Address. */
   public static final int X400ADDRESS = 20;
+  /** Name. */
   public static final int DIRECTORYNAME = 21;
+  /** Name. */
   public static final int EDIPARTYNAME = 22;
+  /** URI. */
   public static final int URI = 23;
+  /** ID. */
   public static final int REGISTEREDID = 24;
+  /** UPN. */
   public static final int UPN = 25;
+  /** GUID. */
   public static final int GUID = 26;
+  /** Kerberos. */
   public static final int KRB5PRINCIPAL = 52;
+  /** ID. */
   public static final int PERMANTIDENTIFIER = 56;
+  /** Method. */
   public static final int SUBJECTIDENTIFICATIONMETHOD = 59;
 
   // Subject Directory Attributes
+  /** DOB. */
   public static final int DATEOFBIRTH = 27;
+  /** POB. */
   public static final int PLACEOFBIRTH = 28;
+  /** Gender. */
   public static final int GENDER = 29;
+  /** Country. */
   public static final int COUNTRYOFCITIZENSHIP = 30;
+  /** Country. */
   public static final int COUNTRYOFRESIDENCE = 31;
-
+  /** Boundary. */
   private static final int BOUNDRARY = 100;
-  /** Mapping dnid to number of occurrences in this DN */
+  /** Mapping dnid to number of occurrences in this DN. */
   private HashMap<Integer, Integer> fieldnumbers;
   /**
    * mapping dn (or altname or subject dir attrs) numerical ids with the value
-   * of the components
+   * of the components.
    */
   private HashMap<Integer, String> dnfields;
 
+  /** Exists. */
   private boolean existsother = false;
+  /** Illegal. */
   private boolean illegal = false;
+  /** Type. */
   private int type;
 
+  /**
+   * @return type.
+   */
   public int getType() {
     return type;
   }
 
   /**
-   * Creates a new instance of DNFieldExtractor
+   * Creates a new instance of DNFieldExtractor.
    *
    * @param dn DOCUMENT ME!
-   * @param type DOCUMENT ME!
+   * @param aType DOCUMENT ME!
    */
-  public DNFieldExtractor(final String dn, final int type) {
+  public DNFieldExtractor(final String dn, final int aType) {
     dnfields = new HashMap<>();
-    setDN(dn, type);
+    setDN(dn, aType);
   }
 
   /**
-   * Fields that can be selected in Certificate profile and Publisher
+   * Fields that can be selected in Certificate profile and Publisher.
    *
    * @param type Type
    * @return fields
@@ -138,7 +193,7 @@ public class DNFieldExtractor implements java.io.Serializable {
 
   /**
    * Returns the valid components for the given DN type (Subject DN, Subject
-   * Alternative Name or Subject Directory Attributes)
+   * Alternative Name or Subject Directory Attributes).
    *
    * @param dnType DNFieldExtractor.TYPE_*
    * @return List of valid components from DnComponents.*
@@ -156,6 +211,11 @@ public class DNFieldExtractor implements java.io.Serializable {
     }
   }
 
+  /**
+   * @param field field
+   * @param type type
+   * @return string
+   */
   public static String getFieldComponent(final int field, final int type) {
     final String ret;
     if (type == DNFieldExtractor.TYPE_SUBJECTDN) {
@@ -196,17 +256,17 @@ public class DNFieldExtractor implements java.io.Serializable {
    * populates fieldnumbers with number of occurances in dn
    *
    * @param dn DOCUMENT ME!
-   * @param type DOCUMENT ME!
+   * @param aType DOCUMENT ME!
    */
-  public final void setDN(final String dn, final int type) {
+  public final void setDN(final String dn, final int aType) {
 
-    this.type = type;
+    this.type = aType;
     final ArrayList<Integer> ids;
-    if (type == TYPE_SUBJECTDN) {
+    if (aType == TYPE_SUBJECTDN) {
       ids = DnComponents.getDnDnIds();
-    } else if (type == TYPE_SUBJECTALTNAME) {
+    } else if (aType == TYPE_SUBJECTALTNAME) {
       ids = DnComponents.getAltNameDnIds();
-    } else if (type == TYPE_SUBJECTDIRATTR) {
+    } else if (aType == TYPE_SUBJECTDIRATTR) {
       ids = DnComponents.getDirAttrDnIds();
     } else {
       ids = new ArrayList<>();
@@ -226,9 +286,9 @@ public class DNFieldExtractor implements java.io.Serializable {
           for (Integer id : ids) {
             Integer number = fieldnumbers.get(id);
             String field;
-            if (type == TYPE_SUBJECTDN) {
+            if (aType == TYPE_SUBJECTDN) {
               field = DnComponents.getDnExtractorFieldFromDnId(id.intValue());
-            } else if (type == TYPE_SUBJECTALTNAME) {
+            } else if (aType == TYPE_SUBJECTALTNAME) {
               field =
                   DnComponents.getAltNameExtractorFieldFromDnId(id.intValue());
             } else {
@@ -284,15 +344,15 @@ public class DNFieldExtractor implements java.io.Serializable {
           }
         }
       } catch (Exception e) {
-        log.warn("setDN: ", e);
+        LOG.warn("setDN: ", e);
         illegal = true;
-        if (type == TYPE_SUBJECTDN) {
+        if (aType == TYPE_SUBJECTDN) {
           dnfields.put(Integer.valueOf((CN * BOUNDRARY)), "Illegal DN : " + dn);
-        } else if (type == TYPE_SUBJECTALTNAME) {
+        } else if (aType == TYPE_SUBJECTALTNAME) {
           dnfields.put(
               Integer.valueOf((RFC822NAME * BOUNDRARY)),
               "Illegal Subjectaltname : " + dn);
-        } else if (type == TYPE_SUBJECTDIRATTR) {
+        } else if (aType == TYPE_SUBJECTDIRATTR) {
           dnfields.put(
               Integer.valueOf((PLACEOFBIRTH * BOUNDRARY)),
               "Illegal Subjectdirectory attribute : " + dn);
@@ -325,7 +385,7 @@ public class DNFieldExtractor implements java.io.Serializable {
   }
 
   /**
-   * Returns a string representation of a certain DN component
+   * Returns a string representation of a certain DN component.
    *
    * @param field the DN component, one of the constants DNFieldExtractor.CN,
    *     ...
@@ -370,7 +430,7 @@ public class DNFieldExtractor implements java.io.Serializable {
   public int getNumberOfFields(final int field) {
     Integer ret = fieldnumbers.get(Integer.valueOf(field));
     if (ret == null) {
-      log.error("Not finding fieldnumber value for " + field);
+      LOG.error("Not finding fieldnumber value for " + field);
       ret = Integer.valueOf(0);
     }
     return ret.intValue();
@@ -388,6 +448,9 @@ public class DNFieldExtractor implements java.io.Serializable {
     return fieldnumbers;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isIllegal() {
     return illegal;
   }

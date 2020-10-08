@@ -34,11 +34,16 @@ import org.cesecore.util.CeSecoreNameStyle;
  */
 public abstract class DNFieldsUtil {
 
+    /** Logger. */
   private static final Logger LOG = Logger.getLogger(DNFieldsUtil.class);
+  /** Empty. */
   private static final int EMPTY = -1;
+  /** Message. */
   private static final String MSG_ERROR_MISSING_EQUAL =
       "DN field definition is missing the '=': ";
+  /** Sep. */
   private static final String ATTRIBUTE_SEPARATOR = ",";
+  /** Sep. */
   private static final String KEY_VALUE_SEPARATOR = "=";
 
   /**
@@ -101,7 +106,9 @@ public abstract class DNFieldsUtil {
     if (map1.size() < 2 || map2.size() < 2 || map1.size() != map2.size()) {
       return false;
     }
-    String key, value1, value2;
+    String key;
+    String value1;
+    String value2;
     final String snAttributeKey =
         CeSecoreNameStyle.DefaultSymbols.get(CeSecoreNameStyle.SN);
     boolean result = true;
@@ -236,7 +243,7 @@ public abstract class DNFieldsUtil {
 
   /**
    * If we end up with a buffer ending with "," or ", " we need to remove these
-   * chars unless they've been escaped with a '\'
+   * chars unless they've been escaped with a '\'.
    *
    * @param sb A StringBuilder to work in.
    */
@@ -324,11 +331,14 @@ public abstract class DNFieldsUtil {
    * not escaped '=' is found.
    *
    * @param sb buffer
-   * @param pos1 position 1
-   * @param pos2 position 2
+   * @param opos1 position 1
+   * @param opos2 position 2
    * @return boolean
    */
-  private static boolean hasSameKey(final char[] sb, int pos1, int pos2) {
+  private static boolean hasSameKey(final char[] sb,
+          final int opos1, final int opos2) {
+    int pos1 = opos1;
+    int pos2 = opos2;
     final int len = sb.length;
     boolean notEscaped = true; // Keep track of what is escapes and not
     while (len > pos1 && len > pos2) {

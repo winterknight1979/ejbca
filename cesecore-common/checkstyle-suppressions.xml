@@ -37,4 +37,6 @@
 	<suppress checks="ParameterNumberCheck" files="EndEntityInformation.java" lines="149,205"/>
  	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="582,644"/>	<!-- Old API versions used in upgrade process. -->
 	<suppress checks="ParameterNumberCheck" files="OcspSigningCacheEntry.java" lines="88"/>
+	<suppress checks="LineLengthCheck" files="AlgorithmTools.java" lines="510,307"/> <!-- URL in comment, not caught by config -->
+ 	<suppress checks="MagicNumberCheck" files="DnComponents.java" lines="647-654"/>	<!-- splitting fields -->
  </suppressions>
