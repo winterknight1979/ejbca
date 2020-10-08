@@ -36,4 +36,5 @@
  	<suppress checks="MagicNumberCheck" files="CTLogInfo.java" lines="42"/>	<!-- Default timeout. -->
 	<suppress checks="ParameterNumberCheck" files="EndEntityInformation.java" lines="149,205"/>
  	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="582,644"/>	<!-- Old API versions used in upgrade process. -->
+	<suppress checks="ParameterNumberCheck" files="OcspSigningCacheEntry.java" lines="88"/>
  </suppressions>

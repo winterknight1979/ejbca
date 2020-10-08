@@ -25,41 +25,52 @@ import org.cesecore.keybind.impl.OcspKeyBinding;
  *     mikekushner $
  */
 public enum OcspConfigurationCache {
-  INSTANCE;
+    /** Singleton instance. */
+    INSTANCE;
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(OcspConfigurationCache.class);
 
-  /* If true a certificate that does not exist in the database, but is issued by a CA the responder handles
+  /** If true a certificate that does not exist in the database,
+   *  but is issued by a CA the responder handles
    * will be treated as not revoked. Default is to treat is as "unknown".
    */
   private boolean nonExistingIsGood;
-  /* If true a certificate that does not exist in the database, but is issued by a CA the responder handles
+  /** If true a certificate that does not exist in the database,
+   * but is issued by a CA the responder handles
    * will be treated as revoked. Default is to treat is as "unknown".
    */
   private boolean nonExistingIsRevoked;
-  /* If true a certificate that does not exist in the database, but is issued by a CA the responder handles
-   * be replied to with an unsigned "Unauthorized" reply. Default is to treat is as "unknown".
+  /** If true a certificate that does not exist
+   *  in the database, but is issued by a CA the responder handles
+   * be replied to with an unsigned "Unauthorized" reply.
+   * Default is to treat is as "unknown".
    */
   private boolean nonExistingIsUnauthorized;
 
-  /*
-   * If this regex is fulfilled the "good" will be return even if {@link #nonExistingIsGood} is false;
+  /**
+   * If this regex is fulfilled the "good" will be return
+   * even if {@link #nonExistingIsGood} is false.
    */
   private Pattern nonExistingIsGoodOverideRegex;
-  /*
-   * If this regex is fulfilled the "unknown" will be return even if {@link #nonExistingIsGood} or {@link #nonExistingIsRevoked} are true;
+  /**
+   * If this regex is fulfilled the "unknown" will be return even
+   * if {@link #nonExistingIsGood} or {@link #nonExistingIsRevoked} are true.
    */
   private Pattern nonExistingIsBadOverideRegex;
-  /*
-   * If this regex is fulfilled the "revoked" will be return even if {@link #nonExistingIsRevoked} is false;
+  /**
+   * If this regex is fulfilled the "revoked" will be return
+   * even if {@link #nonExistingIsRevoked} is false.
    */
   private Pattern nonExistingIsRevokedOverideRegex;
 
-  private OcspConfigurationCache() {
+  /** Private constructor. */
+  OcspConfigurationCache() {
     reloadConfiguration();
   }
 
+  /** Reload config. */
   public void reloadConfiguration() {
     this.nonExistingIsGood = OcspConfiguration.getNonExistingIsGood();
     this.nonExistingIsRevoked = OcspConfiguration.getNonExistingIsRevoked();
@@ -70,76 +81,91 @@ public enum OcspConfigurationCache {
     if ((this.nonExistingIsGood
             && (this.nonExistingIsRevoked || this.nonExistingIsUnauthorized))
         || (this.nonExistingIsRevoked && this.nonExistingIsUnauthorized)) {
-      log.error(
+      LOG.error(
           "Error: More than one of ocsp.nonexistingisgood,"
               + " ocsp.nonexistingisrevoked and ocsp.nonexistingisunauthorized"
               + " has been set to true at the same time.");
     }
 
-    {
-      final String value = OcspConfiguration.getNonExistingIsGoodOverideRegex();
+
+      String value = OcspConfiguration.getNonExistingIsGoodOverideRegex();
       nonExistingIsGoodOverideRegex =
           value != null ? Pattern.compile(value) : null;
-    }
-    {
-      final String value = OcspConfiguration.getNonExistingIsBadOverideRegex();
+
+
+      value = OcspConfiguration.getNonExistingIsBadOverideRegex();
       nonExistingIsBadOverideRegex =
           value != null ? Pattern.compile(value) : null;
-    }
-    {
-      final String value =
-          OcspConfiguration.getNonExistingIsRevokedOverideRegex();
+
+
+       value = OcspConfiguration.getNonExistingIsRevokedOverideRegex();
       nonExistingIsRevokedOverideRegex =
           value != null ? Pattern.compile(value) : null;
-    }
+
   }
 
-  public boolean isNonExistingUnauthorized(OcspKeyBinding ocspKeyBinding) {
+  /**
+   * @param ocspKeyBinding Binding
+   * @return bool
+   */
+  public boolean isNonExistingUnauthorized(
+          final OcspKeyBinding ocspKeyBinding) {
     // First we read the global default
-    boolean nonExistingIsUnauthorized = this.nonExistingIsUnauthorized;
+    boolean lNonExistingIsUnauthorized = this.nonExistingIsUnauthorized;
     // If we have an OcspKeyBinding for this request we use it to override the
     // default
     if (ocspKeyBinding != null) {
-      nonExistingIsUnauthorized = ocspKeyBinding.getNonExistingUnauthorized();
+      lNonExistingIsUnauthorized = ocspKeyBinding.getNonExistingUnauthorized();
     }
-    return nonExistingIsUnauthorized;
+    return lNonExistingIsUnauthorized;
   }
 
+  /**
+   * @param url URL
+   * @param ocspKeyBinding Binding
+   * @return bool
+   */
   public boolean isNonExistingGood(
-      StringBuffer url, OcspKeyBinding ocspKeyBinding) {
+      final StringBuffer url, final OcspKeyBinding ocspKeyBinding) {
     // First we read the global default
-    boolean nonExistingIsGood = this.nonExistingIsGood;
+    boolean lNonExistingIsGood = this.nonExistingIsGood;
     // If we have an OcspKeyBinding for this request we use it to override the
     // default
     if (ocspKeyBinding != null) {
-      nonExistingIsGood = ocspKeyBinding.getNonExistingGood();
+      lNonExistingIsGood = ocspKeyBinding.getNonExistingGood();
     }
     // Finally, if we have explicit configuration of the URL, this will
     // potentially override the value once again
-    if (nonExistingIsGood) {
+    if (lNonExistingIsGood) {
       return !isRegexFulFilled(url, nonExistingIsBadOverideRegex);
     }
     return isRegexFulFilled(url, nonExistingIsGoodOverideRegex);
   }
 
+  /**
+   * @param url URL
+   * @param ocspKeyBinding Binding
+   * @return bool
+   */
   public boolean isNonExistingRevoked(
-      StringBuffer url, OcspKeyBinding ocspKeyBinding) {
+      final StringBuffer url, final OcspKeyBinding ocspKeyBinding) {
     // First we read the global default
-    boolean nonExistingIsRevoked = this.nonExistingIsRevoked;
+    boolean lNonExistingIsRevoked = this.nonExistingIsRevoked;
     // If we have an OcspKeyBinding for this request we use it to override the
     // default
     if (ocspKeyBinding != null) {
-      nonExistingIsRevoked = ocspKeyBinding.getNonExistingRevoked();
+      lNonExistingIsRevoked = ocspKeyBinding.getNonExistingRevoked();
     }
     // Finally, if we have explicit configuration of the URL, this will
     // potentially override the value once again
-    if (nonExistingIsRevoked) {
+    if (lNonExistingIsRevoked) {
       return !isRegexFulFilled(url, nonExistingIsBadOverideRegex);
     }
     return isRegexFulFilled(url, nonExistingIsRevokedOverideRegex);
   }
 
-  private boolean isRegexFulFilled(StringBuffer target, Pattern pattern) {
+  private boolean isRegexFulFilled(
+          final StringBuffer target, final Pattern pattern) {
     if (pattern == null || target == null) {
       return false;
     }

@@ -40,18 +40,28 @@ import org.cesecore.util.CertTools;
  * @version $Id: OcspSigningCache.java 28643 2018-04-06 08:53:57Z samuellb $
  */
 public enum OcspSigningCache {
+    /** Singleton instance. */
   INSTANCE;
 
+    /** Cache. */
   private Map<Integer, OcspSigningCacheEntry> cache =
       new HashMap<Integer, OcspSigningCacheEntry>();
+  /** Staging. */
   private Map<Integer, OcspSigningCacheEntry> staging =
       new HashMap<Integer, OcspSigningCacheEntry>();
+  /** Default. */
   private OcspSigningCacheEntry defaultResponderCacheEntry = null;
+  /** Lock. */
   private final ReentrantLock lock = new ReentrantLock(false);
-  private static final Logger log = Logger.getLogger(OcspSigningCache.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(OcspSigningCache.class);
   /** Flag to detect and log non-existence of a default responder once. */
   private boolean logDefaultHasRunOnce = false;
 
+  /**
+   * @param certID ID
+   * @return Entry
+   */
   public OcspSigningCacheEntry getEntry(final CertificateID certID) {
     return cache.get(getCacheIdFromCertificateID(certID));
   }
@@ -73,27 +83,34 @@ public enum OcspSigningCache {
     return cache.values();
   }
 
+  /** Start. */
   public void stagingStart() {
     lock.lock();
     staging = new HashMap<Integer, OcspSigningCacheEntry>();
   }
 
-  public void stagingAdd(OcspSigningCacheEntry ocspSigningCacheEntry) {
+  /**
+   * @param ocspSigningCacheEntry Entry
+   */
+  public void stagingAdd(final OcspSigningCacheEntry ocspSigningCacheEntry) {
     List<CertificateID> certIDs = ocspSigningCacheEntry.getCertificateID();
     for (CertificateID certID : certIDs) {
       staging.put(getCacheIdFromCertificateID(certID), ocspSigningCacheEntry);
     }
   }
 
+  /**
+   * @param defaultResponderSubjectDn DN
+   */
   public void stagingCommit(final String defaultResponderSubjectDn) {
-    OcspSigningCacheEntry defaultResponderCacheEntry = null;
+    OcspSigningCacheEntry lDefaultResponderCacheEntry = null;
     for (final OcspSigningCacheEntry entry : staging.values()) {
       if (entry.getOcspSigningCertificate() != null) {
         final X509Certificate signingCertificate =
             entry.getOcspSigningCertificate();
         if (CertTools.getIssuerDN(signingCertificate)
             .equals(defaultResponderSubjectDn)) {
-          defaultResponderCacheEntry = entry;
+          lDefaultResponderCacheEntry = entry;
           break;
         }
       } else if (entry.getCaCertificateChain() != null
@@ -102,7 +119,7 @@ public enum OcspSigningCache {
             entry.getCaCertificateChain().get(0);
         if (CertTools.getSubjectDN(signingCertificate)
             .equals(defaultResponderSubjectDn)) {
-          defaultResponderCacheEntry = entry;
+          lDefaultResponderCacheEntry = entry;
           break;
         }
       }
@@ -117,17 +134,17 @@ public enum OcspSigningCache {
       // If entry has been created without a private key, replace it with the
       // default responder.
       if (entry.isPlaceholder()) {
-        if (defaultResponderCacheEntry != null) {
+        if (lDefaultResponderCacheEntry != null) {
           entry =
               new OcspSigningCacheEntry(
                   entry.getIssuerCaCertificate(),
                   entry.getIssuerCaCertificateStatus(),
-                  defaultResponderCacheEntry.getCaCertificateChain(),
-                  defaultResponderCacheEntry.getOcspSigningCertificate(),
-                  defaultResponderCacheEntry.getPrivateKey(),
-                  defaultResponderCacheEntry.getSignatureProviderName(),
-                  defaultResponderCacheEntry.getOcspKeyBinding(),
-                  defaultResponderCacheEntry.getResponderIdType());
+                  lDefaultResponderCacheEntry.getCaCertificateChain(),
+                  lDefaultResponderCacheEntry.getOcspSigningCertificate(),
+                  lDefaultResponderCacheEntry.getPrivateKey(),
+                  lDefaultResponderCacheEntry.getSignatureProviderName(),
+                  lDefaultResponderCacheEntry.getOcspKeyBinding(),
+                  lDefaultResponderCacheEntry.getResponderIdType());
           modifiedEntries.put(key, entry);
         } else {
           // If no default responder is defined, remove placeholder.
@@ -141,15 +158,15 @@ public enum OcspSigningCache {
     }
     logDefaultResponderChanges(
         this.defaultResponderCacheEntry,
-        defaultResponderCacheEntry,
+        lDefaultResponderCacheEntry,
         defaultResponderSubjectDn);
     cache = staging;
-    this.defaultResponderCacheEntry = defaultResponderCacheEntry;
-    if (log.isDebugEnabled()) {
-      log.debug("Committing the following to OCSP cache:");
+    this.defaultResponderCacheEntry = lDefaultResponderCacheEntry;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Committing the following to OCSP cache:");
       for (final Integer key : staging.keySet()) {
         final OcspSigningCacheEntry entry = staging.get(key);
-        log.debug(
+        LOG.debug(
             " KeyBindingId: "
                 + key
                 + ", SubjectDN '"
@@ -169,7 +186,7 @@ public enum OcspSigningCache {
                     .getSerialNumber()
                     .toString(16));
         if (entry.getOcspKeyBinding() != null) {
-          log.debug(
+          LOG.debug(
               "   keyPairAlias: "
                   + entry.getOcspKeyBinding().getKeyPairAlias());
         }
@@ -177,12 +194,13 @@ public enum OcspSigningCache {
     }
   }
 
+  /** Unlock. */
   public void stagingRelease() {
     lock.unlock();
   }
 
   /**
-   * Log any change in default responder
+   * Log any change in default responder.
    *
    * @param currentEntry current entry
    * @param stagedEntry staged entry
@@ -262,11 +280,11 @@ public enum OcspSigningCache {
       }
     }
     if (msg == null) {
-      if (log.isDebugEnabled()) {
-        log.debug("No change in default responder.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No change in default responder.");
       }
     } else {
-      log.info(msg);
+      LOG.info(msg);
     }
     logDefaultHasRunOnce = true;
   }
@@ -277,7 +295,8 @@ public enum OcspSigningCache {
    *
    * @param ocspSigningCacheEntry the entry to add
    */
-  public void addSingleEntry(OcspSigningCacheEntry ocspSigningCacheEntry) {
+  public void addSingleEntry(
+          final OcspSigningCacheEntry ocspSigningCacheEntry) {
     List<CertificateID> certIDs = ocspSigningCacheEntry.getCertificateID();
     for (CertificateID certID : certIDs) {
       int cacheId = getCacheIdFromCertificateID(certID);
@@ -304,8 +323,8 @@ public enum OcspSigningCache {
     int result =
         new BigInteger(certID.getIssuerNameHash()).hashCode()
             ^ new BigInteger(certID.getIssuerKeyHash()).hashCode();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Using getIssuerNameHash "
               + new BigInteger(certID.getIssuerNameHash()).toString(16)
               + " and getIssuerKeyHash "
@@ -323,8 +342,8 @@ public enum OcspSigningCache {
   public static List<CertificateID> getCertificateIDFromCertificate(
       final X509Certificate certificate) {
     try {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Building CertificateId's from certificate with subjectDN '"
                 + CertTools.getSubjectDN(certificate)
                 + "'.");

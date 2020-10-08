@@ -27,22 +27,26 @@ import org.cesecore.certificates.ocsp.extension.OCSPExtension;
  * @version $Id: OcspExtensionsCache.java 28566 2018-03-27 14:59:55Z henriks $
  */
 public enum OcspExtensionsCache {
-  INSTANCE;
+  /** Singleton instance. */
+    INSTANCE;
 
+/** Logger. */
   private static Logger
       log; // static initialization happens after the enum instance is
            // constructed, so we can't initialize the logger here
 
+  /** Map. */
   private Map<String, OCSPExtension> extensionMap;
 
-  private OcspExtensionsCache() {
+  /** private constructor. */
+  OcspExtensionsCache() {
     initializeLogger();
     reloadCache(buildExtensionsMap());
   }
 
   /**
    * Helper method to assign the log, which can't be done directly from the
-   * constructor
+   * constructor.
    */
   private static void initializeLogger() {
     log = Logger.getLogger(OcspExtensionsCache.class);
@@ -58,7 +62,7 @@ public enum OcspExtensionsCache {
    *
    * @param newExtensionMap new cache
    */
-  private void reloadCache(Map<String, OCSPExtension> newExtensionMap) {
+  private void reloadCache(final Map<String, OCSPExtension> newExtensionMap) {
     extensionMap = newExtensionMap;
   }
 

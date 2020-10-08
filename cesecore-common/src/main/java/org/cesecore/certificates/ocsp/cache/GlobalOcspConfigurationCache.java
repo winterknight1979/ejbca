@@ -20,7 +20,7 @@ import org.cesecore.configuration.ConfigurationBase;
 import org.cesecore.configuration.ConfigurationCache;
 
 /**
- * Class Holding cache variable for the OCSP configuration
+ * Class Holding cache variable for the OCSP configuration.
  *
  * @version $Id: GlobalOcspConfigurationCache.java 20003 2014-10-16 17:14:03Z
  *     mikekushner $
@@ -39,6 +39,7 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
    */
   private volatile long lastupdatetime = -1;
 
+  /** No-op constructor. */
   public GlobalOcspConfigurationCache() {
     // Do nothing
   }
@@ -54,6 +55,7 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
     return true;
   }
 
+  /** Clear cache. */
   public void clearCache() {
     ocspConfigurationCache = null;
   }
@@ -75,7 +77,7 @@ public final class GlobalOcspConfigurationCache implements ConfigurationCache {
 
   @SuppressWarnings("rawtypes")
   @Override
-  public ConfigurationBase getConfiguration(HashMap data) {
+  public ConfigurationBase getConfiguration(final HashMap data) {
     ConfigurationBase returnval = new GlobalOcspConfiguration();
     returnval.loadData(data);
     return returnval;

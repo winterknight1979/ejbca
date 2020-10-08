@@ -36,45 +36,73 @@ import org.cesecore.util.CertTools;
  */
 public class OcspSigningCacheEntry {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(OcspSigningCacheEntry.class);
 
+  /** ID. */
   private final List<CertificateID> certificateID;
+  /** Chain. */
   private final List<X509Certificate> caCertificateChain;
+  /** Cert. */
   private final X509Certificate ocspSigningCertificate;
+  /** Chain. */
   private final List<X509Certificate> fullCertificateChain;
+  /** Vert. */
   private final X509Certificate signingCertificate;
+  /** DN. */
   private final String signingCertificateIssuerDn;
+  /** Issuer. */
   private final String signingCertificateIssuerDnRaw;
+  /** Key. */
   private final transient PrivateKey privateKey;
+  /** Provider. */
   private final String signatureProviderName;
+  /** Binding. */
   private final OcspKeyBinding ocspKeyBinding;
+  /** CA cert. */
   private final X509Certificate issuerCaCertificate;
+  /** Status. */
   private final CertificateStatus issuerCaCertificateStatus;
+  /** Verified. */
   private boolean responseSignatureVerified = false;
+  /** Type. */
   private final OcspKeyBinding.ResponderIdType responderIdType;
+  /** ID. */
   private RespID respId;
+  /** Chain. */
   private final X509Certificate[] responseCertChain;
+  /** Cert. */
   private final boolean signingCertificateForOcspSigning;
 
+  /**
+   * @param aIssuerCaCertificate Cert
+   * @param aIssuerCaCertificateStatus Status
+   * @param signingCaCertificateChain Chain
+   * @param aOcspSigningCertificate Cert
+   * @param aPrivateKey Key
+   * @param aSignatureProviderName Provider
+   * @param aOcspKeyBinding Binding
+   * @param aResponderIdType Type
+   */
   public OcspSigningCacheEntry(
-      X509Certificate issuerCaCertificate,
-      CertificateStatus issuerCaCertificateStatus,
-      List<X509Certificate> signingCaCertificateChain,
-      X509Certificate ocspSigningCertificate,
-      PrivateKey privateKey,
-      String signatureProviderName,
-      OcspKeyBinding ocspKeyBinding,
-      OcspKeyBinding.ResponderIdType responderIdType) {
+      final X509Certificate aIssuerCaCertificate,
+      final CertificateStatus aIssuerCaCertificateStatus,
+      final List<X509Certificate> signingCaCertificateChain,
+      final X509Certificate aOcspSigningCertificate,
+      final PrivateKey aPrivateKey,
+      final String aSignatureProviderName,
+      final OcspKeyBinding aOcspKeyBinding,
+      final OcspKeyBinding.ResponderIdType aResponderIdType) {
     this.caCertificateChain = signingCaCertificateChain;
-    this.ocspSigningCertificate = ocspSigningCertificate;
-    if (ocspSigningCertificate == null) {
+    this.ocspSigningCertificate = aOcspSigningCertificate;
+    if (aOcspSigningCertificate == null) {
       // We will sign with a CA key
       fullCertificateChain = signingCaCertificateChain;
     } else {
       // We will sign with an OCSP Key Binding
       fullCertificateChain = new ArrayList<X509Certificate>();
-      fullCertificateChain.add(ocspSigningCertificate);
+      fullCertificateChain.add(aOcspSigningCertificate);
       fullCertificateChain.addAll(signingCaCertificateChain);
     }
     if (fullCertificateChain == null) {
@@ -84,14 +112,14 @@ public class OcspSigningCacheEntry {
       // Get the certificate that corresponds to the private key
       signingCertificate = fullCertificateChain.get(0);
     }
-    this.privateKey = privateKey;
-    this.signatureProviderName = signatureProviderName;
-    this.ocspKeyBinding = ocspKeyBinding;
-    this.issuerCaCertificate = issuerCaCertificate;
+    this.privateKey = aPrivateKey;
+    this.signatureProviderName = aSignatureProviderName;
+    this.ocspKeyBinding = aOcspKeyBinding;
+    this.issuerCaCertificate = aIssuerCaCertificate;
     this.certificateID =
-        OcspSigningCache.getCertificateIDFromCertificate(issuerCaCertificate);
-    this.issuerCaCertificateStatus = issuerCaCertificateStatus;
-    this.responderIdType = responderIdType;
+        OcspSigningCache.getCertificateIDFromCertificate(aIssuerCaCertificate);
+    this.issuerCaCertificateStatus = aIssuerCaCertificateStatus;
+    this.responderIdType = aResponderIdType;
     if (signingCertificate == null) {
       // This is just a placeholder cache entry
       respId = null;
@@ -100,7 +128,7 @@ public class OcspSigningCacheEntry {
       signingCertificateIssuerDnRaw = null;
     } else {
       // Pre-calculate the Responder ID
-      if (OcspKeyBinding.ResponderIdType.NAME.equals(responderIdType)) {
+      if (OcspKeyBinding.ResponderIdType.NAME.equals(aResponderIdType)) {
         respId = new JcaRespID(signingCertificate.getSubjectX500Principal());
       } else {
         try {
@@ -109,14 +137,14 @@ public class OcspSigningCacheEntry {
                   signingCertificate.getPublicKey(),
                   SHA1DigestCalculator.buildSha1Instance());
         } catch (OCSPException e) {
-          log.warn(
+          LOG.warn(
               "Unable to contruct responder Id of type 'hash', falling back to"
                   + " using 'name' as responder Id.",
               e);
           respId = new JcaRespID(signingCertificate.getSubjectX500Principal());
         }
       }
-      if (ocspSigningCertificate == null) {
+      if (aOcspSigningCertificate == null) {
         signingCertificateForOcspSigning = true; // CA cert
       } else {
         signingCertificateForOcspSigning =
@@ -296,7 +324,8 @@ public class OcspSigningCacheEntry {
    * @param certChain certificate chain
    * @return the certificate chain that will be included in the OCSP response
    */
-  private X509Certificate[] getResponseCertChain(X509Certificate[] certChain) {
+  private X509Certificate[] getResponseCertChain(
+          final X509Certificate[] certChain) {
     X509Certificate[] chain;
     boolean includeSignCert = OcspConfiguration.getIncludeSignCert();
     boolean includeChain = OcspConfiguration.getIncludeCertChain();
@@ -306,9 +335,9 @@ public class OcspSigningCacheEntry {
       includeSignCert = getOcspKeyBinding().getIncludeSignCert();
       includeChain = getOcspKeyBinding().getIncludeCertChain();
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Include signing cert: " + includeSignCert);
-      log.debug("Include chain: " + includeChain);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Include signing cert: " + includeSignCert);
+      LOG.debug("Include chain: " + includeChain);
     }
     if (includeSignCert) {
       if (includeChain) {
@@ -329,8 +358,8 @@ public class OcspSigningCacheEntry {
         chain[0] = certChain[0];
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("OCSP signing certificate is not included in the response");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("OCSP signing certificate is not included in the response");
       }
       chain = new X509Certificate[0];
     }

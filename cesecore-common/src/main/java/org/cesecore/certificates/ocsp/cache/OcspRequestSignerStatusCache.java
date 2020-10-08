@@ -25,6 +25,7 @@ import org.cesecore.config.OcspConfiguration;
  *     jeklund $
  */
 public enum OcspRequestSignerStatusCache {
+    /** Singleton instance. */
   INSTANCE;
 
   /**
@@ -32,16 +33,19 @@ public enum OcspRequestSignerStatusCache {
    * updated.
    */
   private class OcspSignerStatus {
-    long lastUpdate;
-    final CertificateStatus certificateStatus;
+      /** Last update. */
+    private long lastUpdate;
+    /** Status. */
+    private final CertificateStatus certificateStatus;
 
-    public OcspSignerStatus(
-        final long lastUpdate, final CertificateStatus certificateStatus) {
-      this.lastUpdate = lastUpdate;
-      this.certificateStatus = certificateStatus;
+    OcspSignerStatus(
+        final long aLastUpdate, final CertificateStatus aCertificateStatus) {
+      this.lastUpdate = aLastUpdate;
+      this.certificateStatus = aCertificateStatus;
     }
   }
 
+  /** Map. */
   private final Map<String, OcspSignerStatus> cache =
       new ConcurrentHashMap<String, OcspSignerStatus>();
 
