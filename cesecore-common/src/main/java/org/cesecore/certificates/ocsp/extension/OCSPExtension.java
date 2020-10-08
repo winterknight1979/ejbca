@@ -23,13 +23,13 @@ import org.cesecore.keybind.InternalKeyBinding;
 
 /**
  * Interface that must be implemented by OCSP extensions that are added to the
- * OCSPServlet
+ * OCSPServlet.
  *
  * @version $Id: OCSPExtension.java 28881 2018-05-08 18:18:11Z anatom $
  */
 public interface OCSPExtension {
 
-  /** Called after construction */
+  /** Called after construction. */
   void init();
 
   /**
@@ -51,16 +51,16 @@ public interface OCSPExtension {
    *     an error occurs
    */
   Map<ASN1ObjectIdentifier, Extension> process(
-      final X509Certificate[] requestCertificates,
-      final String remoteAddress,
-      final String remoteHost,
-      final X509Certificate cert,
-      final CertificateStatus status,
-      final InternalKeyBinding internalKeyBinding);
+      X509Certificate[] requestCertificates,
+      String remoteAddress,
+      String remoteHost,
+      X509Certificate cert,
+      CertificateStatus status,
+      InternalKeyBinding internalKeyBinding);
 
   /**
    * Returns the last error that occured during process(), when process returns
-   * null
+   * null.
    *
    * @return error code as defined by implementing class
    */
