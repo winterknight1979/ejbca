@@ -22,16 +22,16 @@ public class InvalidConfigurationException extends Exception {
 
   private static final long serialVersionUID = 2959353827904749328L;
 
-  /** */
-  public InvalidConfigurationException() {}
+  /** default. */
+  public InvalidConfigurationException() { }
 
   /** @param message message */
-  public InvalidConfigurationException(String message) {
+  public InvalidConfigurationException(final String message) {
     super(message);
   }
 
   /** @param cause cause */
-  public InvalidConfigurationException(Throwable cause) {
+  public InvalidConfigurationException(final Throwable cause) {
     super(cause);
   }
 
@@ -39,7 +39,8 @@ public class InvalidConfigurationException extends Exception {
    * @param message message
    * @param cause cause
    */
-  public InvalidConfigurationException(String message, Throwable cause) {
+  public InvalidConfigurationException(
+          final String message, final Throwable cause) {
     super(message, cause);
   }
 }

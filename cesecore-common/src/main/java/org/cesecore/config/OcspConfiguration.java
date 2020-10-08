@@ -31,71 +31,117 @@ import org.cesecore.util.CertTools;
  *
  * @version $Id: OcspConfiguration.java 28629 2018-04-04 11:32:55Z henriks $
  */
-public class OcspConfiguration {
+public final class OcspConfiguration {
 
-  private static final Logger log = Logger.getLogger(OcspConfiguration.class);
+    private OcspConfiguration() { }
 
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(OcspConfiguration.class);
+ /** responder. */
   @Deprecated // Deprecated in 6.2.4, remains to allow migration from previous
               // versions
   public static final String DEFAULT_RESPONDER = "ocsp.defaultresponder";
+  /** time. */
   public static final String SIGNING_CERTD_VALID_TIME =
       "ocsp.signingCertsValidTime";
+  /** time. */
   public static final String REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME =
       "ocsp.reqsigncertrevcachetime";
+  /** time. */
   public static final String SIGNING_TRUSTSTORE_VALID_TIME =
       "ocsp.signtrustvalidtime";
+  /** sig. */
   public static final String SIGNATUREREQUIRED = "ocsp.signaturerequired";
+  /** pwd. */
   public static final String CARD_PASSWORD = "ocsp.keys.cardPassword";
+  /** url. */
   public static final String REKEYING_WSURL = "ocsp.rekeying.wsurl";
+  /** bool. */
   public static final String WARNING_BEFORE_EXPERATION_TIME =
       "ocsp.warningBeforeExpirationTime";
+  /** bool. */
   public static final String NON_EXISTING_IS_GOOD = "ocsp.nonexistingisgood";
+  /** URI. */
   public static final String NON_EXISTING_IS_GOOD_URI =
       NON_EXISTING_IS_GOOD + ".uri.";
+  /** bool. */
   public static final String NON_EXISTING_IS_BAD_URI =
       "ocsp.nonexistingisbad.uri.";
+  /** bool. */
   public static final String NON_EXISTING_IS_REVOKED =
       "ocsp.nonexistingisrevoked";
+  /** IRI. */
   public static final String NON_EXISTING_IS_REVOKED_URI =
       NON_EXISTING_IS_REVOKED + ".uri.";
+  /** config. */
   public static final String NON_EXISTING_IS_UNAUTHORIZED =
       "ocsp.nonexistingisunauthorized";
+  /** hosts. */
   public static final String REKEYING_TRIGGERING_HOSTS =
       "ocsp.rekeying.trigging.hosts";
+  /** password. */
   public static final String REKEYING_TRIGGERING_PASSWORD =
       "ocsp.rekeying.trigging.password";
+  /** time. */
   public static final String REKEYING_UPDATE_TIME_IN_SECONDS =
       "ocsp.rekeying.update.time.in.seconds";
+  /** margin. */
   public static final String REKEYING_SAFETY_MARGIN_IN_SECONDS =
       "ocsp.rekeying.safety.margin.in.seconds";
+  /** period. */
   public static final String EXPIREDCERT_RETENTIONPERIOD =
       "ocsp.expiredcert.retentionperiod";
+  /** update. */
   public static final String UNTIL_NEXT_UPDATE = "ocsp.untilNextUpdate";
+  /** update. */
   public static final String REVOKED_UNTIL_NEXT_UPDATE =
       "ocsp.revoked.untilNextUpdate";
+  /** age. */
   public static final String MAX_AGE = "ocsp.maxAge";
+  /** age. */
   public static final String REVOKED_MAX_AGE = "ocsp.revoked.maxAge";
+  /** Vert. */
   public static final String INCLUDE_SIGNING_CERT = "ocsp.includesignercert";
+  /** Chain. */
   public static final String INCLUDE_CERT_CHAIN = "ocsp.includecertchain";
 
+  /** type. */
   @Deprecated // Remove this value once upgrading to 6.7.0 has been dropped
   public static final String RESPONDER_ID_TYPE = "ocsp.responderidtype";
-
+  /** type. */
   @Deprecated // Remove this value once upgrading VAs to EJBCA 6 has been
               // dropped
   public static final int RESTRICTONISSUER = 0;
+  /** type. */
   @Deprecated // Remove this value once upgrading VAs to EJBCA 6 has been
               // dropped
   public static final int RESTRICTONSIGNER = 1;
-
+  /** type. */
   @Deprecated // Remove this value once upgrading to 6.7.0 has been dropped
   public static final int RESPONDERIDTYPE_NAME = 1;
+  /** type. */
   @Deprecated // Remove this value once upgrading to 6.7.0 has been dropped
   public static final int RESPONDERIDTYPE_KEYHASH = 2;
-
-  public static Set<String> acceptedSignatureAlgorithms = new HashSet<>();
+  /** Algorithms. */
+  private static Set<String> acceptedSignatureAlgorithms = new HashSet<>();
 
   /**
+ * @return the acceptedSignatureAlgorithms
+ */
+  public static Set<String> getAcceptedSignatureAlgorithms() {
+      return acceptedSignatureAlgorithms;
+}
+
+/**
+ * @param aAcceptedSignatureAlgorithms the acceptedSignatureAlgorithms to set
+ */
+    public static void setAcceptedSignatureAlgorithms(
+        final Set<String> aAcceptedSignatureAlgorithms) {
+        OcspConfiguration.acceptedSignatureAlgorithms =
+            aAcceptedSignatureAlgorithms;
+}
+
+/**
    * @return Algorithm used by server to generate signature on OCSP responses
    */
   public static String getSignatureAlgorithm() {
@@ -112,7 +158,7 @@ public class OcspConfiguration {
    * @param sigAlg Algorithm name
    * @return 'true' if sigAlg is accepted by EJBCA, and 'false' otherwise
    */
-  public static boolean isAcceptedSignatureAlgorithm(String sigAlg) {
+  public static boolean isAcceptedSignatureAlgorithm(final String sigAlg) {
     if (acceptedSignatureAlgorithms.size() == 0) {
       String[] algs = getSignatureAlgorithm().split(";");
       for (String alg : algs) {
@@ -161,11 +207,11 @@ public class OcspConfiguration {
               ConfigurationHolder.getString(SIGNING_CERTD_VALID_TIME));
     } catch (NumberFormatException e) {
       timeInSeconds = defaultTimeInSeconds;
-      log.warn(
+      LOG.warn(
           SIGNING_CERTD_VALID_TIME
               + " is not a decimal integer. Using default 5 minutes");
     }
-    return timeInSeconds * 1000;
+    return timeInSeconds * (int) MS_PER_S;
   }
 
   /**
@@ -182,7 +228,7 @@ public class OcspConfiguration {
                   REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME));
     } catch (NumberFormatException e) {
       timeInSeconds = defaultTimeInSeconds;
-      log.warn(
+      LOG.warn(
           REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME
               + " is not a decimal long. Using default "
               + defaultTimeInSeconds
@@ -297,7 +343,7 @@ public class OcspConfiguration {
     return "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
   }
 
-  private static String getRegex(String prefix) {
+  private static String getRegex(final String prefix) {
     int i = 1;
     final StringBuffer regex = new StringBuffer();
     while (true) {
@@ -553,11 +599,11 @@ public class OcspConfiguration {
       return -1;
     }
 
-    long value = 31536000;
+    long value = DEFAULT_RETENTION;
     try {
-      value = config.getLong(EXPIREDCERT_RETENTIONPERIOD, value) * 1000;
+      value = config.getLong(EXPIREDCERT_RETENTIONPERIOD, value) * MS_PER_S;
     } catch (ConversionException e) {
-      log.warn(
+      LOG.warn(
           "\"ocsp.expiredcert.retentionperiod\" is not a decimal integer."
               + " Using default value: "
               + value);
@@ -566,12 +612,15 @@ public class OcspConfiguration {
     return value;
   }
 
+  /** 1 year in seconds. */
+  private static final long DEFAULT_RETENTION = 365L * 24 * 3600;
+
   /**
    * @param certProfileId profile ID
    * @return The default number of milliseconds a response is valid, or 0 to
    *     disable. See RFC5019.
    */
-  public static long getUntilNextUpdate(int certProfileId) {
+  public static long getUntilNextUpdate(final int certProfileId) {
     long value = 0;
     Configuration config = ConfigurationHolder.instance();
     String key = "ocsp." + certProfileId + ".untilNextUpdate";
@@ -580,9 +629,9 @@ public class OcspConfiguration {
       key = UNTIL_NEXT_UPDATE;
     }
     try {
-      value = (config.getLong(key, value) * 1000);
+      value = (config.getLong(key, value) * MS_PER_S);
     } catch (ConversionException e) {
-      log.warn(
+      LOG.warn(
           "\"ocsp.untilNextUpdate\" is not a decimal integer. Using default"
               + " value: "
               + value);
@@ -611,7 +660,7 @@ public class OcspConfiguration {
    * @return The default number of milliseconds a response of a revoked
    *     certificate is valid, or 0 to disable. See RFC5019.
    */
-  public static long getRevokedUntilNextUpdate(int certProfileId) {
+  public static long getRevokedUntilNextUpdate(final int certProfileId) {
     long value = 0;
     Configuration config = ConfigurationHolder.instance();
     String key = "ocsp." + certProfileId + ".revoked.untilNextUpdate";
@@ -620,9 +669,9 @@ public class OcspConfiguration {
       key = REVOKED_UNTIL_NEXT_UPDATE;
     }
     try {
-      value = (config.getLong(key, value) * 1000);
+      value = (config.getLong(key, value) * MS_PER_S);
     } catch (ConversionException e) {
-      log.warn(
+      LOG.warn(
           "\"ocsp.revoked.untilNextUpdate\" is not a decimal integer. Using"
               + " default value: "
               + value);
@@ -653,8 +702,8 @@ public class OcspConfiguration {
    * @return The default number of milliseconds a HTTP-response should be
    *     cached. See RFC5019.
    */
-  public static long getMaxAge(int certProfileId) {
-    long value = 30;
+  public static long getMaxAge(final int certProfileId) {
+    long value = HTTP_TIMEOUT;
     Configuration config = ConfigurationHolder.instance();
     String key = "ocsp." + certProfileId + ".maxAge";
     if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
@@ -662,11 +711,11 @@ public class OcspConfiguration {
       key = MAX_AGE;
     }
     try {
-      value = (config.getLong(key, value) * 1000);
+      value = (config.getLong(key, value) * MS_PER_S);
     } catch (ConversionException e) {
       // Convert default value to milliseconds
-      value = value * 1000;
-      log.warn(
+      value = value * MS_PER_S;
+      LOG.warn(
           "\"ocsp.maxAge\" is not a decimal integer. Using default value: "
               + value);
     }
@@ -693,8 +742,8 @@ public class OcspConfiguration {
    * @return The default number of milliseconds a HTTP-response for a revoked
    *     certificater should be cached. See RFC5019.
    */
-  public static long getRevokedMaxAge(int certProfileId) {
-    long value = 30;
+  public static long getRevokedMaxAge(final int certProfileId) {
+    long value = HTTP_TIMEOUT;
     Configuration config = ConfigurationHolder.instance();
     String key = "ocsp." + certProfileId + ".revoked.maxAge";
     if ((certProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE)
@@ -702,17 +751,20 @@ public class OcspConfiguration {
       key = REVOKED_MAX_AGE;
     }
     try {
-      value = (config.getLong(key, value) * 1000);
+      value = (config.getLong(key, value) * MS_PER_S);
     } catch (ConversionException e) {
       // Convert default value to milliseconds
-      value = value * 1000;
-      log.warn(
+      value = value * MS_PER_S;
+      LOG.warn(
           "\"ocsp.revoked.maxAge\" is not a decimal integer. Using default"
               + " value: "
               + value);
     }
     return value;
   }
+
+  /** 30s. */
+  private static final int HTTP_TIMEOUT = 30;
 
   /**
    * @param certificateProfileId Profile ID
@@ -888,10 +940,13 @@ public class OcspConfiguration {
 
     } catch (NumberFormatException e) {
       timeInSeconds = defaultTimeInSeconds;
-      log.warn(
+      LOG.warn(
           WARNING_BEFORE_EXPERATION_TIME
               + " is not a decimal integer. Using default 1 week.");
     }
-    return 1000 * (long) timeInSeconds;
+    return MS_PER_S * (long) timeInSeconds;
   }
+
+  /** milliseconds. */
+  private static final long MS_PER_S = 1000L;
 }

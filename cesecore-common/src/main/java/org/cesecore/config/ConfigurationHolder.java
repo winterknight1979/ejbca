@@ -48,11 +48,15 @@ import org.apache.log4j.Logger;
  */
 public final class ConfigurationHolder {
 
-  private static final Logger log = Logger.getLogger(ConfigurationHolder.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ConfigurationHolder.class);
 
+  /** defaults. */
   private static volatile CompositeConfiguration defaultValues;
 
+  /** config. */
   private static volatile CompositeConfiguration config = null;
+  /** backup. */
   private static CompositeConfiguration configBackup = null;
 
   /**
@@ -77,13 +81,17 @@ public final class ConfigurationHolder {
   private static final String CONFIGALLOWEXTERNAL =
       "allow.external-dynamic.configuration";
 
+  /** File. */
   private static final String DEFAULT_CONFIG_FILE = "/defaultvalues.properties";
 
   /**
-   * This is a singleton so it's not allowed to create an instance explicitly
+   * This is a singleton so it's not allowed to create an instance explicitly.
    */
-  private ConfigurationHolder() {}
+  private ConfigurationHolder() { }
 
+  /**
+   * @return config
+   */
   public static synchronized Configuration instance() {
     if (config == null) {
       // Read in default values
@@ -94,7 +102,7 @@ public final class ConfigurationHolder {
         defaultValues.addConfiguration(
             new PropertiesConfiguration(defaultConfigUrl));
       } catch (ConfigurationException e) {
-        log.error(
+        LOG.error(
             "Error encountered when loading default properties. Could not load"
                 + " configuration from "
                 + defaultConfigUrl,
@@ -112,10 +120,10 @@ public final class ConfigurationHolder {
           allowexternal =
               "true"
                   .equalsIgnoreCase(pc.getString(CONFIGALLOWEXTERNAL, "false"));
-          log.info("Allow external re-configuration: " + allowexternal);
+          LOG.info("Allow external re-configuration: " + allowexternal);
         }
       } catch (ConfigurationException e) {
-        log.error("Error intializing configuration: ", e);
+        LOG.error("Error intializing configuration: ", e);
       }
       config = new CompositeConfiguration();
 
@@ -124,7 +132,7 @@ public final class ConfigurationHolder {
         // Override with system properties, this is prio 1 if it exists (java
         // -Dscep.test=foo)
         config.addConfiguration(new SystemConfiguration());
-        log.info(
+        LOG.info(
             "Added system properties to configuration source (java"
                 + " -Dfoo.prop=bar).");
 
@@ -137,10 +145,10 @@ public final class ConfigurationHolder {
             final PropertiesConfiguration pc = new PropertiesConfiguration(f);
             pc.setReloadingStrategy(new FileChangedReloadingStrategy());
             config.addConfiguration(pc);
-            log.info(
+            LOG.info(
                 "Added file to configuration source: " + f.getAbsolutePath());
           } catch (ConfigurationException e) {
-            log.error(
+            LOG.error(
                 "Failed to load configuration from file "
                     + f.getAbsolutePath());
           }
@@ -153,10 +161,10 @@ public final class ConfigurationHolder {
             final PropertiesConfiguration pc = new PropertiesConfiguration(f);
             pc.setReloadingStrategy(new FileChangedReloadingStrategy());
             config.addConfiguration(pc);
-            log.info(
+            LOG.info(
                 "Added file to configuration source: " + f.getAbsolutePath());
           } catch (ConfigurationException e) {
-            log.error(
+            LOG.error(
                 "Failed to load configuration from file "
                     + f.getAbsolutePath());
           }
@@ -175,10 +183,10 @@ public final class ConfigurationHolder {
         if (url != null) {
           final PropertiesConfiguration pc = new PropertiesConfiguration(url);
           config.addConfiguration(pc);
-          log.debug("Added url to configuration source: " + url);
+          LOG.debug("Added url to configuration source: " + url);
         }
       } catch (ConfigurationException e) {
-        log.error(
+        LOG.error(
             "Failed to load configuration from resource internal.properties",
             e);
       }
@@ -225,35 +233,35 @@ public final class ConfigurationHolder {
       final PropertiesConfiguration pc = new PropertiesConfiguration(f);
       pc.setReloadingStrategy(new FileChangedReloadingStrategy());
       addConfiguration(pc);
-      log.info("Added file to configuration source: " + f.getAbsolutePath());
+      LOG.info("Added file to configuration source: " + f.getAbsolutePath());
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from file " + f.getAbsolutePath());
     }
   }
 
   /**
-   * Add built in config file
+   * Add built in config file.
    *
    * @param resourcename name
    */
   public static void addConfigurationResource(final String resourcename) {
     // Make sure the basic initialization has been done
     instance();
-    if (log.isDebugEnabled()) {
-      log.debug("Add resource to configuration: " + resourcename);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Add resource to configuration: " + resourcename);
     }
     try {
       final URL url = ConfigurationHolder.class.getResource(resourcename);
       if (url != null) {
         final PropertiesConfiguration pc = new PropertiesConfiguration(url);
         addConfiguration(pc);
-        if (log.isDebugEnabled()) {
-          log.debug("Added url to configuration source: " + url);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Added url to configuration source: " + url);
         }
       }
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from resource " + resourcename, e);
     }
   }
@@ -279,7 +287,7 @@ public final class ConfigurationHolder {
     // Commons configuration interprets ','-separated values as an array of
     // Strings, but we need the whole String for example SubjectDNs.
     final StringBuilder str = new StringBuilder();
-    String rets[] = instance().getStringArray(property);
+    String[] rets = instance().getStringArray(property);
     if (rets.length == 0) {
       rets = defaultValues.getStringArray(property);
     }
@@ -308,7 +316,7 @@ public final class ConfigurationHolder {
     // Commons configuration interprets ','-separated values as an array of
     // Strings, but we need the whole String for example SubjectDNs.
     final StringBuilder str = new StringBuilder();
-    String rets[] = instance().getStringArray(property);
+    String[] rets = instance().getStringArray(property);
     for (int i = 0; i < rets.length; i++) {
       if (i != 0) {
         str.append(',');
@@ -322,11 +330,19 @@ public final class ConfigurationHolder {
     return ret;
   }
 
+  /**
+   * @param property property
+   * @return value
+   */
   public static String getDefaultValue(final String property) {
     instance();
     return defaultValues.getString(property);
   }
 
+  /**
+   * @param property property
+   * @return value
+   */
   public static String[] getDefaultValueArray(final String property) {
     instance();
     return defaultValues.getStringArray(property);
@@ -352,8 +368,8 @@ public final class ConfigurationHolder {
   }
 
   private static String interpolate(final String orderString) {
-    final Pattern PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
-    final Matcher m = PATTERN.matcher(orderString);
+    final Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
+    final Matcher m = pattern.matcher(orderString);
     final StringBuffer sb = new StringBuffer(orderString.length());
     m.reset();
     while (m.find()) {
@@ -387,7 +403,7 @@ public final class ConfigurationHolder {
    * @return list of properties
    */
   @SuppressWarnings("unchecked")
-  public static List<String> getPrefixedPropertyNames(String prefix) {
+  public static List<String> getPrefixedPropertyNames(final String prefix) {
     Set<String> algs = new HashSet<String>();
     // Just get the keys from configuration that starts with prefix, we assume
     // below that it has a . following the prefix

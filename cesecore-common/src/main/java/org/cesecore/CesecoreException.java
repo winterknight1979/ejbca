@@ -32,7 +32,7 @@ public class CesecoreException extends Exception {
   // Logger.getLogger(CesecoreException.class);
 
   /** The error code describes the cause of the exception. */
-  ErrorCode errorCode = null;
+  protected ErrorCode errorCode = null;
 
   /**
    * Constructor used to create exception without an errormessage. Calls the
@@ -56,23 +56,23 @@ public class CesecoreException extends Exception {
    * Constructor used to create exception with an errorCode. Calls the same
    * default constructor in the base class <code>Exception</code>.
    *
-   * @param errorCode defines the cause of the exception.
+   * @param aErrorCode defines the cause of the exception.
    */
-  public CesecoreException(final ErrorCode errorCode) {
+  public CesecoreException(final ErrorCode aErrorCode) {
     super();
-    this.errorCode = errorCode;
+    this.errorCode = aErrorCode;
   }
 
   /**
    * Constructor used to create exception with an errormessage. Calls the same
    * constructor in baseclass <code>Exception</code>.
    *
-   * @param errorCode defines the cause of the exception.
+   * @param aErrorCode defines the cause of the exception.
    * @param message Human readable error message, can not be NULL.
    */
-  public CesecoreException(final ErrorCode errorCode, final String message) {
+  public CesecoreException(final ErrorCode aErrorCode, final String message) {
     super(message);
-    this.errorCode = errorCode;
+    this.errorCode = aErrorCode;
   }
 
   /**
@@ -92,13 +92,13 @@ public class CesecoreException extends Exception {
    * Constructor used to create exception with an embedded exception. Calls the
    * same constructor in baseclass <code>Exception</code>.
    *
-   * @param errorCode defines the cause of the exception.
+   * @param aErrorCode defines the cause of the exception.
    * @param exception exception to be embedded.
    */
   public CesecoreException(
-      final ErrorCode errorCode, final Exception exception) {
+      final ErrorCode aErrorCode, final Exception exception) {
     super(exception);
-    this.errorCode = errorCode;
+    this.errorCode = aErrorCode;
   }
 
   /**
@@ -115,10 +115,15 @@ public class CesecoreException extends Exception {
     }
   }
 
+  /**
+   * @param aErrorCode Code
+   * @param message Message
+   * @param cause Cause
+   */
   public CesecoreException(
-      final ErrorCode errorCode, final String message, final Throwable cause) {
+      final ErrorCode aErrorCode, final String message, final Throwable cause) {
     super(message, cause);
-    this.errorCode = errorCode;
+    this.errorCode = aErrorCode;
   }
 
   /**
@@ -133,21 +138,21 @@ public class CesecoreException extends Exception {
   /**
    * Set the error code.
    *
-   * @param errorCode the error code.
+   * @param aErrorCode the error code.
    */
-  public void setErrorCode(final ErrorCode errorCode) {
-    this.errorCode = errorCode;
+  public void setErrorCode(final ErrorCode aErrorCode) {
+    this.errorCode = aErrorCode;
   }
 
   /**
    * Get EJBCA ErrorCode from any exception that is, extends or just wraps
-   * CesecoreException
+   * CesecoreException.
    *
    * @param exception exception or its cause from error code should be retrieved
    * @return error code as ErrorCode object, or null if CesecoreException could
    *     not be found
    */
-  public static ErrorCode getErrorCode(Throwable exception) {
+  public static ErrorCode getErrorCode(final Throwable exception) {
     if (exception == null) {
       return null;
     }

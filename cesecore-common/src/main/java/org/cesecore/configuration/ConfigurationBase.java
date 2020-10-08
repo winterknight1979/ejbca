@@ -22,6 +22,7 @@ public abstract class ConfigurationBase extends UpgradeableDataHashMap {
 
   private static final long serialVersionUID = 4886872276324915327L;
 
+  /** API version. */
   public static final float LATEST_VERSION = 3f;
 
   @Override
@@ -32,5 +33,6 @@ public abstract class ConfigurationBase extends UpgradeableDataHashMap {
   @Override
   public abstract void upgrade();
 
+  /** @return ID. */
   public abstract String getConfigurationId();
 }

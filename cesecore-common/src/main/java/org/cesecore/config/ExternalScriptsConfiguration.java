@@ -36,7 +36,7 @@ public interface ExternalScriptsConfiguration {
 
   /**
    * Get a string containing a whitelist of external scripts permitted to be
-   * executed by "External Command Validators"
+   * executed by "External Command Validators".
    *
    * @return the contents of the External Scripts whitelist
    */
@@ -48,7 +48,7 @@ public interface ExternalScriptsConfiguration {
    * @see #getExternalScriptsWhitelist()
    * @param value a multi-line string containing the contents of the whitelist
    */
-  void setExternalScriptsWhitelist(final String value);
+  void setExternalScriptsWhitelist(String value);
 
   /**
    * Gets a value indicating whether a whitelist for external commands should be
@@ -66,5 +66,5 @@ public interface ExternalScriptsConfiguration {
    * @see #getEnableExternalScripts()
    * @param value true if a whitelist should be used, false otherwise
    */
-  void setIsExternalScriptsWhitelistEnabled(final boolean value);
+  void setIsExternalScriptsWhitelistEnabled(boolean value);
 }

@@ -25,7 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cesecore.configuration.ConfigurationBase;
 
 /**
- * This file handles configuration of Available Extended Key Usages
+ * This file handles configuration of Available Extended Key Usages.
  *
  * @version $Id: AvailableExtendedKeyUsagesConfiguration.java 26046 2017-06-20
  *     08:53:38Z mikekushner $
@@ -34,19 +34,20 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
     implements Serializable {
 
   private static final long serialVersionUID = -3430732247486886608L;
+  /** ID. */
   public static final String CONFIGURATION_ID = "AVAILABLE_EXTENDED_KEY_USAGES";
 
   /**
    * Creates a new instance of AvailableExtendedKeyUsagesConfiguration without
-   * defaults
+   * defaults.
    *
    * @param ignored ignored
    */
-  public AvailableExtendedKeyUsagesConfiguration(boolean ignored) {
+  public AvailableExtendedKeyUsagesConfiguration(final boolean ignored) {
     super();
   }
 
-  /** Creates a new instance of AvailableExtendedKeyUsagesConfiguration */
+  /** Creates a new instance of AvailableExtendedKeyUsagesConfiguration. */
   public AvailableExtendedKeyUsagesConfiguration() {
     super();
     // Before EJBCA 6.4.0 this was configured in a property file
@@ -124,7 +125,10 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
     addExtKeyUsage("2.16.840.1.101.3.6.8", "EKU_NIST_PIVCARDAUTH");
   }
 
-  public AvailableExtendedKeyUsagesConfiguration(Serializable dataobj) {
+  /**
+   * @param dataobj Object
+   */
+  public AvailableExtendedKeyUsagesConfiguration(final Serializable dataobj) {
     @SuppressWarnings("unchecked")
     LinkedHashMap<Object, Object> d = (LinkedHashMap<Object, Object>) dataobj;
     data = d;
@@ -135,20 +139,35 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
     return CONFIGURATION_ID;
   }
 
-  public boolean isExtendedKeyUsageSupported(String oid) {
+  /**
+   * @param oid OID
+   * @return Bool
+   */
+  public boolean isExtendedKeyUsageSupported(final String oid) {
     return data.containsKey(oid.trim());
   }
 
-  public void addExtKeyUsage(String oid, String name) {
+  /**
+   * @param oid OID
+   * @param name Name
+   */
+  public void addExtKeyUsage(final String oid, final String name) {
     data.put(oid.trim(), name);
   }
 
-  public void removeExtKeyUsage(String oid) {
+  /**
+   * @param oid OID
+   */
+  public void removeExtKeyUsage(final String oid) {
     data.remove(oid.trim());
   }
 
-  public String getExtKeyUsageName(String oid) {
-    oid = oid.trim();
+  /**
+   * @param ooid OID
+   * @return Name
+   */
+  public String getExtKeyUsageName(final String ooid) {
+    String oid = ooid.trim();
     String name = (String) data.get(oid);
     if (name == null) {
       name = oid;
@@ -156,6 +175,9 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
     return name;
   }
 
+  /**
+   * @return List of OIDs.
+   */
   public List<String> getAllOIDs() {
     Set<Object> keyset = data.keySet();
     ArrayList<String> keys = new ArrayList<String>();
@@ -167,6 +189,9 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
     return keys;
   }
 
+  /**
+   * @return Map of OIDs.
+   */
   public Map<String, String> getAllEKUOidsAndNames() {
     @SuppressWarnings("unchecked")
     Map<String, String> ret = (Map<String, String>) saveData();
@@ -174,6 +199,9 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
     return ret;
   }
 
+  /**
+   * @return Properties
+   */
   public Properties getAsProperties() {
     Properties properties = new Properties();
     Map<String, String> allEkus = getAllEKUOidsAndNames();
@@ -184,5 +212,5 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase
   }
 
   @Override
-  public void upgrade() {}
+  public void upgrade() { }
 }

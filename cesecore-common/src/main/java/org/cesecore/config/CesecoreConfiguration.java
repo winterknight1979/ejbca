@@ -21,27 +21,31 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 /**
- * This file handles configuration from ejbca.properties
+ * This file handles configuration from ejbca.properties.
  *
  * @version $Id: CesecoreConfiguration.java 34415 2020-01-30 12:29:30Z aminkh $
  */
 public final class CesecoreConfiguration {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CesecoreConfiguration.class);
 
-  /** NOTE: diff between EJBCA and CESeCore */
+  /** NOTE: diff between EJBCA and CESeCore. */
   public static final String PERSISTENCE_UNIT = "ejbca";
-
+  /** Splitter. */
   public static final String AVAILABLE_CIPHER_SUITES_SPLIT_CHAR = ";";
+  /** SN size. */
   public static final String DEFAULT_SERIAL_NUMBER_OCTET_SIZE_NEWCA = "20";
+  /** SN size. **/
   private static final String DEFAULT_SERIAL_NUMBER_OCTET_SIZE_EXISTINGCA = "8";
 
   /**
-   * This is a singleton so it's not allowed to create an instance explicitly
+   * This is a singleton so it's not allowed to create an instance explicitly.
    */
-  private CesecoreConfiguration() {}
+  private CesecoreConfiguration() { }
 
+  /** Boolean true. */
   private static final String TRUE = "true";
 
   /** @return Cesecore Datasource name */
@@ -66,8 +70,8 @@ public final class CesecoreConfiguration {
     String value =
         ConfigurationHolder.getConfiguredString("ca.serialnumberoctetsize");
     if (value == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Using default value of "
                 + DEFAULT_SERIAL_NUMBER_OCTET_SIZE_EXISTINGCA
                 + " for existing CA's ca.serialnumberoctetsize");
@@ -85,8 +89,8 @@ public final class CesecoreConfiguration {
     String value =
         ConfigurationHolder.getConfiguredString("ca.serialnumberoctetsize");
     if (value == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Using default value of "
                 + DEFAULT_SERIAL_NUMBER_OCTET_SIZE_NEWCA
                 + " for new CA's ca.serialnumberoctetsize");
@@ -211,7 +215,7 @@ public final class CesecoreConfiguration {
   public static long getCacheCaTimeInCaSession() {
     // Cache for 10 seconds is the default (Changed 2013-02-14 under ECA-2801.)
     return getLongValue(
-        "cainfo.cachetime", 10000L, "milliseconds to cache CA info");
+        "cainfo.cachetime", TEN_SECONDS, "milliseconds to cache CA info");
   }
 
   /**
@@ -219,7 +223,7 @@ public final class CesecoreConfiguration {
    *     will be refreshed from the database.
    */
   public static long getCacheTimeCryptoToken() {
-    return getLongValue("cryptotoken.cachetime", 10000L, "milliseconds");
+    return getLongValue("cryptotoken.cachetime", TEN_SECONDS, "milliseconds");
   }
 
   /**
@@ -227,7 +231,8 @@ public final class CesecoreConfiguration {
    *     and will be refreshed from the database.
    */
   public static long getCacheTimeInternalKeyBinding() {
-    return getLongValue("internalkeybinding.cachetime", 10000L, "milliseconds");
+    return getLongValue("internalkeybinding.cachetime",
+            TEN_SECONDS, "milliseconds");
   }
 
   /**
@@ -237,7 +242,7 @@ public final class CesecoreConfiguration {
   public static long getCacheCertificateProfileTime() {
     return getLongValue(
         "certprofiles.cachetime",
-        1000L,
+        MS_PER_S,
         "milliseconds to cache Certificate profiles");
   }
 
@@ -249,7 +254,7 @@ public final class CesecoreConfiguration {
   public static long getCacheGlobalOcspConfigurationTime() {
     return getLongValue(
         "ocspconfigurationcache.cachetime",
-        30000,
+        THIRTY_SECONDS,
         "milliseconds to cache OCSP settings");
   }
 
@@ -261,7 +266,7 @@ public final class CesecoreConfiguration {
   public static long getCachePublicKeyBlacklistTime() {
     return getLongValue(
         "blacklist.cachetime",
-        30000L,
+        THIRTY_SECONDS,
         "milliseconds to cache public key blacklist entries");
   }
 
@@ -271,7 +276,8 @@ public final class CesecoreConfiguration {
    */
   public static long getCacheKeyValidatorTime() {
     return getLongValue(
-        "validator.cachetime", 30000L, "milliseconds to cache validators");
+        "validator.cachetime",
+        THIRTY_SECONDS, "milliseconds to cache validators");
   }
 
   /**
@@ -281,7 +287,7 @@ public final class CesecoreConfiguration {
   public static long getCacheAuthorizationTime() {
     return getLongValue(
         "authorization.cachetime",
-        30000L,
+        THIRTY_SECONDS,
         "milliseconds to cache authorization");
   }
 
@@ -293,7 +299,7 @@ public final class CesecoreConfiguration {
   public static long getCacheGlobalConfigurationTime() {
     return getLongValue(
         "globalconfiguration.cachetime",
-        30000L,
+        THIRTY_SECONDS,
         "milliseconds to cache authorization");
   }
 
@@ -306,7 +312,7 @@ public final class CesecoreConfiguration {
         time = Long.valueOf(value);
       }
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value for "
               + propertyName
               + ". Using default "
@@ -319,11 +325,15 @@ public final class CesecoreConfiguration {
     return time;
   }
 
+  /**
+   * @return provider
+   * @throws ClassNotFoundException not found
+   */
   public static Class<?> getTrustedTimeProvider()
       throws ClassNotFoundException {
     String providerClass = ConfigurationHolder.getString("time.provider");
-    if (log.isDebugEnabled()) {
-      log.debug("TrustedTimeProvider class: " + providerClass);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("TrustedTimeProvider class: " + providerClass);
     }
     return Class.forName(providerClass);
   }
@@ -367,25 +377,25 @@ public final class CesecoreConfiguration {
    * @return ID
    */
   public static String getNodeIdentifier() {
-    final String PROPERTY_NAME = "cluster.nodeid";
-    final String PROPERTY_VALUE = "undefined";
-    String value = ConfigurationHolder.getString(PROPERTY_NAME);
+    final String propertyName = "cluster.nodeid";
+    final String propertyValue = "undefined";
+    String value = ConfigurationHolder.getString(propertyName);
     if (value == null) {
       try {
         value = InetAddress.getLocalHost().getHostName();
       } catch (UnknownHostException e) {
-        log.warn(
-            PROPERTY_NAME
+        LOG.warn(
+            propertyName
                 + " is undefined on this host and was not able to resolve"
                 + " hostname. Using "
-                + PROPERTY_VALUE
+                + propertyValue
                 + " which is fine if use a single node.");
-        value = PROPERTY_VALUE;
+        value = propertyValue;
       }
       // Update configuration, so we don't have to make a hostname lookup each
       // time we call this method.
       ConfigurationHolder.updateConfigurationWithoutBackup(
-          PROPERTY_NAME, value);
+          propertyName, value);
     }
     return value;
   }
@@ -409,7 +419,7 @@ public final class CesecoreConfiguration {
    * @param algName Name
    * @return title of the algorithm
    */
-  public static String getExtraAlgTitle(String algName) {
+  public static String getExtraAlgTitle(final String algName) {
     return ConfigurationHolder.getString(
         "extraalgs." + algName.toLowerCase() + ".title");
   }
@@ -418,12 +428,18 @@ public final class CesecoreConfiguration {
    * @param algName Name
    * @return "subalgorithms", e.g. different keylengths or curves
    */
-  public static List<String> getExtraAlgSubAlgs(String algName) {
+  public static List<String> getExtraAlgSubAlgs(final String algName) {
     return ConfigurationHolder.getPrefixedPropertyNames(
         "extraalgs." + algName + ".subalgs");
   }
 
-  public static String getExtraAlgSubAlgTitle(String algName, String subAlg) {
+  /**
+   * @param algName Alg
+   * @param subAlg sub-alg
+   * @return title
+   */
+  public static String getExtraAlgSubAlgTitle(
+          final String algName, final String subAlg) {
     String name =
         ConfigurationHolder.getString(
             "extraalgs." + algName + ".subalgs." + subAlg + ".title");
@@ -444,7 +460,13 @@ public final class CesecoreConfiguration {
     return name;
   }
 
-  public static String getExtraAlgSubAlgName(String algName, String subAlg) {
+  /**
+   * @param algName Alg
+   * @param subAlg Alg
+   * @return Name
+   */
+  public static String getExtraAlgSubAlgName(
+          final String algName, final String subAlg) {
     String name =
         ConfigurationHolder.getString(
             "extraalgs." + algName + ".subalgs." + subAlg + ".name");
@@ -455,7 +477,13 @@ public final class CesecoreConfiguration {
     return name;
   }
 
-  public static String getExtraAlgSubAlgOid(String algName, String subAlg) {
+  /**
+   * @param algName Alg
+   * @param subAlg Alg
+   * @return Name
+   */
+  public static String getExtraAlgSubAlgOid(
+          final String algName, final String subAlg) {
     final String oidTree =
         ConfigurationHolder.getString("extraalgs." + algName + ".oidtree");
     final String oidEnd =
@@ -521,6 +549,9 @@ public final class CesecoreConfiguration {
             ConfigurationHolder.getString("databaseprotection.enableverify"));
   }
 
+  /**
+   * @return bool
+   */
   public static boolean getCaKeepOcspExtendedService() {
     return Boolean.valueOf(
         ConfigurationHolder.getString("ca.keepocspextendedservice")
@@ -533,9 +564,12 @@ public final class CesecoreConfiguration {
    */
   public static int getDatabaseRevokedCertInfoFetchSize() {
     return Long.valueOf(
-            getLongValue("database.crlgenfetchsize", 500000L, "rows"))
+            getLongValue("database.crlgenfetchsize",  DEFAULT_FETCH, "rows"))
         .intValue();
   }
+
+  /** Default fetch size. */
+  private static final long DEFAULT_FETCH = 500000L;
 
   /**
    * Used just in {@link #getForbiddenCharacters()}. The method is called very
@@ -577,9 +611,7 @@ public final class CesecoreConfiguration {
         ConfigurationHolder.getString("cryptotoken.keystorecache"));
   }
 
-  /** @return a list of enabled TLS protocol versions and cipher suites */
-  /*
-   * Java 6: http://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider
+  /** Java 6: http://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider
    *  TLS versions: SSLv3, TLSv1, SSLv2Hello
    * Java 7: http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider
    *  TLS versions: SSLv3, TLSv1, TLSv1.1, TLSv1.2
@@ -587,10 +619,10 @@ public final class CesecoreConfiguration {
    * Java 8: http://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider
    *  TLS versions: SSLv3, TLSv1, TLSv1.1, TLSv1.2
    *  Cipher suites with SHA384 and SHA256 are available only for TLS 1.2 or later.
-   */
+   *  @return a list of enabled TLS protocol versions and cipher suites */
   public static String[] getAvailableCipherSuites() {
     final List<String> availableCipherSuites = new ArrayList<String>();
-    for (int i = 0; i < 255; i++) {
+    for (int i = 0; i < MAX_SUITES; i++) {
       final String key = "authkeybind.ciphersuite." + i;
       final String value = ConfigurationHolder.getString(key);
       if (value == null
@@ -601,6 +633,9 @@ public final class CesecoreConfiguration {
     }
     return availableCipherSuites.toArray(new String[0]);
   }
+
+  /** Max number of supported suites. */
+  private static final int MAX_SUITES = 255;
 
   /**
    * Gets the maximum number of entries in the CT cache. Each entry contains the
@@ -616,7 +651,7 @@ public final class CesecoreConfiguration {
    */
   public static long getCTCacheMaxEntries() {
     return getLongValue(
-        "ct.cache.maxentries", 100000L, "number of entries in cache");
+        "ct.cache.maxentries", HUNDRED_SECONDS, "number of entries in cache");
   }
 
   /**
@@ -626,7 +661,7 @@ public final class CesecoreConfiguration {
   public static long getCTCacheCleanupInterval() {
     return getLongValue(
         "ct.cache.cleanupinterval",
-        10000L,
+        TEN_SECONDS,
         "milliseconds between periodic cache cleanup");
   }
 
@@ -652,8 +687,17 @@ public final class CesecoreConfiguration {
    *     use a log which has failed to respond to a request.
    */
   public static long getCTFastFailBackOff() {
-    return getLongValue("ct.fastfail.backoff", 1000L, "milliseconds");
+    return getLongValue("ct.fastfail.backoff", MS_PER_S, "milliseconds");
   }
+
+  /** Milliseconds. */
+  private static final long MS_PER_S = 1000L;
+  /** Ten seconds. */
+  private static final long TEN_SECONDS = 10L * MS_PER_S;
+  /** Thirty Seconds. */
+  private static final long THIRTY_SECONDS = 30L * MS_PER_S;
+  /** 100 seconds. */
+  private static final long HUNDRED_SECONDS = 100L * MS_PER_S;
 
   /** @return true if key should be unmodifiable after generation. */
   public static boolean makeKeyUnmodifiableAfterGeneration() {

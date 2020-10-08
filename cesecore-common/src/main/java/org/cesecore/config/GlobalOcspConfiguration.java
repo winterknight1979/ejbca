@@ -23,26 +23,38 @@ import org.cesecore.util.CertTools;
  */
 public class GlobalOcspConfiguration extends ConfigurationBase {
 
+    /** ID. */
   public static final String OCSP_CONFIGURATION_ID = "OCSP";
 
   private static final long serialVersionUID = 1L;
-
+  /** config. */
   private static final String DEFAULT_OCSP_RESPONDER_REFERENCE =
       "defaultOcspResponderReference";
+  /** config. */
   private static final String OCSP_RESPONDER_ID_TYPE_REFERENCE =
       "ocspResponderIdType";
+  /** config. */
   private static final String DEFAULT_NONCE_ENABLED_REFERENCE =
       "defaultNonceEnabled";
 
+  /**
+   * @return ref
+   */
   public String getOcspDefaultResponderReference() {
     return CertTools.stringToBCDNString(
         (String) data.get(DEFAULT_OCSP_RESPONDER_REFERENCE));
   }
 
-  public void setOcspDefaultResponderReference(String reference) {
+  /**
+   * @param reference ref
+   */
+  public void setOcspDefaultResponderReference(final String reference) {
     data.put(DEFAULT_OCSP_RESPONDER_REFERENCE, reference);
   }
 
+  /**
+   * @return type
+   */
   @SuppressWarnings("deprecation")
   public OcspKeyBinding.ResponderIdType getOcspResponderIdType() {
     OcspKeyBinding.ResponderIdType ocspResponderIdType =
@@ -57,8 +69,11 @@ public class GlobalOcspConfiguration extends ConfigurationBase {
     return ocspResponderIdType;
   }
 
+  /**
+   * @param ocspResponderIdType type
+   */
   public void setOcspResponderIdType(
-      OcspKeyBinding.ResponderIdType ocspResponderIdType) {
+      final OcspKeyBinding.ResponderIdType ocspResponderIdType) {
     data.put(OCSP_RESPONDER_ID_TYPE_REFERENCE, ocspResponderIdType);
   }
 
@@ -78,7 +93,7 @@ public class GlobalOcspConfiguration extends ConfigurationBase {
    * @param enabled to true if CA's replying to their own OCSP requests should
    *     include NONCE's in the replies.
    */
-  public void setNonceEnabled(boolean enabled) {
+  public void setNonceEnabled(final boolean enabled) {
     data.put(DEFAULT_NONCE_ENABLED_REFERENCE, Boolean.valueOf(enabled));
   }
 

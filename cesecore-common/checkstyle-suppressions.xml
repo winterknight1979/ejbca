@@ -38,5 +38,7 @@
  	<suppress checks="MagicNumberCheck" files="ExtendedInformation.java" lines="582,644"/>	<!-- Old API versions used in upgrade process. -->
 	<suppress checks="ParameterNumberCheck" files="OcspSigningCacheEntry.java" lines="88"/>
 	<suppress checks="LineLengthCheck" files="AlgorithmTools.java" lines="510,307"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="LineLengthCheck" files="AvailableExtendedKeyUsagesConfiguration.java" lines="118,124"/> <!-- URL in comment, not caught by config -->
  	<suppress checks="MagicNumberCheck" files="DnComponents.java" lines="647-654"/>	<!-- splitting fields -->
+	<suppress checks="LineLengthCheck" files="CesecoreConfiguration.java" lines="614-621"/> <!-- URL in comment, not caught by config -->
  </suppressions>

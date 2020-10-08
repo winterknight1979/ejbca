@@ -38,7 +38,8 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
    */
   private volatile long lastupdatetime = -1;
 
-  public GlobalCesecoreConfigurationCache() {}
+  /** Default constructor. */
+  public GlobalCesecoreConfigurationCache() { }
 
   @Override
   public String getConfigId() {
@@ -73,7 +74,7 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
 
   @Override
   public ConfigurationBase getConfiguration(
-      @SuppressWarnings("rawtypes") HashMap data) {
+      @SuppressWarnings("rawtypes") final HashMap data) {
     ConfigurationBase returnval = new GlobalCesecoreConfiguration();
     returnval.loadData(data);
     return returnval;
@@ -85,7 +86,7 @@ public class GlobalCesecoreConfigurationCache implements ConfigurationCache {
   }
 
   @Override
-  public void updateConfiguration(ConfigurationBase configuration) {
+  public void updateConfiguration(final  ConfigurationBase configuration) {
     this.globalconfigurationCache = (GlobalCesecoreConfiguration) configuration;
     lastupdatetime = System.currentTimeMillis();
   }
