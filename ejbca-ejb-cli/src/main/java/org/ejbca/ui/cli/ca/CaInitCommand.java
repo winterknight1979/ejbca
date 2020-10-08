@@ -269,7 +269,7 @@ public class CaInitCommand extends BaseCaAdminCommand {
                 if (array.length > i + 1) {
                     cpsurl = array[i + 1];
                 }
-                policies.add(new CertificatePolicy(id, CertificatePolicy.id_qt_cps, cpsurl));
+                policies.add(new CertificatePolicy(id, CertificatePolicy.ID_QT_CPS, cpsurl));
             }
         }
         String signAlg = parameters.get(SIGNING_ALGORITHM_KEY);
