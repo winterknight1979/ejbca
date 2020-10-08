@@ -44,23 +44,26 @@ import org.bouncycastle.util.encoders.Hex;
 public abstract class PatternLogger implements Serializable {
 
   private static final long serialVersionUID = 8486004615125959046L;
+/** The Date and time the request. */
   public static final String LOG_TIME =
-      "LOG_TIME"; // The Date and time the request.
+      "LOG_TIME";
+/** An integer identifying a log entry for a request. */
   public static final String LOG_ID =
-      "LOG_ID"; // An integer identifying a log entry for a request
+      "LOG_ID";
+/** A random 32 bit number identifying a log entry for a request. */
   public static final String SESSION_ID =
-      "SESSION_ID"; // A random 32 bit number identifying a log entry for a
-                    // request
+      "SESSION_ID";
 
+  /** Time. */
   public static final String REPLY_TIME = "REPLY_TIME";
 
-  /** Hash of the issuer DN */
+  /** Hash of the issuer DN. */
   public static final String ISSUER_NAME_HASH = "ISSUER_NAME_HASH";
-  /** The public key of the issuer of a requested certificate */
+  /** The public key of the issuer of a requested certificate. */
   public static final String ISSUER_KEY = "ISSUER_KEY";
   /** Serial number of the requested certificate. */
   public static final String SERIAL_NOHEX = "SERIAL_NOHEX";
-  /** IP of the client making the request */
+  /** IP of the client making the reques. */
   public static final String CLIENT_IP = "CLIENT_IP";
   /**
    * The status of the OCSP-Request. SUCCESSFUL = 0;MALFORMED_REQUEST =
@@ -83,47 +86,61 @@ public abstract class PatternLogger implements Serializable {
    */
   public static final String PROCESS_TIME = "PROCESS_TIME";
 
+  /** Values. */
   private final Map<String, String> valuepairs = new HashMap<String, String>();
+  /** Matcher. */
   private final String matchString;
+  /** Match. */
   private final String matchPattern;
   // Matcher is not Serializable
+  /** Matcher. */
   private transient Matcher m;
+  /** Order. */
   private final String orderString;
+  /** Rime. */
   private final Date startTime;
+  /** Time. */
   private Date startProcessTime = null;
+  /** Logger. */
   private boolean doLogging;
+  /** Logger. */
   private final Class<?> loggerClass;
   // Logger is not Serializable
+  /** Logger. */
   private transient Logger logger;
 
   // for writing the output
+  /** Writer. */
   private transient StringWriter sw;
+  /** Writer. */
   private transient PrintWriter pw;
 
   /**
-   * @param doLogging True if you want this pattern logger to do anything upon
+   * @param adoLogging True if you want this pattern logger to do anything upon
    *     flush.
-   * @param loggerClass The Class to create Log4j logger for, to log to if
+   * @param aLoggerClass The Class to create Log4j logger for, to log to if
    *     doLogging is true
-   * @param matchPattern A string to create a matcher that is used together with
+   * @param aMatchPattern A string to create a matcher
+   *     that is used together with
    *     matchString to determine how output is formatted
-   * @param matchString A string that matches the pattern in m and specifies the
+   * @param aMatchString A string that matches the pattern
+   *     in m and specifies the
    *     order in which values are logged by the logger
    * @param logDateFormat A string that specifies how the log-time is formatted
    * @param timeZone Time Zone
    */
   protected PatternLogger(
-      boolean doLogging,
-      Class<?> loggerClass,
-      String matchPattern,
-      String matchString,
-      String logDateFormat,
-      String timeZone) {
-    this.doLogging = doLogging;
-    this.matchString = matchString;
-    this.matchPattern = matchPattern;
-    this.orderString = matchString;
-    this.loggerClass = loggerClass;
+      final boolean adoLogging,
+      final Class<?> aLoggerClass,
+      final String aMatchPattern,
+      final String aMatchString,
+      final String logDateFormat,
+      final String timeZone) {
+    this.doLogging = adoLogging;
+    this.matchString = aMatchString;
+    this.matchPattern = aMatchPattern;
+    this.orderString = aMatchString;
+    this.loggerClass = aLoggerClass;
     this.startTime = new Date();
     final FastDateFormat dateformat;
     if (timeZone == null) {
@@ -197,22 +214,22 @@ public abstract class PatternLogger implements Serializable {
 
   /**
    * Hex-encodes the bytes. method that makes sure that a "" is inserted instead
-   * of null
+   * of null.
    *
    * @param key key
    * @param value value
    */
-  public void paramPut(String key, byte[] value) {
+  public void paramPut(final String key, final byte[] value) {
     paramPut(key, new String(Hex.encode(value)));
   }
 
   /**
-   * method that makes sure that a "" is inserted instead of null
+   * method that makes sure that a "" is inserted instead of null.
    *
    * @param key key
    * @param value value
    */
-  public void paramPut(String key, String value) {
+  public void paramPut(final String key, final String value) {
     // logger.debug("paramput: "+ key+ ";" +value +";" +valuepairs.toString());
     if (value == null) {
       this.valuepairs.put(key, "");
@@ -225,12 +242,12 @@ public abstract class PatternLogger implements Serializable {
   }
 
   /**
-   * method that makes sure that a "" is inserted instead of null
+   * method that makes sure that a "" is inserted instead of null.
    *
    * @param key key
    * @param value value
    */
-  public void paramPut(String key, Integer value) {
+  public void paramPut(final String key, final Integer value) {
     if (value == null) {
       this.valuepairs.put(key, "");
     } else {
@@ -238,14 +255,14 @@ public abstract class PatternLogger implements Serializable {
     }
   }
 
-  /** Method used for creating a log row of all added values */
+  /** Method used for creating a log row of all added values. */
   public void writeln() {
     if (doLogging) {
       getPrintWriter().println(interpolate());
     }
   }
 
-  /** Writes all the rows created by writeln() to the Logger */
+  /** Writes all the rows created by writeln() to the Logger. */
   public void flush() {
     if (doLogging) {
       getPrintWriter().flush();

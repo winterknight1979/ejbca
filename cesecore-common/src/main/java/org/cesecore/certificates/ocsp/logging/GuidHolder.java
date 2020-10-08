@@ -20,15 +20,21 @@ import org.cesecore.util.GUIDGenerator;
  * @version $Id: GuidHolder.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public enum GuidHolder {
-  INSTANCE;
+  /** Singleton instance. */
+    INSTANCE;
 
-  private GuidHolder() {
+    /** Constructor. */
+  GuidHolder() {
     guid = GUIDGenerator.generateGUID(this);
   }
 
+  /**
+   * @return GUID
+   */
   public String getGlobalUid() {
     return guid;
   }
 
+  /** GUID.*/
   private final String guid;
 }

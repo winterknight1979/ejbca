@@ -19,15 +19,20 @@ package org.cesecore.certificates.ocsp.logging;
  * @version $Id: TransactionCounter.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public enum TransactionCounter {
-  INSTANCE;
+  /** Singleton instance. */
+    INSTANCE;
 
-  private TransactionCounter() {
+  TransactionCounter() {
     transactionNumber = 0;
   }
 
+  /**
+   * @return number.
+   */
   public synchronized int getTransactionNumber() {
     return transactionNumber++;
   }
 
+  /** Number. */
   private int transactionNumber;
 }

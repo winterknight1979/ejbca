@@ -22,13 +22,22 @@ import org.cesecore.config.OcspConfiguration;
 public class AuditLogger extends PatternLogger {
 
   private static final long serialVersionUID = 4474243795289459488L;
-  /** The byte[] ocsp-request that came with the http-request */
+  /** The byte[] ocsp-request that came with the http-request. */
   public static final String OCSPREQUEST = "OCSPREQUEST";
-  /** The byte[] ocsp-response that was included in the http-response */
+  /** The byte[] ocsp-response that was included in the http-response. */
   public static final String OCSPRESPONSE = "OCSPRESPONSE";
 
+  /**
+   * @param ocspRequest Request
+   * @param logId ID
+   * @param sessionId ID
+   * @param clientIp IP
+   */
   public AuditLogger(
-      String ocspRequest, Integer logId, String sessionId, String clientIp) {
+      final String ocspRequest,
+      final Integer logId,
+      final String sessionId,
+      final String clientIp) {
     super(
         OcspConfiguration.getAuditLog(),
         AuditLogger.class,

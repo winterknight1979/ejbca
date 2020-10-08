@@ -26,11 +26,11 @@ public class TransactionLogger extends PatternLogger {
   private static final long serialVersionUID = 1722398387512931482L;
   /**
    * The BC normalized subject Distinguished Name of the client making the
-   * request
+   * request.
    */
   public static final String REQ_NAME = "REQ_NAME";
   /**
-   * The Unnormalized subject Distinguished Name of the client making the
+   * The Unnormalized subject Distinguished Name of the client making the.
    * request
    */
   public static final String REQ_NAME_RAW = "REQ_NAME_RAW";
@@ -47,18 +47,19 @@ public class TransactionLogger extends PatternLogger {
   /** Certificate serial number of the certificate used to sign the request. */
   public static final String SIGN_SERIAL_NO = "SIGN_SERIAL_NO";
   /**
-   * The BC normalized issuer Distinguished Name of the requested certificate
+   * The BC normalized issuer Distinguished Name of the requested certificate.
    */
   public static final String ISSUER_NAME_DN = "ISSUER_NAME_DN";
-  /** The unnormalized issuer Distinguished Name of the requested certificate */
+  /** The unnormalized issuer Distinguished Name
+   * of the requested certificate. */
   public static final String ISSUER_NAME_DN_RAW = "ISSUER_NAME_DN_RAW";
 
   /**
-   * Algorithm used by requested certificate to hash issuer key and issuer name
+   * Algorithm used by requested certificate to hash issuer key and issuer name.
    */
   public static final String DIGEST_ALGOR = "DIGEST_ALGOR";
 
-  /** The number of certificates to check revocation status for */
+  /** The number of certificates to check revocation status for. */
   public static final String NUM_CERT_ID = "NUM_CERT_ID";
 
   /**
@@ -83,7 +84,15 @@ public class TransactionLogger extends PatternLogger {
   /** The HTTP X-Forwarded-For header value. */
   public static final String FORWARDED_FOR = "FORWARDED_FOR";
 
-  public TransactionLogger(Integer logId, String sessionId, String clientIp) {
+  /**
+   * @param logId Log
+   * @param sessionId Session
+   * @param clientIp Client
+   */
+  public TransactionLogger(
+          final Integer logId,
+          final String sessionId,
+          final String clientIp) {
     super(
         OcspConfiguration.getTransactionLog(),
         TransactionLogger.class,
