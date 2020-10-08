@@ -22,16 +22,16 @@ public class OcspFailureException extends RuntimeException {
 
   private static final long serialVersionUID = 3024801898030204798L;
 
-  /** */
-  public OcspFailureException() {}
+  /** Blank. */
+  public OcspFailureException() { }
 
   /** @param msg Message */
-  public OcspFailureException(String msg) {
+  public OcspFailureException(final String msg) {
     super(msg);
   }
 
   /** @param t cause */
-  public OcspFailureException(Throwable t) {
+  public OcspFailureException(final Throwable t) {
     super(t);
   }
 
@@ -39,7 +39,7 @@ public class OcspFailureException extends RuntimeException {
    * @param msg message
    * @param t cause
    */
-  public OcspFailureException(String msg, Throwable t) {
+  public OcspFailureException(final String msg, final Throwable t) {
     super(msg, t);
   }
 }
