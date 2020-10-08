@@ -187,6 +187,13 @@ It should explicitly depend on all other modules.</description>
 		
 		<dependency>
 			<groupId>${project.groupId}</groupId>
+			<artifactId>certstore-war</artifactId>
+			<version>${project.version}</version>
+			<classifier>classes</classifier>
+		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>cli-util</artifactId>
 			<version>${project.version}</version>
 		</dependency>
