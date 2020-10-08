@@ -84,11 +84,11 @@ public interface CommonCache<T> {
   /** @return a copy of the id to name map as a name to id map */
   Map<String, Integer> getNameToIdMap();
 
-  /** Remove all references from this cache */
+  /** Remove all references from this cache. */
   void flush();
 
   /**
-   * Replace cache with the entries referenced in keys
+   * Replace cache with the entries referenced in keys.
    *
    * @param keys keys
    */

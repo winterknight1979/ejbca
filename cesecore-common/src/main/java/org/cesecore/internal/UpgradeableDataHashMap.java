@@ -43,8 +43,11 @@ public abstract class UpgradeableDataHashMap
 
   // Use LinkedHashMap because we want to have consistent serializing of the
   // hashmap in order to be able to sign/verify data
+  /** Data. */
   protected LinkedHashMap<Object, Object> data;
+  /** Upgraded. */
   private boolean upgraded = false;
+  /** Version. */
   public static final String VERSION = "version";
 
   /** Creates a new UpgradeableDataHashMap object. */
@@ -69,6 +72,9 @@ public abstract class UpgradeableDataHashMap
     return data.clone();
   }
 
+  /**
+   * @return Raw data.
+   */
   public LinkedHashMap<Object, Object> getRawData() {
     return data;
   }
@@ -76,12 +82,12 @@ public abstract class UpgradeableDataHashMap
   /** @see IUpgradeableData#loadData(Object) */
   @Override
   @SuppressWarnings("unchecked")
-  public void loadData(final Object data) {
+  public void loadData(final Object adata) {
     // By creating a new LinkedHashMap (Base64GetHashMap) here we slip through a
     // possible upgrade issue when upgrading
     // from older implementation that used a plain HashMap instead.
     // Both newer and older versions can be casted to HashMap.
-    this.data = new Base64GetHashMap((HashMap<?, ?>) data);
+    this.data = new Base64GetHashMap((HashMap<?, ?>) adata);
     if (Float.compare(getLatestVersion(), getVersion()) > 0) {
       upgrade();
       upgraded = true;
@@ -89,7 +95,7 @@ public abstract class UpgradeableDataHashMap
   }
 
   /**
-   * So you can poll to see if the data has been upgraded
+   * So you can poll to see if the data has been upgraded.
    *
    * @return true if data has been upgraded, false otherwise
    */
@@ -118,7 +124,7 @@ public abstract class UpgradeableDataHashMap
    *     compared to this object
    * @return Map object with difference as described above
    */
-  public Map<Object, Object> diff(UpgradeableDataHashMap newobj) {
+  public Map<Object, Object> diff(final UpgradeableDataHashMap newobj) {
     @SuppressWarnings("unchecked")
     Map<Object, Object> newmap = (Map<Object, Object>) newobj.saveData();
     return diffMaps(data, newmap);
@@ -139,7 +145,8 @@ public abstract class UpgradeableDataHashMap
    * @return Map&lt;Object, Object&gt; with difference
    */
   public static Map<Object, Object> diffMaps(
-      Map<Object, Object> oldmap, Map<Object, Object> newmap) {
+      final Map<Object, Object> oldmap,
+      final Map<Object, Object> newmap) {
     Map<Object, Object> result = new LinkedHashMap<Object, Object>();
     for (Object key : oldmap.keySet()) {
       if (newmap.containsKey(key)) {
@@ -180,12 +187,12 @@ public abstract class UpgradeableDataHashMap
 
   /**
    * helper method to get nice output from types that do not work nicely with
-   * Object.toString()
+   * Object.toString().
    *
    * @param o Object
    * @return String
    */
-  private static String getVal(Object o) {
+  private static String getVal(final Object o) {
     StringBuilder b = new StringBuilder();
     if (o instanceof String[]) {
       b.append('[');
@@ -240,7 +247,7 @@ public abstract class UpgradeableDataHashMap
   }
 
   /**
-   * Set the value for the specified key as a primitive (never null) boolean
+   * Set the value for the specified key as a primitive (never null) boolean.
    *
    * @param key key
    * @param value value

@@ -34,7 +34,8 @@ import org.cesecore.config.CesecoreConfiguration;
  */
 public class InternalResources implements Serializable {
 
-  private static final Logger log = Logger.getLogger(InternalResources.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(InternalResources.class);
 
   /**
    * Determines if a de-serialized file is compatible with this class.
@@ -46,14 +47,21 @@ public class InternalResources implements Serializable {
    */
   private static final long serialVersionUID = -1003L;
 
+  /** instance. */
   protected static InternalResources instance = null;
 
+  /** primary. */
   protected Properties primaryResource = new Properties();
+  /** secondary. */
   protected Properties secondaryResource = new Properties();
+  /** placeholders. */
   private static String[] placeHolders = null;
 
+  /** Path. */
   private static final String RESOURCE_PATH = "/intresources";
+  /** Name. */
   private static final String RESOURCE_NAME = "/intresources.";
+  /** Location. */
   private static final String RESOURCE_LOCATION = RESOURCE_PATH + RESOURCE_NAME;
 
   /** Method used to setup the Internal Resource management. */
@@ -61,11 +69,11 @@ public class InternalResources implements Serializable {
     setupResources(RESOURCE_LOCATION);
   }
 
-  protected InternalResources(String resPath) {
+  protected InternalResources(final String resPath) {
     setupResources(resPath + RESOURCE_NAME);
   }
 
-  private void setupResources(String resLocation) {
+  private void setupResources(final String resLocation) {
     final String primaryLanguage =
         CesecoreConfiguration.getInternalResourcesPreferredLanguage()
             .toLowerCase(Locale.ENGLISH);
@@ -86,7 +94,7 @@ public class InternalResources implements Serializable {
               new FileInputStream(
                   resLocation + primaryLanguage + ".properties");
         } catch (FileNotFoundException e) {
-          log.error("Localization files not found: " + e.getMessage());
+          LOG.error("Localization files not found: " + e.getMessage());
         }
       }
       secondaryStream =
@@ -98,7 +106,7 @@ public class InternalResources implements Serializable {
               new FileInputStream(
                   resLocation + secondaryLanguage + ".properties");
         } catch (FileNotFoundException e) {
-          log.error("Localization files not found: " + e.getMessage());
+          LOG.error("Localization files not found: " + e.getMessage());
         }
       }
 
@@ -106,15 +114,15 @@ public class InternalResources implements Serializable {
         if (primaryStream != null) {
           primaryResource.load(primaryStream);
         } else {
-          log.warn("primaryResourse == null");
+          LOG.warn("primaryResourse == null");
         }
         if (secondaryStream != null) {
           secondaryResource.load(secondaryStream);
         } else {
-          log.warn("secondaryResource == null");
+          LOG.warn("secondaryResource == null");
         }
       } catch (IOException e) {
-        log.error("Error reading internal resourcefile", e);
+        LOG.error("Error reading internal resourcefile", e);
       }
     } finally {
       try {
@@ -125,7 +133,7 @@ public class InternalResources implements Serializable {
           secondaryStream.close();
         }
       } catch (IOException e) {
-        log.error("Error closing internal resources language streams: ", e);
+        LOG.error("Error closing internal resources language streams: ", e);
       }
     }
   }
@@ -208,12 +216,16 @@ public class InternalResources implements Serializable {
       }
     }
     replacePlaceholders(sb, params);
-    if (log.isTraceEnabled()) {
-      log.trace(key + "=" + sb.toString());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(key + "=" + sb.toString());
     }
     return sb;
   }
 
+  /**
+   * @param sb buffer
+   * @param params parameters
+   */
   public static void replacePlaceholders(
       final StringBuilder sb, final Object... params) {
     for (int i = 0; i < params.length; i++) {
@@ -225,7 +237,8 @@ public class InternalResources implements Serializable {
   /** @return a lazily instantiated array of place holders like "{number}". */
   private static String[] getPlaceHolders() {
     if (placeHolders == null) {
-      final String[] arr = new String[100];
+      final int length = 100;
+      final String[] arr = new String[length];
       for (int i = 0; i < arr.length; i++) {
         arr[i] = new StringBuilder('{').append(i).append('}').toString();
       }
@@ -247,20 +260,22 @@ public class InternalResources implements Serializable {
       final int placeHolderIndex,
       final Object replacementObject) {
     if (sb == null) {
-      log.error("No StringBuilder. Unable to create localized message.");
+      LOG.error("No StringBuilder. Unable to create localized message.");
       return;
     }
-    final String[] placeHolders = getPlaceHolders();
-    if (placeHolderIndex < 0 || placeHolderIndex > (placeHolders.length - 1)) {
-      log.error(
+    final String[] lplaceHolders = getPlaceHolders();
+    if (placeHolderIndex < 0 || placeHolderIndex > (lplaceHolders.length - 1)) {
+      LOG.error(
           "Place holder index out of range. Unable to create localized"
               + " message.");
       return;
     }
-    final String placeHolder = placeHolders[placeHolderIndex];
+    final String placeHolder = lplaceHolders[placeHolderIndex];
     final int placeHolderLength = placeHolder.length();
     int currentIndex = -placeHolderLength;
-    int bar = 20; // never allow more than 20 placeholders to avoid recursion
+    final int maxBar = 20;
+    int bar = maxBar; // never allow more than
+                       // 20 placeholders to avoid recursion
     if (replacementObject == null) {
       while ((currentIndex =
                   sb.indexOf(placeHolder, currentIndex + placeHolderLength))
@@ -287,20 +302,20 @@ public class InternalResources implements Serializable {
    * where number starts with 'startPlaceHolderIndex'.
    *
    * @param sb StringBuilder buffer
-   * @param startPlaceHolderIndex index
+   * @param astartPlaceHolderIndex index
    */
   private static void removeUnusedPlaceHolders(
-      final StringBuilder sb, final int startPlaceHolderIndex) {
-    final String[] placeHolders = getPlaceHolders();
-    if (startPlaceHolderIndex < 0
-        || startPlaceHolderIndex > (placeHolders.length - 1)) {
-      log.error(
+      final StringBuilder sb, final int astartPlaceHolderIndex) {
+    final String[] aPlaceHolders = getPlaceHolders();
+    if (astartPlaceHolderIndex < 0
+        || astartPlaceHolderIndex > (aPlaceHolders.length - 1)) {
+      LOG.error(
           "Place holder index out of range. Unable to create localized"
               + " message.");
       return;
     }
-    for (int i = startPlaceHolderIndex; i < placeHolders.length; i++) {
-      final String placeHolder = placeHolders[i];
+    for (int i = astartPlaceHolderIndex; i < aPlaceHolders.length; i++) {
+      final String placeHolder = aPlaceHolders[i];
       final int placeHolderLength = placeHolder.length();
       int currentIndex = -placeHolderLength;
       boolean someThingRemoved = false;

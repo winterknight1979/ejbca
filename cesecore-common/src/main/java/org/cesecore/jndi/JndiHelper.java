@@ -30,12 +30,15 @@ import org.apache.log4j.Logger;
  */
 public abstract class JndiHelper {
 
-  private static final Logger log = Logger.getLogger(JndiHelper.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(JndiHelper.class);
 
+  /** Context. */
   private static Context context = null;
 
   // By default try the first lookup as JEE5 name, is that fails try JEE6
   // We can probably do this more clever by using reflection or something?
+  /** Boolean. */
   private static boolean isJEE6 = false;
 
   private static Context getContext() throws NamingException {
@@ -89,15 +92,15 @@ public abstract class JndiHelper {
             }
           } catch (NamingException ne) {
             // Log the original error, i.e. e not ne
-            log.error("JNDI name lookup error", e);
+            LOG.error("JNDI name lookup error", e);
           }
         } else {
           // Log the original error, i.e. e not ne
-          log.error("JNDI name lookup error", e);
+          LOG.error("JNDI name lookup error", e);
         }
       }
     } catch (ClassCastException e) {
-      log.error(
+      LOG.error(
           "JNDI object "
               + jndiName
               + " is not of type "

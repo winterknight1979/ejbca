@@ -17,8 +17,10 @@ package org.cesecore.jndi;
  *
  * @version $Id: JndiConstants.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-public class JndiConstants {
+public final  class JndiConstants {
 
-  /** NOTE: diff between EJBCA and CESeCore */
+   private JndiConstants() { }
+
+  /** NOTE: diff between EJBCA and CESeCore. */
   public static final String APP_JNDI_PREFIX = "ejbca/";
 }

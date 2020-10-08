@@ -34,21 +34,32 @@ import org.apache.log4j.Logger;
 public abstract class CommonCacheBase<T> implements CommonCache<T> {
 
   private class CacheEntry {
-    long lastUpdate;
-    final int digest;
-    final String name;
-    final T object;
+      /** Last update. */
+    private long lastUpdate;
+    /** digest. */
+    private final int digest;
+    /** Name. */
+    private final String name;
+    /** Object. */
+    private final T object;
 
-    CacheEntry(long lastUpdate, int digest, String name, T object) {
-      this.lastUpdate = lastUpdate;
-      this.digest = digest;
-      this.name = name;
-      this.object = object;
+    CacheEntry(
+            final long alastUpdate,
+            final int adigest,
+            final String aname,
+            final T aobject) {
+      this.lastUpdate = alastUpdate;
+      this.digest = adigest;
+      this.name = aname;
+      this.object = aobject;
     }
   }
 
+  /** Logger. */
   private final Logger log = Logger.getLogger(CommonCacheBase.class);
+  /** Cache. */
   private Map<Integer, CacheEntry> cache = new HashMap<Integer, CacheEntry>();
+  /** Names. */
   private Map<String, Integer> nameToIdMap = new HashMap<String, Integer>();
 
   /** @return how long to cache objects in milliseconds. */
@@ -74,6 +85,9 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
     return getEntry(Integer.valueOf(id));
   }
 
+  /**
+   * @return all entries
+   */
   public Set<T> getAllEntries() {
     Set<T> result = new HashSet<T>();
     for (CacheEntry cacheEntry : cache.values()) {
@@ -113,12 +127,12 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
   }
 
   @Override
-  public void removeEntry(int id) {
+  public void removeEntry(final int id) {
     updateWith(id, 0, null, null);
   }
 
   @Override
-  public boolean willUpdate(int id, int digest) {
+  public boolean willUpdate(final int id, final int digest) {
     // Same version in cache as provided Object?
     final Integer key = Integer.valueOf(id);
     final CacheEntry cacheEntry = getCacheEntry(key);
@@ -139,7 +153,11 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
   }
 
   @Override
-  public void updateWith(int id, int digest, String name, T object) {
+  public void updateWith(
+          final int id,
+          final int digest,
+          final String name,
+          final T object) {
     final Integer key = Integer.valueOf(id);
     if (name == null || object == null || getCacheTime() < 0) {
       // Remove from cache
@@ -166,7 +184,7 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
   }
 
   @Override
-  public String getName(int id) {
+  public String getName(final int id) {
     final CacheEntry entry = getCacheEntry(id);
     return entry != null ? entry.name : null;
   }
@@ -210,10 +228,7 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
         }
       }
       // Process the one that will change
-      if (cacheEntry == null) {
-        // Don't add if to the new version of the cache if it existed (e.g.
-        // remove it)
-      } else {
+      if (cacheEntry != null) {
         cacheStage.put(key, cacheEntry);
         nameToIdMapStage.put(cacheEntry.name, key);
       }
@@ -237,7 +252,7 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
   }
 
   @Override
-  public void replaceCacheWith(List<Integer> keys) {
+  public void replaceCacheWith(final List<Integer> keys) {
     Map<Integer, CacheEntry> cacheStage = new HashMap<Integer, CacheEntry>();
     Map<String, Integer> nameToIdMapStage = new HashMap<String, Integer>();
 
@@ -253,8 +268,8 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
   }
 
   private void replaceCache(
-      Map<Integer, CacheEntry> cacheStage,
-      Map<String, Integer> nameToIdMapStage) {
+      final Map<Integer, CacheEntry> cacheStage,
+      final  Map<String, Integer> nameToIdMapStage) {
     synchronized (this) {
       cache = cacheStage;
       nameToIdMap = nameToIdMapStage;

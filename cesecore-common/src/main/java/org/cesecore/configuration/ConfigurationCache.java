@@ -24,9 +24,9 @@ import java.util.Properties;
  */
 public interface ConfigurationCache {
 
-	/**
-	 * @return ID
-	 */
+    /**
+     * @return ID
+     */
   String getConfigId();
 
   /** Clear. */
