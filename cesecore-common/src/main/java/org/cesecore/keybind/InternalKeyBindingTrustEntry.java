@@ -18,7 +18,7 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * (JavaBean-) XML Serializable representation of a trust anchor (CA Id) or
- * trusted certificate (CA Id and certificate serialnumber)
+ * trusted certificate (CA Id and certificate serialnumber).
  *
  * <p>An undefined (null) serialnumber means ANY serialnumber.
  *
@@ -29,55 +29,90 @@ public class InternalKeyBindingTrustEntry implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** ID. */
   private int caId = 0;
+  /** SN. */
   private String certificateSerialNumberDecimal = null;
+  /** Desc. */
   private String trustEntryDescription = null;
 
-  public InternalKeyBindingTrustEntry() {}
+  /** Default constructor. */
+  public InternalKeyBindingTrustEntry() { }
 
+  /**
+   * @param aCaId ID
+   * @param certificateSerialNumber SN
+   */
   public InternalKeyBindingTrustEntry(
-      int caId, BigInteger certificateSerialNumber) {
-    setCaId(caId);
+      final int aCaId, final BigInteger certificateSerialNumber) {
+    setCaId(aCaId);
     putCertificateSerialNumber(certificateSerialNumber);
   }
 
+  /**
+   * @param aCaId ID
+   * @param aCertificateSerialNumber SN
+   * @param description Desc
+   */
   public InternalKeyBindingTrustEntry(
-      int caId, BigInteger certificateSerialNumber, String description) {
-    setCaId(caId);
-    putCertificateSerialNumber(certificateSerialNumber);
+      final int aCaId,
+      final BigInteger aCertificateSerialNumber,
+      final String description) {
+    setCaId(aCaId);
+    putCertificateSerialNumber(aCertificateSerialNumber);
     // We don't want to put empty Strings. Use null instead
     if (!StringUtils.isEmpty(description)) {
       this.trustEntryDescription = description;
     }
   }
 
+  /**
+   * @return ID
+   */
   public int getCaId() {
     return caId;
   }
 
-  public void setCaId(int caId) {
-    this.caId = caId;
+  /**
+   * @param aCaId ID
+   */
+  public void setCaId(final int aCaId) {
+    this.caId = aCaId;
   }
 
+  /**
+   * @return SN
+   */
   public String getCertificateSerialNumberDecimal() {
     return certificateSerialNumberDecimal;
   }
 
+  /**
+   * @param aCertificateSerialNumberDecimal SN
+   */
   public void setCertificateSerialNumberDecimal(
-      String certificateSerialNumberDecimal) {
-    this.certificateSerialNumberDecimal = certificateSerialNumberDecimal;
+      final String aCertificateSerialNumberDecimal) {
+    this.certificateSerialNumberDecimal = aCertificateSerialNumberDecimal;
   }
 
+  /**
+   * @return desc
+   */
   public String getTrustEntryDescription() {
     return trustEntryDescription;
   }
 
-  public void setTrustEntryDescription(String description) {
+  /**
+   * @param description desc.
+   */
+  public void setTrustEntryDescription(final String description) {
     this.trustEntryDescription = description;
   }
 
-  /* NOTE: The getter and setter for a BigInteger must not comply with the JavaBean spec for this to work with java.beans.XMLEncoder
-   * NO_NOT_RENAME_TO get */
+  /** NOTE: The getter and setter for a BigInteger must not
+   * comply with the JavaBean spec for this to work with java.beans.XMLEncoder
+   * NO_NOT_RENAME_TO get.
+ * @return  sn*/
   public BigInteger fetchCertificateSerialNumber() {
     if (certificateSerialNumberDecimal == null) {
       return null;
@@ -86,9 +121,13 @@ public class InternalKeyBindingTrustEntry implements Serializable {
     }
   }
 
-  /* NOTE: The getter and setter for a BigInteger must not comply with the JavaBean spec for this to work with java.beans.XMLEncoder
-   * NO_NOT_RENAME_TO set */
-  public void putCertificateSerialNumber(BigInteger certificateSerialNumber) {
+  /**
+   *  NOTE: The getter and setter for a BigInteger must not
+   * comply with the JavaBean spec for this to work with java.beans.XMLEncoder
+   * NO_NOT_RENAME_TO set.
+ * @param certificateSerialNumber SN */
+  public void putCertificateSerialNumber(
+          final BigInteger certificateSerialNumber) {
     if (certificateSerialNumber == null) {
       this.certificateSerialNumberDecimal = null;
     } else {
@@ -109,21 +148,38 @@ public class InternalKeyBindingTrustEntry implements Serializable {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + caId;
+    result = prime * result
+            + ((certificateSerialNumberDecimal == null)
+                    ? 0
+                    : certificateSerialNumberDecimal.hashCode());
+    result = prime * result + ((trustEntryDescription == null)
+            ? 0
+            : trustEntryDescription.hashCode());
+    return result;
+}
+
+  @Override
+  public boolean equals(final Object object) {
     if (!(object instanceof InternalKeyBindingTrustEntry)) {
-      return false;
+        return false;
     }
     final InternalKeyBindingTrustEntry other =
-        (InternalKeyBindingTrustEntry) object;
+            (InternalKeyBindingTrustEntry) object;
     if (caId != other.caId) {
-      return false;
+        return false;
     }
     if (certificateSerialNumberDecimal == null
-        && other.certificateSerialNumberDecimal == null) {
-      return true;
+            && other.certificateSerialNumberDecimal == null) {
+        return true;
     }
     return certificateSerialNumberDecimal != null
-        && certificateSerialNumberDecimal.equals(
-            other.certificateSerialNumberDecimal);
-  }
+            && certificateSerialNumberDecimal.equals(
+                    other.certificateSerialNumberDecimal);
+}
+
+
 }

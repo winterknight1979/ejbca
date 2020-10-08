@@ -37,32 +37,54 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
     implements InternalKeyBinding {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingBase.class);
+  /** Property. */
   private static final String PROP_NEXT_KEY_PAIR_ALIAS = "nextKeyPairAlias";
+  /** Property. */
   private static final String PROP_TRUSTED_CERTIFICATE_REFERENCES =
       "trustedCertificateReferences";
+  /** Property. */
   private static final String PROP_SIGNATURE_ALGORITHM = "signatureAlgorithm";
+  /** Extensions. */
   private static final String PROP_OCSP_EXTENSION = "ocspExtensions";
+  /** Prefix. */
   private static final String BASECLASS_PREFIX = "BASECLASS_";
+  /** Prefix. */
   public static final String SUBCLASS_PREFIX = "SUBCLASS_";
-
+  /** ID. */
   private int internalKeyBindingId;
+  /** Name. */
   private String name;
+  /** Status. */
   private InternalKeyBindingStatus status;
+  /** Status. */
   private InternalKeyBindingOperationalStatus operationalStatus;
+  /** ID. */
   private String certificateId;
+  /** ID. */
   private int cryptoTokenId;
+  /** Alias. */
   private String keyPairAlias;
+  /** Refs.  */
   private List<InternalKeyBindingTrustEntry> trustedCertificateReferences;
+  /** extensions. */
   private List<String> ocspExtensions;
+  /** Algo. */
   private String signatureAlgorithm;
 
+  /**
+   * Map.
+   */
   private final LinkedHashMap<String, DynamicUiProperty<? extends Serializable>>
       propertyTemplates = new LinkedHashMap<>();
 
+  /**
+   * @param property property
+   */
   protected void addProperty(
-      DynamicUiProperty<? extends Serializable> property) {
+      final DynamicUiProperty<? extends Serializable> property) {
     propertyTemplates.put(property.getName(), property);
   }
 
@@ -83,39 +105,39 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
 
   @Override
   public DynamicUiProperty<? extends Serializable> getProperty(
-      final String name) {
+      final String aName) {
     DynamicUiProperty<? extends Serializable> property =
-        propertyTemplates.get(name);
+        propertyTemplates.get(aName);
     property = new DynamicUiProperty<>(property);
-    property.setValueGeneric(getData(name, property.getDefaultValue()));
+    property.setValueGeneric(getData(aName, property.getDefaultValue()));
     return property;
   }
 
   @Override
-  public void setProperty(final String name, Serializable value) {
-    putData(name, value);
+  public void setProperty(final String aName, final Serializable value) {
+    putData(aName, value);
   }
 
   @Override
   public void init(
-      int internalKeyBindingId,
-      String name,
-      InternalKeyBindingStatus status,
-      String certificateId,
-      int cryptoTokenId,
-      String keyPairAlias,
-      LinkedHashMap<Object, Object> dataMap) {
-    this.internalKeyBindingId = internalKeyBindingId;
-    setName(name);
-    setStatus(status);
-    setCertificateId(certificateId);
-    setCryptoTokenId(cryptoTokenId);
-    setKeyPairAlias(keyPairAlias);
-    if (dataMap.get(VERSION) == null) {
+      final int aInternalKeyBindingId,
+      final String aName,
+      final InternalKeyBindingStatus aStatus,
+      final String aCertificateId,
+      final int aCryptoTokenId,
+      final String aKeyPairAlias,
+      final LinkedHashMap<Object, Object> aDataMap) {
+    this.internalKeyBindingId = aInternalKeyBindingId;
+    setName(aName);
+    setStatus(aStatus);
+    setCertificateId(aCertificateId);
+    setCryptoTokenId(aCryptoTokenId);
+    setKeyPairAlias(aKeyPairAlias);
+    if (aDataMap.get(VERSION) == null) {
       // If we are creating a new object we need a version
-      dataMap.put(VERSION, Float.valueOf(getLatestVersion()));
+      aDataMap.put(VERSION, Float.valueOf(getLatestVersion()));
     }
-    loadData(dataMap);
+    loadData(aDataMap);
   }
 
   @Override
@@ -129,8 +151,8 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setName(final String name) {
-    this.name = name;
+  public void setName(final String aName) {
+    this.name = aName;
   }
 
   @Override
@@ -142,11 +164,11 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setStatus(final InternalKeyBindingStatus status) {
-    if (status == null) {
+  public void setStatus(final InternalKeyBindingStatus aStatus) {
+    if (aStatus == null) {
       this.status = InternalKeyBindingStatus.DISABLED;
     } else {
-      this.status = status;
+      this.status = aStatus;
     }
   }
 
@@ -160,11 +182,11 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
 
   @Override
   public void setOperationalStatus(
-      final InternalKeyBindingOperationalStatus operationalStatus) {
-    if (operationalStatus == null) {
+      final InternalKeyBindingOperationalStatus aOperationalStatus) {
+    if (aOperationalStatus == null) {
       this.operationalStatus = InternalKeyBindingOperationalStatus.OFFLINE;
     } else {
-      this.operationalStatus = operationalStatus;
+      this.operationalStatus = aOperationalStatus;
     }
   }
 
@@ -174,8 +196,8 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setCertificateId(final String certificateId) {
-    this.certificateId = certificateId;
+  public void setCertificateId(final String aCertificateId) {
+    this.certificateId = aCertificateId;
   }
 
   @Override
@@ -184,8 +206,8 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setCryptoTokenId(final int cryptoTokenId) {
-    this.cryptoTokenId = cryptoTokenId;
+  public void setCryptoTokenId(final int aCryptoTokenId) {
+    this.cryptoTokenId = aCryptoTokenId;
   }
 
   @Override
@@ -194,8 +216,8 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setKeyPairAlias(final String keyPairAlias) {
-    this.keyPairAlias = keyPairAlias;
+  public void setKeyPairAlias(final String aKeyPairAlias) {
+    this.keyPairAlias = aKeyPairAlias;
   }
 
   @Override
@@ -204,21 +226,25 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setNextKeyPairAlias(final String nextKeyPairAlias) {
-    putData(PROP_NEXT_KEY_PAIR_ALIAS, nextKeyPairAlias);
+  public void setNextKeyPairAlias(final String aNextKeyPairAlias) {
+    putData(PROP_NEXT_KEY_PAIR_ALIAS, aNextKeyPairAlias);
   }
 
   @Override
-  public void updateCertificateIdAndCurrentKeyAlias(String certificateId) {
-    setCertificateId(certificateId);
+  public void updateCertificateIdAndCurrentKeyAlias(
+          final String aCertificateId) {
+    setCertificateId(aCertificateId);
     setKeyPairAlias(getNextKeyPairAlias());
     setNextKeyPairAlias(null);
   }
 
+  /** Format. */
   private static final SimpleDateFormat DATE_FORMAT_MS =
       new SimpleDateFormat("yyyyMMddHHmmssSSS");
+  /** Format. */
   private static final Pattern DATE_FORMAT_PATTERN =
       Pattern.compile("_\\d{8}\\d{6}$");
+  /** Format. */
   private static final Pattern DATE_FORMAT_PATTERN_MS =
       Pattern.compile("_\\d{8}\\d{9}$");
 
@@ -253,8 +279,8 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   public void generateNextKeyPairAlias() {
     final String currentKeyPairAlias = getKeyPairAlias();
     final String nextKeyPairAlias = getNewAlias(currentKeyPairAlias);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "nextKeyPairAlias for internalKeyBinding "
               + internalKeyBindingId
               + " will be "
@@ -272,21 +298,22 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
               new ArrayList<InternalKeyBindingTrustEntry>());
     }
     // Return a shallow copy of the list
-    final ArrayList<InternalKeyBindingTrustEntry> trustedCertificateReferences =
-        new ArrayList<InternalKeyBindingTrustEntry>();
-    trustedCertificateReferences.addAll(this.trustedCertificateReferences);
-    return trustedCertificateReferences;
+    final ArrayList<InternalKeyBindingTrustEntry>
+        aTrustedCertificateReferences =
+            new ArrayList<InternalKeyBindingTrustEntry>();
+    aTrustedCertificateReferences.addAll(this.trustedCertificateReferences);
+    return aTrustedCertificateReferences;
   }
 
   @Override
   public void setTrustedCertificateReferences(
-      final List<InternalKeyBindingTrustEntry> trustedCertificateReferences) {
-    this.trustedCertificateReferences = trustedCertificateReferences;
+      final List<InternalKeyBindingTrustEntry> aTrustedCertificateReferences) {
+    this.trustedCertificateReferences = aTrustedCertificateReferences;
     // Always save it as an ArrayList that we know is Serializable
     final ArrayList<InternalKeyBindingTrustEntry> arrayList =
         new ArrayList<InternalKeyBindingTrustEntry>(
-            trustedCertificateReferences.size());
-    arrayList.addAll(trustedCertificateReferences);
+            aTrustedCertificateReferences.size());
+    arrayList.addAll(aTrustedCertificateReferences);
     putDataInternal(PROP_TRUSTED_CERTIFICATE_REFERENCES, arrayList);
   }
 
@@ -302,10 +329,10 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setOcspExtensions(List<String> ocspExtensions) {
-    this.ocspExtensions = ocspExtensions;
+  public void setOcspExtensions(final List<String> aOcspExtensions) {
+    this.ocspExtensions = aOcspExtensions;
     final ArrayList<String> arrayList = new ArrayList<>();
-    arrayList.addAll(ocspExtensions);
+    arrayList.addAll(aOcspExtensions);
     putDataInternal(PROP_OCSP_EXTENSION, arrayList);
   }
 
@@ -318,9 +345,9 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setSignatureAlgorithm(String signatureAlgorithm) {
-    this.signatureAlgorithm = signatureAlgorithm;
-    putDataInternal(PROP_SIGNATURE_ALGORITHM, signatureAlgorithm);
+  public void setSignatureAlgorithm(final String aSignatureAlgorithm) {
+    this.signatureAlgorithm = aSignatureAlgorithm;
+    putDataInternal(PROP_SIGNATURE_ALGORITHM, aSignatureAlgorithm);
   }
 
   @Override
@@ -335,7 +362,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   @Override
   public abstract void assertCertificateCompatability(
       Certificate certificate,
-      final AvailableExtendedKeyUsagesConfiguration ekuConfig)
+      AvailableExtendedKeyUsagesConfiguration ekuConfig)
       throws CertificateImportException;
 
   @Override
@@ -346,13 +373,13 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap
   }
 
   /**
-   * Invoked after the all data has been loaded in init(...)
+   * Invoked after the all data has been loaded in init(...).
    *
    * @param latestVersion new version
    * @param currentVersion old version
    */
   protected abstract void upgrade(
-      final float latestVersion, final float currentVersion);
+      float latestVersion, float currentVersion);
 
   /**
    * Store data in the underlying map. Encourages use of String valued keys.

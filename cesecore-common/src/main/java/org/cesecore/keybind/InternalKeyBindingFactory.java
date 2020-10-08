@@ -33,29 +33,39 @@ import org.cesecore.util.ui.DynamicUiProperty;
  *     mikekushner $
  */
 public enum InternalKeyBindingFactory {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
-  private final Logger log = Logger.getLogger(InternalKeyBindingFactory.class);
+  /** Logger. */
+   private final Logger log = Logger.getLogger(InternalKeyBindingFactory.class);
+
+  /** Ilpl. */
   private final Map<String, String> aliasToImplementationMap =
       new HashMap<String, String>();
+  /** Alias. */
   private final Map<String, String> implementationToAliasMap =
       new HashMap<String, String>();
+  /** Properties. */
   private final Map<
           String, Map<String, DynamicUiProperty<? extends Serializable>>>
       implementationPropertiesMap =
           new HashMap<
               String, Map<String, DynamicUiProperty<? extends Serializable>>>();
 
-  private InternalKeyBindingFactory() {
+  InternalKeyBindingFactory() {
     addImplementation(OcspKeyBinding.class);
     addImplementation(AuthenticationKeyBinding.class);
     // Use ServiceLoader framework to find additional available implementations
     // We add these after the built in ones, so the built in implementations can
     // be overridden
-    // TODO the above when we need to
+    // TODO: the above when we need to
   }
 
-  public boolean existsTypeAlias(String alias) {
+  /**
+   * @param alias alias
+   * @return bool
+   */
+  public boolean existsTypeAlias(final String alias) {
     return aliasToImplementationMap.containsKey(alias);
   }
 
@@ -202,6 +212,9 @@ public enum InternalKeyBindingFactory {
     }
   }
 
+  /**
+   * @return Properties
+   */
   public Map<String, Map<String, DynamicUiProperty<? extends Serializable>>>
       getAvailableTypesAndProperties() {
     return Collections.unmodifiableMap(implementationPropertiesMap);
@@ -221,7 +234,7 @@ public enum InternalKeyBindingFactory {
    *     information about any values that were invalid.
    */
   public InternalKeyBindingPropertyValidationWrapper validateProperties(
-      String alias, Map<String, String> propertiesMap) {
+      final String alias, final Map<String, String> propertiesMap) {
     InternalKeyBindingPropertyValidationWrapper result =
         new InternalKeyBindingPropertyValidationWrapper();
     Map<String, DynamicUiProperty<? extends Serializable>>

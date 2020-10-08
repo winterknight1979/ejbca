@@ -39,12 +39,12 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
   private static final Logger LOG = Logger.getLogger(OcspKeyBinding.class);
 
   public enum ResponderIdType {
-	  /** Hash. */
+      /** Hash. */
     KEYHASH(2, "KeyHash"),
     /** Name. */
     NAME(1, "Name");
 
-	  /** Value. */
+      /** Value. */
     private final int numericValue;
     /** Label. */
     private final String label;
@@ -59,7 +59,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
       }
     }
 
-    /**	     * 
+    /**         *
      * @param aNumericValue typw
      * @param aLabel label
      */
@@ -76,7 +76,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     }
 
     /**
-     * @return label 
+     * @return label
      */
     public String getLabel() {
       return label;
@@ -84,7 +84,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
 
     /**
      * @param numericValue value
-     * @return type 
+     * @return type
      */
     public static ResponderIdType getFromNumericValue(final int numericValue) {
       return numericValueLookupMap.get(Integer.valueOf(numericValue));
@@ -166,7 +166,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
 
   @Override
   protected void upgrade(
-		  final float latestVersion, final float currentVersion) {
+          final float latestVersion, final float currentVersion) {
     // Nothing to do
   }
 
@@ -221,7 +221,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
    * @param nonExistingUnauthorized bool
    */
   public void setNonExistingUnauthorized(
-		  final boolean nonExistingUnauthorized) {
+          final boolean nonExistingUnauthorized) {
     setProperty(
         PROPERTY_NON_EXISTING_UNAUTHORIZED,
         Boolean.valueOf(nonExistingUnauthorized));
@@ -281,7 +281,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
    * @param requireTrustedSignature bool
    */
   public void setRequireTrustedSignature(
-		  final boolean requireTrustedSignature) {
+          final boolean requireTrustedSignature) {
     setProperty(
         PROPERTY_REQUIRE_TRUSTED_SIGNATURE,
         Boolean.valueOf(requireTrustedSignature));
@@ -291,7 +291,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     return (Long) getProperty(PROPERTY_UNTIL_NEXT_UPDATE).getValue();
   }
   /**
-   * Set the value in seconds (granularity defined in RFC 5019). 
+   * Set the value in seconds (granularity defined in RFC 5019).
    *
    * @param untilNextUpdate time
    */

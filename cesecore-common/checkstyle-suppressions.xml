@@ -41,4 +41,5 @@
 	<suppress checks="LineLengthCheck" files="AvailableExtendedKeyUsagesConfiguration.java" lines="118,124"/> <!-- URL in comment, not caught by config -->
  	<suppress checks="MagicNumberCheck" files="DnComponents.java" lines="647-654"/>	<!-- splitting fields -->
 	<suppress checks="LineLengthCheck" files="CesecoreConfiguration.java" lines="614-621"/> <!-- URL in comment, not caught by config -->
+	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingFactory.java" lines="89"/>
  </suppressions>

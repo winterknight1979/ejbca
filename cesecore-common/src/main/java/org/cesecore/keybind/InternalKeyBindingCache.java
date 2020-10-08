@@ -26,8 +26,12 @@ import org.cesecore.internal.CommonCacheBase;
  *     $
  */
 public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
-  INSTANCE;
+    /** Singleton. */
+    INSTANCE;
 
+    /**
+     * Base.
+     */
   private final CommonCacheBase<InternalKeyBinding> internalKeyBindingCache =
       new CommonCacheBase<InternalKeyBinding>() {
         @Override
@@ -43,8 +47,7 @@ public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
           // We never purge InternalKeyBindings unless a database select
           // discovers a missing object.
           return 0;
-        }
-        ;
+        };
       };
 
   @Override
@@ -67,17 +70,18 @@ public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
 
   @Override
   public void updateWith(
-      int signerId, int digest, String name, InternalKeyBinding object) {
+      final int signerId, final int digest,
+      final String name, final InternalKeyBinding object) {
     internalKeyBindingCache.updateWith(signerId, digest, name, object);
   }
 
   @Override
-  public void removeEntry(int signerId) {
+  public void removeEntry(final int signerId) {
     internalKeyBindingCache.removeEntry(signerId);
   }
 
   @Override
-  public String getName(int id) {
+  public String getName(final int id) {
     return internalKeyBindingCache.getName(id);
   }
 
@@ -92,16 +96,19 @@ public enum InternalKeyBindingCache implements CommonCache<InternalKeyBinding> {
   }
 
   @Override
-  public void replaceCacheWith(List<Integer> keys) {
+  public void replaceCacheWith(final List<Integer> keys) {
     internalKeyBindingCache.replaceCacheWith(keys);
   }
 
+  /**
+   * @return values
+   */
   public Set<InternalKeyBinding> getAllValues() {
     return internalKeyBindingCache.getAllEntries();
   }
 
   @Override
-  public boolean willUpdate(int id, int digest) {
+  public boolean willUpdate(final int id, final int digest) {
     return internalKeyBindingCache.willUpdate(id, digest);
   }
 }

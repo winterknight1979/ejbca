@@ -23,42 +23,65 @@ import java.util.Map;
  *     $
  */
 public enum InternalKeyBindingRules {
+    /** Base. */
   BASE("/internalkeybinding", ""),
+  /** Delete. */
   DELETE(BASE.resource() + "/delete", "DELETE"),
+  /** Modify. */
   MODIFY(BASE.resource() + "/modify", "MODIFY"),
+  /** View. */
   VIEW(BASE.resource() + "/view", "VIEW");
 
+    /** Reverse lookup table. */
   private static final Map<String, InternalKeyBindingRules>
-      reverseResourceLookup;
+      REV_RESOURCE_LOOKUP;
 
   static {
-    reverseResourceLookup = new HashMap<String, InternalKeyBindingRules>();
+    REV_RESOURCE_LOOKUP = new HashMap<String, InternalKeyBindingRules>();
     for (InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {
-      reverseResourceLookup.put(rule.resource(), rule);
+      REV_RESOURCE_LOOKUP.put(rule.resource(), rule);
     }
   }
 
+  /** Resource. */
   private final String resource;
+  /** Ref. */
   private final String reference;
 
-  private InternalKeyBindingRules(String resource, String reference) {
-    this.resource = resource;
-    this.reference = reference;
+  /**
+   * @param aResource resource
+   * @param aReference ref
+   */
+  InternalKeyBindingRules(
+          final String aResource, final String aReference) {
+    this.resource = aResource;
+    this.reference = aReference;
   }
 
+  /**
+   * @return resource
+   */
   public String resource() {
     return this.resource;
   }
 
+  @Override
   public String toString() {
     return this.resource;
   }
 
+  /**
+   * @return ref
+   */
   public String getReference() {
     return reference;
   }
 
-  public static InternalKeyBindingRules getFromResource(String resource) {
-    return reverseResourceLookup.get(resource);
+  /**
+   * @param resource resource
+   * @return rules
+   */
+  public static InternalKeyBindingRules getFromResource(final String resource) {
+    return REV_RESOURCE_LOOKUP.get(resource);
   }
 }

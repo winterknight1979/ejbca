@@ -25,6 +25,7 @@ import org.cesecore.ErrorCode;
 public class InternalKeyBindingNameInUseException extends CesecoreException {
 
   private static final long serialVersionUID = 1L;
+  /** Code. */
   public static final ErrorCode INTERNAL_KEY_BINDING_NAME_IN_USE =
       ErrorCode.INTERNAL_KEY_BINDING_NAME_IN_USE;
 
@@ -42,7 +43,7 @@ public class InternalKeyBindingNameInUseException extends CesecoreException {
    *
    * @param msg the detail message.
    */
-  public InternalKeyBindingNameInUseException(String msg) {
+  public InternalKeyBindingNameInUseException(final String msg) {
     super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg);
   }
 
@@ -52,7 +53,7 @@ public class InternalKeyBindingNameInUseException extends CesecoreException {
    *
    * @param exception the exception that caused this
    */
-  public InternalKeyBindingNameInUseException(Exception exception) {
+  public InternalKeyBindingNameInUseException(final Exception exception) {
     super(INTERNAL_KEY_BINDING_NAME_IN_USE, exception);
   }
 
@@ -63,7 +64,8 @@ public class InternalKeyBindingNameInUseException extends CesecoreException {
    * @param msg the detail message.
    * @param e the exception that caused this
    */
-  public InternalKeyBindingNameInUseException(String msg, Exception e) {
+  public InternalKeyBindingNameInUseException(
+          final String msg, final Exception e) {
     super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg, e);
   }
 }

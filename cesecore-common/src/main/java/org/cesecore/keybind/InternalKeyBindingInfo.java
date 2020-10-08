@@ -32,22 +32,38 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   private static final long serialVersionUID = 1L;
 
+  /** Alias. */
   private final String implementationAlias;
+  /** ID. */
   private final int id;
+  /** Name. */
   private final String name;
+  /** Status. */
   private final InternalKeyBindingStatus status;
+  /** Status. */
   private final InternalKeyBindingOperationalStatus operationalStatus;
+  /** Cert. */
   private final String certificateId;
+  /** Token. */
   private final int cryptoTokenId;
+  /** Alias. */
   private final String keyPairAlias;
+  /** Alias. */
   private final String nextKeyPairAlias;
+  /** Props. */
   private final Map<String, DynamicUiProperty<? extends Serializable>>
       properties;
+  /** Refs. */
   private final List<InternalKeyBindingTrustEntry> trustedCertificateReferences;
+  /** Exts. */
   private final List<String> ocspExtensions;
+  /** Algo. */
   private final String signatureAlgorithm;
 
-  public InternalKeyBindingInfo(InternalKeyBinding internalKeyBinding) {
+  /**
+   * @param internalKeyBinding binding
+   */
+  public InternalKeyBindingInfo(final InternalKeyBinding internalKeyBinding) {
     this.implementationAlias = internalKeyBinding.getImplementationAlias();
     this.id = internalKeyBinding.getId();
     this.name = internalKeyBinding.getName();
@@ -66,13 +82,13 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void init(
-      int id,
-      String name,
-      InternalKeyBindingStatus status,
-      String certificateId,
-      int cryptoTokenId,
-      String keyPairAlias,
-      LinkedHashMap<Object, Object> dataMapToLoad) {
+      final int aId,
+      final String aName,
+      final InternalKeyBindingStatus aStatus,
+      final String aCertificateId,
+      final int aCryptoTokenId,
+      final String aKeyPairAlias,
+      final LinkedHashMap<Object, Object> dataMapToLoad) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -92,12 +108,13 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setNextKeyPairAlias(String nextKeyPairAlias) {
+  public void setNextKeyPairAlias(final String aNextKeyPairAlias) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
   @Override
-  public void updateCertificateIdAndCurrentKeyAlias(String certificateId) {
+  public void updateCertificateIdAndCurrentKeyAlias(
+          final String aCertificateId) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -108,7 +125,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void assertCertificateCompatability(
-      Certificate certificate,
+      final Certificate certificate,
       final AvailableExtendedKeyUsagesConfiguration ekuConfig)
       throws CertificateImportException {
     throw new RuntimeException(new OperationNotSupportedException());
@@ -125,7 +142,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setName(String name) {
+  public void setName(final String aName) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -135,7 +152,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setStatus(InternalKeyBindingStatus status) {
+  public void setStatus(final InternalKeyBindingStatus aStatus) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -146,7 +163,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setOperationalStatus(
-      InternalKeyBindingOperationalStatus opStatus) {
+      final InternalKeyBindingOperationalStatus opStatus) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -156,7 +173,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setCertificateId(String certificateId) {
+  public void setCertificateId(final String aCertificateId) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -166,7 +183,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setCryptoTokenId(int cryptoTokenId) {
+  public void setCryptoTokenId(final int aCryptoTokenId) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -176,17 +193,19 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setKeyPairAlias(String keyPairAlias) {
+  public void setKeyPairAlias(final String aKeyPairAlias) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
   @Override
-  public DynamicUiProperty<? extends Serializable> getProperty(String name) {
-    return properties.get(name);
+  public DynamicUiProperty<? extends Serializable> getProperty(
+          final String aName) {
+    return properties.get(aName);
   }
 
   @Override
-  public void setProperty(String name, Serializable value) {
+  public void setProperty(
+          final String aName, final Serializable value) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -203,7 +222,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
 
   @Override
   public void setTrustedCertificateReferences(
-      List<InternalKeyBindingTrustEntry> trustedCertificateReferences) {
+      final List<InternalKeyBindingTrustEntry> aTrustedCertificateReferences) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -213,7 +232,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setSignatureAlgorithm(String signatureAlgorithm) {
+  public void setSignatureAlgorithm(final String aSignatureAlgorithm) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 
@@ -223,7 +242,7 @@ public class InternalKeyBindingInfo implements InternalKeyBinding {
   }
 
   @Override
-  public void setOcspExtensions(List<String> ocspExtensions) {
+  public void setOcspExtensions(final List<String> aOcspExtensions) {
     throw new RuntimeException(new OperationNotSupportedException());
   }
 }
