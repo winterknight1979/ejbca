@@ -27,7 +27,7 @@ jobs:
      # We always want to build the whole project, even if some unit tests fail
     # We therefore run Maven with -fn and grep the log file for the failure message to set the exit status.
     - name: Build packages with Maven
-      run: mvn -B package -Pcoverage -fn --file pom.xml | tee build.log
+      run: mvn -B package -Pcoverage -Pjboss -fn --file pom.xml | tee build.log
     - name: Check for build fail
       run: test `grep -L "There are test failures" build.log`
       
@@ -43,7 +43,7 @@ jobs:
       if: always()
    
     - name: Build Reports
-      run: mvn -Pcoverage -B site site:stage --file pom.xml
+      run: mvn -Pcoverage -Pjboss -B site site:stage --file pom.xml
         #    - uses: jwgmeligmeyling/checkstyle-github-action@master
         #  with:
         #  path: '**/checkstyle-result.xml'
@@ -58,10 +58,10 @@ jobs:
     - name: Deploy reports to github.io
       env:
         PASS: ${{ secrets.REPO_PASS }}
-      run: mvn -B -Dpassword=$PASS scm-publish:publish-scm --file pom.xml
+      run: mvn -B -Dpassword=$PASS -Pjboss scm-publish:publish-scm --file pom.xml
       
     - name: Publish snapshot to GitHub Packages Apache Maven
-      run: mvn -B deploy -DskipTests=true -s $GITHUB_WORKSPACE/settings.xml
+      run: mvn -B deploy -Pjboss -DskipTests=true -s $GITHUB_WORKSPACE/settings.xml
       env:
         GITHUB_TOKEN: ${{ github.token }}
         
