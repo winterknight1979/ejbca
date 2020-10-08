@@ -74,11 +74,13 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-cmp-tcp</module>
 		<module>va-war</module>
 		<module>certstore-war</module>
+		<module>crlstore-war</module>
 
 		<!-- Test-only modules -->
 
 		<module>ejbca-test-aggregator</module>
 
+		
 	</modules>
 
 	<scm>
