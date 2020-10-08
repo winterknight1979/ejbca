@@ -29,23 +29,32 @@ import org.apache.log4j.Logger;
  */
 public class ClientX509KeyManager implements X509KeyManager {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ClientX509KeyManager.class);
 
+  /** Alias. */
   private final String alias;
+  /** Key. */
   private final PrivateKey privateKey;
+  /** Chain. */
   private final X509Certificate[] certificateChain;
 
+  /**
+   * @param aAlias Alias
+   * @param aPrivateKey Key
+   * @param aCertificateChain Chain
+   */
   public ClientX509KeyManager(
-      final String alias,
-      final PrivateKey privateKey,
-      final List<X509Certificate> certificateChain) {
-    this.alias = alias;
-    this.privateKey = privateKey;
-    if (certificateChain != null) {
+      final String aAlias,
+      final PrivateKey aPrivateKey,
+      final List<X509Certificate> aCertificateChain) {
+    this.alias = aAlias;
+    this.privateKey = aPrivateKey;
+    if (aCertificateChain != null) {
       this.certificateChain =
-          certificateChain.toArray(
-              new X509Certificate[certificateChain.size()]);
+          aCertificateChain.toArray(
+              new X509Certificate[aCertificateChain.size()]);
     } else {
       this.certificateChain = null;
     }
@@ -62,16 +71,16 @@ public class ClientX509KeyManager implements X509KeyManager {
   public String chooseServerAlias(
       final String keyType, final Principal[] issuers, final Socket socket) {
     logDebugIfEnabled(null, new String[] {keyType}, issuers, socket);
-    log.warn(
+    LOG.warn(
         "Got a request for server aliases, but implementation only supports"
             + " client side of TLS negotiations.");
     return null; // We are not the server side
   }
 
   @Override
-  public X509Certificate[] getCertificateChain(final String alias) {
-    logDebugIfEnabled(alias, null, null, null);
-    if (this.alias.equals(alias)) {
+  public X509Certificate[] getCertificateChain(final String aAlias) {
+    logDebugIfEnabled(aAlias, null, null, null);
+    if (this.alias.equals(aAlias)) {
       return certificateChain;
     }
     return null;
@@ -85,9 +94,9 @@ public class ClientX509KeyManager implements X509KeyManager {
   }
 
   @Override
-  public PrivateKey getPrivateKey(final String alias) {
-    logDebugIfEnabled(alias, null, null, null);
-    if (this.alias.equals(alias)) {
+  public PrivateKey getPrivateKey(final String aAlias) {
+    logDebugIfEnabled(aAlias, null, null, null);
+    if (this.alias.equals(aAlias)) {
       return privateKey;
     }
     return null;
@@ -97,41 +106,41 @@ public class ClientX509KeyManager implements X509KeyManager {
   public String[] getServerAliases(
       final String keyType, final Principal[] issuers) {
     logDebugIfEnabled(null, new String[] {keyType}, issuers, null);
-    log.warn(
+    LOG.warn(
         "Got a request for server aliases, but implementation only supports"
             + " client side of TLS negotiations.");
     return null; // We are not server side
   }
 
   /**
-   * Write debug log if enabled for any of the provided nullable arguments
+   * Write debug log if enabled for any of the provided nullable arguments.
    *
-   * @param alias Alias
+   * @param aAlias Alias
    * @param keyTypes Types
    * @param issuers Issuers
    * @param socket Socket
    */
   private void logDebugIfEnabled(
-      final String alias,
+      final String aAlias,
       final String[] keyTypes,
       final Principal[] issuers,
       final Socket socket) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           Thread.currentThread().getStackTrace()[2].getMethodName() + ":");
-      if (alias != null) {
-        log.debug(" Alias: " + alias);
+      if (aAlias != null) {
+        LOG.debug(" Alias: " + aAlias);
       }
       if (keyTypes != null) {
-        log.debug(" KeyTypes: " + Arrays.toString(keyTypes));
+        LOG.debug(" KeyTypes: " + Arrays.toString(keyTypes));
       }
       if (issuers != null) {
         for (final Principal issuer : issuers) {
-          log.debug(" Issuer: " + issuer);
+          LOG.debug(" Issuer: " + issuer);
         }
       }
       if (socket != null) {
-        log.debug(" RemoteSocketAddress: " + socket.getRemoteSocketAddress());
+        LOG.debug(" RemoteSocketAddress: " + socket.getRemoteSocketAddress());
       }
     }
   }

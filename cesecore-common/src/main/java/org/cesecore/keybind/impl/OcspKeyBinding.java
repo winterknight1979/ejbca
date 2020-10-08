@@ -35,14 +35,20 @@ import org.cesecore.util.ui.DynamicUiProperty;
 public class OcspKeyBinding extends InternalKeyBindingBase {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(OcspKeyBinding.class);
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(OcspKeyBinding.class);
 
   public enum ResponderIdType {
+	  /** Hash. */
     KEYHASH(2, "KeyHash"),
+    /** Name. */
     NAME(1, "Name");
 
+	  /** Value. */
     private final int numericValue;
+    /** Label. */
     private final String label;
+    /** Map. */
     private static Map<Integer, ResponderIdType> numericValueLookupMap;
 
     static {
@@ -53,40 +59,65 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
       }
     }
 
-    private ResponderIdType(int numericValue, String label) {
-      this.numericValue = numericValue;
-      this.label = label;
+    /**	     * 
+     * @param aNumericValue typw
+     * @param aLabel label
+     */
+    ResponderIdType(final int aNumericValue, final String aLabel) {
+      this.numericValue = aNumericValue;
+      this.label = aLabel;
     }
 
+    /**
+     * @return value
+     */
     public int getNumericValue() {
       return numericValue;
     }
 
+    /**
+     * @return label 
+     */
     public String getLabel() {
       return label;
     }
 
-    public static ResponderIdType getFromNumericValue(int numericValue) {
+    /**
+     * @param numericValue value
+     * @return type 
+     */
+    public static ResponderIdType getFromNumericValue(final int numericValue) {
       return numericValueLookupMap.get(Integer.valueOf(numericValue));
     }
   }
 
+  /** Alias. */
   public static final String IMPLEMENTATION_ALIAS =
       "OcspKeyBinding"; // This should not change, even if we rename the class
                         // in EJBCA 5.3+..
+  /** Good. */
   public static final String PROPERTY_NON_EXISTING_GOOD = "nonexistingisgood";
+ /** Revoked. */
   public static final String PROPERTY_NON_EXISTING_REVOKED =
       "nonexistingisrevoked";
+  /** Unauth. */
   public static final String PROPERTY_NON_EXISTING_UNAUTHORIZED =
       "nonexistingisunauthorized";
+  /** Chain. */
   public static final String PROPERTY_INCLUDE_CERT_CHAIN = "includecertchain";
+  /** Cert. */
   public static final String PROPERTY_INCLUDE_SIGN_CERT = "includesigncert";
+  /** Type. */
   public static final String PROPERTY_RESPONDER_ID_TYPE =
       "responderidtype"; // keyhash, name
+  /** Sig. */
   public static final String PROPERTY_REQUIRE_TRUSTED_SIGNATURE =
       "requireTrustedSignature";
+  /** time. */
   public static final String PROPERTY_UNTIL_NEXT_UPDATE = "untilNextUpdate";
+  /** Age. */
   public static final String PROPERTY_MAX_AGE = "maxAge";
+  /** Nonce. */
   public static final String PROPERTY_ENABLE_NONCE = "enableNonce";
 
   {
@@ -134,7 +165,8 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
   }
 
   @Override
-  protected void upgrade(float latestVersion, float currentVersion) {
+  protected void upgrade(
+		  final float latestVersion, final float currentVersion) {
     // Nothing to do
   }
 
@@ -146,23 +178,38 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     assertCertificateCompatabilityInternal(certificate, ekuConfig);
   }
 
+  /**
+   * @return bool
+   */
   public boolean getNonExistingGood() {
     return (Boolean) getProperty(PROPERTY_NON_EXISTING_GOOD).getValue();
   }
 
-  public void setNonExistingGood(boolean nonExistingGood) {
+  /**
+   * @param nonExistingGood bool
+   */
+  public void setNonExistingGood(final boolean nonExistingGood) {
     setProperty(PROPERTY_NON_EXISTING_GOOD, Boolean.valueOf(nonExistingGood));
   }
 
+  /**
+   * @return bool
+   */
   public boolean getNonExistingRevoked() {
     return (Boolean) getProperty(PROPERTY_NON_EXISTING_REVOKED).getValue();
   }
 
-  public void setNonExistingRevoked(boolean nonExistingRevoked) {
+  /**
+   * @param nonExistingRevoked bool
+   */
+  public void setNonExistingRevoked(final boolean nonExistingRevoked) {
     setProperty(
         PROPERTY_NON_EXISTING_REVOKED, Boolean.valueOf(nonExistingRevoked));
   }
 
+  /**
+   * @return bool
+   */
   public boolean getNonExistingUnauthorized() {
     if (getProperty(PROPERTY_NON_EXISTING_UNAUTHORIZED) == null) {
       setNonExistingUnauthorized(false);
@@ -170,42 +217,71 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     return (Boolean) getProperty(PROPERTY_NON_EXISTING_UNAUTHORIZED).getValue();
   }
 
-  public void setNonExistingUnauthorized(boolean nonExistingUnauthorized) {
+  /**
+   * @param nonExistingUnauthorized bool
+   */
+  public void setNonExistingUnauthorized(
+		  final boolean nonExistingUnauthorized) {
     setProperty(
         PROPERTY_NON_EXISTING_UNAUTHORIZED,
         Boolean.valueOf(nonExistingUnauthorized));
   }
 
+  /**
+   * @return bool
+   */
   public boolean getIncludeCertChain() {
     return (Boolean) getProperty(PROPERTY_INCLUDE_CERT_CHAIN).getValue();
   }
 
-  public void setIncludeCertChain(boolean includeCertChain) {
+  /**
+   * @param includeCertChain chain
+   */
+  public void setIncludeCertChain(final boolean includeCertChain) {
     setProperty(PROPERTY_INCLUDE_CERT_CHAIN, Boolean.valueOf(includeCertChain));
   }
 
+  /**
+   * @return bool
+   */
   public boolean getIncludeSignCert() {
     return (Boolean) getProperty(PROPERTY_INCLUDE_SIGN_CERT).getValue();
   }
 
-  public void setIncludeSignCert(boolean includeCertChain) {
+  /**
+   * @param includeCertChain bool
+   */
+  public void setIncludeSignCert(final boolean includeCertChain) {
     setProperty(PROPERTY_INCLUDE_SIGN_CERT, Boolean.valueOf(includeCertChain));
   }
 
+  /**
+   * @return type
+   */
   public ResponderIdType getResponderIdType() {
     return ResponderIdType.valueOf(
         (String) getProperty(PROPERTY_RESPONDER_ID_TYPE).getValue());
   }
 
-  public void setResponderIdType(ResponderIdType responderIdType) {
+  /**
+   * @param responderIdType type
+   */
+  public void setResponderIdType(final ResponderIdType responderIdType) {
     setProperty(PROPERTY_RESPONDER_ID_TYPE, responderIdType.name());
   }
 
+  /**
+   * @return bool
+   */
   public boolean getRequireTrustedSignature() {
     return (Boolean) getProperty(PROPERTY_REQUIRE_TRUSTED_SIGNATURE).getValue();
   }
 
-  public void setRequireTrustedSignature(boolean requireTrustedSignature) {
+  /**
+   * @param requireTrustedSignature bool
+   */
+  public void setRequireTrustedSignature(
+		  final boolean requireTrustedSignature) {
     setProperty(
         PROPERTY_REQUIRE_TRUSTED_SIGNATURE,
         Boolean.valueOf(requireTrustedSignature));
@@ -215,11 +291,11 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     return (Long) getProperty(PROPERTY_UNTIL_NEXT_UPDATE).getValue();
   }
   /**
-   * Set the value in seconds (granularity defined in RFC 5019)
+   * Set the value in seconds (granularity defined in RFC 5019). 
    *
    * @param untilNextUpdate time
    */
-  public void setUntilNextUpdate(long untilNextUpdate) {
+  public void setUntilNextUpdate(final long untilNextUpdate) {
     setProperty(PROPERTY_UNTIL_NEXT_UPDATE, Long.valueOf(untilNextUpdate));
   }
   /** @return the value in seconds (granularity defined in RFC 5019) */
@@ -227,11 +303,11 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     return (Long) getProperty(PROPERTY_MAX_AGE).getValue();
   }
   /**
-   * Set the value in seconds (granularity defined in RFC 5019)
+   * Set the value in seconds (granularity defined in RFC 5019).
    *
    * @param maxAge age
    */
-  public void setMaxAge(long maxAge) {
+  public void setMaxAge(final long maxAge) {
     setProperty(PROPERTY_MAX_AGE, Long.valueOf(maxAge));
   }
 
@@ -243,13 +319,18 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     return (Boolean) getProperty(PROPERTY_ENABLE_NONCE).getValue();
   }
   /** @param enabled as true of NONCE's are to be included in replies */
-  public void setNonceEnabled(boolean enabled) {
+  public void setNonceEnabled(final boolean enabled) {
     setProperty(PROPERTY_ENABLE_NONCE, Boolean.valueOf(enabled));
   }
 
+  /**
+   * @param certificate Cert
+   * @param ekuConfig Config
+   * @return Bool
+   */
   public static boolean isOcspSigningCertificate(
       final Certificate certificate,
-      AvailableExtendedKeyUsagesConfiguration ekuConfig) {
+      final AvailableExtendedKeyUsagesConfiguration ekuConfig) {
     try {
       assertCertificateCompatabilityInternal(certificate, ekuConfig);
     } catch (CertificateImportException e) {
@@ -260,7 +341,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
 
   private static void assertCertificateCompatabilityInternal(
       final Certificate certificate,
-      AvailableExtendedKeyUsagesConfiguration ekuConfig)
+      final AvailableExtendedKeyUsagesConfiguration ekuConfig)
       throws CertificateImportException {
     if (certificate == null) {
       throw new CertificateImportException("No certificate provided.");
@@ -271,22 +352,22 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     }
     try {
       final X509Certificate x509Certificate = (X509Certificate) certificate;
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "SubjectDN: "
                 + CertTools.getSubjectDN(x509Certificate)
                 + " IssuerDN: "
                 + CertTools.getIssuerDN(x509Certificate));
         final boolean[] ku = x509Certificate.getKeyUsage();
-        log.debug("Key usages: " + Arrays.toString(ku));
+        LOG.debug("Key usages: " + Arrays.toString(ku));
         if (ku != null) {
-          log.debug(
+          LOG.debug(
               "Key usage (digitalSignature): "
                   + x509Certificate.getKeyUsage()[0]);
-          log.debug(
+          LOG.debug(
               "Key usage (nonRepudiation):   "
                   + x509Certificate.getKeyUsage()[1]);
-          log.debug(
+          LOG.debug(
               "Key usage (keyEncipherment):  "
                   + x509Certificate.getKeyUsage()[2]);
         }
@@ -296,7 +377,7 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
             "No Extended Key Usage present in certificate.");
       }
       for (String extendedKeyUsage : x509Certificate.getExtendedKeyUsage()) {
-        log.debug(
+        LOG.debug(
             "EKU: "
                 + extendedKeyUsage
                 + " ("

@@ -26,6 +26,7 @@ import org.cesecore.ErrorCode;
 public class CertificateImportException extends CesecoreException {
 
   private static final long serialVersionUID = 1L;
+  /** Code. */
   public static final ErrorCode CERTIFICATE_IMPORT =
       ErrorCode.CERTIFICATE_IMPORT;
 
@@ -43,7 +44,7 @@ public class CertificateImportException extends CesecoreException {
    *
    * @param msg the detail message.
    */
-  public CertificateImportException(String msg) {
+  public CertificateImportException(final String msg) {
     super(CERTIFICATE_IMPORT, msg);
   }
 
@@ -53,7 +54,7 @@ public class CertificateImportException extends CesecoreException {
    *
    * @param exception the exception that caused this
    */
-  public CertificateImportException(Exception exception) {
+  public CertificateImportException(final Exception exception) {
     super(CERTIFICATE_IMPORT, exception);
   }
 
@@ -64,7 +65,7 @@ public class CertificateImportException extends CesecoreException {
    * @param msg the detail message.
    * @param e the exception that caused this
    */
-  public CertificateImportException(String msg, Exception e) {
+  public CertificateImportException(final String msg, final Exception e) {
     super(CERTIFICATE_IMPORT, msg, e);
   }
 }

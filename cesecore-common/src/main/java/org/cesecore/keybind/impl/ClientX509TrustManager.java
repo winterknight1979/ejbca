@@ -29,9 +29,14 @@ import org.cesecore.util.provider.EkuPKIXCertPathChecker;
  */
 public class ClientX509TrustManager implements X509TrustManager {
 
+    /** Trusted chains. */
   private List<Collection<X509Certificate>> trustedCertificatesChains = null;
+  /** Chains. */
   private List<X509Certificate> encounteredServerCertificateChain = null;
 
+  /**
+   * @param trustedCertificates Certs.
+   */
   public ClientX509TrustManager(
       final List<Collection<X509Certificate>> trustedCertificates) {
     if (trustedCertificates != null) {
@@ -40,7 +45,8 @@ public class ClientX509TrustManager implements X509TrustManager {
   }
 
   @Override
-  public void checkClientTrusted(X509Certificate[] chain, String authType)
+  public void checkClientTrusted(
+          final X509Certificate[] chain, final String authType)
       throws CertificateException {
     X509Certificate cert = chain[0];
     // Validate the certificate and require a critical EKU extensions (if
@@ -65,7 +71,8 @@ public class ClientX509TrustManager implements X509TrustManager {
   }
 
   @Override
-  public void checkServerTrusted(X509Certificate[] chain, String authType)
+  public void checkServerTrusted(
+          final X509Certificate[] chain, final String authType)
       throws CertificateException {
     X509Certificate cert = chain[0];
     encounteredServerCertificateChain = new ArrayList<>(Arrays.asList(chain));
