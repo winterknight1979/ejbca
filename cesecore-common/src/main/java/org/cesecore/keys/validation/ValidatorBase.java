@@ -39,46 +39,59 @@ public abstract class ValidatorBase extends ProfileBase
   private static final long serialVersionUID = -335459158399850925L;
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(ValidatorBase.class);
+  private static final Logger LOG = Logger.getLogger(ValidatorBase.class);
 
-  protected static final InternalResources intres =
+  /** Resource. */
+  protected static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /** List of applicable issuance phases (see {@link IssuancePhase}). */
-  protected static List<Integer> APPLICABLE_PHASES;
+  protected static List<Integer> applicablePhases;
 
   /** List of applicable CA types (see {@link #getApplicableCaTypes()}. */
-  protected static List<Integer> APPLICABLE_CA_TYPES;
-
+  protected static List<Integer> applicableCaTypes;
+ /** API version. */
   public static final float LATEST_VERSION = 7F;
-
+ /** Type. */
   public static final String TYPE = "type";
+  /** Template. */
   public static final String SETTINGS_TEMPLATE = "settingsTemplate";
+  /** Phase. */
   protected static final String PHASE = "phase";
+  /** Desc. */
   protected static final String DESCRIPTION = "description";
+  /** Date. */
   protected static final String NOT_BEFORE = "notBefore";
+  /** Condition. */
   protected static final String NOT_BEFORE_CONDITION = "notBeforeCondition";
+  /** Date. */
   protected static final String NOT_AFTER = "notAfter";
+  /** Condition. */
   protected static final String NOT_AFTER_CONDITION = "notAfterCondition";
+  /** IDs. */
   protected static final String ALL_CERTIFICATE_PROFILE_IDS =
       "allCertificateProfileIds";
+  /** IDs. */
   protected static final String CERTIFICATE_PROFILE_IDS =
       "certificateProfileIds";
+  /** failed. */
   protected static final String FAILED_ACTION = "failedAction";
+  /** not applicable. */
   protected static final String NOT_APPLICABLE_ACTION = "notApplicableAction";
 
   static {
-    APPLICABLE_PHASES = new ArrayList<Integer>();
-    APPLICABLE_PHASES.add(IssuancePhase.DATA_VALIDATION.getIndex());
-    APPLICABLE_PHASES.add(IssuancePhase.PRE_CERTIFICATE_VALIDATION.getIndex());
-    APPLICABLE_PHASES.add(IssuancePhase.CERTIFICATE_VALIDATION.getIndex());
+    applicablePhases = new ArrayList<Integer>();
+    applicablePhases.add(IssuancePhase.DATA_VALIDATION.getIndex());
+    applicablePhases.add(IssuancePhase.PRE_CERTIFICATE_VALIDATION.getIndex());
+    applicablePhases.add(IssuancePhase.CERTIFICATE_VALIDATION.getIndex());
 
-    APPLICABLE_CA_TYPES = new ArrayList<Integer>();
-    APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_X509);
-    APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_CVC);
+    applicableCaTypes = new ArrayList<Integer>();
+    applicableCaTypes.add(CAInfo.CATYPE_X509);
+    applicableCaTypes.add(CAInfo.CATYPE_CVC);
   }
 
   // Values used for lookup that are not stored in the data hash map.
+  /** ID. */
   private int id;
 
   /** Public constructor needed for deserialization. */
@@ -99,7 +112,7 @@ public abstract class ValidatorBase extends ProfileBase
 
   @Override
   public List<Integer> getApplicableCaTypes() {
-    return APPLICABLE_CA_TYPES;
+    return applicableCaTypes;
   }
 
   @Override
@@ -143,7 +156,7 @@ public abstract class ValidatorBase extends ProfileBase
 
   @Override
   public List<Integer> getApplicablePhases() {
-    return APPLICABLE_PHASES;
+    return applicablePhases;
   }
 
   @Override
@@ -152,13 +165,13 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  public void setPhase(int index) {
+  public void setPhase(final int index) {
     data.put(PHASE, index);
   }
 
   @Override
   public void setKeyValidatorSettingsTemplate(
-      KeyValidatorSettingsTemplate template) {}
+      final KeyValidatorSettingsTemplate template) { }
 
   @Override
   public Integer getSettingsTemplate() {
@@ -166,7 +179,7 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  public void setSettingsTemplate(Integer option) {
+  public void setSettingsTemplate(final Integer option) {
     data.put(SETTINGS_TEMPLATE, option);
   }
 
@@ -176,7 +189,7 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  public void setDescription(String description) {
+  public void setDescription(final String description) {
     data.put(DESCRIPTION, description);
   }
 
@@ -186,7 +199,7 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  public void setAllCertificateProfileIds(boolean isAll) {
+  public void setAllCertificateProfileIds(final boolean isAll) {
     data.put(ALL_CERTIFICATE_PROFILE_IDS, Boolean.valueOf(isAll));
   }
 
@@ -205,20 +218,20 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  public void setCertificateProfileIds(Collection<Integer> ids) {
+  public void setCertificateProfileIds(final Collection<Integer> ids) {
     final StringBuilder builder = new StringBuilder();
-    for (Integer id : ids) {
+    for (Integer lid : ids) {
       if (builder.length() == 0) {
-        builder.append(id);
+        builder.append(lid);
       } else {
-        builder.append(LIST_SEPARATOR).append(id);
+        builder.append(LIST_SEPARATOR).append(lid);
       }
     }
     data.put(CERTIFICATE_PROFILE_IDS, builder.toString());
   }
 
   @Override
-  public void setFailedAction(int index) {
+  public void setFailedAction(final int index) {
     data.put(FAILED_ACTION, index);
   }
 
@@ -228,7 +241,7 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  public void setNotApplicableAction(int index) {
+  public void setNotApplicableAction(final int index) {
     data.put(NOT_APPLICABLE_ACTION, index);
   }
 
@@ -237,7 +250,7 @@ public abstract class ValidatorBase extends ProfileBase
     return ((Integer) data.get(NOT_APPLICABLE_ACTION)).intValue();
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
   @Override
   public float getLatestVersion() {
     return LATEST_VERSION;
@@ -245,14 +258,14 @@ public abstract class ValidatorBase extends ProfileBase
 
   @Override
   public void upgrade() {
-    if (log.isTraceEnabled()) {
-      log.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
     }
     super.upgrade();
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade.
-      log.info(
-          intres.getLocalizedMessage(
+      LOG.info(
+          INTRES.getLocalizedMessage(
               "validator.upgrade", Float.valueOf(getVersion())));
       init();
       // Finished upgrade, set new version
@@ -316,10 +329,10 @@ public abstract class ValidatorBase extends ProfileBase
   }
 
   @Override
-  protected void saveTransientObjects() {}
+  protected void saveTransientObjects() { }
 
   @Override
-  protected void loadTransientObjects() {}
+  protected void loadTransientObjects() { }
 
   @Override
   public UpgradeableDataHashMap getUpgradableHashmap() {

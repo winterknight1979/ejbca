@@ -35,22 +35,25 @@ public enum KeyValidatorDateConditions implements IndexEnum {
   /** Condition for greater than or equal to a given date. */
   GREATER_OR_EQUAL(3, "VALIDATORDATECONDITION_GREATER_OR_EQUAL", "≥");
 
+    /** Index. */
   private int index;
+  /** Label. */
   private String label;
+  /** expr. */
   private String expression;
 
   /**
    * Creates a new instance.
    *
-   * @param index index
-   * @param label resource key or label.
-   * @param expression expression
+   * @param anIndex index
+   * @param aLabel resource key or label.
+   * @param anExpression expression
    */
-  private KeyValidatorDateConditions(
-      final int index, final String label, final String expression) {
-    this.index = index;
-    this.label = label;
-    this.expression = expression;
+  KeyValidatorDateConditions(
+      final int anIndex, final String aLabel, final String anExpression) {
+    this.index = anIndex;
+    this.label = aLabel;
+    this.expression = anExpression;
   }
 
   /**
@@ -79,8 +82,8 @@ public enum KeyValidatorDateConditions implements IndexEnum {
    * @return conditions
    */
   public static KeyValidatorDateConditions fromIndex(final int index) {
-    for (final KeyValidatorDateConditions condition :
-        KeyValidatorDateConditions.values()) {
+    for (final KeyValidatorDateConditions condition
+        : KeyValidatorDateConditions.values()) {
       if (condition.getIndex() == index) {
         return condition;
       }
@@ -93,7 +96,7 @@ public enum KeyValidatorDateConditions implements IndexEnum {
    *
    * @return indices
    */
-  public static final List<Integer> index() {
+  public static List<Integer> index() {
     final List<Integer> result = new ArrayList<Integer>();
     for (KeyValidatorDateConditions condition : values()) {
       result.add(condition.getIndex());
@@ -109,19 +112,19 @@ public enum KeyValidatorDateConditions implements IndexEnum {
    * @param index the index of the condition.
    * @return true if the condition matches.
    */
-  public static final boolean evaluate(
+  public static boolean evaluate(
       final Date value, final Date testValue, final int index) {
     boolean result = false;
     if (value == null || testValue == null) {
       return true;
     }
-    if (index == 0) {
+    if (index == LESS_THAN.index) {
       result = testValue.before(value);
-    } else if (index == 1) {
+    } else if (index == LESS_OR_EQUAL.index) {
       result = new Date(testValue.getTime() - 1).before(value);
-    } else if (index == 2) {
+    } else if (index == GREATER_THAN.index) {
       result = testValue.after(value);
-    } else if (index == 3) {
+    } else if (index == GREATER_OR_EQUAL.index) {
       result = !new Date(value.getTime() + 1).after(testValue);
     }
     return result;

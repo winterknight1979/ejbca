@@ -48,13 +48,17 @@ public class EccKeyValidator extends KeyValidatorBase {
 
   private static final long serialVersionUID = -335429158339811928L;
 
-  private static final Logger log = Logger.getLogger(EccKeyValidator.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(EccKeyValidator.class);
 
   /** The key validator type. */
   private static final String TYPE_IDENTIFIER = "ECC_KEY_VALIDATOR";
-
+  /** config. */
   protected static final String CURVES = "ecCurves";
 
+  /**
+   * config.
+   */
   protected static final String USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE =
       "useFullPublicKeyValidationRoutine";
 
@@ -151,7 +155,7 @@ public class EccKeyValidator extends KeyValidatorBase {
    *
    * @return true if disabled.
    */
-  private final boolean isPropertyDisabled() {
+  private boolean isPropertyDisabled() {
     return KeyValidatorSettingsTemplate.USE_CAB_FORUM_SETTINGS.getOption()
         == getSettingsTemplate();
   }
@@ -162,7 +166,7 @@ public class EccKeyValidator extends KeyValidatorBase {
    *
    * @return true if disabled.
    */
-  private final boolean isCurvesDisabled() {
+  private boolean isCurvesDisabled() {
     return KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption()
         != getSettingsTemplate();
   }
@@ -171,10 +175,10 @@ public class EccKeyValidator extends KeyValidatorBase {
   public void setKeyValidatorSettingsTemplate(
       final KeyValidatorSettingsTemplate template) {
     setSettingsTemplate(template.getOption());
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Set configuration template for ECC key validator settings option: "
-              + intres.getLocalizedMessage(template.getLabel()));
+              + INTRES.getLocalizedMessage(template.getLabel()));
     }
     if (KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.equals(template)) {
       // NOOP: In the validation method, the key specification is matched
@@ -204,18 +208,27 @@ public class EccKeyValidator extends KeyValidatorBase {
     setUseFullPublicKeyValidationRoutine(true);
   }
 
+  /**
+   * @return curves
+   */
   @SuppressWarnings("unchecked")
   public List<String> getCurves() {
     return (List<String>) data.get(CURVES);
   }
 
+  /**
+   * @return curve
+   */
   public String getCurvesAsString() {
     return getCurves() != null
         ? StringUtils.join(getCurves(), LIST_SEPARATOR)
         : StringUtils.EMPTY;
   }
 
-  public void setCurves(List<String> values) {
+  /**
+   * @param values Curves
+   */
+  public void setCurves(final List<String> values) {
     data.put(CURVES, values);
   }
 
@@ -237,20 +250,20 @@ public class EccKeyValidator extends KeyValidatorBase {
    *     Baseline Requirements 1.4.2 Chapter 5.6.2.3.3s</a>
    * @param allowed boolean
    */
-  public void setUseFullPublicKeyValidationRoutine(boolean allowed) {
+  public void setUseFullPublicKeyValidationRoutine(final boolean allowed) {
     data.put(USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE, Boolean.valueOf(allowed));
   }
 
   @Override
   public void upgrade() {
     super.upgrade();
-    if (log.isTraceEnabled()) {
-      log.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
     }
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade.
-      log.info(
-          intres.getLocalizedMessage(
+      LOG.info(
+          INTRES.getLocalizedMessage(
               "ecckeyvalidator.upgrade", Float.valueOf(getVersion())));
       init();
     }
@@ -261,8 +274,8 @@ public class EccKeyValidator extends KeyValidatorBase {
       final PublicKey publicKey, final CertificateProfile certificateProfile)
       throws ValidatorNotApplicableException, ValidationException {
     List<String> messages = new ArrayList<String>();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validating public key with algorithm "
               + publicKey.getAlgorithm()
               + ", format "
@@ -283,19 +296,19 @@ public class EccKeyValidator extends KeyValidatorBase {
       throw new ValidatorNotApplicableException(message);
     }
     final ECPublicKey bcEcPublicKey = (ECPublicKey) publicKey;
-    if (log.isDebugEnabled()) {
-      log.debug("ECC Key algorithm " + bcEcPublicKey.getAlgorithm());
-      log.debug("ECC format " + bcEcPublicKey.getFormat());
-      log.debug("ECC affine X " + bcEcPublicKey.getW().getAffineX());
-      log.debug("ECC affine Y " + bcEcPublicKey.getW().getAffineY());
-      log.debug("ECC co factor " + bcEcPublicKey.getParams().getCofactor());
-      log.debug("ECC order " + bcEcPublicKey.getParams().getOrder());
-      log.debug("ECC generator " + bcEcPublicKey.getParams().getGenerator());
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("ECC Key algorithm " + bcEcPublicKey.getAlgorithm());
+      LOG.debug("ECC format " + bcEcPublicKey.getFormat());
+      LOG.debug("ECC affine X " + bcEcPublicKey.getW().getAffineX());
+      LOG.debug("ECC affine Y " + bcEcPublicKey.getW().getAffineY());
+      LOG.debug("ECC co factor " + bcEcPublicKey.getParams().getCofactor());
+      LOG.debug("ECC order " + bcEcPublicKey.getParams().getOrder());
+      LOG.debug("ECC generator " + bcEcPublicKey.getParams().getGenerator());
+      LOG.debug(
           "ECC curve seed " + bcEcPublicKey.getParams().getCurve().getSeed());
-      log.debug("ECC curve A " + bcEcPublicKey.getParams().getCurve().getA());
-      log.debug("ECC curve B " + bcEcPublicKey.getParams().getCurve().getB());
-      log.debug(
+      LOG.debug("ECC curve A " + bcEcPublicKey.getParams().getCurve().getA());
+      LOG.debug("ECC curve B " + bcEcPublicKey.getParams().getCurve().getB());
+      LOG.debug(
           "ECC curve field size "
               + bcEcPublicKey.getParams().getCurve().getField().getFieldSize());
     }
@@ -311,8 +324,8 @@ public class EccKeyValidator extends KeyValidatorBase {
     }
     final String keySpecification =
         AlgorithmTools.getKeySpecification(publicKey);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Matching key specification "
               + keySpecification
               + " against allowed ECC curves: "
@@ -320,8 +333,8 @@ public class EccKeyValidator extends KeyValidatorBase {
     }
     if (!availableEcCurves.contains(CertificateProfile.ANY_EC_CURVE)) {
       boolean found = false;
-      for (final String ecNamedCurveAlias :
-          AlgorithmTools.getEcKeySpecAliases(keySpecification)) {
+      for (final String ecNamedCurveAlias
+          : AlgorithmTools.getEcKeySpecAliases(keySpecification)) {
         if (availableEcCurves.contains(ecNamedCurveAlias)) {
           found = true;
         }
@@ -337,8 +350,8 @@ public class EccKeyValidator extends KeyValidatorBase {
     }
 
     if (isUseFullPublicKeyValidationRoutine()) {
-      if (log.isDebugEnabled()) {
-        log.debug("Performing full EC public key validation.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Performing full EC public key validation.");
       }
       // The FullPublicKeyValidationRoutine test is copied from
       // org.bouncycastle.crypto.asymmetric.KeyUtils in the BC-FIPS package.
@@ -368,7 +381,7 @@ public class EccKeyValidator extends KeyValidatorBase {
         // TEST", "FIPS 186-3/SP 800-89 Assurances test failed"
         messages.add("Invalid: EC key point has null value.");
       } else {
-        log.trace("EC point has value test passed");
+        LOG.trace("EC point has value test passed");
       }
 
       if (q.isInfinity()) {
@@ -376,7 +389,7 @@ public class EccKeyValidator extends KeyValidatorBase {
         // TEST", "FIPS 186-3/SP 800-89 Assurances test failed"
         messages.add("Invalid: EC key point at infinity.");
       } else {
-        log.trace("EC point not on infinity test passed");
+        LOG.trace("EC point not on infinity test passed");
       }
 
       q = q.normalize();
@@ -386,16 +399,16 @@ public class EccKeyValidator extends KeyValidatorBase {
         // TEST", "FIPS 186-3/SP 800-89 Assurances test failed"
         messages.add("Invalid: EC key point not on curve.");
       } else {
-        log.trace("EC point not on curve test passed");
+        LOG.trace("EC point not on curve test passed");
       }
     }
     // FSM_TRANS:5.15, "FIPS 186-3/SP 800-89 ASSURANCES CHECK", "CONDITIONAL
     // TEST", "FIPS 186-3/SP 800-89 Assurances test successful"
     // --- End BC code
 
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       for (String message : messages) {
-        log.debug(message);
+        LOG.debug(message);
       }
     }
     return messages;
@@ -414,7 +427,7 @@ public class EccKeyValidator extends KeyValidatorBase {
 
   @Override
   public String getLabel() {
-    return intres.getLocalizedMessage("validator.implementation.key.ecc");
+    return INTRES.getLocalizedMessage("validator.implementation.key.ecc");
   }
 
   @Override

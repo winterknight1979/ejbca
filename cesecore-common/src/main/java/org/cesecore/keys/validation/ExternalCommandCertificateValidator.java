@@ -50,9 +50,10 @@ public class ExternalCommandCertificateValidator
   private static final long serialVersionUID = -135859158339811678L;
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(ExternalCommandCertificateValidator.class);
 
+  /** API version. */
   public static final float LATEST_VERSION = 4F;
 
   /** The validator type. */
@@ -78,7 +79,7 @@ public class ExternalCommandCertificateValidator
   private List<Certificate> testCertificates;
 
   static {
-    APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_X509);
+    applicableCaTypes.add(CAInfo.CATYPE_X509);
   }
 
   /** Public constructor needed for deserialization. */
@@ -194,13 +195,13 @@ public class ExternalCommandCertificateValidator
   @Override
   public void upgrade() {
     super.upgrade();
-    if (log.isTraceEnabled()) {
-      log.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
     }
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade.
-      log.info(
-          intres.getLocalizedMessage(
+      LOG.info(
+          INTRES.getLocalizedMessage(
               "validator.implementation.certificate.external",
               Float.valueOf(getVersion())));
       init();
@@ -215,10 +216,10 @@ public class ExternalCommandCertificateValidator
       throws ValidatorNotApplicableException, ValidationException,
           CertificateException {
     final List<String> messages = new ArrayList<String>();
-    log.debug(
+    LOG.debug(
         "Validating certificate with external command " + getExternalCommand());
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validating certificate with external command (cert):" + certificate);
     }
     // Add CA certificate chain, that may be processed.
@@ -256,7 +257,7 @@ public class ExternalCommandCertificateValidator
             }
           }
           if (stdOutput != null) {
-            log.info("External command logged to STDOUT: " + stdOutput);
+            LOG.info("External command logged to STDOUT: " + stdOutput);
           }
         }
         String errOutput = null;
@@ -271,7 +272,7 @@ public class ExternalCommandCertificateValidator
             }
           }
           if (errOutput != null) {
-            log.info("External command logged to ERROUT: " + errOutput);
+            LOG.info("External command logged to ERROUT: " + errOutput);
           }
         }
         final int exitCode =
@@ -313,7 +314,7 @@ public class ExternalCommandCertificateValidator
 
   @Override
   public String getLabel() {
-    return intres.getLocalizedMessage(
+    return INTRES.getLocalizedMessage(
         "validator.implementation.certificate.external");
   }
 
@@ -337,7 +338,7 @@ public class ExternalCommandCertificateValidator
   }
 
   /**
-   * Gets the external script path
+   * Gets the external script path.
    *
    * @return the path.
    */
@@ -413,7 +414,7 @@ public class ExternalCommandCertificateValidator
 
   /**
    * Denotes if the command or script has to be considered as failed if a log
-   * was written to ERROUT
+   * was written to ERROUT.
    *
    * @return true if enabled.
    */
@@ -431,13 +432,14 @@ public class ExternalCommandCertificateValidator
    */
   @SuppressWarnings("unchecked")
   public List<String> testCommand() throws DynamicUiCallbackException {
-    log.info(
+    LOG.info(
         "Test external command certificate validator: " + getProfileName());
     final DynamicUiProperty<byte[]> property =
         (DynamicUiProperty<byte[]>) uiModel.getProperties().get("testPath");
     final List<String> out = new ArrayList<>();
     byte[] data = null;
     String message = null;
+    // inner assignment here protects against hull pointer
     if (property != null && (data = property.getValue()) != null) {
       final File file;
       try {
@@ -453,7 +455,7 @@ public class ExternalCommandCertificateValidator
       try {
         if (!file.canRead()) {
           message =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "validator.certificate.externalcommand.testfilenopermission",
                   file.getAbsolutePath());
         }
@@ -464,15 +466,15 @@ public class ExternalCommandCertificateValidator
                     file.getAbsolutePath(), Certificate.class));
           } catch (IOException e) {
             message =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "process.certificate.filenotfound", file.getAbsolutePath());
-            log.warn(message, e);
+            LOG.warn(message, e);
           } catch (CertificateParsingException e) {
             message =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "process.certificate.couldnotbeparsed",
                     file.getAbsolutePath());
-            log.warn(message, e);
+            LOG.warn(message, e);
           }
         }
         if (message == null) { // Run command.
@@ -482,24 +484,24 @@ public class ExternalCommandCertificateValidator
                     getExternalCommand(),
                     ExternalScriptsWhitelist.permitAll(),
                     getTestCertificates()));
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Tested certificate with external command STOUT/ERROUT:"
                       + System.getProperty("line.separator")
                       + out);
             }
           } catch (CertificateEncodingException e) {
             message =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "process.certificate.couldnotbeencoded",
                     file.getAbsolutePath());
-            log.info(message, e);
+            LOG.info(message, e);
             // 1. command not found, no permission or other exception; 2. not in
             // whitelist.
           } catch (ExternalProcessException
               | ValidatorNotApplicableException e) {
             message = e.getMessage();
-            log.info(message, e);
+            LOG.info(message, e);
           }
         }
       } finally {
@@ -508,7 +510,7 @@ public class ExternalCommandCertificateValidator
           try {
             file.delete();
           } catch (RuntimeException e) {
-            log.trace(
+            LOG.trace(
                 "Could not delete temporary file: " + file.getAbsolutePath(),
                 e);
           }
@@ -516,10 +518,10 @@ public class ExternalCommandCertificateValidator
       }
     } else {
       message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "validator.certificate.externalcommand.testfilemissing",
               getExternalCommand());
-      log.info(message);
+      LOG.info(message);
     }
     if (StringUtils.isNotBlank(message)) {
       throw new DynamicUiCallbackException(message);
@@ -539,21 +541,24 @@ public class ExternalCommandCertificateValidator
   /**
    * Sets the list of test certificates uploaded by the user.
    *
-   * @param testCertificates the list.
+   * @param aTestCertificates the list.
    */
-  public void setTestCertificates(final List<Certificate> testCertificates) {
-    this.testCertificates = testCertificates;
-    if (log.isDebugEnabled()) {
-      log.debug("Test certificates uploaded: " + testCertificates);
+  public void setTestCertificates(final List<Certificate> aTestCertificates) {
+    this.testCertificates = aTestCertificates;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Test certificates uploaded: " + aTestCertificates);
     }
   }
 
+  /**
+   * @return Platform
+   */
   public String getPlatform() {
     return ExternalProcessTools.getPlatformString();
   }
 
   /**
-   * Runs the external command
+   * Runs the external command.
    *
    * @param externalCommand the external command.
    * @param externalScriptsWhitelist whitelist
@@ -575,7 +580,7 @@ public class ExternalCommandCertificateValidator
     final String cmd = extractCommand(externalCommand);
     if (!externalScriptsWhitelist.isPermitted(cmd)) {
       throw new ValidatorNotApplicableException(
-          intres.getLocalizedMessage("process.whitelist.error.notlisted", cmd));
+          INTRES.getLocalizedMessage("process.whitelist.error.notlisted", cmd));
     }
     // Test if specified script file exists and is executable (hits files and
     // symbolic links, but no aliases).
@@ -583,14 +588,14 @@ public class ExternalCommandCertificateValidator
       final File file = new File(cmd);
       String message;
       if (!file.exists()) {
-        message = intres.getLocalizedMessage("process.commandnotfound", cmd);
-        log.info(message);
+        message = INTRES.getLocalizedMessage("process.commandnotfound", cmd);
+        LOG.info(message);
         throw new ExternalProcessException(message);
       }
       if (!file.canExecute()) {
         message =
-            intres.getLocalizedMessage("process.commandnopermission", cmd);
-        log.info(message);
+            INTRES.getLocalizedMessage("process.commandnopermission", cmd);
+        LOG.info(message);
         throw new ExternalProcessException(message);
       }
     }
@@ -609,15 +614,15 @@ public class ExternalCommandCertificateValidator
               arguments,
               ExternalCommandCertificateValidator.class.getName()));
     } catch (ExternalProcessException e) {
-      log.info(
+      LOG.info(
           "Could not call external command '"
               + cmd
               + "' with arguments "
               + arguments
               + " sucessfully: "
               + e.getMessage());
-      if (log.isDebugEnabled()) {
-        log.debug("Failed with exception: ", e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Failed with exception: ", e);
       }
       if (e.getOut() != null) {
         out.addAll(e.getOut());
@@ -629,17 +634,17 @@ public class ExternalCommandCertificateValidator
   /**
    * Extracts the script path.
    *
-   * @param cmd the external command.
+   * @param ocmd the external command.
    * @return the script path (first token in command).
    */
-  private final String extractCommand(String cmd) {
-    cmd = cmd.trim();
+  private String extractCommand(final String ocmd) {
+    String cmd = ocmd.trim();
     final int index = cmd.indexOf(" ");
     if (index > 0) {
       cmd = cmd.substring(0, index).trim();
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Command extracted: " + cmd);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Command extracted: " + cmd);
     }
     return cmd;
   }
@@ -647,11 +652,11 @@ public class ExternalCommandCertificateValidator
   /**
    * Extracts the arguments.
    *
-   * @param cmd the external command.
+   * @param ocmd the external command.
    * @return the list of arguments (second token to end).
    */
-  private final List<String> extractArguments(String cmd) {
-    cmd = cmd.trim();
+  private List<String> extractArguments(final String ocmd) {
+    String cmd = ocmd.trim();
     final List<String> arguments = new ArrayList<String>();
     final int index = cmd.indexOf(" ");
     if (index > 0) {
@@ -660,8 +665,8 @@ public class ExternalCommandCertificateValidator
               StringUtils.split(
                   cmd.substring(index, cmd.length()).trim(), " ")));
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Arguments extracted: " + arguments);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Arguments extracted: " + arguments);
     }
     return arguments;
   }

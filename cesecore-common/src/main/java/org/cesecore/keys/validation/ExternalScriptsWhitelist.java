@@ -32,10 +32,12 @@ import org.cesecore.util.StringTools;
 public class ExternalScriptsWhitelist {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(ExternalScriptsWhitelist.class);
 
+  /** scripts. */
   private final List<File> scripts;
+  /** enabled. */
   private final boolean isEnabled;
 
   /**
@@ -86,13 +88,13 @@ public class ExternalScriptsWhitelist {
   /**
    * Create a new whitelist permitting execution of the scripts given as input.
    *
-   * @param scripts a list of files
-   * @param isEnabled true if the whitelist is enabled
+   * @param ascripts a list of files
+   * @param aisEnabled true if the whitelist is enabled
    */
   public ExternalScriptsWhitelist(
-      final List<File> scripts, final boolean isEnabled) {
-    this.scripts = scripts;
-    this.isEnabled = isEnabled;
+      final List<File> ascripts, final boolean aisEnabled) {
+    this.scripts = ascripts;
+    this.isEnabled = aisEnabled;
   }
 
   /**
@@ -192,8 +194,8 @@ public class ExternalScriptsWhitelist {
       return true;
     }
     for (final String path : getScriptsPaths()) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Compare command '"
                 + command
                 + "' with whitlisted path '"

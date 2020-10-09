@@ -26,8 +26,11 @@ import org.cesecore.util.IndexEnum;
 public enum IssuancePhase implements IndexEnum {
 
   // @formatter:off
+    /** data. */
   DATA_VALIDATION(0, "VALIDATORPHASE_DATA_VALIDATION"),
+  /** pre-cert. */
   PRE_CERTIFICATE_VALIDATION(1, "VALIDATORPHASE_PRE_CERTIFICATE_VALIDATION"),
+  /** cert. */
   CERTIFICATE_VALIDATION(2, "VALIDATORPHASE_CERTIFICATE_VALIDATION");
   // @formatter:on
 
@@ -40,12 +43,12 @@ public enum IssuancePhase implements IndexEnum {
   /**
    * Creates a new instance.
    *
-   * @param index index
-   * @param label resource key or label.
+   * @param anIndex index
+   * @param aLabel resource key or label.
    */
-  private IssuancePhase(final int index, final String label) {
-    this.index = index;
-    this.label = label;
+  IssuancePhase(final int anIndex, final String aLabel) {
+    this.index = anIndex;
+    this.label = aLabel;
   }
 
   /**
@@ -72,7 +75,7 @@ public enum IssuancePhase implements IndexEnum {
    *
    * @return indices
    */
-  public static final List<Integer> indices() {
+  public static List<Integer> indices() {
     final List<Integer> result = new ArrayList<Integer>();
     for (IssuancePhase phase : values()) {
       result.add(phase.getIndex());
@@ -86,7 +89,7 @@ public enum IssuancePhase implements IndexEnum {
    * @param index the index.
    * @return the validator phase.
    */
-  public static final IssuancePhase fromIndex(final int index) {
+  public static IssuancePhase fromIndex(final int index) {
     for (IssuancePhase phase : values()) {
       if (phase.getIndex() == index) {
         return phase;

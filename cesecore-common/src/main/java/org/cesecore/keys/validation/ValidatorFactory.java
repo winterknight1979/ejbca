@@ -26,12 +26,14 @@ import org.apache.commons.collections.CollectionUtils;
  * @version $Id: ValidatorFactory.java 27845 2018-01-10 15:15:37Z mikekushner $
  */
 public enum ValidatorFactory {
+    /** Singleton instance. */
   INSTANCE;
 
+    /** Lookup table. */
   private Map<String, Validator> identifierToImplementationMap =
       new HashMap<>();
 
-  private ValidatorFactory() {
+  ValidatorFactory() {
     ServiceLoader<Validator> svcloader = ServiceLoader.load(Validator.class);
     for (Validator type : svcloader) {
       type.initialize();
@@ -40,10 +42,17 @@ public enum ValidatorFactory {
     }
   }
 
+  /**
+   * @return All implementations
+   */
   public Collection<Validator> getAllImplementations() {
     return identifierToImplementationMap.values();
   }
 
+  /**
+   * @param excludeClasses Exclusions
+   * @return Implementations
+   */
   public Collection<Validator> getAllImplementations(
       final List<Class<?>> excludeClasses) {
     if (CollectionUtils.isNotEmpty(excludeClasses)) {
@@ -59,7 +68,11 @@ public enum ValidatorFactory {
     }
   }
 
-  public Validator getArcheType(String identifier) {
+  /**
+   * @param identifier ID
+   * @return Archetype
+   */
+  public Validator getArcheType(final String identifier) {
     return identifierToImplementationMap.get(identifier).clone();
   }
 }

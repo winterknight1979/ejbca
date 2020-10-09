@@ -24,25 +24,32 @@ import org.cesecore.util.IndexEnum;
  *     samuellb $
  */
 public enum KeyValidationFailedActions implements IndexEnum {
+    /** No-op. */
   DO_NOTHING(0, "VALIDATORFAILEDACTION_DO_NOTHING"),
+  /** Info. */
   LOG_INFO(1, "VALIDATORFAILEDACTION_LOG_INFO"),
+  /** Warn. */
   LOG_WARN(2, "VALIDATORFAILEDACTION_LOG_WARN"),
+  /** Error. */
   LOG_ERROR(3, "VALIDATORFAILEDACTION_LOG_ERROR"),
+  /** Abort. */
   ABORT_CERTIFICATE_ISSUANCE(
       4, "VALIDATORFAILEDACTION_ABORT_CERTIFICATE_ISSUANCE");
 
+    /** Index. */
   private int index;
+  /** Label. */
   private String label;
 
   /**
    * Creates a new instance.
    *
-   * @param index index
-   * @param label resource key or label.
+   * @param anIndex index
+   * @param aLabel resource key or label.
    */
-  private KeyValidationFailedActions(final int index, final String label) {
-    this.index = index;
-    this.label = label;
+  KeyValidationFailedActions(final int anIndex, final String aLabel) {
+    this.index = anIndex;
+    this.label = aLabel;
   }
 
   /**
@@ -69,7 +76,7 @@ public enum KeyValidationFailedActions implements IndexEnum {
    *
    * @return indices
    */
-  public static final List<Integer> index() {
+  public static List<Integer> index() {
     final List<Integer> result = new ArrayList<Integer>();
     for (KeyValidationFailedActions condition : values()) {
       result.add(condition.getIndex());

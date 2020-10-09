@@ -40,6 +40,7 @@
 	* Allow protected visibility
 	* Allow magic numbers in HashCode().
 	* +/- 8, 10 and 16 are not Magic.
+	* Allow empty blocks with a comment
 	
 	Other than TODO comments, all acceptable deviations from this style should be
 	suppressed in the per-module suppression file.
@@ -175,7 +176,9 @@
     <!-- Checks for blocks. You know, those {}'s         -->
     <!-- See https://checkstyle.org/config_blocks.html -->
     <module name="AvoidNestedBlocks"/>
-    <module name="EmptyBlock"/>
+    <module name="EmptyBlock">
+    	<property name="option" value="text"/>
+    </module>
     <module name="LeftCurly"/>
     <module name="NeedBraces"/>
     <module name="RightCurly"/>

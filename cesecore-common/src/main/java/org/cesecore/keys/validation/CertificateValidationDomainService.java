@@ -44,10 +44,10 @@ public interface CertificateValidationDomainService {
    *     stored in the cause, and message is null.
    */
   void validateCertificate(
-      final AuthenticationToken authenticationToken,
-      final IssuancePhase phase,
-      final CA ca,
-      final EndEntityInformation endEntityInformation,
-      final X509Certificate certificate)
+      AuthenticationToken authenticationToken,
+      IssuancePhase phase,
+      CA ca,
+      EndEntityInformation endEntityInformation,
+      X509Certificate certificate)
       throws ValidationException;
 }

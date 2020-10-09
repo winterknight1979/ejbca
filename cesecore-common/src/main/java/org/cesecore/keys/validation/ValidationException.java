@@ -31,7 +31,7 @@ public class ValidationException extends CesecoreException {
    *
    * @param message the message.
    */
-  public ValidationException(String message) {
+  public ValidationException(final String message) {
     super(message, null);
   }
 
@@ -42,7 +42,7 @@ public class ValidationException extends CesecoreException {
    * @param message the message.
    * @param cause the root cause.
    */
-  public ValidationException(String message, Throwable cause) {
+  public ValidationException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bouncycastle.math.Primes;
@@ -51,7 +54,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
   private static final long serialVersionUID = -335429118359811926L;
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(RsaKeyValidator.class);
+  private static final Logger LOG = Logger.getLogger(RsaKeyValidator.class);
 
   /** MUST be at least 2048 bits key size. */
   public static final int CAB_FORUM_BLR_142_KEY_SIZE_MIN = 2048;
@@ -60,16 +63,17 @@ public class RsaKeyValidator extends KeyValidatorBase {
   public static final boolean CAB_FORUM_BLR_142_PUBLIC_EXPONENT_ONLY_ALLOW_ODD =
       true;
 
-  /** MUST be &gt;= 3, SHOULD be &gt; 2^16+1 = 65.536+1 */
+  /** MUST be &gt;= 3, SHOULD be &gt; 2^16+1 = 65.536+1. */
   public static final String CAB_FORUM_BLR_142_PUBLIC_EXPONENT_MIN = "65537";
 
   /**
    * SHOULD be &lt;= 2^256-1 =
    * 115792089237316195423570985008687907853269984665640564039457584007913129639936-1
-   * = 2^64*2^4-1
+   * = 2^64*2^4-1.
    */
   public static final String CAB_FORUM_BLR_142_PUBLIC_EXPONENT_MAX =
-      "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+          "1157920892373161954235709850086879078532699"
+          + "84665640564039457584007913129639935";
 
   /** SHOULD be odd modulus. */
   public static final boolean CAB_FORUM_BLR_142_PUBLIC_MODULUS_ONLY_ALLOW_ODD =
@@ -79,39 +83,52 @@ public class RsaKeyValidator extends KeyValidatorBase {
   public static final boolean
       CAB_FORUM_BLR_142_PUBLIC_MODULUS_DONT_ALLOW_POWER_OF_PRIME = true;
 
-  /** SHOULD be with smallest factor &gt;= 752 */
+  /** SHOULD be with smallest factor &gt;= 752. */
   public static final int CAB_FORUM_BLR_142_PUBLIC_MODULUS_SMALLEST_FACTOR =
       752;
 
   /** The key validator type. */
   private static final String TYPE_IDENTIFIER = "RSA_KEY_VALIDATOR";
-
+/** Lengths. */
   protected static final String BIT_LENGTHS = "bitLengths";
-
+  /** bool. */
   protected static final String PUBLIC_KEY_EXPONENT_ONLY_ALLOW_ODD =
       "publicKeyExponentOnlyAllowOdd";
 
+  /** min exponent. */
   protected static final String PUBLIC_KEY_EXPONENT_MIN =
       "publicKeyExponentMin";
-
+/** max exponent. */
   protected static final String PUBLIC_KEY_EXPONENT_MAX =
       "publicKeyExponentMax";
-
+  /** bool. */
   protected static final String PUBLIC_KEY_MODULUS_ONLY_ALLOW_ODD =
       "publicKeyModulusOnlyAllowOdd";
-
+  /** bool. */
   protected static final String PUBLIC_KEY_MODULUS_DONT_ALLOW_POWER_OF_PRIME =
       "publicKeyModulusDontAllowPowerOfPrime";
 
+  /** bool. */
   protected static final String PUBLIC_KEY_MODULUS_DONT_ALLOW_ROCA_WEAK_KEYS =
       "publicKeyModulusDontAllowRocaWeakKeys";
 
+  /** min factor. */
   protected static final String PUBLIC_KEY_MODULUS_MIN_FACTOR =
       "publicKeyModulusMinFactor";
-
+  /** min modulud. */
   protected static final String PUBLIC_KEY_MODULUS_MIN = "publicKeyModulusMin";
-
+  /** Max modulus. */
   protected static final String PUBLIC_KEY_MODULUS_MAX = "publicKeyModulusMax";
+
+  /** Threshholds for MRT. */
+  private static final SortedMap<Integer, Integer> MILLER_RABIN_THRESHOLDS
+          = new TreeMap<>();
+   static {
+       MILLER_RABIN_THRESHOLDS.put(1536, 3);
+       MILLER_RABIN_THRESHOLDS.put(1024, 4);
+       MILLER_RABIN_THRESHOLDS.put(512, 7);
+       MILLER_RABIN_THRESHOLDS.put(0, 50);
+   }
 
   /**
    * Tests if the factors of the BigInteger modulus are prime.
@@ -119,7 +136,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
    * @param modulus the big integer modulus to test
    * @return true if the modulus is power of a prime, false otherwise.
    */
-  protected static boolean isPowerOfPrime(BigInteger modulus) {
+  protected static boolean isPowerOfPrime(final BigInteger modulus) {
     // The isPowerOfPrime test is copied from
     // org.bouncycastle.crypto.asymmetric.KeyUtils in the BC-FIPS package.
     // If we move to use the FIPS provider we can use the methods directly
@@ -128,7 +145,12 @@ public class RsaKeyValidator extends KeyValidatorBase {
     // Use the same iterations as if we were testing a candidate p or q value
     // with error probability 2^-100
     int bits = modulus.bitLength();
-    int iterations = bits >= 1536 ? 3 : bits >= 1024 ? 4 : bits >= 512 ? 7 : 50;
+    int iterations = 0;
+    for (int its : MILLER_RABIN_THRESHOLDS.keySet()) {
+        if (bits >= its) {
+            iterations = MILLER_RABIN_THRESHOLDS.get(its);
+        }
+    }
     // SP 800-89 requires use of an approved DRBG.
     //        SecureRandom testRandom = FipsDRBG.SHA256.fromEntropySource(new
     // SecureRandom(), false)
@@ -142,13 +164,13 @@ public class RsaKeyValidator extends KeyValidatorBase {
     if (!mr.isProvablyComposite()) {
       // FSM_TRANS:5.16, "FIPS 186-3/SP 800-89 ASSURANCES CHECK", "CONDITIONAL
       // TEST", "FIPS 186-3/SP 800-89 Assurances test failed"
-      log.debug("RSA modulus is not composite");
+      LOG.debug("RSA modulus is not composite");
       return true;
     }
     if (!mr.isNotPrimePower()) {
       // FSM_TRANS:5.16, "FIPS 186-3/SP 800-89 ASSURANCES CHECK", "CONDITIONAL
       // TEST", "FIPS 186-3/SP 800-89 Assurances test failed"
-      log.debug("RSA modulus is a power of a prime");
+      LOG.debug("RSA modulus is a power of a prime");
       return true;
     }
     // --- end BC code
@@ -207,7 +229,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
    * @return the smallest factor or 2 for n=0.
    */
   protected static final boolean hasSmallerFactorThan(
-      BigInteger n, int intFactor) {
+      final BigInteger n, final int intFactor) {
     //        BigInteger factor = BigInteger.valueOf(intFactor);
     final BigInteger two = new BigInteger("2");
     if (intFactor < 3) {
@@ -404,7 +426,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
    *
    * @return true if disabled.
    */
-  private final boolean isPropertyDisabled() {
+  private boolean isPropertyDisabled() {
     return KeyValidatorSettingsTemplate.USE_CAB_FORUM_SETTINGS.getOption()
         == getSettingsTemplate();
   }
@@ -415,7 +437,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
    *
    * @return true if disabled.
    */
-  private final boolean isBitLengthsDisabled() {
+  private boolean isBitLengthsDisabled() {
     return KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption()
         != getSettingsTemplate();
   }
@@ -424,12 +446,12 @@ public class RsaKeyValidator extends KeyValidatorBase {
   public void setKeyValidatorSettingsTemplate(
       final KeyValidatorSettingsTemplate template) {
     setSettingsTemplate(template.getOption());
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Set configuration template for RSA key validator settings option: "
               + template.getOption()
               + ", "
-              + intres.getLocalizedMessage(template.getLabel()));
+              + INTRES.getLocalizedMessage(template.getLabel()));
     }
     if (KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.equals(template)) {
       // NOOP
@@ -482,7 +504,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
     // conditions are before
     // 2014 (now 2017). The minimal modulus size (2048 bits) is the same for all
     // certificate types!
-    setBitLengths(getAvailableBitLengths(2048));
+    setBitLengths(getAvailableBitLengths(MIN_KEY_LENGTH));
     final List<Integer> ids = getCertificateProfileIds();
     if (ids.contains(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA)) {
       // NOOP
@@ -516,31 +538,52 @@ public class RsaKeyValidator extends KeyValidatorBase {
     setPublicKeyModulusDontAllowRocaWeakKeys(true);
   }
 
+  /** bits. */
+  private static final int MIN_KEY_LENGTH = 2048;
+
+  /**
+   * @return values
+   */
   @SuppressWarnings("unchecked")
   public List<String> getBitLengths() {
     return (List<String>) data.get(BIT_LENGTHS);
   }
 
+  /**
+   * @return values
+   */
   public String getBitLengthsAsString() {
     return getBitLengths() != null
         ? StringUtils.join(getBitLengths(), LIST_SEPARATOR)
         : StringUtils.EMPTY;
   }
 
-  public void setBitLengths(List<String> values) {
+  /**
+   * @param values values
+   */
+  public void setBitLengths(final List<String> values) {
     Collections.sort(values);
     data.put(BIT_LENGTHS, values);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPublicKeyExponentOnlyAllowOdd() {
     return ((Boolean) data.get(PUBLIC_KEY_EXPONENT_ONLY_ALLOW_ODD))
         .booleanValue();
   }
 
-  public void setPublicKeyExponentOnlyAllowOdd(boolean allowed) {
+  /**
+   * @param allowed bool
+   */
+  public void setPublicKeyExponentOnlyAllowOdd(final boolean allowed) {
     data.put(PUBLIC_KEY_EXPONENT_ONLY_ALLOW_ODD, Boolean.valueOf(allowed));
   }
 
+  /**
+   * @return min exponent
+   */
   public BigInteger getPublicKeyExponentMin() {
     if (StringUtils.isNotBlank((String) data.get(PUBLIC_KEY_EXPONENT_MIN))) {
       return new BigInteger(((String) data.get(PUBLIC_KEY_EXPONENT_MIN)));
@@ -549,6 +592,9 @@ public class RsaKeyValidator extends KeyValidatorBase {
     }
   }
 
+  /**
+   * @return min exponent
+   */
   public String getPublicKeyExponentMinAsString() {
     return (String) data.get(PUBLIC_KEY_EXPONENT_MIN);
   }
@@ -558,7 +604,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
    *
    * @param value The new minimum public key exponent as BigInteger
    */
-  public void setPublicKeyExponentMin(BigInteger value) {
+  public void setPublicKeyExponentMin(final BigInteger value) {
     if (null == value) {
       data.put(PUBLIC_KEY_EXPONENT_MIN, null);
     } else if (!(value.compareTo(BigInteger.ZERO) == -1)) {
@@ -566,33 +612,36 @@ public class RsaKeyValidator extends KeyValidatorBase {
           || value.compareTo(getPublicKeyExponentMax()) < 1) {
         data.put(PUBLIC_KEY_EXPONENT_MIN, value.toString());
       } else {
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           final String message =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "validator.error.minimum_bigger_log",
                   value,
                   getPublicKeyExponentMax());
-          log.debug(message);
+          LOG.debug(message);
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.error.set_key_validator_exp_min", value));
       }
     }
   }
 
   /**
-   * Setting value for PublicKeyExponentMinAsString
+   * Setting value for PublicKeyExponentMinAsString.
    *
    * @param value the string value for PublicKeyExponentMin
    */
-  public void setPublicKeyExponentMinAsString(String value) {
+  public void setPublicKeyExponentMinAsString(final String value) {
     setPublicKeyExponentMin(new BigInteger(value));
   }
 
+  /**
+   * @return Max exponent
+   */
   public BigInteger getPublicKeyExponentMax() {
     if (StringUtils.isNotBlank((String) data.get(PUBLIC_KEY_EXPONENT_MAX))) {
       return new BigInteger(((String) data.get(PUBLIC_KEY_EXPONENT_MAX)));
@@ -601,6 +650,9 @@ public class RsaKeyValidator extends KeyValidatorBase {
     }
   }
 
+  /**
+   * @return max exponent
+   */
   public String getPublicKeyExponentMaxAsString() {
     return (String) data.get(PUBLIC_KEY_EXPONENT_MAX);
   }
@@ -610,7 +662,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
    *
    * @param value The new maximum public key exponent as BigInteger
    */
-  public void setPublicKeyExponentMax(BigInteger value) {
+  public void setPublicKeyExponentMax(final BigInteger value) {
     if (null == value) {
       data.put(PUBLIC_KEY_EXPONENT_MAX, null);
     } else if (!(value.compareTo(BigInteger.ZERO) == -1)) {
@@ -618,47 +670,59 @@ public class RsaKeyValidator extends KeyValidatorBase {
           || value.compareTo(getPublicKeyExponentMin()) > -1) {
         data.put(PUBLIC_KEY_EXPONENT_MAX, value.toString());
       } else {
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           final String message =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "validator.error.minimum_bigger_log",
                   getPublicKeyExponentMin(),
                   value);
-          log.debug(message);
+          LOG.debug(message);
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.error.set_key_validator_exp_max", value));
       }
     }
   }
 
   /**
-   * Setting value for PublicKeyExponentMaxAsString
+   * Setting value for PublicKeyExponentMaxAsString.
    *
    * @param value the string value for PublicKeyExponentMax
    */
-  public void setPublicKeyExponentMaxAsString(String value) {
+  public void setPublicKeyExponentMaxAsString(final String value) {
     setPublicKeyExponentMax(new BigInteger(value));
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPublicKeyModulusOnlyAllowOdd() {
     return ((Boolean) data.get(PUBLIC_KEY_MODULUS_ONLY_ALLOW_ODD))
         .booleanValue();
   }
 
-  public void setPublicKeyModulusOnlyAllowOdd(boolean allowed) {
+  /**
+   * @param allowed bool
+   */
+  public void setPublicKeyModulusOnlyAllowOdd(final boolean allowed) {
     data.put(PUBLIC_KEY_MODULUS_ONLY_ALLOW_ODD, Boolean.valueOf(allowed));
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPublicKeyModulusDontAllowPowerOfPrime() {
     return ((Boolean) data.get(PUBLIC_KEY_MODULUS_DONT_ALLOW_POWER_OF_PRIME))
         .booleanValue();
   }
 
+  /**
+   * @return bool
+   */
   public boolean isPublicKeyModulusDontAllowRocaWeakKeys() {
     Boolean ret =
         (Boolean) data.get(PUBLIC_KEY_MODULUS_DONT_ALLOW_ROCA_WEAK_KEYS);
@@ -667,39 +731,51 @@ public class RsaKeyValidator extends KeyValidatorBase {
         : false; // upgraded value, we must be null safe, default false
   }
 
-  public void setPublicKeyModulusDontAllowPowerOfPrime(boolean allowed) {
+  /**
+   * @param allowed bool
+   */
+  public void setPublicKeyModulusDontAllowPowerOfPrime(final boolean allowed) {
     data.put(
         PUBLIC_KEY_MODULUS_DONT_ALLOW_POWER_OF_PRIME, Boolean.valueOf(allowed));
   }
 
-  public void setPublicKeyModulusDontAllowRocaWeakKeys(boolean allowed) {
+  /**
+   * @param allowed bool
+   */
+  public void setPublicKeyModulusDontAllowRocaWeakKeys(final boolean allowed) {
     data.put(
         PUBLIC_KEY_MODULUS_DONT_ALLOW_ROCA_WEAK_KEYS, Boolean.valueOf(allowed));
   }
 
+  /**
+   * @return min factor
+   */
   public Integer getPublicKeyModulusMinFactor() {
     return (Integer) data.get(PUBLIC_KEY_MODULUS_MIN_FACTOR);
   }
 
   /**
-   * Setting value for PublicKeyModulusMinFactor
+   * Setting value for PublicKeyModulusMinFactor.
    *
    * @param type the value for PublicKeyModulusMinFactor
    */
-  public void setPublicKeyModulusMinFactor(Integer type) {
+  public void setPublicKeyModulusMinFactor(final Integer type) {
     if (null == type) {
       data.put(PUBLIC_KEY_MODULUS_MIN_FACTOR, null);
     } else if (!(type < 0)) {
       data.put(PUBLIC_KEY_MODULUS_MIN_FACTOR, type);
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.error.set_key_validator_fact_min", type));
       }
     }
   }
 
+  /**
+   * @return min modulus
+   */
   public BigInteger getPublicKeyModulusMin() {
     if (StringUtils.isNotBlank((String) data.get(PUBLIC_KEY_MODULUS_MIN))) {
       return new BigInteger(((String) data.get(PUBLIC_KEY_MODULUS_MIN)));
@@ -708,16 +784,19 @@ public class RsaKeyValidator extends KeyValidatorBase {
     }
   }
 
+  /**
+   * @return min modulus
+   */
   public String getPublicKeyModulusMinAsString() {
     return (String) data.get(PUBLIC_KEY_MODULUS_MIN);
   }
 
   /**
-   * Setting value for PublicKeyModulusMin
+   * Setting value for PublicKeyModulusMin.
    *
    * @param value the value for PublicKeyModulusMin
    */
-  public void setPublicKeyModulusMin(BigInteger value) {
+  public void setPublicKeyModulusMin(final BigInteger value) {
     if (null == value) {
       data.put(PUBLIC_KEY_MODULUS_MIN, null);
     } else if (!(value.compareTo(BigInteger.ZERO) == -1)) {
@@ -725,33 +804,36 @@ public class RsaKeyValidator extends KeyValidatorBase {
           || value.compareTo(getPublicKeyModulusMax()) < 1) {
         data.put(PUBLIC_KEY_MODULUS_MIN, value.toString());
       } else {
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           final String message =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "validator.error.minimum_bigger_log",
                   value,
                   getPublicKeyModulusMax());
-          log.debug(message);
+          LOG.debug(message);
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.error.set_key_validator_mod_min", value));
       }
     }
   }
 
   /**
-   * Setting value for PublicKeyModulusMinAsString
+   * Setting value for PublicKeyModulusMinAsString.
    *
    * @param value the string value for PublicKeyModulusMin
    */
-  public void setPublicKeyModulusMinAsString(String value) {
+  public void setPublicKeyModulusMinAsString(final String value) {
     setPublicKeyModulusMin(new BigInteger(value));
   }
 
+  /**
+   * @return max modulus
+   */
   public BigInteger getPublicKeyModulusMax() {
     if (StringUtils.isNotBlank((String) data.get(PUBLIC_KEY_MODULUS_MAX))) {
       return new BigInteger((String) data.get(PUBLIC_KEY_MODULUS_MAX));
@@ -760,16 +842,19 @@ public class RsaKeyValidator extends KeyValidatorBase {
     }
   }
 
+  /**
+   * @return modulus
+   */
   public String getPublicKeyModulusMaxAsString() {
     return (String) data.get(PUBLIC_KEY_MODULUS_MAX);
   }
 
   /**
-   * Setting value for PublicKeyModulusMax
+   * Setting value for PublicKeyModulusMax.
    *
    * @param value the value for PublicKeyModulusMax
    */
-  public void setPublicKeyModulusMax(BigInteger value) {
+  public void setPublicKeyModulusMax(final BigInteger value) {
     if (null == value) {
       data.put(PUBLIC_KEY_MODULUS_MAX, null);
     } else if (!(value.compareTo(BigInteger.ZERO) == -1)) {
@@ -777,43 +862,43 @@ public class RsaKeyValidator extends KeyValidatorBase {
           || value.compareTo(getPublicKeyModulusMin()) > -1) {
         data.put(PUBLIC_KEY_MODULUS_MAX, value.toString());
       } else {
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           final String message =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "validator.error.minimum_bigger_log",
                   getPublicKeyModulusMin(),
                   value);
-          log.debug(message);
+          LOG.debug(message);
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.error.set_key_validator_mod_max", value));
       }
     }
   }
 
   /**
-   * Setting value for PublicKeyModulusMaxAsString
+   * Setting value for PublicKeyModulusMaxAsString.
    *
    * @param value the string value for PublicKeyModulusMax
    */
-  public void setPublicKeyModulusMaxAsString(String value) {
+  public void setPublicKeyModulusMaxAsString(final String value) {
     setPublicKeyModulusMax(new BigInteger(value));
   }
 
   @Override
   public void upgrade() {
     super.upgrade();
-    if (log.isTraceEnabled()) {
-      log.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">upgrade: " + getLatestVersion() + ", " + getVersion());
     }
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade.
-      log.info(
-          intres.getLocalizedMessage(
+      LOG.info(
+          INTRES.getLocalizedMessage(
               "rsakeyvalidator.upgrade", Float.valueOf(getVersion())));
       init();
     }
@@ -824,8 +909,8 @@ public class RsaKeyValidator extends KeyValidatorBase {
       final PublicKey publicKey, final CertificateProfile certificateProfile)
       throws ValidatorNotApplicableException, ValidationException {
     List<String> messages = new ArrayList<String>();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validating public key with algorithm "
               + publicKey.getAlgorithm()
               + ", format "
@@ -842,14 +927,14 @@ public class RsaKeyValidator extends KeyValidatorBase {
               + publicKey.getFormat();
       messages.add(message);
       // Make sure this ends up in the server log
-      log.info(message + ", " + publicKey.getClass().getName());
+      LOG.info(message + ", " + publicKey.getClass().getName());
       throw new ValidatorNotApplicableException(message);
     }
     final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
     final BigInteger publicKeyExponent = rsaPublicKey.getPublicExponent();
     final BigInteger publicKeyModulus = rsaPublicKey.getModulus();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Validate RSA public key with exponent "
               + publicKeyExponent
               + " and modulus "
@@ -886,7 +971,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
           == 0) {
         messages.add("Invalid: RSA public key exponent is odd.");
       } else {
-        log.trace("isPublicKeyExponentOnlyAllowOdd passed");
+        LOG.trace("isPublicKeyExponentOnlyAllowOdd passed");
       }
     }
     if (null != getPublicKeyExponentMin()) {
@@ -895,7 +980,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
             "Invalid: RSA public key exponent is smaller than "
                 + getPublicKeyExponentMin());
       } else {
-        log.trace("getPublicKeyExponentMin passed");
+        LOG.trace("getPublicKeyExponentMin passed");
       }
     }
     if (null != getPublicKeyExponentMax()) {
@@ -912,7 +997,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
           == 0) {
         messages.add("Invalid: RSA public key modulus is odd.");
       } else {
-        log.trace("isPublicKeyModulusOnlyAllowOdd passed");
+        LOG.trace("isPublicKeyModulusOnlyAllowOdd passed");
       }
     }
     if (isPublicKeyModulusDontAllowPowerOfPrime()) {
@@ -921,7 +1006,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
             "Invalid: RSA public key modulus is not allowed to be the power of"
                 + " a prime.");
       } else {
-        log.trace("isPublicKeyModulusDontAllowPowerOfPrime passed");
+        LOG.trace("isPublicKeyModulusDontAllowPowerOfPrime passed");
       }
     }
     if (isPublicKeyModulusDontAllowRocaWeakKeys()) {
@@ -930,7 +1015,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
             "Invalid: RSA public key modulus is a weak key according to"
                 + " CVE-2017-15361.");
       } else {
-        log.trace("isPublicKeyModulusDontAllowRocaWeakKeys passed");
+        LOG.trace("isPublicKeyModulusDontAllowRocaWeakKeys passed");
       }
     }
     if (null != getPublicKeyModulusMinFactor()) {
@@ -940,7 +1025,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
             "Invalid: RSA public key modulus smallest factor is less than "
                 + getPublicKeyModulusMinFactor());
       } else {
-        log.trace("getPublicKeyModulusMinFactor passed");
+        LOG.trace("getPublicKeyModulusMinFactor passed");
       }
     }
     if (null != getPublicKeyModulusMin()) {
@@ -949,7 +1034,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
             "Invalid: RSA public key modulus is smaller than "
                 + getPublicKeyModulusMin());
       } else {
-        log.trace("getPublicKeyModulusMin passed");
+        LOG.trace("getPublicKeyModulusMin passed");
       }
     }
     if (null != getPublicKeyModulusMax()) {
@@ -958,13 +1043,13 @@ public class RsaKeyValidator extends KeyValidatorBase {
             "Invalid: RSA public key modulus is greater than "
                 + getPublicKeyModulusMax());
       } else {
-        log.trace("getPublicKeyModulusMax passed");
+        LOG.trace("getPublicKeyModulusMax passed");
       }
     }
 
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       for (String message : messages) {
-        log.debug(message);
+        LOG.debug(message);
       }
     }
     return messages;
@@ -1018,7 +1103,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
 
   @Override
   public String getLabel() {
-    return intres.getLocalizedMessage("validator.implementation.key.rsa");
+    return INTRES.getLocalizedMessage("validator.implementation.key.rsa");
   }
 
   @Override

@@ -34,7 +34,7 @@ public class CouldNotRemoveKeyValidatorException extends Exception {
    *
    * @param message the detail message.
    */
-  public CouldNotRemoveKeyValidatorException(String message) {
+  public CouldNotRemoveKeyValidatorException(final String message) {
     super(message);
   }
 }

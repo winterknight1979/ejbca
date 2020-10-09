@@ -29,7 +29,8 @@ public interface Validator
         Profile,
         Cloneable {
 
-  static final String TYPE_NAME = "VALIDATOR";
+    /** type. */
+  String TYPE_NAME = "VALIDATOR";
 
   /** Initializes the key validator. */
   void init();
@@ -106,18 +107,21 @@ public interface Validator
   Validator clone();
 
   /** @return the description. */
-  public String getDescription();
+  String getDescription();
 
   /** @param description the description. */
   void setDescription(String description);
 
   /**
-   * Implementation of UpgradableDataHashMap function getLatestVersion
+   * Implementation of UpgradableDataHashMap function getLatestVersion.
    *
    * @return version
    */
   float getLatestVersion();
 
+  /**
+   * @return map
+   */
   UpgradeableDataHashMap getUpgradableHashmap();
 
   /**

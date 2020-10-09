@@ -146,7 +146,7 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
         }
         if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
             // New version of the class, upgrade.
-            log.info(intres.getLocalizedMessage("blacklistkeyvalidator.upgrade", Float.valueOf(getVersion())));
+            log.info(INTRES.getLocalizedMessage("blacklistkeyvalidator.upgrade", Float.valueOf(getVersion())));
             init();
         }
     }
@@ -228,7 +228,7 @@ public class PublicKeyBlacklistKeyValidator extends KeyValidatorBase {
 
     @Override
     public String getLabel() {
-        return intres.getLocalizedMessage("validator.implementation.key.blacklist");
+        return INTRES.getLocalizedMessage("validator.implementation.key.blacklist");
     }
 
     @Override

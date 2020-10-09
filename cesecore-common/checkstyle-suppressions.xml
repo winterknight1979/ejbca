@@ -46,4 +46,7 @@
  	<suppress checks="UnusedImportsCheck" files="NoSuchSlotException.java" lines="15"/> <!-- Used in Jdoc. -->
  	<suppress checks="UnusedImportsCheck" files="ISignOperation.java" lines="16"/> <!-- Used in Jdoc. -->
 	<suppress checks="ParameterNumberCheck" files="P11Slot.java" lines="286,365"/>
+	<suppress files="ExternalCommandCertificateValidator" checks="InnerAssignmentCheck" lines="443" /> <!-- protects gainst null -->
+	<suppress checks="MagicNumberCheck" files="RsaKeyValidator.java" lines="127-130,235"/>	<!--  Unavoidable here.  -->
+ 	<suppress checks="UnusedImportsCheck" files="Validator.java" lines="17"/> <!-- Used in Jdoc. -->
  </suppressions>

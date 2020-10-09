@@ -27,9 +27,12 @@ import java.util.Map;
 public enum KeyValidatorSettingsTemplate {
 
   // @formatter:off
+    /** profile. */
   USE_CERTIFICATE_PROFILE_SETTINGS(
       0, "VALIDATORSETTINGSTEMPLATE_USE_CP_SETTINGS"),
+  /** forum. */
   USE_CAB_FORUM_SETTINGS(1, "VALIDATORSETTINGSTEMPLATE_USE_CAB_FORUM_SETTINGS"),
+  /** custom. */
   USE_CUSTOM_SETTINGS(2, "VALIDATORSETTINGSTEMPLATE_USE_CUSTOM_SETTINGS");
   // @formatter:on
 
@@ -42,12 +45,13 @@ public enum KeyValidatorSettingsTemplate {
   /**
    * Creates a new instance.
    *
-   * @param option option index
-   * @param label resource key or label.
+   * @param anOption option index
+   * @param aLabel resource key or label.
    */
-  private KeyValidatorSettingsTemplate(final int option, final String label) {
-    this.option = option;
-    this.label = label;
+  KeyValidatorSettingsTemplate(
+          final int anOption, final String aLabel) {
+    this.option = anOption;
+    this.label = aLabel;
   }
 
   /**
@@ -73,7 +77,7 @@ public enum KeyValidatorSettingsTemplate {
    *
    * @return indices
    */
-  public static final List<Integer> types() {
+  public static List<Integer> types() {
     final List<Integer> result = new ArrayList<Integer>();
     for (KeyValidatorSettingsTemplate option : values()) {
       result.add(option.getOption());
@@ -86,7 +90,7 @@ public enum KeyValidatorSettingsTemplate {
    *
    * @return keys
    */
-  public static final Map<Integer, String> map() {
+  public static Map<Integer, String> map() {
     final Map<Integer, String> result = new LinkedHashMap<Integer, String>();
     for (KeyValidatorSettingsTemplate option : values()) {
       result.put(option.getOption(), option.getLabel());
@@ -96,12 +100,12 @@ public enum KeyValidatorSettingsTemplate {
 
   /**
    * Gets the KeyValidatorBaseParameterOptions object with the option
-   * optionIndex
+   * optionIndex.
    *
    * @param optionIndex the options index
    * @return the option.
    */
-  public static final KeyValidatorSettingsTemplate optionOf(
+  public static KeyValidatorSettingsTemplate optionOf(
       final int optionIndex) {
     KeyValidatorSettingsTemplate result = null;
     for (KeyValidatorSettingsTemplate option : values()) {

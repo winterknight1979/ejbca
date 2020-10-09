@@ -29,7 +29,7 @@ public interface CertificateValidator
     extends Validator, ValidityAwareValidator, DynamicUiModelAware {
 
   /** List of accepted date formats for notBefore and notAfter filter. */
-  static final String[] DATE_FORMAT =
+  String[] DATE_FORMAT =
       new String[] {
         "yyyy-MM-dd HH:mm:ssZZ", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"
       };
