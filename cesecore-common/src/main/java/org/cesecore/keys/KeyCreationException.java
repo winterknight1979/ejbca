@@ -23,17 +23,28 @@ public class KeyCreationException extends RuntimeException {
 
   private static final long serialVersionUID = 6589133117806842102L;
 
-  public KeyCreationException() {}
+  /** default. */
+  public KeyCreationException() { }
 
-  public KeyCreationException(String arg0) {
+  /**
+   * @param arg0 Message
+   */
+  public KeyCreationException(final String arg0) {
     super(arg0);
   }
 
-  public KeyCreationException(Throwable arg0) {
+  /**
+   * @param arg0 cause
+   */
+  public KeyCreationException(final Throwable arg0) {
     super(arg0);
   }
 
-  public KeyCreationException(String arg0, Throwable arg1) {
+  /**
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
+  public KeyCreationException(final String arg0, final Throwable arg1) {
     super(arg0, arg1);
   }
 }
