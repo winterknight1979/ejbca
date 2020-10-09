@@ -69,6 +69,30 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>Generate Service Manifest</id>
+						<phase>process-test-classes</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass>
+							<classpathScope>compile</classpathScope>
+							<arguments>
+								<argument>${project.build.directory}/classes</argument>
+								<argument>
+									org.cesecore.certificates.ocsp.extension.OCSPExtension
+								</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
