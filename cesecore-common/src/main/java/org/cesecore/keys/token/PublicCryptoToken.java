@@ -46,49 +46,56 @@ import org.cesecore.util.CryptoProviderTools;
 public class PublicCryptoToken implements CryptoToken {
 
   private static final long serialVersionUID = 1L;
+  /** ID. */
   private int id;
-  private static final Logger log = Logger.getLogger(PublicCryptoToken.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(PublicCryptoToken.class);
+  /** PK. */
   private PublicKey pk;
-  private static final String providerName = BouncyCastleProvider.PROVIDER_NAME;
+  /** Provider. */
+  private static final String PROVIDER_NAME
+              = BouncyCastleProvider.PROVIDER_NAME;
+  /** Name. */
   private String tokenName = "not available";
 
   @Override
-  public void init(Properties properties, byte[] data, int _id)
+  public void init(
+          final Properties properties, final byte[] data, final int anId)
       throws Exception {
-    this.id = _id;
+    this.id = anId;
     if (data == null || data.length < 1) {
       final String msg = "No data for public key in token with id: " + this.id;
-      log.error(msg);
+      LOG.error(msg);
       throw new Exception(msg);
     }
     CryptoProviderTools.installBCProviderIfNotAvailable();
     this.pk = getPublicKey(data);
     if (this.pk == null) {
       final String msg = "Not possible to initiate public key id: " + this.id;
-      log.error(msg);
+      LOG.error(msg);
       throw new Exception(msg);
     }
   }
 
-  private static PublicKey getPublicKey(final byte data[]) {
+  private static PublicKey getPublicKey(final byte[] data) {
     try {
       PublicKey ret = KeyTools.getPublicKeyFromBytes(data);
       if (ret != null) {
         return ret;
       }
     } catch (IllegalArgumentException e) {
-      log.debug("Not an X509 key.", e);
+      LOG.debug("Not an X509 key.", e);
     }
-    log.debug("Trying to parse it as a certificate.");
+    LOG.debug("Trying to parse it as a certificate.");
     try {
       X509Certificate x509Certificate =
           CertTools.getCertfromByteArray(data, X509Certificate.class);
       if (x509Certificate != null) {
         return x509Certificate.getPublicKey();
       }
-      log.debug("Failed to parse as X509 Certificate.");
+      LOG.debug("Failed to parse as X509 Certificate.");
     } catch (CertificateException e) {
-      log.debug("Public key data is not a certificate.", e);
+      LOG.debug("Public key data is not a certificate.", e);
     }
     return null; // no more formats to try
   }
@@ -99,7 +106,7 @@ public class PublicCryptoToken implements CryptoToken {
   }
 
   @Override
-  public void activate(char[] authenticationcode)
+  public void activate(final char[] authenticationcode)
       throws CryptoTokenOfflineException,
           CryptoTokenAuthenticationFailedException {
     // no private key to activate
@@ -111,7 +118,7 @@ public class PublicCryptoToken implements CryptoToken {
   }
 
   @Override
-  public boolean isAliasUsed(String alias) {
+  public boolean isAliasUsed(final String alias) {
     try {
       return (getPublicKey(alias) != null);
     } catch (CryptoTokenOfflineException e) {
@@ -121,46 +128,49 @@ public class PublicCryptoToken implements CryptoToken {
   }
 
   @Override
-  public PrivateKey getPrivateKey(String alias)
+  public PrivateKey getPrivateKey(final String alias)
       throws CryptoTokenOfflineException {
     // no private key for this token
     return null;
   }
 
   @Override
-  public PublicKey getPublicKey(String alias)
+  public PublicKey getPublicKey(final String alias)
       throws CryptoTokenOfflineException {
     return this.pk;
   }
 
   @Override
-  public Key getKey(String alias) throws CryptoTokenOfflineException {
+  public Key getKey(final String alias) throws CryptoTokenOfflineException {
     // no symmetric key for this token.
     return null;
   }
 
   @Override
-  public void deleteEntry(String alias)
+  public void deleteEntry(final String alias)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException {
     // static do nothing
   }
 
   @Override
-  public void generateKeyPair(String keySpec, String alias)
+  public void generateKeyPair(
+          final String keySpec, final String alias)
       throws InvalidAlgorithmParameterException, CryptoTokenOfflineException {
     // static do nothing
   }
 
   @Override
-  public void generateKeyPair(AlgorithmParameterSpec spec, String alias)
+  public void generateKeyPair(
+          final AlgorithmParameterSpec spec, final String alias)
       throws InvalidAlgorithmParameterException, CertificateException,
           IOException, CryptoTokenOfflineException {
     // static do nothing
   }
 
   @Override
-  public void generateKey(String algorithm, int keysize, String alias)
+  public void generateKey(
+          final String algorithm, final int keysize, final String alias)
       throws NoSuchAlgorithmException, NoSuchProviderException,
           KeyStoreException, CryptoTokenOfflineException, InvalidKeyException,
           InvalidAlgorithmParameterException, SignatureException,
@@ -171,12 +181,12 @@ public class PublicCryptoToken implements CryptoToken {
 
   @Override
   public String getSignProviderName() {
-    return providerName;
+    return PROVIDER_NAME;
   }
 
   @Override
   public String getEncProviderName() {
-    return providerName;
+    return PROVIDER_NAME;
   }
 
   @Override
@@ -198,7 +208,7 @@ public class PublicCryptoToken implements CryptoToken {
   }
 
   @Override
-  public void setProperties(Properties properties) {
+  public void setProperties(final Properties properties) {
     // do nothing
   }
 
@@ -219,7 +229,10 @@ public class PublicCryptoToken implements CryptoToken {
 
   @Override
   public void storeKey(
-      String alias, Key key, Certificate[] chain, char[] password)
+      final String alias,
+      final Key key,
+      final Certificate[] chain,
+      final char[] password)
       throws KeyStoreException {
     if (chain == null || chain.length < 1) {
       return;
@@ -242,7 +255,9 @@ public class PublicCryptoToken implements CryptoToken {
 
   @Override
   public void testKeyPair(
-      String alias, PublicKey publicKey, PrivateKey privateKey)
+      final String alias,
+      final PublicKey publicKey,
+      final PrivateKey privateKey)
       throws InvalidKeyException {
     // be positive.. NOT!
     throw new InvalidKeyException(
@@ -255,7 +270,7 @@ public class PublicCryptoToken implements CryptoToken {
   }
 
   @Override
-  public void setTokenName(final String tokenName) {
-    this.tokenName = tokenName;
+  public void setTokenName(final String aokenName) {
+    this.tokenName = aokenName;
   }
 }

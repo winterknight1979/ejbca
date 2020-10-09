@@ -125,14 +125,14 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     Properties indexProperties = new Properties();
     indexProperties.setProperty("slotListIndex", "7");
     Properties newSlotNumber =
-        PKCS11CryptoToken.upgradePropertiesFileFrom5_0_x(slotNumberProperties);
+        PKCS11CryptoToken.upgradePropertiesFileFrom50x(slotNumberProperties);
     assertEquals(
         "7", newSlotNumber.getProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE));
     assertEquals(
         Pkcs11SlotLabelType.SLOT_NUMBER.getKey(),
         newSlotNumber.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE));
     Properties newIndexNumber =
-        PKCS11CryptoToken.upgradePropertiesFileFrom5_0_x(indexProperties);
+        PKCS11CryptoToken.upgradePropertiesFileFrom50x(indexProperties);
     assertEquals(
         "i7", newIndexNumber.getProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE));
     assertEquals(
@@ -146,7 +146,7 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     Properties slotPropertiesWithNumber = new Properties();
     slotPropertiesWithNumber.setProperty("slot", "SLOT_ID:7");
     Properties newSlotPropertiesWithNumber =
-        PKCS11CryptoToken.upgradePropertiesFileFrom5_0_x(
+        PKCS11CryptoToken.upgradePropertiesFileFrom50x(
             slotPropertiesWithNumber);
     assertEquals(
         "7",
@@ -159,7 +159,7 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     Properties slotPropertiesWithIndex = new Properties();
     slotPropertiesWithIndex.setProperty("slot", "SLOT_LIST_IX:i7");
     Properties newSlotPropertiesWithIndex =
-        PKCS11CryptoToken.upgradePropertiesFileFrom5_0_x(
+        PKCS11CryptoToken.upgradePropertiesFileFrom50x(
             slotPropertiesWithIndex);
     assertEquals(
         "i7",
@@ -172,7 +172,7 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     Properties slotPropertiesWithLabel = new Properties();
     slotPropertiesWithLabel.setProperty("slot", "TOKEN_LABEL:foo");
     Properties newSlotPropertiesWithLabel =
-        PKCS11CryptoToken.upgradePropertiesFileFrom5_0_x(
+        PKCS11CryptoToken.upgradePropertiesFileFrom50x(
             slotPropertiesWithLabel);
     assertEquals(
         "foo",

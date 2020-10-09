@@ -50,10 +50,10 @@ import org.cesecore.util.StringTools;
 public class SoftCryptoToken extends BaseCryptoToken {
   private static final long serialVersionUID = 387950849444619646L;
 
-  /** Log4j instance */
-  private static final Logger log = Logger.getLogger(SoftCryptoToken.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Log4j instance. */
+  private static final Logger LOG = Logger.getLogger(SoftCryptoToken.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /**
@@ -71,14 +71,16 @@ public class SoftCryptoToken extends BaseCryptoToken {
    * available for use.
    */
   public static final String NODEFAULTPWD = "NODEFAULTPWD";
-
+ /** Data. */
   private byte[] keystoreData;
+  /** Password. */
   private char[] keyStorePass;
 
+  /** Constructor. */
   public SoftCryptoToken() {
     super();
-    if (log.isDebugEnabled()) {
-      log.debug("Creating SoftCryptoToken");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Creating SoftCryptoToken");
     }
   }
 
@@ -88,11 +90,16 @@ public class SoftCryptoToken extends BaseCryptoToken {
    */
   @Override
   public void init(
-      Properties properties, final byte[] data, final int cryptoTokenId) {
+      final Properties oproperties,
+      final byte[] data,
+      final int cryptoTokenId) {
     super.setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);
     this.keystoreData = data;
-    if (properties == null) {
+    Properties properties;
+    if (oproperties == null) {
       properties = new Properties();
+    } else {
+        properties = oproperties;
     }
     // If we don't have an auto activation password set, we try to use the
     // default one if it works to load the keystore with it
@@ -105,13 +112,13 @@ public class SoftCryptoToken extends BaseCryptoToken {
       boolean okPwd =
           checkSoftKeystorePassword(keystorepass.toCharArray(), cryptoTokenId);
       if (okPwd) {
-        log.debug("Succeded to load keystore with password");
+        LOG.debug("Succeded to load keystore with password");
         BaseCryptoToken.setAutoActivatePin(properties, keystorepass, true);
       }
     } else if (autoPwd != null) {
-      log.debug("Soft Crypto Token has autoactivation property set.");
+      LOG.debug("Soft Crypto Token has autoactivation property set.");
     } else if (properties.getProperty(NODEFAULTPWD) != null) {
-      log.debug("No default pwd allowed for this soft crypto token.");
+      LOG.debug("No default pwd allowed for this soft crypto token.");
     }
     boolean autoActivate =
         autoPwd != null || properties.getProperty(NODEFAULTPWD) == null;
@@ -119,11 +126,11 @@ public class SoftCryptoToken extends BaseCryptoToken {
   }
 
   @Override
-  public void activate(char[] authCode)
+  public void activate(final char[] oauthCode)
       throws CryptoTokenAuthenticationFailedException,
           CryptoTokenOfflineException {
     if (keyStore != null) {
-      log.debug(
+      LOG.debug(
           "Ignoring activation request for already active CryptoToken: "
               + getId());
       return;
@@ -131,8 +138,11 @@ public class SoftCryptoToken extends BaseCryptoToken {
     // If we use auto-activation, we will override whatever is used as parameter
     // (probably null)
     final String autoPwd = BaseCryptoToken.getAutoActivatePin(getProperties());
+    char[] authCode;
     if (autoPwd != null) {
       authCode = autoPwd.toCharArray();
+    } else {
+        authCode = oauthCode;
     }
     if (keystoreData != null) {
       try {
@@ -143,32 +153,32 @@ public class SoftCryptoToken extends BaseCryptoToken {
         keyStorePass = authCode;
       } catch (IOException e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "token.erroractivate", getId(), e.getMessage());
-        log.info(msg, e);
+        LOG.info(msg, e);
         CryptoTokenAuthenticationFailedException oe =
             new CryptoTokenAuthenticationFailedException(e.getMessage());
         oe.initCause(e);
         throw oe;
       } catch (Exception e) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "token.erroractivate", getId(), e.getMessage());
-        log.info(msg, e);
+        LOG.info(msg, e);
         CryptoTokenOfflineException oe =
             new CryptoTokenOfflineException(e.getMessage());
         oe.initCause(e);
         throw oe;
       }
-      String msg = intres.getLocalizedMessage("token.activated", getId());
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("token.activated", getId());
+      LOG.info(msg);
     } else {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "token.erroractivate",
               getId(),
               "No keystore data available yet, creating new PKCS#12 keystore.");
-      log.info(msg);
+      LOG.info(msg);
       try {
         KeyStore keystore =
             KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
@@ -180,19 +190,19 @@ public class SoftCryptoToken extends BaseCryptoToken {
         keyStorePass = authCode;
         storeKeyStore();
       } catch (KeyStoreException e) {
-        log.error(e);
+        LOG.error(e);
         throw new CryptoTokenAuthenticationFailedException(e.getMessage());
       } catch (NoSuchProviderException e) {
-        log.error(e);
+        LOG.error(e);
         throw new CryptoTokenAuthenticationFailedException(e.getMessage());
       } catch (NoSuchAlgorithmException e) {
-        log.error(e);
+        LOG.error(e);
         throw new CryptoTokenAuthenticationFailedException(e.getMessage());
       } catch (CertificateException e) {
-        log.error(e);
+        LOG.error(e);
         throw new CryptoTokenAuthenticationFailedException(e.getMessage());
       } catch (IOException e) {
-        log.error(e);
+        LOG.error(e);
         throw new CryptoTokenAuthenticationFailedException(e.getMessage());
       }
     }
@@ -209,12 +219,12 @@ public class SoftCryptoToken extends BaseCryptoToken {
    * @throws PrivateKeyNotExtractableException if the crypto tokens does not
    *     allow it's keys to be extracted.
    */
-  public void checkPasswordBeforeExport(char[] authCode)
+  public void checkPasswordBeforeExport(final char[] authCode)
       throws CryptoTokenAuthenticationFailedException,
           CryptoTokenOfflineException, PrivateKeyNotExtractableException {
     if (!doPermitExtractablePrivateKey()) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "token.errornotextractable_allkeys", getId());
       throw new PrivateKeyNotExtractableException(msg);
     }
@@ -229,18 +239,18 @@ public class SoftCryptoToken extends BaseCryptoToken {
       }
     } catch (IOException e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "token.wrongauthcode", getId(), e.getMessage());
-      log.info(msg, e);
+      LOG.info(msg, e);
       CryptoTokenAuthenticationFailedException oe =
           new CryptoTokenAuthenticationFailedException(e.getMessage());
       oe.initCause(e);
       throw oe;
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "token.erroractivate", getId(), e.getMessage());
-      log.info(msg, e);
+      LOG.info(msg, e);
       CryptoTokenOfflineException oe =
           new CryptoTokenOfflineException(e.getMessage());
       oe.initCause(e);
@@ -254,8 +264,8 @@ public class SoftCryptoToken extends BaseCryptoToken {
     CryptoProviderTools.installBCProviderIfNotAvailable();
     KeyStore keystore =
         KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Loading keystore data of size: "
               + (ksdata == null ? "null" : ksdata.length));
     }
@@ -272,10 +282,11 @@ public class SoftCryptoToken extends BaseCryptoToken {
       // Exception should only be thrown if loading a non-null KeyStore fails
       throw new IllegalStateException("This should never happen.");
     }
-    String msg = intres.getLocalizedMessage("token.deactivate", getId());
-    log.info(msg);
+    String msg = INTRES.getLocalizedMessage("token.deactivate", getId());
+    LOG.info(msg);
   }
 
+  /** Store. */
   void storeKeyStore() {
     // Store keystore at data first so we can activate again
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -285,16 +296,16 @@ public class SoftCryptoToken extends BaseCryptoToken {
         this.keystoreData = baos.toByteArray();
       }
     } catch (KeyStoreException e) {
-      log.error(e);
+      LOG.error(e);
     } catch (NoSuchAlgorithmException e) {
-      log.error(e);
+      LOG.error(e);
     } catch (CertificateException e) {
-      log.error(e);
+      LOG.error(e);
     } catch (IOException e) {
-      log.error(e);
+      LOG.error(e);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Storing soft keystore of size "
               + (keystoreData == null ? "null" : keystoreData.length));
     }
@@ -307,14 +318,14 @@ public class SoftCryptoToken extends BaseCryptoToken {
   }
 
   /**
-   * Verifies the password for soft keystore by trying to load the keystore
+   * Verifies the password for soft keystore by trying to load the keystore.
    *
    * @param authenticationCode authentication code for the keystore
    * @param cryptoTokenId ID
    * @return true if verification was ok
    */
   private boolean checkSoftKeystorePassword(
-      final char[] authenticationCode, int cryptoTokenId) {
+      final char[] authenticationCode, final int cryptoTokenId) {
     try {
       if (keystoreData != null) {
         KeyStore keystore =
@@ -325,10 +336,10 @@ public class SoftCryptoToken extends BaseCryptoToken {
       return true;
     } catch (Exception e) {
       // If it was not the wrong password we need to see what went wrong
-      log.debug("Error: ", e);
+      LOG.debug("Error: ", e);
       // Invalid password
-      log.info(
-          intres.getLocalizedMessage("token.wrongauthcode", cryptoTokenId));
+      LOG.info(
+          INTRES.getLocalizedMessage("token.wrongauthcode", cryptoTokenId));
     }
     return false;
   }
@@ -343,8 +354,8 @@ public class SoftCryptoToken extends BaseCryptoToken {
       try {
         cont.deleteEntry(alias);
         String msg =
-            intres.getLocalizedMessage("token.deleteentry", alias, getId());
-        log.info(msg);
+            INTRES.getLocalizedMessage("token.deleteentry", alias, getId());
+        LOG.info(msg);
       } catch (KeyStoreException e) { // NOPMD
         // P12 keystore throws when the alias can not be found, in contrary to
         // PKCS#11 keystores
@@ -352,7 +363,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
       }
       storeKeyStore();
     } else {
-      log.debug("Trying to delete keystore entry with empty alias.");
+      LOG.debug("Trying to delete keystore entry with empty alias.");
     }
   }
 
@@ -365,7 +376,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
       cont.generateKeyPair(keySpec, alias);
       storeKeyStore();
     } else {
-      log.debug("Trying to generate keys with empty alias.");
+      LOG.debug("Trying to generate keys with empty alias.");
     }
   }
 
@@ -409,7 +420,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
       prop.setProperty(alias, str);
       setProperties(prop);
     } else {
-      log.debug("Trying to generate keys with empty alias.");
+      LOG.debug("Trying to generate keys with empty alias.");
     }
   }
 
@@ -424,7 +435,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
       cont.generateKeyPair(spec, alias);
       storeKeyStore();
     } else {
-      log.debug("Trying to generate keys with empty alias.");
+      LOG.debug("Trying to generate keys with empty alias.");
     }
   }
 

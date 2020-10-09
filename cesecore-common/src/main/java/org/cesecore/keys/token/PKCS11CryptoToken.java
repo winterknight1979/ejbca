@@ -44,18 +44,21 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
 
   private static final long serialVersionUID = 7719014139640717867L;
 
-  /** Log4j instance */
-  private static final Logger log = Logger.getLogger(PKCS11CryptoToken.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Log4j instance. */
+  private static final Logger LOG = Logger.getLogger(PKCS11CryptoToken.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
-  /** Keys, specific to PKCS#11, that can be defined in CA token properties */
+  /** Keys, specific to PKCS#11, that can be defined in CA token properties. */
   public static final String SLOT_LABEL_VALUE = "slotLabelValue";
-
+  /** Type. */
   public static final String SLOT_LABEL_TYPE = "slotLabelType";
+  /** Library. */
   public static final String SHLIB_LABEL_KEY = "sharedLibrary";
+  /** File. */
   public static final String ATTRIB_LABEL_KEY = "attributesFile";
+  /** Pin. */
   public static final String PASSWORD_LABEL_KEY = "pin";
   /**
    * Flag that if set, prevent adding the P11 provider with
@@ -64,8 +67,10 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
    */
   public static final String DO_NOT_ADD_P11_PROVIDER = "doNotAddP11Provider";
 
+  /** Key. */
   @Deprecated // Remove once upgrading from 5.0->6.0 is no longer supported
   public static final String SLOT_LIST_INDEX_KEY = "slotListIndex";
+  /** Label. */
   @Deprecated // Remove once upgrading from 5.0->6.0 is no longer supported
   public static final String SLOT_LABEL_KEY = "slot";
 
@@ -78,8 +83,10 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
    */
   public static final String TOKEN_FRIENDLY_NAME = "tokenFriendlyName";
 
+  /** Slot. */
   private transient P11Slot p11slot;
 
+  /** Label. */
   private String sSlotLabel = null;
 
   /** @throws InstantiationException on error */
@@ -100,8 +107,8 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
   @Override
   public void init(final Properties properties, final byte[] data, final int id)
       throws CryptoTokenOfflineException, NoSuchSlotException {
-    if (log.isDebugEnabled()) {
-      log.debug(">init: id=" + id);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(">init: id=" + id);
     }
     // Don't autoactivate this right away, we must dynamically create the
     // auth-provider with a slot
@@ -149,10 +156,10 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
       setJCAProvider(provider);
     } else {
       setJCAProviderName(provider.getName());
-      log.info("Configured to not add PKCS#11 Provider: " + provider.getName());
+      LOG.info("Configured to not add PKCS#11 Provider: " + provider.getName());
     }
-    if (log.isDebugEnabled()) {
-      log.debug("<init: id=" + id);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("<init: id=" + id);
     }
   }
 
@@ -174,7 +181,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
     } catch (
         Throwable
             t) { // NOPMD: when dealing with HSMs we need to catch everything
-      log.warn(
+      LOG.warn(
           "Failed to initialize PKCS11 provider slot '"
               + this.sSlotLabel
               + "'.",
@@ -187,8 +194,8 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
       authfe.initCause(t);
       throw authfe;
     }
-    String msg = intres.getLocalizedMessage("token.activated", getId());
-    log.info(msg);
+    String msg = INTRES.getLocalizedMessage("token.activated", getId());
+    LOG.info(msg);
   }
 
   private KeyStore createKeyStore(final char[] authCode)
@@ -196,7 +203,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
           UnsupportedEncodingException, IOException, KeyStoreException {
     final Provider provider = this.p11slot.getProvider();
     final KeyStore keyStore = KeyStore.getInstance("PKCS11", provider);
-    log.debug("Loading key from slot '" + this.sSlotLabel + "' using pin.");
+    LOG.debug("Loading key from slot '" + this.sSlotLabel + "' using pin.");
     // See ECA-1395 for an explanation of this special handling for the IAIK
     // provider.
     // If the application uses several instances of the IAIKPkcs11 provider, it
@@ -253,10 +260,10 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
     if (this.p11slot != null) {
       this.p11slot.logoutFromSlotIfNoTokensActive();
     } else {
-      log.debug("p11slot was null, token was not active trying to deactivate.");
+      LOG.debug("p11slot was null, token was not active trying to deactivate.");
     }
-    final String msg = intres.getLocalizedMessage("token.deactivate", getId());
-    log.info(msg);
+    final String msg = INTRES.getLocalizedMessage("token.deactivate", getId());
+    LOG.info(msg);
   }
 
   @Override
@@ -275,10 +282,10 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
           new KeyStoreTools(getKeyStore(), getSignProviderName());
       cont.deleteEntry(alias);
       String msg =
-          intres.getLocalizedMessage("token.deleteentry", alias, getId());
-      log.info(msg);
+          INTRES.getLocalizedMessage("token.deleteentry", alias, getId());
+      LOG.info(msg);
     } else {
-      log.debug("Trying to delete keystore entry with empty alias.");
+      LOG.debug("Trying to delete keystore entry with empty alias.");
     }
   }
 
@@ -290,7 +297,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
           new KeyStoreTools(getKeyStore(), getSignProviderName());
       cont.generateKeyPair(keySpec, alias);
     } else {
-      log.debug("Trying to generate keys with empty alias.");
+      LOG.debug("Trying to generate keys with empty alias.");
     }
   }
 
@@ -304,7 +311,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
           new KeyStoreTools(getKeyStore(), getSignProviderName());
       cont.generateKeyPair(spec, alias);
     } else {
-      log.debug("Trying to generate keys with empty alias.");
+      LOG.debug("Trying to generate keys with empty alias.");
     }
   }
 
@@ -313,15 +320,15 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
       final String algorithm, final int keysize, final String alias)
       throws NoSuchAlgorithmException, NoSuchProviderException,
           KeyStoreException, CryptoTokenOfflineException {
-    if (log.isDebugEnabled()) {
-      log.debug("Generate key, " + algorithm + ", " + keysize + ", " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Generate key, " + algorithm + ", " + keysize + ", " + alias);
     }
     if (StringUtils.isNotEmpty(alias)) {
       KeyStoreTools cont =
           new KeyStoreTools(getKeyStore(), getSignProviderName());
       cont.generateKey(algorithm, keysize, alias);
     } else {
-      log.debug("Trying to generate keys with empty alias.");
+      LOG.debug("Trying to generate keys with empty alias.");
     }
   }
 
@@ -331,7 +338,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
   }
 
   /**
-   * Used for testing
+   * Used for testing.
    *
    * @return slot
    */
@@ -341,14 +348,14 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
 
   /**
    * Extracts the slotLabel that is used for many tokens in construction of the
-   * provider
+   * provider.
    *
    * @param sSlotLabelKey which key in the properties that gives us the label
    * @param properties CA token properties
    * @return String with the slot label, trimmed from whitespace
    */
   private static String getSlotLabel(
-      String sSlotLabelKey, Properties properties) {
+      final String sSlotLabelKey, final Properties properties) {
     String ret = null;
     if (sSlotLabelKey != null && properties != null) {
       ret = properties.getProperty(sSlotLabelKey);
@@ -367,19 +374,19 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
    */
   @Deprecated
   // Remove when we no longer support upgrading from 5.0.x -> 6.0.x
-  public static Properties upgradePropertiesFileFrom5_0_x(
+  public static Properties upgradePropertiesFileFrom50x(
       final Properties properties) {
     Properties returnValue = new Properties();
 
     for (Object key : properties.keySet()) {
       final String keyString = (String) key;
-      if (log.isDebugEnabled()) {
-        log.debug(">upgradePropertiesFileFrom5_0_x, keyString: " + key);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(">upgradePropertiesFileFrom5_0_x, keyString: " + key);
       }
       if (keyString.equalsIgnoreCase(SLOT_LABEL_KEY)) {
         String keyValue = properties.getProperty(keyString);
-        if (log.isDebugEnabled()) {
-          log.debug(">upgradePropertiesFileFrom5_0_x, keyValue: " + keyValue);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(">upgradePropertiesFileFrom5_0_x, keyValue: " + keyValue);
         }
         // In 5.0.11, the "slot" value may contain just an integer, but may also
         // encode an integer, an index
@@ -420,16 +427,16 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
         if (indexValue.charAt(0) != 'i') {
           indexValue = "i" + indexValue;
         }
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               ">upgradePropertiesFileFrom5_0_x, indexValue: " + indexValue);
         }
         returnValue.setProperty(SLOT_LABEL_VALUE, indexValue);
         returnValue.setProperty(
             SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_INDEX.getKey());
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               ">upgradePropertiesFileFrom5_0_x, keyString is neither "
                   + SLOT_LABEL_KEY
                   + " or "

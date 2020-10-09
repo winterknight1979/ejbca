@@ -970,7 +970,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
             log.debug("CA token classpath: " + classpath);
         }
         // Upgrade the properties value
-        final Properties upgradedProperties = PKCS11CryptoToken.upgradePropertiesFileFrom5_0_x(prop);
+        final Properties upgradedProperties = PKCS11CryptoToken.upgradePropertiesFileFrom50x(prop);
         // If it is an P11 we are using and the library and slot are the same as an existing CryptoToken we use that CryptoToken's id.
         int cryptoTokenId = 0;
         if (PKCS11CryptoToken.class.getName().equals(classpath)) {
