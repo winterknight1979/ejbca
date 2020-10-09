@@ -34,19 +34,22 @@ public class NullCryptoToken extends BaseCryptoToken {
 
   private static final long serialVersionUID = -1L;
 
+  /** ID. */
   private int id;
 
+  /** null. */
   public NullCryptoToken() {
     super();
   }
 
   @Override
-  public void init(Properties properties, byte[] data, int id)
+  public void init(
+          final Properties properties, final byte[] data, final int anId)
       throws Exception {
     // We only need to set JCA provider, if JCE provider is the same (which is
     // the common case)
     setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);
-    this.id = id;
+    this.id = anId;
   }
 
   @Override
@@ -60,38 +63,38 @@ public class NullCryptoToken extends BaseCryptoToken {
   }
 
   @Override
-  public PrivateKey getPrivateKey(String alias) {
+  public PrivateKey getPrivateKey(final String alias) {
     return null;
   }
 
   @Override
-  public PublicKey getPublicKey(String alias) {
+  public PublicKey getPublicKey(final String alias) {
     return null;
   }
 
   @Override
   public void deleteEntry(final String alias)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
-          IOException, CryptoTokenOfflineException {}
+          IOException, CryptoTokenOfflineException { }
 
   @Override
   public void generateKeyPair(final String keySpec, final String alias)
-      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException {}
+      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException { }
 
   @Override
   public void generateKeyPair(
       final AlgorithmParameterSpec spec, final String alias)
       throws InvalidAlgorithmParameterException, CertificateException,
-          IOException, CryptoTokenOfflineException {}
+          IOException, CryptoTokenOfflineException { }
 
   @Override
   public void generateKey(
       final String algorithm, final int keysize, final String alias)
       throws NoSuchAlgorithmException, NoSuchProviderException,
-          KeyStoreException, CryptoTokenOfflineException {}
+          KeyStoreException, CryptoTokenOfflineException { }
 
   @Override
-  public void activate(char[] authenticationcode)
+  public void activate(final char[] authenticationcode)
       throws CryptoTokenAuthenticationFailedException,
           CryptoTokenOfflineException {
     // Do Nothing

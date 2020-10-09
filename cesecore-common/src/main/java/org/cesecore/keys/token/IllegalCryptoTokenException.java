@@ -31,7 +31,7 @@ public class IllegalCryptoTokenException extends CesecoreException {
    *
    * @param message Human redable error message, can not be NULL.
    */
-  public IllegalCryptoTokenException(String message) {
+  public IllegalCryptoTokenException(final String message) {
     super(message);
   }
   /**
@@ -40,7 +40,7 @@ public class IllegalCryptoTokenException extends CesecoreException {
    *
    * @param exception exception to be embedded.
    */
-  public IllegalCryptoTokenException(Exception exception) {
+  public IllegalCryptoTokenException(final Exception exception) {
     super(exception);
   }
 }

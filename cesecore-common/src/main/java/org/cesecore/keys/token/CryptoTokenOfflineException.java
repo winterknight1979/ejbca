@@ -16,7 +16,8 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to use a CA Token that isn't available
+ * An exception thrown when someone tries to use a CA Token
+ *  that isn't available.
  *
  * @version $Id: CryptoTokenOfflineException.java 17625 2013-09-20 07:12:06Z
  *     netmackan $
@@ -40,15 +41,22 @@ public class CryptoTokenOfflineException extends CesecoreException {
    *
    * @param msg the detail message.
    */
-  public CryptoTokenOfflineException(String msg) {
+  public CryptoTokenOfflineException(final String msg) {
     super(ErrorCode.CA_OFFLINE, msg);
   }
 
-  public CryptoTokenOfflineException(Exception e) {
+  /**
+   * @param e cause
+   */
+  public CryptoTokenOfflineException(final Exception e) {
     super(ErrorCode.CA_OFFLINE, e);
   }
 
-  public CryptoTokenOfflineException(String msg, Exception e) {
+  /**
+   * @param msg message
+   * @param e cause
+   */
+  public CryptoTokenOfflineException(final String msg, final Exception e) {
     super(ErrorCode.CA_OFFLINE, msg, e);
   }
 }

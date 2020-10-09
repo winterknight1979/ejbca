@@ -54,35 +54,40 @@ public abstract class BaseCryptoToken implements CryptoToken {
 
   private static final long serialVersionUID = 2133644669863292622L;
 
-  /** Log4j instance */
-  private static final Logger log = Logger.getLogger(BaseCryptoToken.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Log4j instance. */
+  private static final Logger LOG = Logger.getLogger(BaseCryptoToken.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
-  /** Used for signatures */
+  /** Used for signatures. */
   private String mJcaProviderName = null;
   /**
    * Used for encrypt/decrypt, can be same as for signatures for example for
-   * pkcs#11
+   * pkcs#11.
    */
   private String mJceProviderName = null;
-
+/** Authentication. */
   private char[] mAuthCode;
-
+ /** Props. */
   private Properties properties;
-
+  /** Id. */
   private int id;
 
-  /** The java KeyStore backing the Crypto Token */
+  /** The java KeyStore backing the Crypto Token. */
   protected transient CachingKeyStoreWrapper keyStore;
 
-  /** public constructor */
+  /** public constructor. */
   public BaseCryptoToken() {
     super();
   }
 
-  protected void setKeyStore(KeyStore keystore) throws KeyStoreException {
+  /**
+   * @param keystore store
+   * @throws KeyStoreException fail
+   */
+  protected void setKeyStore(final KeyStore keystore)
+          throws KeyStoreException {
     if (keystore == null) {
       this.keyStore = null;
     } else {
@@ -104,7 +109,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
     autoActivate();
     if (this.keyStore == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "token.errorinstansiate",
               mJcaProviderName,
               "keyStore (" + id + ") == null");
@@ -120,12 +125,12 @@ public abstract class BaseCryptoToken implements CryptoToken {
   protected void autoActivate() {
     if ((this.mAuthCode != null) && (this.keyStore == null)) {
       try {
-        if (log.isDebugEnabled()) {
-          log.debug("Trying to autoactivate CryptoToken");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Trying to autoactivate CryptoToken");
         }
         activate(this.mAuthCode);
       } catch (Exception e) {
-        log.debug(e);
+        LOG.debug(e);
       }
     }
   }
@@ -169,25 +174,27 @@ public abstract class BaseCryptoToken implements CryptoToken {
 
   @Override
   public void testKeyPair(
-      final String alias, PublicKey publicKey, PrivateKey privateKey)
+      final String alias,
+      final PublicKey publicKey,
+      final PrivateKey privateKey)
       throws InvalidKeyException { // NOPMD:this is not a junit test
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       final ByteArrayOutputStream baos = new ByteArrayOutputStream();
       final PrintStream ps = new PrintStream(baos);
       KeyTools.printPublicKeyInfo(publicKey, ps);
       ps.flush();
-      log.debug("Testing key of type " + baos.toString());
+      LOG.debug("Testing key of type " + baos.toString());
     }
     if (!permitExtractablePrivateKeyForTest()
         && KeyTools.isPrivateKeyExtractable(privateKey)) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "token.extractablekey",
               CesecoreConfiguration.isPermitExtractablePrivateKeys());
       if (!CesecoreConfiguration.isPermitExtractablePrivateKeys()) {
         throw new InvalidKeyException(msg);
       }
-      log.info(msg);
+      LOG.info(msg);
     }
     KeyTools.testKey(privateKey, publicKey, getSignProviderName());
   }
@@ -203,7 +210,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
    * @throws CryptoTokenOfflineException if Crypto Token is not available or
    *     connected.
    */
-  protected PublicKey readPublicKey(String alias, boolean warn)
+  protected PublicKey readPublicKey(final String alias, final boolean warn)
       throws KeyStoreException, CryptoTokenOfflineException {
     try {
       Certificate cert = getKeyStore().getCertificate(alias);
@@ -211,11 +218,11 @@ public abstract class BaseCryptoToken implements CryptoToken {
       if (cert != null) {
         pubk = cert.getPublicKey();
       } else if (warn) {
-        log.warn(intres.getLocalizedMessage("token.nopublic", alias));
-        if (log.isDebugEnabled()) {
+        LOG.warn(INTRES.getLocalizedMessage("token.nopublic", alias));
+        if (LOG.isDebugEnabled()) {
           Enumeration<String> en = getKeyStore().aliases();
           while (en.hasMoreElements()) {
-            log.debug("Existing alias: " + en.nextElement());
+            LOG.debug("Existing alias: " + en.nextElement());
           }
         }
       }
@@ -228,25 +235,29 @@ public abstract class BaseCryptoToken implements CryptoToken {
   /**
    * Initiates the class members of this crypto token.
    *
-   * @param properties A Properties object containing properties for this token.
+   * @param aProperties A Properties object containing
+   *     properties for this token.
    * @param doAutoActivate Set true if activation of this crypto token should
    *     happen in this method.
-   * @param id ID of this crypto token.
+   * @param anId ID of this crypto token.
    */
-  protected void init(Properties properties, boolean doAutoActivate, int id) {
-    if (log.isDebugEnabled()) {
-      log.debug(">init: doAutoActivate=" + doAutoActivate);
+  protected void init(
+          final Properties aProperties,
+          final boolean doAutoActivate,
+          final int anId) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(">init: doAutoActivate=" + doAutoActivate);
     }
-    this.id = id;
+    this.id = anId;
     // Set basic properties that are of dynamic nature
-    setProperties(properties);
+    setProperties(aProperties);
     // Set properties that can not change dynamically
 
     if (doAutoActivate) {
       autoActivate();
     }
-    if (log.isDebugEnabled()) {
-      log.debug("<init: doAutoActivate=" + doAutoActivate);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("<init: doAutoActivate=" + doAutoActivate);
     }
   }
 
@@ -255,8 +266,11 @@ public abstract class BaseCryptoToken implements CryptoToken {
     return this.id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+    this.id = anId;
   }
 
   @Override
@@ -278,36 +292,36 @@ public abstract class BaseCryptoToken implements CryptoToken {
   }
 
   @Override
-  public void setProperties(Properties properties) {
-    if (properties == null) {
+  public void setProperties(final Properties aProperties) {
+    if (aProperties == null) {
       this.properties = new Properties();
     } else {
-      if (log.isDebugEnabled()) {
+      if (LOG.isDebugEnabled()) {
         // This is only a sections for debug logging. If we have enabled debug
         // logging we don't want to display any password in the log.
         // These properties may contain autoactivation PIN codes and we will,
         // only when debug logging, replace this with "hidden".
-        if (properties.containsKey(CryptoToken.AUTOACTIVATE_PIN_PROPERTY)
-            || properties.containsKey("PIN")) {
+        if (aProperties.containsKey(CryptoToken.AUTOACTIVATE_PIN_PROPERTY)
+            || aProperties.containsKey("PIN")) {
           Properties prop = new Properties();
-          prop.putAll(properties);
-          if (properties.containsKey(CryptoToken.AUTOACTIVATE_PIN_PROPERTY)) {
+          prop.putAll(aProperties);
+          if (aProperties.containsKey(CryptoToken.AUTOACTIVATE_PIN_PROPERTY)) {
             prop.setProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY, "hidden");
           }
-          if (properties.containsKey("PIN")) {
+          if (aProperties.containsKey("PIN")) {
             prop.setProperty("PIN", "hidden");
           }
-          log.debug("Prop: " + (prop != null ? prop.toString() : "null"));
+          LOG.debug("Prop: " + (prop != null ? prop.toString() : "null"));
         } else {
           // If no autoactivation PIN codes exists we can debug log everything
           // as original.
-          log.debug(
+          LOG.debug(
               "Properties: "
-                  + (properties != null ? properties.toString() : "null"));
+                  + (aProperties != null ? aProperties.toString() : "null"));
         }
       } // if (log.isDebugEnabled())
-      this.properties = properties;
-      String authCode = BaseCryptoToken.getAutoActivatePin(properties);
+      this.properties = aProperties;
+      String authCode = BaseCryptoToken.getAutoActivatePin(aProperties);
       this.mAuthCode = authCode == null ? null : authCode.toCharArray();
     }
   } // setProperties
@@ -317,18 +331,18 @@ public abstract class BaseCryptoToken implements CryptoToken {
    * token. With an auto activation PIN the token does not have to be manually
    * activated.
    *
-   * @param properties the crypto token properties that may contain auto
+   * @param aProperties the crypto token properties that may contain auto
    *     activation PIN code
    * @return String or null
    */
-  public static String getAutoActivatePin(Properties properties) {
+  public static String getAutoActivatePin(final Properties aProperties) {
     final String pin =
-        properties.getProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY);
+        aProperties.getProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY);
     if (pin != null) {
       return StringTools.passwordDecryption(pin, "autoactivation pin");
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Not using autoactivation pin");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Not using autoactivation pin");
     }
     return null;
   }
@@ -348,7 +362,9 @@ public abstract class BaseCryptoToken implements CryptoToken {
    *     you don't know what to do with it
    */
   public static String setAutoActivatePin(
-      Properties properties, String pin, boolean encrypt) {
+      final Properties properties,
+      final String pin,
+      final boolean encrypt) {
     String ret = null;
     if (StringUtils.isNotEmpty(pin)) {
       String authcode = pin;
@@ -356,7 +372,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
         try {
           authcode = StringTools.pbeEncryptStringWithSha256Aes192(pin);
         } catch (Exception e) {
-          log.error(intres.getLocalizedMessage("token.nopinencrypt"), e);
+          LOG.error(INTRES.getLocalizedMessage("token.nopinencrypt"), e);
           authcode = pin;
         }
       }
@@ -388,7 +404,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
    * @see #setJCAProvider(Provider)
    */
   protected void setProviders(
-      String jcaProviderClassName, String jceProviderClassName)
+      final String jcaProviderClassName, final String jceProviderClassName)
       throws InstantiationException, IllegalAccessException,
           ClassNotFoundException, InvocationTargetException,
           NoSuchMethodException {
@@ -407,7 +423,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
         setProvider(jceProvider);
         this.mJceProviderName = jceProvider.getName();
       } catch (Exception e) {
-        log.error(intres.getLocalizedMessage("token.jceinitfail"), e);
+        LOG.error(INTRES.getLocalizedMessage("token.jceinitfail"), e);
       }
     } else {
       this.mJceProviderName = null;
@@ -416,7 +432,10 @@ public abstract class BaseCryptoToken implements CryptoToken {
 
   @Override
   public void storeKey(
-      String alias, Key key, Certificate[] chain, char[] password)
+      final String alias,
+      final Key key,
+      final Certificate[] chain,
+      final char[] password)
       throws KeyStoreException {
     // Removal of old key is only needed for sun-p11 with none ASCII chars in
     // the alias.
@@ -435,7 +454,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
    * @param prov the fully constructed Provider
    * @see #setProviders(String, String)
    */
-  protected void setJCAProvider(Provider prov) {
+  protected void setJCAProvider(final Provider prov) {
     setProvider(prov);
     this.mJcaProviderName = prov != null ? prov.getName() : null;
   }
@@ -446,11 +465,11 @@ public abstract class BaseCryptoToken implements CryptoToken {
    *
    * @param pName the provider name as retriever from Provider.getName()
    */
-  protected void setJCAProviderName(String pName) {
+  protected void setJCAProviderName(final String pName) {
     this.mJcaProviderName = pName;
   }
 
-  private void setProvider(Provider prov) {
+  private void setProvider(final Provider prov) {
     if (prov != null) {
       String pName = prov.getName();
       if (pName.startsWith("LunaJCA")) {
@@ -468,7 +487,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
       // is installed during startup, as a generally used provider,
       // and the P11 provider for a specific slot is installed in #P11Slot
       if (Security.getProvider(pName) == null) {
-        log.info("Adding Provider from BaseCryptoToken: " + pName);
+        LOG.info("Adding Provider from BaseCryptoToken: " + pName);
         Security.addProvider(prov);
       }
       if (Security.getProvider(pName) == null) {
@@ -476,8 +495,8 @@ public abstract class BaseCryptoToken implements CryptoToken {
             "Not possible to install provider from BaseCryptoToken: " + pName);
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("No provider passed to setProvider()");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No provider passed to setProvider()");
       }
     }
   }
@@ -531,7 +550,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
    * @return Private key
    * @throws CryptoTokenOfflineException if offline
    */
-  private PrivateKey getPrivateKey(final String alias, boolean warn)
+  private PrivateKey getPrivateKey(final String alias, final boolean warn)
       throws CryptoTokenOfflineException {
     // Auto activate is done in the call to getKeyStore below
     try {
@@ -545,17 +564,17 @@ public abstract class BaseCryptoToken implements CryptoToken {
                           : null);
       if (privateK == null) {
         if (warn) {
-          log.warn(intres.getLocalizedMessage("token.noprivate", alias));
-          if (log.isDebugEnabled()) {
+          LOG.warn(INTRES.getLocalizedMessage("token.noprivate", alias));
+          if (LOG.isDebugEnabled()) {
             final Enumeration<String> aliases;
             aliases = getKeyStore().aliases();
             while (aliases.hasMoreElements()) {
-              log.debug("Existing alias: " + aliases.nextElement());
+              LOG.debug("Existing alias: " + aliases.nextElement());
             }
           }
         }
         final String msg =
-            intres.getLocalizedMessage("token.errornosuchkey", alias);
+            INTRES.getLocalizedMessage("token.errornosuchkey", alias);
         throw new CryptoTokenOfflineException(msg);
       }
       return privateK;
@@ -583,7 +602,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
    * @return Public key
    * @throws CryptoTokenOfflineException if offline
    */
-  private PublicKey getPublicKey(final String alias, boolean warn)
+  private PublicKey getPublicKey(final String alias, final boolean warn)
       throws CryptoTokenOfflineException {
     // Auto activate is done in the call to getKeyStore below (from
     // readPublicKey)
@@ -591,7 +610,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
       PublicKey publicK = readPublicKey(alias, warn);
       if (publicK == null) {
         final String msg =
-            intres.getLocalizedMessage("token.errornosuchkey", alias);
+            INTRES.getLocalizedMessage("token.errornosuchkey", alias);
         throw new CryptoTokenOfflineException(msg);
       }
       final String str =
@@ -599,8 +618,8 @@ public abstract class BaseCryptoToken implements CryptoToken {
               .getProperty(CryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS);
       final boolean explicitEccParameters = Boolean.parseBoolean(str);
       if (explicitEccParameters && publicK.getAlgorithm().equals("EC")) {
-        if (log.isDebugEnabled()) {
-          log.debug("Using explicit parameter encoding for ECC key.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Using explicit parameter encoding for ECC key.");
         }
         publicK =
             ECKeyUtil.publicToExplicitParameters(
@@ -624,7 +643,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
   }
 
   /**
-   * see {@link #getKey(String)}
+   * see {@link #getKey(String)}.
    *
    * @param alias alias
    * @param warn if we should log a warning if the key does not exist
@@ -647,17 +666,17 @@ public abstract class BaseCryptoToken implements CryptoToken {
         key = getKeyFromProperties(alias);
         if (key == null) {
           if (warn) {
-            log.warn(intres.getLocalizedMessage("token.errornosuchkey", alias));
-            if (log.isDebugEnabled()) {
+            LOG.warn(INTRES.getLocalizedMessage("token.errornosuchkey", alias));
+            if (LOG.isDebugEnabled()) {
               Enumeration<String> aliases;
               aliases = getKeyStore().aliases();
               while (aliases.hasMoreElements()) {
-                log.debug("Existing alias: " + aliases.nextElement());
+                LOG.debug("Existing alias: " + aliases.nextElement());
               }
             }
           }
           final String msg =
-              intres.getLocalizedMessage("token.errornosuchkey", alias);
+              INTRES.getLocalizedMessage("token.errornosuchkey", alias);
           throw new CryptoTokenOfflineException(msg);
         }
       }
@@ -673,7 +692,7 @@ public abstract class BaseCryptoToken implements CryptoToken {
     }
   }
 
-  private Key getKeyFromProperties(String alias) {
+  private Key getKeyFromProperties(final String alias) {
     Key key = null;
     Properties prop = getProperties();
     String str = prop.getProperty(alias);
@@ -688,15 +707,15 @@ public abstract class BaseCryptoToken implements CryptoToken {
         // TODO: hardcoded AES for now
         key = cipher.unwrap(bytes, "AES", Cipher.SECRET_KEY);
       } catch (CryptoTokenOfflineException e) {
-        log.debug(e);
+        LOG.debug(e);
       } catch (NoSuchAlgorithmException e) {
-        log.debug(e);
+        LOG.debug(e);
       } catch (NoSuchProviderException e) {
-        log.debug(e);
+        LOG.debug(e);
       } catch (NoSuchPaddingException e) {
-        log.debug(e);
+        LOG.debug(e);
       } catch (InvalidKeyException e) {
-        log.debug(e);
+        LOG.debug(e);
       }
     }
     return key;

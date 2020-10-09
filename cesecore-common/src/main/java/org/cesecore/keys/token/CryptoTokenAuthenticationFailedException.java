@@ -39,7 +39,7 @@ public class CryptoTokenAuthenticationFailedException
    *
    * @param msg the detail message.
    */
-  public CryptoTokenAuthenticationFailedException(String msg) {
+  public CryptoTokenAuthenticationFailedException(final String msg) {
     super(msg);
   }
 }

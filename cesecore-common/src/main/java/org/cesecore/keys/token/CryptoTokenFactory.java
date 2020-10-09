@@ -27,33 +27,36 @@ import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
  *
  * @version $Id: CryptoTokenFactory.java 21361 2015-05-26 11:10:24Z jeklund $
  */
-public class CryptoTokenFactory {
+public final class CryptoTokenFactory {
 
+  /** Logger.*/
   private static transient Logger log =
       Logger.getLogger(CryptoTokenFactory.class);
 
+  /** Number of available hard ca token classes that can be instantiated. */
+  private static final int TOKEN_SIZE = 4;
   /** Registry of available hard ca token classes that can be instantiated. */
   private Map<String, AvailableCryptoToken> availabletokens =
-      new HashMap<String, AvailableCryptoToken>(4);
+      new HashMap<String, AvailableCryptoToken>(TOKEN_SIZE);
 
-  /** Implementing the Singleton pattern */
+  /** Implementing the Singleton pattern. */
   private static CryptoTokenFactory instance = null;
 
   /**
    * Don't allow external creation of this class, implementing the Singleton
    * pattern.
    */
-  private CryptoTokenFactory() {}
+  private CryptoTokenFactory() { }
 
   /**
-   * Get the instance of this singleton
+   * Get the instance of this singleton.
    *
    * @return instance
    */
   public static synchronized CryptoTokenFactory instance() {
     if (instance == null) {
       instance = new CryptoTokenFactory();
-      /**
+      /*
        * Can't use class.getName() here because this class is not always
        * available
        */
@@ -70,7 +73,7 @@ public class CryptoTokenFactory {
   }
 
   /**
-   * Method returning to the system available CryptoToken implementations
+   * Method returning to the system available CryptoToken implementations.
    *
    * @return a Collection (AvailableCryptoToken) of registered plug-ins.
    */
@@ -175,7 +178,7 @@ public class CryptoTokenFactory {
 
   /**
    * Creates a crypto token using reflection to construct the class from
-   * classname and initializing the CryptoToken
+   * classname and initializing the CryptoToken.
    *
    * @param inClassname the full classname of the crypto token implementation
    *     class
@@ -188,12 +191,12 @@ public class CryptoTokenFactory {
    * @throws NoSuchSlotException if no slot as defined in properties could be
    *     found.
    */
-  public static final CryptoToken createCryptoToken(
+  public static CryptoToken createCryptoToken(
       final String inClassname,
       final Properties properties,
       final byte[] data,
       final int cryptoTokenId,
-      String tokenName)
+      final String tokenName)
       throws NoSuchSlotException {
     final boolean allowNonExistingSlot =
         Boolean.valueOf(
@@ -211,7 +214,7 @@ public class CryptoTokenFactory {
 
   /**
    * Creates a crypto token using reflection to construct the class from
-   * classname and initializing the CryptoToken
+   * classname and initializing the CryptoToken.
    *
    * @param inClassname the full classname of the crypto token implementation
    *     class
@@ -225,13 +228,13 @@ public class CryptoTokenFactory {
    * @throws NoSuchSlotException if no slot as defined in properties could be
    *     found.
    */
-  public static final CryptoToken createCryptoToken(
+  public static CryptoToken createCryptoToken(
       final String inClassname,
       final Properties properties,
       final byte[] data,
       final int cryptoTokenId,
-      String tokenName,
-      boolean allowNonExistingSlot)
+      final String tokenName,
+      final boolean allowNonExistingSlot)
       throws NoSuchSlotException {
     final String classname;
     if (inClassname != null) {
@@ -275,7 +278,7 @@ public class CryptoTokenFactory {
     return token;
   }
 
-  private static final CryptoToken createTokenFromClass(
+  private static CryptoToken createTokenFromClass(
       final String classpath) {
     try {
       Class<?> implClass = Class.forName(classpath);

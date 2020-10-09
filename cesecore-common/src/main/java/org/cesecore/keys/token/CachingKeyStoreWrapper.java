@@ -49,34 +49,39 @@ import org.apache.log4j.Logger;
  *     primelars $
  */
 public class CachingKeyStoreWrapper {
-  /** Similar to Java's KeyStore.Entry */
-  private static final Logger log =
+  /** Similar to Java's KeyStore.Entry. */
+  private static final Logger LOG =
       Logger.getLogger(CachingKeyStoreWrapper.class);
-
+  /** Lock. */
   private final ReentrantLock updateLock = new ReentrantLock(false);
+  /** Store. */
   private final KeyStore keyStore;
+  /** Cache. */
   private final KeyStoreCache keyStoreCache;
 
   private class KeyStoreMapEntry {
-    public final Key key;
-    public final Certificate[] certificateChain;
-    public final boolean isTrusted;
+    /** Key. */
+    private final Key key;
+    /** Chain. */
+    private final Certificate[] certificateChain;
+    /** Trusted. */
+    private final boolean isTrusted;
 
-    public KeyStoreMapEntry(final String alias, final KeyStore keyStore)
+    KeyStoreMapEntry(final String alias, final KeyStore aKeyStore)
         throws KeyStoreException {
-      if (keyStore.isCertificateEntry(alias)) {
+      if (aKeyStore.isCertificateEntry(alias)) {
         // See if there is a TrustedCertificateEntry instead
-        final Certificate certificate = keyStore.getCertificate(alias);
+        final Certificate certificate = aKeyStore.getCertificate(alias);
         this.certificateChain = new Certificate[] {certificate};
         this.key = null;
         this.isTrusted = true;
         return;
       }
       this.isTrusted = false;
-      this.certificateChain = keyStore.getCertificateChain(alias);
+      this.certificateChain = aKeyStore.getCertificateChain(alias);
       Key tmpKey;
       try {
-        tmpKey = keyStore.getKey(alias, null);
+        tmpKey = aKeyStore.getKey(alias, null);
       } catch (KeyStoreException e) {
         throw e;
       } catch (Exception e) {
@@ -85,41 +90,41 @@ public class CachingKeyStoreWrapper {
       this.key = tmpKey;
     }
 
-    public KeyStoreMapEntry(
+    KeyStoreMapEntry(
         final String alias,
-        final KeyStore keyStore,
-        final char password[],
+        final KeyStore aKeyStore,
+        final char[] password,
         final KeyStoreMapEntry oldEntry)
         throws UnrecoverableKeyException, KeyStoreException,
             NoSuchAlgorithmException {
       assert !oldEntry.isTrusted;
       this.isTrusted = false;
       this.certificateChain = oldEntry.certificateChain;
-      this.key = keyStore.getKey(alias, password);
+      this.key = aKeyStore.getKey(alias, password);
     }
 
-    public KeyStoreMapEntry(final Certificate certificate) {
+    KeyStoreMapEntry(final Certificate certificate) {
       this.key = null;
       this.isTrusted = true;
       this.certificateChain = new Certificate[] {certificate};
     }
 
-    public KeyStoreMapEntry(final Certificate[] chain, final Key k) {
+    KeyStoreMapEntry(final Certificate[] chain, final Key k) {
       this.key = k;
       this.isTrusted = false;
       this.certificateChain = chain;
     }
 
-    public KeyStoreMapEntry(
+    KeyStoreMapEntry(
         final String alias,
         final ProtectionParameter protection,
-        final KeyStore keyStore)
+        final KeyStore aKeyStore)
         throws NoSuchAlgorithmException, UnrecoverableEntryException,
             KeyStoreException {
-      this(keyStore.getEntry(alias, protection));
+      this(aKeyStore.getEntry(alias, protection));
     }
 
-    public KeyStoreMapEntry(final Entry entry) {
+    KeyStoreMapEntry(final Entry entry) {
       if (entry instanceof PrivateKeyEntry) {
         this.key = ((PrivateKeyEntry) entry).getPrivateKey();
         this.certificateChain = ((PrivateKeyEntry) entry).getCertificateChain();
@@ -162,20 +167,21 @@ public class CachingKeyStoreWrapper {
   }
 
   private class KeyStoreCache {
+      /** Cache. */
     private HashMap<String, KeyStoreMapEntry> cache;
 
     @SuppressWarnings("synthetic-access")
-    public KeyStoreCache(final KeyStore keyStore) throws KeyStoreException {
+    KeyStoreCache(final KeyStore aKeyStore) throws KeyStoreException {
       this.cache = new HashMap<>();
       // Load the whole public KeyStore content (aliases and certificate) into
       // the cache
-      final Enumeration<String> aliases = keyStore.aliases();
+      final Enumeration<String> aliases = aKeyStore.aliases();
       while (aliases.hasMoreElements()) {
         final String alias = aliases.nextElement();
         this.cache.put(
-            fixBadUTF8(alias), new KeyStoreMapEntry(alias, keyStore));
-        if (log.isDebugEnabled()) {
-          log.debug("KeyStore has alias: " + alias);
+            fixBadUTF8(alias), new KeyStoreMapEntry(alias, aKeyStore));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("KeyStore has alias: " + alias);
         }
       }
     }
@@ -217,10 +223,11 @@ public class CachingKeyStoreWrapper {
       return orig;
     }
     try {
-      final byte bvIn[] = orig.getBytes("UTF-16BE");
-      final byte bvOut[] = new byte[bvIn.length / 2];
+      final byte mask = (byte) 0xff;
+      final byte[] bvIn = orig.getBytes("UTF-16BE");
+      final byte[] bvOut = new byte[bvIn.length / 2];
       for (int i = 1; i < bvIn.length; i += 2) {
-        bvOut[i / 2] = (byte) (bvIn[i] & 0xff);
+        bvOut[i / 2] = (byte) (bvIn[i] & mask);
       }
       return new String(bvOut, "UTF-8");
     } catch (UnsupportedEncodingException e) {
@@ -241,11 +248,12 @@ public class CachingKeyStoreWrapper {
       return orig;
     }
     try {
-      final byte bvIn[] = orig.getBytes("UTF-8");
-      final byte bvOut[] = new byte[bvIn.length * 2];
+      final byte mask = (byte) 0xff;
+      final byte[] bvIn = orig.getBytes("UTF-8");
+      final byte[] bvOut = new byte[bvIn.length * 2];
       for (int i = 0; i < bvIn.length; i += 1) {
         bvOut[i * 2] = 0;
-        bvOut[i * 2 + 1] = (byte) (bvIn[i] & 0xff);
+        bvOut[i * 2 + 1] = (byte) (bvIn[i] & mask);
       }
       return new String(bvOut, "UTF-16BE");
     } catch (UnsupportedEncodingException e) {
@@ -254,6 +262,9 @@ public class CachingKeyStoreWrapper {
     }
   }
 
+  /**
+   * @return store
+   */
   @Deprecated // Should only be used from
               // OcspResponseGeneratorSessionBean.adhocUpgradeFromPre60
   public KeyStore getKeyStore() {
@@ -263,20 +274,20 @@ public class CachingKeyStoreWrapper {
   /**
    * Wrap the key store object with optional caching of all entries.
    *
-   * @param keyStore the key store to wrap
+   * @param aKeyStore the key store to wrap
    * @param cachingEnabled true will cache a list of all aliases, certificates
    *     and lazily cache private and secret keys when accessed
    * @throws KeyStoreException if the underlying key store cannot be accessed
    */
   public CachingKeyStoreWrapper(
-      final KeyStore keyStore, final boolean cachingEnabled)
+      final KeyStore aKeyStore, final boolean cachingEnabled)
       throws KeyStoreException {
-    this.keyStore = keyStore;
-    if (log.isDebugEnabled()) {
-      log.debug("cachingEnabled: " + cachingEnabled);
+    this.keyStore = aKeyStore;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("cachingEnabled: " + cachingEnabled);
     }
     if (cachingEnabled) {
-      this.keyStoreCache = new KeyStoreCache(keyStore);
+      this.keyStoreCache = new KeyStoreCache(aKeyStore);
     } else {
       this.keyStoreCache = null;
     }
@@ -324,8 +335,8 @@ public class CachingKeyStoreWrapper {
     } finally {
       this.updateLock.unlock();
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Updated certificate entry in cache for alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Updated certificate entry in cache for alias: " + alias);
     }
   }
 
@@ -382,8 +393,8 @@ public class CachingKeyStoreWrapper {
     } finally {
       this.updateLock.unlock();
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Updated key entry in cache for alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Updated key entry in cache for alias: " + alias);
     }
   }
 
@@ -403,8 +414,8 @@ public class CachingKeyStoreWrapper {
     } finally {
       this.updateLock.unlock();
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Removed entry from cache for alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Removed entry from cache for alias: " + alias);
     }
   }
 
@@ -423,7 +434,7 @@ public class CachingKeyStoreWrapper {
     if (this.keyStoreCache == null) {
       return this.keyStore.getEntry(alias, protParam);
     }
-    {
+
       final KeyStoreMapEntry keyStoreMapEntry = this.keyStoreCache.get(alias);
       if (keyStoreMapEntry == null) {
         // If the alias exists it has a KeyStoreMapEntry. No need to query the
@@ -433,7 +444,7 @@ public class CachingKeyStoreWrapper {
       if (keyStoreMapEntry.isTrusted || keyStoreMapEntry.key != null) {
         return keyStoreMapEntry.getEntry();
       }
-    }
+
     this.updateLock.lock();
     try {
       // Check if another thread has retrieved the key while we waited for the
@@ -499,7 +510,7 @@ public class CachingKeyStoreWrapper {
     if (this.keyStoreCache == null) {
       return this.keyStore.getKey(alias, password);
     }
-    {
+
       final KeyStoreMapEntry keyStoreMapEntry = this.keyStoreCache.get(alias);
       if (keyStoreMapEntry == null) {
         // If the alias exists it has a KeyStoreMapEntry. No need to query the
@@ -510,7 +521,7 @@ public class CachingKeyStoreWrapper {
         // There is no key if it is a trusted Entry.
         return keyStoreMapEntry.key;
       }
-    }
+
     this.updateLock.lock();
     try {
       // Check if another thread has retrieved the key while we waited for the
@@ -522,8 +533,8 @@ public class CachingKeyStoreWrapper {
       final KeyStoreMapEntry newEntry =
           new KeyStoreMapEntry(alias, this.keyStore, password, entryAfterWait);
       this.keyStoreCache.addEntry(alias, newEntry);
-      if (log.isDebugEnabled()) {
-        log.debug("Caching key for alias: " + alias);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Caching key for alias: " + alias);
       }
       return newEntry.key;
     } finally {
@@ -551,7 +562,7 @@ public class CachingKeyStoreWrapper {
    * @throws KeyStoreException on fail
    * @see java.security.KeyStore#getCertificateChain(String)
    */
-  public Certificate[] getCertificateChain(String alias)
+  public Certificate[] getCertificateChain(final String alias)
       throws KeyStoreException {
     if (this.keyStoreCache == null) {
       return this.keyStore.getCertificateChain(alias);

@@ -24,52 +24,86 @@ public class KeyPairInfo implements Serializable, Comparable<KeyPairInfo> {
 
   private static final long serialVersionUID = 1L;
 
+  /** ALias. */
   private String alias = "";
+  /** Alg. */
   private String keyAlgorithm;
+  /** Spec. */
   private String keySpecification;
+  /** ID. */
   private String subjectKeyID = "";
 
+  /**
+   * @param anAlias Alias
+   * @param aKeyAlgorithm Alg
+   * @param aKeySpecification Spec
+   * @param aSubjectKeyID ID
+   */
   public KeyPairInfo(
-      final String alias,
-      final String keyAlgorithm,
-      final String keySpecification,
-      final String subjectKeyID) {
-    this.alias = alias;
-    this.keyAlgorithm = keyAlgorithm;
-    this.keySpecification = keySpecification;
-    this.subjectKeyID = subjectKeyID;
+      final String anAlias,
+      final String aKeyAlgorithm,
+      final String aKeySpecification,
+      final String aSubjectKeyID) {
+    this.alias = anAlias;
+    this.keyAlgorithm = aKeyAlgorithm;
+    this.keySpecification = aKeySpecification;
+    this.subjectKeyID = aSubjectKeyID;
   }
 
+  /**
+   * @return alias
+   */
   public String getAlias() {
     return alias;
   }
 
-  public void setAlias(String alias) {
-    this.alias = alias;
+  /**
+   * @param anAlias alias
+   */
+  public void setAlias(final String anAlias) {
+    this.alias = anAlias;
   }
 
+  /**
+   * @return alg
+   */
   public String getKeyAlgorithm() {
     return keyAlgorithm;
   }
 
-  public void setKeyAlgorithm(String keyAlgorithm) {
-    this.keyAlgorithm = keyAlgorithm;
+  /**
+   * @param aKeyAlgorithm alg
+   */
+  public void setKeyAlgorithm(final String aKeyAlgorithm) {
+    this.keyAlgorithm = aKeyAlgorithm;
   }
 
+  /**
+   * @return spec
+   */
   public String getKeySpecification() {
     return keySpecification;
   }
 
-  public void setKeySpecification(String keySpecification) {
-    this.keySpecification = keySpecification;
+  /**
+   * @param aKeySpecification spec
+   */
+  public void setKeySpecification(final String aKeySpecification) {
+    this.keySpecification = aKeySpecification;
   }
 
+  /**
+   * @return ID
+   */
   public String getSubjectKeyID() {
     return subjectKeyID;
   }
 
-  public void setSubjectKeyID(String subjectKeyID) {
-    this.subjectKeyID = subjectKeyID;
+  /**
+   * @param aSubjectKeyID ID
+   */
+  public void setSubjectKeyID(final String aSubjectKeyID) {
+    this.subjectKeyID = aSubjectKeyID;
   }
 
   @Override

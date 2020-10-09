@@ -22,19 +22,30 @@ public class KeyRenewalFailedException extends Exception {
 
   private static final long serialVersionUID = -7743705042076215320L;
 
+  /** Default. */
   public KeyRenewalFailedException() {
     super();
   }
 
-  public KeyRenewalFailedException(String arg0, Throwable arg1) {
+  /**
+   * @param arg0 message
+   * @param arg1 cause
+   */
+  public KeyRenewalFailedException(final String arg0, final Throwable arg1) {
     super(arg0, arg1);
   }
 
-  public KeyRenewalFailedException(String arg0) {
+  /**
+   * @param arg0 message
+   */
+  public KeyRenewalFailedException(final String arg0) {
     super(arg0);
   }
 
-  public KeyRenewalFailedException(Throwable arg0) {
+  /**
+   * @param arg0 cause
+   */
+  public KeyRenewalFailedException(final Throwable arg0) {
     super(arg0);
   }
 }

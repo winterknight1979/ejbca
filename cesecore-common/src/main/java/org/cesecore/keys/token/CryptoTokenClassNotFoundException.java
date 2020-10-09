@@ -22,19 +22,31 @@ public class CryptoTokenClassNotFoundException extends RuntimeException {
 
   private static final long serialVersionUID = -7935523503522491237L;
 
+  /** default. */
   public CryptoTokenClassNotFoundException() {
     super();
   }
 
-  public CryptoTokenClassNotFoundException(String message, Throwable cause) {
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public CryptoTokenClassNotFoundException(
+          final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public CryptoTokenClassNotFoundException(String message) {
+  /**
+   * @param message message
+   */
+  public CryptoTokenClassNotFoundException(final String message) {
     super(message);
   }
 
-  public CryptoTokenClassNotFoundException(Throwable cause) {
+  /**
+   * @param cause cause
+   */
+  public CryptoTokenClassNotFoundException(final Throwable cause) {
     super(cause);
   }
 }

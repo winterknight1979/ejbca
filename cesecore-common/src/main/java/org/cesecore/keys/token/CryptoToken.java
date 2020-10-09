@@ -38,37 +38,40 @@ import javax.crypto.NoSuchPaddingException;
  * @version $Id: CryptoToken.java 22596 2016-01-18 14:59:25Z mikekushner $
  */
 public interface CryptoToken extends Serializable {
+  /** Status. */
+  int STATUS_ACTIVE = 1;
+  /** Status. */
+  int STATUS_OFFLINE = 2;
 
-  static final int STATUS_ACTIVE = 1;
-  static final int STATUS_OFFLINE = 2;
-
-  /** Auto activation property that can be defined in Crypto token properties */
-  static final String AUTOACTIVATE_PIN_PROPERTY = "pin";
-  /** Boolean indicating if it should be allowed to extract private keys */
-  static final String ALLOW_EXTRACTABLE_PRIVATE_KEY =
+  /** Auto activation property that can be
+   * defined in Crypto token properties. */
+  String AUTOACTIVATE_PIN_PROPERTY = "pin";
+  /** Boolean indicating if it should be allowed to extract private keys. */
+  String ALLOW_EXTRACTABLE_PRIVATE_KEY =
       "allow.extractable.privatekey";
   /**
    * "|"-separated string of "keyalias;keyspec" pairs that act as placeholders
-   * for keyaliases that can be generated later
+   * for keyaliases that can be generated later.
    */
-  static final String KEYPLACEHOLDERS_PROPERTY = "statedump.keytemplates";
-
-  static final String KEYPLACEHOLDERS_OUTER_SEPARATOR = "|";
-  static final String KEYPLACEHOLDERS_INNER_SEPARATOR = ";";
+  String KEYPLACEHOLDERS_PROPERTY = "statedump.keytemplates";
+ /** sep.*/
+  String KEYPLACEHOLDERS_OUTER_SEPARATOR = "|";
+  /** sep. */
+  String KEYPLACEHOLDERS_INNER_SEPARATOR = ";";
   /**
    * Boolean indicating if explicit ECC parameters should be used, instead of
    * named curves which is standard. Explicit parameters are only used by ICAO
    * CSCA and DS certificates as defined in ICAO 9303.
    */
-  static final String EXPLICIT_ECC_PUBLICKEY_PARAMETERS =
+  String EXPLICIT_ECC_PUBLICKEY_PARAMETERS =
       "explicit.ecc.publickey.parameters";
   /** */
-  static final String TOKENNAME_PROPERTY = "tokenName";
+  String TOKENNAME_PROPERTY = "tokenName";
   /**
    * Whether non-existent slots should be allowed or throw an
-   * NoSuchSlotException
+   * NoSuchSlotException.
    */
-  static final String ALLOW_NONEXISTING_SLOT_PROPERTY =
+  String ALLOW_NONEXISTING_SLOT_PROPERTY =
       "allow.nonexisting.slot";
 
   /**
@@ -91,7 +94,7 @@ public interface CryptoToken extends Serializable {
   void init(Properties properties, byte[] data, int id) throws Exception;
 
   /**
-   * Gets the id that was passed as parameter to init
+   * Gets the id that was passed as parameter to init.
    *
    * @return id
    */
@@ -119,7 +122,7 @@ public interface CryptoToken extends Serializable {
   void deactivate();
 
   /**
-   * Checks if an alias is in use by a Crypto Token
+   * Checks if an alias is in use by a Crypto Token.
    *
    * @param alias the alias that we want to check
    * @return true if there is a private, public or symmetric entry with this
@@ -160,7 +163,7 @@ public interface CryptoToken extends Serializable {
   Key getKey(String alias) throws CryptoTokenOfflineException;
 
   /**
-   * Deletes an entry in the crypto token
+   * Deletes an entry in the crypto token.
    *
    * @param alias is a reference to the entry in the token that should be
    *     deleted.
@@ -183,7 +186,7 @@ public interface CryptoToken extends Serializable {
    * @throws InvalidAlgorithmParameterException if params are invalid
    * @throws CryptoTokenOfflineException if offline
    */
-  void generateKeyPair(final String keySpec, final String alias)
+  void generateKeyPair(String keySpec, String alias)
       throws InvalidAlgorithmParameterException, CryptoTokenOfflineException;
 
   /**
@@ -203,7 +206,7 @@ public interface CryptoToken extends Serializable {
    * @throws IOException On IO error
    * @throws CryptoTokenOfflineException if offline
    */
-  void generateKeyPair(final AlgorithmParameterSpec spec, final String alias)
+  void generateKeyPair(AlgorithmParameterSpec spec, String alias)
       throws InvalidAlgorithmParameterException, CertificateException,
           IOException, CryptoTokenOfflineException;
 
@@ -229,7 +232,7 @@ public interface CryptoToken extends Serializable {
    * @throws IllegalBlockSizeException if block size is incorrect
    */
   void generateKey(
-      final String algorithm, final int keysize, final String alias)
+      String algorithm, int keysize, String alias)
       throws NoSuchAlgorithmException, NoSuchProviderException,
           KeyStoreException, CryptoTokenOfflineException, InvalidKeyException,
           InvalidAlgorithmParameterException, SignatureException,
@@ -262,7 +265,7 @@ public interface CryptoToken extends Serializable {
   /** @return user friendly identifier */
   String getTokenName();
   /**
-   * Set user friendly identifier
+   * Set user friendly identifier.
    *
    * @param tokenName name
    */
@@ -277,7 +280,7 @@ public interface CryptoToken extends Serializable {
 
   /**
    * Return token properties, can be the same as passed to init, or an updated
-   * set
+   * set.
    *
    * @return Properties can be empty but should never be null
    */
@@ -305,12 +308,12 @@ public interface CryptoToken extends Serializable {
    * @throws KeyStoreException if keystore for this crypto token has not been
    *     initialized
    */
-  void storeKey(String alias, Key key, Certificate chain[], char[] password)
+  void storeKey(String alias, Key key, Certificate[] chain, char[] password)
       throws KeyStoreException;
 
   /**
    * Stores keystore data (if any) to be used when initializing a new (existing)
-   * token with the init method
+   * token with the init method.
    *
    * @return byte[] with keystore data, can be null if not needed for
    *     initialization
@@ -318,7 +321,7 @@ public interface CryptoToken extends Serializable {
   byte[] getTokenData();
 
   /**
-   * Testing a keypair to see that it is usable
+   * Testing a keypair to see that it is usable.
    *
    * @param alias the alias of the key pair to test
    * @throws InvalidKeyException if the public key can not be used to verify a
@@ -332,7 +335,7 @@ public interface CryptoToken extends Serializable {
           CryptoTokenOfflineException; // NOPMD:this is not a junit test
 
   /**
-   * Testing a keypair to see that it is usable
+   * Testing a keypair to see that it is usable.
    *
    * @param alias the alias of the key pair to test
    * @param publicKey the public key of the key pair
@@ -342,8 +345,7 @@ public interface CryptoToken extends Serializable {
    *     signature operation fails for other reasons such as a
    *     NoSuchAlgorithmException or SignatureException.
    */
-  void testKeyPair(
-      final String alias, PublicKey publicKey, PrivateKey privateKey)
+  void testKeyPair(String alias, PublicKey publicKey, PrivateKey privateKey)
       throws InvalidKeyException;
 
   /**

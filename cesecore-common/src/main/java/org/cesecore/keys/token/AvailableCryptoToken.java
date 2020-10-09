@@ -21,17 +21,30 @@ package org.cesecore.keys.token;
  */
 public class AvailableCryptoToken {
 
+  /** Classpath. */
   private String classpath;
+  /** Name. */
   private String name;
+  /** Can be translated. */
   private boolean translateable;
+  /** Enabled. */
   private boolean use;
 
+ /**
+  * @param aClasspath Classpath
+  * @param aName Name
+  * @param isTranslateable Can be translated
+  * @param doUse Enabled
+  */
   public AvailableCryptoToken(
-      String classpath, String name, boolean translateable, boolean use) {
-    this.classpath = classpath;
-    this.name = name;
-    this.translateable = translateable;
-    this.use = use;
+      final String aClasspath,
+      final String aName,
+      final boolean isTranslateable,
+      final boolean doUse) {
+    this.classpath = aClasspath;
+    this.name = aName;
+    this.translateable = isTranslateable;
+    this.use = doUse;
   }
 
   /**
@@ -74,7 +87,7 @@ public class AvailableCryptoToken {
     return this.use;
   }
 
-  /** Classpath is considered the key for AvailableCryptoToken */
+  /** Classpath is considered the key for AvailableCryptoToken. */
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -83,7 +96,7 @@ public class AvailableCryptoToken {
     return result;
   }
 
-  /** Classpath is considered the key for AvailableCryptoToken */
+  /** Classpath is considered the key for AvailableCryptoToken. */
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) {

@@ -23,19 +23,31 @@ public class CryptoTokenIdInUseException extends Exception {
 
   private static final long serialVersionUID = -7489643048484029833L;
 
+  /** Defaullt. */
   public CryptoTokenIdInUseException() {
     super();
   }
 
-  public CryptoTokenIdInUseException(String message, Throwable cause) {
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public CryptoTokenIdInUseException(
+          final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public CryptoTokenIdInUseException(String message) {
+  /**
+   * @param message message
+   */
+  public CryptoTokenIdInUseException(final String message) {
     super(message);
   }
 
-  public CryptoTokenIdInUseException(Throwable cause) {
+  /**
+   * @param cause cause
+   */
+  public CryptoTokenIdInUseException(final Throwable cause) {
     super(cause);
   }
 }
