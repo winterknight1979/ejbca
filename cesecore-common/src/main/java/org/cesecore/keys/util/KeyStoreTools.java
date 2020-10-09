@@ -75,17 +75,23 @@ import org.cesecore.util.CertTools;
  * @version $Id: KeyStoreTools.java 29332 2018-06-25 13:39:58Z andresjakobs $
  */
 public class KeyStoreTools {
-  private static final Logger log = Logger.getLogger(KeyStoreTools.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(KeyStoreTools.class);
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
-
+  /** Store. */
   protected final CachingKeyStoreWrapper keyStore;
+  /** Provider. */
   private final String providerName;
-
-  public KeyStoreTools(CachingKeyStoreWrapper _keyStore, String _providerName) {
-    this.keyStore = _keyStore;
-    this.providerName = _providerName;
+  /**
+   * @param aKeyStore Store
+   * @param aProviderName Name
+   */
+  public KeyStoreTools(
+          final CachingKeyStoreWrapper aKeyStore, final String aProviderName) {
+    this.keyStore = aKeyStore;
+    this.providerName = aProviderName;
   }
 
   /** @return the name of the Provider used by this container */
@@ -98,7 +104,16 @@ public class KeyStoreTools {
     return this.keyStore;
   }
 
-  public void setKeyEntry(String alias, Key key, Certificate chain[])
+  /**
+   * @param alias Alias
+   * @param key Key
+   * @param chain Chain
+   * @throws KeyStoreException On fail
+   */
+  public void setKeyEntry(
+          final String alias,
+          final Key key,
+          final Certificate[] chain)
       throws KeyStoreException {
     // Removal of old key is only needed for sun-p11 with none ASCII chars in
     // the alias.
@@ -108,11 +123,11 @@ public class KeyStoreTools {
     getKeyStore().setKeyEntry(alias, key, null, chain);
   }
 
-  private void deleteAlias(String alias) throws KeyStoreException {
+  private void deleteAlias(final String alias) throws KeyStoreException {
     getKeyStore().deleteEntry(alias);
   }
   /**
-   * Deletes an entry in the keystore
+   * Deletes an entry in the keystore.
    *
    * @param alias is a reference to the entry in the KeyStore that should be
    *     deleted, if alias is null, all entries are deleted.
@@ -138,7 +153,7 @@ public class KeyStoreTools {
    * @param oldAlias is the current name
    * @param newAlias is the new name
    */
-  public void renameEntry(String oldAlias, String newAlias) {
+  public void renameEntry(final String oldAlias, final String newAlias) {
     // only one key with same public part (certificate) is existing on a p11
     // token. this has been tested.
     try {
@@ -152,12 +167,14 @@ public class KeyStoreTools {
   }
 
   private class CertificateSignOperation implements ISignOperation {
-
+    /** Key. */
     private final PrivateKey privateKey;
+    /** Builder.*/
     private final X509v3CertificateBuilder certificateBuilder;
+    /** Result. */
     private X509CertificateHolder result;
 
-    public CertificateSignOperation(
+    CertificateSignOperation(
         final PrivateKey pk, final X509v3CertificateBuilder cb) {
       this.privateKey = pk;
       this.certificateBuilder = cb;
@@ -165,17 +182,18 @@ public class KeyStoreTools {
 
     @SuppressWarnings("synthetic-access")
     @Override
-    public void taskWithSigning(String sigAlg, Provider provider)
+    public void taskWithSigning(final String sigAlg, final Provider provider)
         throws TaskWithSigningException {
-      log.debug("Keystore signing algorithm " + sigAlg);
+      LOG.debug("Keystore signing algorithm " + sigAlg);
       final ContentSigner signer;
+      final int bufferSize = 20480;
       try {
         signer =
             new BufferingContentSigner(
                 new JcaContentSignerBuilder(sigAlg)
                     .setProvider(provider.getName())
                     .build(this.privateKey),
-                20480);
+                bufferSize);
       } catch (OperatorCreationException e) {
         throw new TaskWithSigningException(
             String.format("Signing certificate failed: %s", e.getMessage()), e);
@@ -189,7 +207,10 @@ public class KeyStoreTools {
   }
 
   private X509Certificate getSelfCertificate(
-      String myname, long validity, List<String> sigAlgs, KeyPair keyPair)
+      final String myname,
+      final long validity,
+      final List<String> sigAlgs,
+      final KeyPair keyPair)
       throws InvalidKeyException, CertificateException {
     final long currentTime = new Date().getTime();
     final Date firstDate = new Date(currentTime - 24 * 60 * 60 * 1000);
@@ -215,7 +236,7 @@ public class KeyStoreTools {
       return CertTools.getCertfromByteArray(
           cert.getEncoded(), X509Certificate.class);
     } catch (TaskWithSigningException e) {
-      log.error("Error creating content signer: ", e);
+      LOG.error("Error creating content signer: ", e);
       throw new CertificateException(e);
     } catch (IOException e) {
       throw new CertificateException("Could not read certificate", e);
@@ -227,8 +248,8 @@ public class KeyStoreTools {
 
   private void generateEC(final String ecNamedCurveBc, final String keyAlias)
       throws InvalidAlgorithmParameterException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">generate EC: curve name "
               + ecNamedCurveBc
               + ", keyEntryName "
@@ -241,8 +262,8 @@ public class KeyStoreTools {
     }
     final AlgorithmParameterSpec keyParams;
     if (StringUtils.equals(ecNamedCurveBc, "implicitlyCA")) {
-      if (log.isDebugEnabled()) {
-        log.debug("Generating implicitlyCA encoded ECDSA key pair");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Generating implicitlyCA encoded ECDSA key pair");
       }
       // If the keySpec is null, we have "implicitlyCA" defined EC parameters
       // The parameters were already installed when we installed the provider
@@ -254,8 +275,8 @@ public class KeyStoreTools {
       if (ECUtil.getNamedCurveOid(ecNamedCurveBc) != null) {
         final String oidOrName =
             AlgorithmTools.getEcKeySpecOidFromBcName(ecNamedCurveBc);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "keySpecification '"
                   + ecNamedCurveBc
                   + "' transformed into OID "
@@ -263,8 +284,8 @@ public class KeyStoreTools {
         }
         keyParams = new ECGenParameterSpec(oidOrName);
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Curve did not have an OID in BC, trying to pick up Parameter"
                   + " spec: "
                   + ecNamedCurveBc);
@@ -293,11 +314,11 @@ public class KeyStoreTools {
           AlgorithmConstants.KEYALGORITHM_EC,
           AlgorithmTools.SIG_ALGS_ECDSA);
     } catch (InvalidAlgorithmParameterException e) {
-      log.debug("EC name " + ecNamedCurveBc + " not supported.");
+      LOG.debug("EC name " + ecNamedCurveBc + " not supported.");
       throw e;
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<generate: curve name "
               + ecNamedCurveBc
               + ", keyEntryName "
@@ -311,8 +332,8 @@ public class KeyStoreTools {
       final String keyAlgorithm,
       final List<String> sigAlgNames)
       throws InvalidAlgorithmParameterException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">generate "
               + keyAlgorithm
               + ": curve name "
@@ -325,11 +346,11 @@ public class KeyStoreTools {
     try {
       generateKeyPair(keyParams, keyAlias, keyAlgorithm, sigAlgNames);
     } catch (InvalidAlgorithmParameterException e) {
-      log.debug("EC " + keyAlgorithm + " name " + name + " not supported.");
+      LOG.debug("EC " + keyAlgorithm + " name " + name + " not supported.");
       throw e;
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<generate: curve name " + name + ", keyEntryName " + keyAlias);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<generate: curve name " + name + ", keyEntryName " + keyAlias);
     }
   }
 
@@ -353,8 +374,8 @@ public class KeyStoreTools {
 
   private void generateRSA(final int keySize, final String keyEntryName)
       throws InvalidAlgorithmParameterException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">generate: keySize " + keySize + ", keyEntryName " + keyEntryName);
     }
     generateKeyPair(
@@ -362,16 +383,16 @@ public class KeyStoreTools {
         keyEntryName,
         AlgorithmConstants.KEYALGORITHM_RSA,
         AlgorithmTools.SIG_ALGS_RSA);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<generate: keySize " + keySize + ", keyEntryName " + keyEntryName);
     }
   }
 
   private void generateDSA(final int keySize, final String keyAlias)
       throws InvalidAlgorithmParameterException {
-    if (log.isTraceEnabled()) {
-      log.trace(">generate: keySize " + keySize + ", keyEntryName " + keyAlias);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">generate: keySize " + keySize + ", keyEntryName " + keyAlias);
     }
     // Generate the RSA Keypair
     final KeyPairGenerator kpg;
@@ -390,8 +411,8 @@ public class KeyStoreTools {
         keyAlias,
         AlgorithmConstants.KEYALGORITHM_DSA,
         AlgorithmTools.SIG_ALGS_DSA);
-    if (log.isTraceEnabled()) {
-      log.trace("<generate: keySize " + keySize + ", keyEntryName " + keyAlias);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<generate: keySize " + keySize + ", keyEntryName " + keyAlias);
     }
   }
 
@@ -405,9 +426,10 @@ public class KeyStoreTools {
    */
   public void generateKeyPair(final String keySpec, final String keyEntryName)
       throws InvalidAlgorithmParameterException {
-
+    final int startPos = 3;
     if (keySpec.toUpperCase().startsWith("DSA")) {
-      generateDSA(Integer.parseInt(keySpec.substring(3).trim()), keyEntryName);
+      generateDSA(Integer.parseInt(keySpec.substring(startPos)
+              .trim()), keyEntryName);
     } else if (AlgorithmTools.isGost3410Enabled()
         && keySpec.startsWith(AlgorithmConstants.KEYSPECPREFIX_ECGOST3410)) {
       generateGOST3410(keySpec, keyEntryName);
@@ -460,8 +482,8 @@ public class KeyStoreTools {
   public void generateKeyPair(
       final AlgorithmParameterSpec keyParams, final String keyAlias)
       throws InvalidAlgorithmParameterException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">generate from AlgorithmParameterSpec: "
               + keyParams.getClass().getName());
     }
@@ -483,10 +505,11 @@ public class KeyStoreTools {
   }
 
   private class SizeAlgorithmParameterSpec implements AlgorithmParameterSpec {
-    final int keySize;
+      /** size. */
+    private final int keySize;
 
-    public SizeAlgorithmParameterSpec(final int _keySize) {
-      this.keySize = _keySize;
+    SizeAlgorithmParameterSpec(final int aKeySize) {
+      this.keySize = aKeySize;
     }
   }
 
@@ -496,6 +519,7 @@ public class KeyStoreTools {
       final String keyAlgorithm,
       final List<String> certSignAlgorithms)
       throws InvalidAlgorithmParameterException {
+    final int maxRetries = 3;
     final KeyPairGenerator kpg;
     try {
       kpg = KeyPairGenerator.getInstance(keyAlgorithm, this.providerName);
@@ -513,7 +537,7 @@ public class KeyStoreTools {
         kpg.initialize(keyParams);
       }
     } catch (InvalidAlgorithmParameterException e) {
-      log.debug("Algorithm parameters not supported: " + e.getMessage());
+      LOG.debug("Algorithm parameters not supported: " + e.getMessage());
       throw e;
     }
     // We will make a loop to retry key generation here. Using the IAIK provider
@@ -521,9 +545,9 @@ public class KeyStoreTools {
     // CKR_OBJECT_HANDLE_INVALID about every second time we try to store keys
     // But if we try again it succeeds
     int bar = 0;
-    while (bar < 3) {
+    while (bar < maxRetries) {
       try {
-        log.debug("generating...");
+        LOG.debug("generating...");
         final KeyPair keyPair = kpg.generateKeyPair();
         final X509Certificate selfSignedCert =
             getSelfCertificate(
@@ -531,8 +555,8 @@ public class KeyStoreTools {
                 (long) 30 * 24 * 60 * 60 * 365,
                 certSignAlgorithms,
                 keyPair);
-        final X509Certificate chain[] = new X509Certificate[] {selfSignedCert};
-        log.debug("Creating certificate with entry " + keyAlias + '.');
+        final X509Certificate[] chain = new X509Certificate[] {selfSignedCert};
+        LOG.debug("Creating certificate with entry " + keyAlias + '.');
         setKeyEntry(keyAlias, keyPair.getPrivate(), chain);
         if (CesecoreConfiguration.makeKeyUnmodifiableAfterGeneration()) {
           PKCS11Utils.getInstance()
@@ -540,8 +564,8 @@ public class KeyStoreTools {
         }
         break; // success no need to try more
       } catch (KeyStoreException e) {
-        if (bar < 3) {
-          log.info(
+        if (bar < maxRetries) {
+          LOG.info(
               "Failed to generate or store new key, will try 3 times. This was"
                   + " try: "
                   + bar,
@@ -560,28 +584,33 @@ public class KeyStoreTools {
       }
       bar++;
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<generate from AlgorithmParameterSpec: "
               + (keyParams != null ? keyParams.getClass().getName() : "null"));
     }
   }
 
   private class SignCsrOperation implements ISignOperation {
-    private final String alias;
+     /** Alias. */
+      private final String alias;
+    /** DN. */
     private final String sDN;
+    /** Params. */
     private final boolean explicitEccParameters;
+    /** Key. */
     private final PublicKey publicKeyTmp;
+    /** Request. */
     private PKCS10CertificationRequest certReq;
 
-    public SignCsrOperation(
-        final String _alias,
-        final String _sDN,
-        final boolean _explicitEccParameters,
+   SignCsrOperation(
+        final String anAlias,
+        final String aSDN,
+        final boolean aExplicitEccParameters,
         final PublicKey publicKey) {
-      this.alias = _alias;
-      this.sDN = _sDN;
-      this.explicitEccParameters = _explicitEccParameters;
+      this.alias = anAlias;
+      this.sDN = aSDN;
+      this.explicitEccParameters = aExplicitEccParameters;
       this.certReq = null;
       this.publicKeyTmp = publicKey;
     }
@@ -592,8 +621,8 @@ public class KeyStoreTools {
             UnrecoverableKeyException, KeyStoreException,
             OperatorCreationException, TaskWithSigningException {
       final PublicKey publicKey;
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             String.format(
                 "alias: %s SHA1 of public key: %s",
                 this.alias,
@@ -601,11 +630,11 @@ public class KeyStoreTools {
                     this.publicKeyTmp.getEncoded())));
       }
       if (signAlgorithm.contains("ECDSA") && this.explicitEccParameters) {
-        log.info("Using explicit parameter encoding for ECC key.");
+        LOG.info("Using explicit parameter encoding for ECC key.");
         publicKey =
             ECKeyUtil.publicToExplicitParameters(this.publicKeyTmp, "BC");
       } else {
-        log.info("Using named curve parameter encoding for ECC key.");
+        LOG.info("Using named curve parameter encoding for ECC key.");
         publicKey = this.publicKeyTmp;
       }
       final PrivateKey privateKey = getPrivateKey(this.alias);
@@ -649,7 +678,7 @@ public class KeyStoreTools {
     }
   }
   /**
-   * Generates a certificate request (CSR) in PKCS#10 format and writes to file
+   * Generates a certificate request (CSR) in PKCS#10 format and writes to file.
    *
    * @param alias for the key to be used
    * @param sDN the DN to be used. If null the 'CN=alias' will be used
@@ -658,11 +687,13 @@ public class KeyStoreTools {
    *     to include all parameters explicitly (ICAO ePassport requirement).
    */
   public void generateCertReq(
-      String alias, String sDN, boolean explicitEccParameters) {
+      final String alias,
+      final String sDN,
+      final boolean explicitEccParameters) {
     try {
       final PublicKey publicKey = getCertificate(alias).getPublicKey();
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "alias: "
                 + alias
                 + " SHA1 of public key: "
@@ -680,15 +711,15 @@ public class KeyStoreTools {
           CertTools.genContentVerifierProvider(publicKey);
       if (!certReq.isSignatureValid(verifier)) {
         final String msg =
-            intres.getLocalizedMessage("token.errorcertreqverify", alias);
+            INTRES.getLocalizedMessage("token.errorcertreqverify", alias);
         throw new KeyUtilRuntimeException(msg);
       }
       final String filename = alias + ".pem";
 
-      try (final OutputStream os = new FileOutputStream(filename)) {
+      try (OutputStream os = new FileOutputStream(filename)) {
         os.write(CertTools.getPEMFromCertificateRequest(certReq.getEncoded()));
       }
-      log.info("Wrote csr to file: " + filename);
+      LOG.info("Wrote csr to file: " + filename);
     } catch (KeyStoreException
         | NoSuchProviderException
         | TaskWithSigningException
@@ -707,8 +738,8 @@ public class KeyStoreTools {
    *     of the key. Ending with the root certificate.
    */
   public void installCertificate(final String fileName) {
-    try (final InputStream is = new FileInputStream(fileName)) {
-      final X509Certificate chain[];
+    try (InputStream is = new FileInputStream(fileName)) {
+      final X509Certificate[] chain;
       chain =
           CertTools.getCertsFromPEM(is, X509Certificate.class)
               .toArray(new X509Certificate[0]);
@@ -720,8 +751,8 @@ public class KeyStoreTools {
       while (eAlias.hasMoreElements() && notFound) {
         final String alias = eAlias.nextElement();
         final PublicKey hsmPublicKey = getCertificate(alias).getPublicKey();
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "alias: "
                   + alias
                   + " SHA1 of public hsm key: "
@@ -737,14 +768,14 @@ public class KeyStoreTools {
                                   .getEncoded()))));
         }
         if (hsmPublicKey.equals(importPublicKey)) {
-          log.info("Found a matching public key for alias \"" + alias + "\".");
+          LOG.info("Found a matching public key for alias \"" + alias + "\".");
           getKeyStore().setKeyEntry(alias, getPrivateKey(alias), null, chain);
           notFound = false;
         }
       }
       if (notFound) {
         final String msg =
-            intres.getLocalizedMessage("token.errorkeynottoken", importKeyHash);
+            INTRES.getLocalizedMessage("token.errorkeynottoken", importKeyHash);
         throw new KeyUtilRuntimeException(msg);
       }
     } catch (IOException
@@ -758,12 +789,12 @@ public class KeyStoreTools {
   }
 
   /**
-   * Install trusted root in trust store
+   * Install trusted root in trust store.
    *
    * @param fileName name of the trusted root.
    */
-  public void installTrustedRoot(String fileName) {
-    try (final InputStream is = new FileInputStream(fileName)) {
+  public void installTrustedRoot(final String fileName) {
+    try (InputStream is = new FileInputStream(fileName)) {
       final List<Certificate> chain =
           CertTools.getCertsFromPEM(is, Certificate.class);
       if (chain.size() < 1) {
@@ -777,30 +808,30 @@ public class KeyStoreTools {
     }
   }
 
-  private PrivateKey getPrivateKey(String alias)
+  private PrivateKey getPrivateKey(final String alias)
       throws UnrecoverableKeyException, KeyStoreException,
           NoSuchAlgorithmException {
     final PrivateKey key = (PrivateKey) getKey(alias);
     if (key == null) {
-      String msg = intres.getLocalizedMessage("token.errornokeyalias", alias);
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("token.errornokeyalias", alias);
+      LOG.info(msg);
     }
     return key;
   }
 
-  private Key getKey(String alias)
+  private Key getKey(final String alias)
       throws UnrecoverableKeyException, KeyStoreException,
           NoSuchAlgorithmException {
     return getKeyStore().getKey(alias, null);
   }
 
-  private X509Certificate getCertificate(String alias)
+  private X509Certificate getCertificate(final String alias)
       throws KeyStoreException {
     final X509Certificate cert =
         (X509Certificate) this.keyStore.getCertificate(alias);
     if (cert == null) {
-      String msg = intres.getLocalizedMessage("token.errornocertalias", alias);
-      log.info(msg);
+      String msg = INTRES.getLocalizedMessage("token.errornocertalias", alias);
+      LOG.info(msg);
     }
     return cert;
   }
@@ -821,7 +852,7 @@ public class KeyStoreTools {
         | KeyStoreException
         | NoSuchAlgorithmException
         | CertificateException e) {
-      log.error(e); // should never happen if keyStore is valid object
+      LOG.error(e); // should never happen if keyStore is valid object
     }
     return null;
   }

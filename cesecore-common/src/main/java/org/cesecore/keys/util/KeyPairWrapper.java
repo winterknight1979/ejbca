@@ -34,11 +34,18 @@ public class KeyPairWrapper implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  final byte[] encodedPublicKey;
-  final byte[] encodedPrivateKey;
-  final String algorithm;
-  transient KeyPair cachedKeyPair = null;
+  /** Public. */
+  private final byte[] encodedPublicKey;
+  /** Priuvate. */
+  private final byte[] encodedPrivateKey;
+  /** Algo. */
+  private final String algorithm;
+  /** cached keys. */
+  private transient KeyPair cachedKeyPair = null;
 
+  /**
+   * @param keyPair keys
+   */
   public KeyPairWrapper(final KeyPair keyPair) {
     this.encodedPublicKey = keyPair.getPublic().getEncoded();
     this.encodedPrivateKey = keyPair.getPrivate().getEncoded();
@@ -83,6 +90,9 @@ public class KeyPairWrapper implements Serializable {
     }
   }
 
+  /**
+   * @return keys
+   */
   public KeyPair getKeyPair() {
     if (cachedKeyPair == null) {
       cachedKeyPair = new KeyPair(getPublicKey(), getPrivateKey());

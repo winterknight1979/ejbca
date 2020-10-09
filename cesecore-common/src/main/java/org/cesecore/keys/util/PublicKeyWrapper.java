@@ -30,13 +30,19 @@ public class PublicKeyWrapper implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  final byte[] encodedKey;
-  final String algorithm;
-  transient PublicKey publicKey;
+  /** Encoded. */
+  private final byte[] encodedKey;
+  /** Alg. */
+  private final String algorithm;
+  /** Key. */
+  private transient PublicKey publicKey;
 
-  public PublicKeyWrapper(final PublicKey publicKey) {
-    this.encodedKey = publicKey.getEncoded();
-    this.algorithm = publicKey.getAlgorithm();
+  /**
+   * @param aPublicKey Key
+   */
+  public PublicKeyWrapper(final PublicKey aPublicKey) {
+    this.encodedKey = aPublicKey.getEncoded();
+    this.algorithm = aPublicKey.getAlgorithm();
   }
 
   /** @return the decoded PublicKey object wrapped in this class. */

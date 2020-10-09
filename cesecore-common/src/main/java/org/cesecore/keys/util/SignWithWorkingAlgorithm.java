@@ -36,16 +36,20 @@ import org.apache.log4j.Logger;
  * @version $Id: SignWithWorkingAlgorithm.java 24555 2016-10-21 13:42:23Z anatom
  *     $
  */
-public class SignWithWorkingAlgorithm {
-  /** Log4j instance */
-  private static final Logger log =
+public final class SignWithWorkingAlgorithm {
+  /** Log4j instance. */
+  private static final Logger LOG =
       Logger.getLogger(SignWithWorkingAlgorithm.class);
-
-  private static final Map<Integer, SignWithWorkingAlgorithm> instanceMap =
+/** Map. */
+  private static final Map<Integer, SignWithWorkingAlgorithm> INSTANCE_MAP =
       new HashMap<>();
+  /** Provider. */
   private final Provider provider;
+  /** List of available algos. */
   private final List<String> availableSignAlgorithms;
+  /** Alg. */
   private String signAlgorithm;
+  /** Lock. */
   private final Lock lock;
 
   /**
@@ -95,12 +99,12 @@ public class SignWithWorkingAlgorithm {
         Integer.valueOf(
             availableSignAlgorithms.hashCode() ^ provider.hashCode());
     final SignWithWorkingAlgorithm instance;
-    synchronized (instanceMap) {
-      final SignWithWorkingAlgorithm waitInstance = instanceMap.get(mapKey);
+    synchronized (INSTANCE_MAP) {
+      final SignWithWorkingAlgorithm waitInstance = INSTANCE_MAP.get(mapKey);
       if (waitInstance == null) {
         instance =
             new SignWithWorkingAlgorithm(provider, availableSignAlgorithms);
-        instanceMap.put(mapKey, instance);
+        INSTANCE_MAP.put(mapKey, instance);
       } else {
         instance = waitInstance;
       }
@@ -108,11 +112,16 @@ public class SignWithWorkingAlgorithm {
     return instance.tryOutWorkingAlgorithm(operation);
   }
 
+  /**
+   * @param aProvider Provider
+   * @param theAvailableSignAlgorithms Algs
+   */
   private SignWithWorkingAlgorithm(
-      final Provider _provider, final List<String> _availableSignAlgorithms) {
-    this.provider = _provider;
+      final Provider aProvider,
+      final List<String> theAvailableSignAlgorithms) {
+    this.provider = aProvider;
     this.lock = new ReentrantLock();
-    this.availableSignAlgorithms = _availableSignAlgorithms;
+    this.availableSignAlgorithms = theAvailableSignAlgorithms;
   }
 
   private boolean tryOutWorkingAlgorithm(final ISignOperation operation)
@@ -131,21 +140,21 @@ public class SignWithWorkingAlgorithm {
         try {
           operation.taskWithSigning(trySignAlgorithm, this.provider);
         } catch (final Exception e) {
-          log.info(
+          LOG.info(
               String.format(
                   "Signature algorithm '%s' not working for provider '%s'."
                       + " Exception: %s",
                   trySignAlgorithm, this.provider, e.getMessage()));
           continue;
         }
-        log.info(
+        LOG.info(
             String.format(
                 "Signature algorithm '%s' working for provider '%s'.",
                 trySignAlgorithm, this.provider));
         this.signAlgorithm = trySignAlgorithm;
         return true;
       }
-      log.info(
+      LOG.info(
           String.format(
               "No valid signing algorithm found for the provider '%s'.",
               this.provider));
