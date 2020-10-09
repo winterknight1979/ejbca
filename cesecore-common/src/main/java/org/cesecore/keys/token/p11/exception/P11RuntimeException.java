@@ -21,10 +21,17 @@ package org.cesecore.keys.token.p11.exception;
 public class P11RuntimeException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
   public P11RuntimeException(final String message, final Exception cause) {
     super(message, cause);
   }
 
+  /**
+   * @param message Message
+   */
   public P11RuntimeException(final String message) {
     super(message);
   }

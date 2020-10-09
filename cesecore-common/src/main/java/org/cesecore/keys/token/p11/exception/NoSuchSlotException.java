@@ -25,19 +25,30 @@ public class NoSuchSlotException extends Exception {
 
   private static final long serialVersionUID = -1943802946146748726L;
 
+  /** Default. */
   public NoSuchSlotException() {
     super();
   }
 
-  public NoSuchSlotException(String message, Throwable cause) {
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public NoSuchSlotException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public NoSuchSlotException(String message) {
+  /**
+   * @param message message
+   */
+  public NoSuchSlotException(final String message) {
     super(message);
   }
 
-  public NoSuchSlotException(Throwable cause) {
+  /**
+   * @param cause Cause
+   */
+  public NoSuchSlotException(final Throwable cause) {
     super(cause);
   }
 }
