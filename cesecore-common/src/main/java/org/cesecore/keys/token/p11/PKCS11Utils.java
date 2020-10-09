@@ -48,20 +48,25 @@ import org.cesecore.keys.token.p11.exception.P11RuntimeException;
  *
  * @version $Id: PKCS11Utils.java 25864 2017-05-17 13:46:10Z anatom $
  */
-public class PKCS11Utils {
-  private static final Logger log = Logger.getLogger(PKCS11Utils.class);
+public final class PKCS11Utils {
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(PKCS11Utils.class);
+  /** Instance. */
   private static PKCS11Utils p11utils = null;
+  /** Key. */
   private final Method makeKeyUnmodifiable;
+  /** Key. */
   private final Method isKeyModifiable;
+  /** Info. */
   private final Method securityInfo;
 
   private PKCS11Utils(
-      final Method _makeKeyUnmodifiable,
-      final Method _isKeyModifiable,
-      final Method _securityInfo) {
-    this.makeKeyUnmodifiable = _makeKeyUnmodifiable;
-    this.isKeyModifiable = _isKeyModifiable;
-    this.securityInfo = _securityInfo;
+      final Method aMakeKeyUnmodifiable,
+      final Method anIsKeyModifiable,
+      final Method aSecurityInfo) {
+    this.makeKeyUnmodifiable = aMakeKeyUnmodifiable;
+    this.isKeyModifiable = anIsKeyModifiable;
+    this.securityInfo = aSecurityInfo;
   }
 
   /** @return The instance. */
@@ -71,9 +76,9 @@ public class PKCS11Utils {
     }
     final String className = "sun.security.pkcs11.CESeCoreUtils";
     final Class<? extends Object> clazz;
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       final String propertyKey = "java.ext.dirs";
-      log.debug(
+      LOG.debug(
           String.format(
               "The value of the system property '%s' is '%s'.",
               propertyKey, System.getProperty(propertyKey)));
@@ -81,7 +86,7 @@ public class PKCS11Utils {
     try {
       clazz = Class.forName(className);
     } catch (ClassNotFoundException e) {
-      log.warn(
+      LOG.warn(
           String.format(
               "Class '%s' not available. The attribute of all generated keys"
                   + " will have 'CKA_MODIFYABLE=TRUE'. A '%s' exception was"
@@ -122,7 +127,7 @@ public class PKCS11Utils {
         "Not possible to set the attribute CKA_MODIFIABLE to false for the key"
             + " object.";
     if (this.makeKeyUnmodifiable == null) {
-      log.warn(sError);
+      LOG.warn(sError);
       return;
     }
     try {
@@ -130,13 +135,13 @@ public class PKCS11Utils {
           this.makeKeyUnmodifiable.invoke(
               null, new Object[] {providerName, key});
       assert oResult instanceof Boolean;
-      if (log.isDebugEnabled()) {
+      if (LOG.isDebugEnabled()) {
         if (((Boolean) oResult).booleanValue()) {
-          log.debug(
+          LOG.debug(
               String.format(
                   "CKA_MODIFIABLE attribute set to false for key '%s'.", key));
         } else {
-          log.debug(
+          LOG.debug(
               String.format(
                   "CKA_MODIFIABLE attribute not changed for key '%s'. It was"
                       + " already set to false, or could not be changed",
@@ -159,7 +164,7 @@ public class PKCS11Utils {
     final String sError =
         "Not possible to read the attribute CKA_MODIFIABLE for the key object.";
     if (this.isKeyModifiable == null) {
-      log.warn(sError);
+      LOG.warn(sError);
       return true; // we say modifiable when we can't find out.
     }
     try {

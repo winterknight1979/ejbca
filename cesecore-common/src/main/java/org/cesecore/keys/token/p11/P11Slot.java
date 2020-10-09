@@ -31,9 +31,10 @@ import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
  *
  * @version $Id: P11Slot.java 30502 2018-11-14 13:44:43Z anatom $
  */
-public class P11Slot {
+public final class P11Slot {
 
-  private static final Logger log = Logger.getLogger(P11Slot.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(P11Slot.class);
 
   /**
    * Used for library key map when a sun configuration file is used to specify a
@@ -41,54 +42,62 @@ public class P11Slot {
    */
   private static final String ONLY_ONE = "onlyOne";
 
-  private static final Map<String, P11Slot> slotMap =
+  /** Slots. */
+  private static final Map<String, P11Slot> SLOT_MAP =
       new HashMap<String, P11Slot>();
+  /** Slots. */
   private final Map<Integer, P11SlotUser> p11SlotUserMap =
       new HashMap<Integer, P11SlotUser>();
+  /** Type. */
   private final Pkcs11SlotLabelType slotLabelType;
+  /** Label. */
   private final String slotLabel;
+  /** Library. */
   private final String sharedLibrary;
+  /** Config file. */
   private final String sunP11ConfigFileName;
+  /** Provider. */
   private Provider provider;
+  /** Library. */
   private final String libraryFileName;
 
   private P11Slot(
-      final Pkcs11SlotLabelType slotLabelType,
-      final String slotLabel,
-      final String sharedLibrary,
+      final Pkcs11SlotLabelType aSlotLabelType,
+      final String aSlotLabel,
+      final String aSharedLibrary,
       final String attributesFile,
       final String friendlyName,
-      boolean addProvider)
+      final boolean addProvider)
       throws NoSuchSlotException {
-    this.slotLabelType = slotLabelType;
-    this.slotLabel = slotLabel;
-    this.sharedLibrary = sharedLibrary;
+    this.slotLabelType = aSlotLabelType;
+    this.slotLabel = aSlotLabel;
+    this.sharedLibrary = aSharedLibrary;
     this.sunP11ConfigFileName = null;
-    this.libraryFileName = new File(sharedLibrary).getName();
+    this.libraryFileName = new File(aSharedLibrary).getName();
     provider =
         Pkcs11SlotLabel.getP11Provider(
-            slotLabel, slotLabelType, sharedLibrary, attributesFile);
+            aSlotLabel, aSlotLabelType, aSharedLibrary, attributesFile);
     if (provider == null) {
       throw new NoSuchSlotException(
-          "Slot labeled " + slotLabel + " could not be located.");
+          "Slot labeled " + aSlotLabel + " could not be located.");
     }
     addProviderIfNotExisting(addProvider);
   }
 
-  private P11Slot(final String sunP11ConfigFileName, boolean addProvider)
+  private P11Slot(final String aSunP11ConfigFileName, final boolean addProvider)
       throws NoSuchSlotException {
     this.slotLabelType = Pkcs11SlotLabelType.SUN_FILE;
-    this.sunP11ConfigFileName = sunP11ConfigFileName;
+    this.sunP11ConfigFileName = aSunP11ConfigFileName;
     this.slotLabel = null;
     this.sharedLibrary = null;
     this.libraryFileName = ONLY_ONE;
     this.provider =
         new Pkcs11SlotLabel(Pkcs11SlotLabelType.SUN_FILE, null)
-            .getProvider(sunP11ConfigFileName, null, null);
+            .getProvider(aSunP11ConfigFileName, null, null);
     if (this.provider == null) {
       throw new NoSuchSlotException(
           "Slot configured in "
-              + sunP11ConfigFileName
+              + aSunP11ConfigFileName
               + " could not be located.");
     }
     addProviderIfNotExisting(addProvider);
@@ -103,7 +112,7 @@ public class P11Slot {
    * @param add default value should be true, set to false to create a P11 slot
    *     without actually adding the P11 provider to Java Security
    */
-  private void addProviderIfNotExisting(boolean add) {
+  private void addProviderIfNotExisting(final boolean add) {
     // If we already have a provider installed, it means there is another Crypto
     // Token already using this slot
     // It can potentially be a Database Integrity Protection Crypto Token
@@ -123,7 +132,7 @@ public class P11Slot {
       // P11Slot will also just not work, while a remove and re-add might have
       // caused it to start working
       provider = Security.getProvider(provider.getName());
-      log.info(
+      LOG.info(
           "Found an existing PKCS#11 Provider while activating Crypto Token,"
               + " re-using that instead of a new one: "
               + provider);
@@ -132,12 +141,12 @@ public class P11Slot {
       // P11 provider to Java Security
       if (add) {
         Security.addProvider(provider);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "PKCS#11 Provider successfully added: " + provider.getName());
         }
       } else {
-        log.info(
+        LOG.info(
             "Did not find an existing PKCS#11 Provider while activating Crypto"
                 + " Token, but was configured to not add one either: "
                 + provider.getName());
@@ -162,14 +171,14 @@ public class P11Slot {
    * working again.
    */
   public void reset() {
-    synchronized (slotMap) {
-      for (final P11Slot slot : slotMap.values()) {
+    synchronized (SLOT_MAP) {
+      for (final P11Slot slot : SLOT_MAP.values()) {
         if (slot.libraryFileName.equals(libraryFileName)) {
           for (final P11SlotUser p11SlotUser : slot.p11SlotUserMap.values()) {
             try {
               p11SlotUser.deactivate();
             } catch (Exception e) {
-              log.error("Not possible to deactivate token.", e);
+              LOG.error("Not possible to deactivate token.", e);
             }
           }
           if (Pkcs11SlotLabelType.SUN_FILE.equals(slotLabelType)) {
@@ -180,9 +189,9 @@ public class P11Slot {
     }
   }
 
-  /** Unload if last active token on slot */
+  /** Unload if last active token on slot. */
   public void logoutFromSlotIfNoTokensActive() {
-    synchronized (slotMap) {
+    synchronized (SLOT_MAP) {
       for (final P11SlotUser p11SlotUser : p11SlotUserMap.values()) {
         if (p11SlotUser.isActive()) {
           return;
@@ -192,15 +201,15 @@ public class P11Slot {
     if (provider instanceof AuthProvider) {
       try {
         ((AuthProvider) provider).logout();
-        if (log.isDebugEnabled()) {
-          log.debug("PKCS#11 session terminated for \"" + toString() + "\".");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("PKCS#11 session terminated for \"" + toString() + "\".");
         }
       } catch (LoginException e) {
-        log.warn(
+        LOG.warn(
             "Not possible to logout from PKCS#11 Session. HW problems?", e);
       }
     } else {
-      log.warn(
+      LOG.warn(
           "Not possible to logout from PKCS#11 provider '"
               + toString()
               + "'. It is not implementing '"
@@ -240,7 +249,7 @@ public class P11Slot {
       final String attributesFile,
       final P11SlotUser token,
       final int id,
-      boolean addProvider)
+      final boolean addProvider)
       throws CryptoTokenOfflineException, NoSuchSlotException {
     final String friendlyName =
         slotLabel + sharedLibrary + slotLabelType.toString();
@@ -282,10 +291,10 @@ public class P11Slot {
       final String attributesFile,
       final P11SlotUser p11SlotUser,
       final int id,
-      boolean addProvider)
+      final boolean addProvider)
       throws NoSuchSlotException, CryptoTokenOfflineException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "P11Slot.getInstance(): "
               + String.valueOf(slotLabelType)
               + "'"
@@ -330,10 +339,10 @@ public class P11Slot {
       final String sunP11ConfigFileName,
       final P11SlotUser p11SlotUser,
       final int id,
-      boolean addProvider)
+      final boolean addProvider)
       throws NoSuchSlotException, CryptoTokenOfflineException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "P11Slot.getInstance(): '"
               + sunP11ConfigFileName
               + "', "
@@ -362,7 +371,7 @@ public class P11Slot {
       final String sunP11ConfigFileName,
       final P11SlotUser p11SlotUser,
       final int id,
-      boolean addProvider)
+      final boolean addProvider)
       throws NoSuchSlotException, CryptoTokenOfflineException {
     try {
       final String slotMapKey;
@@ -384,8 +393,8 @@ public class P11Slot {
         slotMapKey = friendlyName;
       }
       P11Slot p11Slot;
-      synchronized (slotMap) {
-        p11Slot = slotMap.get(slotMapKey);
+      synchronized (SLOT_MAP) {
+        p11Slot = SLOT_MAP.get(slotMapKey);
         if (p11Slot == null) {
           if (Pkcs11SlotLabelType.SUN_FILE.equals(slotLabelType)) {
             p11Slot = new P11Slot(sunP11ConfigFileName, addProvider);
@@ -399,7 +408,7 @@ public class P11Slot {
                     friendlyName,
                     addProvider);
           }
-          slotMap.put(slotMapKey, p11Slot);
+          SLOT_MAP.put(slotMapKey, p11Slot);
         }
         p11Slot.p11SlotUserMap.put(Integer.valueOf(id), p11SlotUser);
       }

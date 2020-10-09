@@ -47,43 +47,52 @@ import org.apache.log4j.Logger;
  * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public enum Pkcs11SlotLabelType {
+  /** Label. */
   SLOT_LABEL("SLOT_LABEL", "Slot Label", LabelValidator.class),
+  /** Index. */
   SLOT_INDEX("SLOT_INDEX", "Slot Index", IndexValidator.class),
+  /** Slot. */
   SLOT_NUMBER("SLOT_NUMBER", "Slot Number", NumberValidator.class),
+  /** Config. */
   SUN_FILE("SUN_FILE", "Sun configuration file", null);
 
-  private static final Logger log = Logger.getLogger(Pkcs11SlotLabelType.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(Pkcs11SlotLabelType.class);
 
-  private static final Map<String, Pkcs11SlotLabelType> keyLookUpMap =
+  /** Look-up table. **/
+  private static final Map<String, Pkcs11SlotLabelType> KEY_LOOKUP_MAP =
       new HashMap<String, Pkcs11SlotLabelType>();
 
+  /** Description. */
   private final String description;
+  /** Key. */
   private final String key;
+  /** Validator. */
   private final LabelTypeValidator validator;
 
   static {
     for (Pkcs11SlotLabelType type : Pkcs11SlotLabelType.values()) {
-      keyLookUpMap.put(type.getKey(), type);
+      KEY_LOOKUP_MAP.put(type.getKey(), type);
     }
   }
 
-  private Pkcs11SlotLabelType(
-      String key,
-      String _description,
-      Class<? extends LabelTypeValidator> validator) {
-    this.description = _description;
-    this.key = key;
-    if (validator == null) {
+  Pkcs11SlotLabelType(
+      final String aKey,
+      final String aDescription,
+      final Class<? extends LabelTypeValidator> aValidator) {
+    this.description = aDescription;
+    this.key = aKey;
+    if (aValidator == null) {
       this.validator = null;
     } else {
       try {
-        this.validator = validator.getConstructor().newInstance();
+        this.validator = aValidator.getConstructor().newInstance();
       } catch (InstantiationException
           | NoSuchMethodException
           | InvocationTargetException e) {
-        throw new RuntimeException("Could not instansiate " + validator, e);
+        throw new RuntimeException("Could not instansiate " + aValidator, e);
       } catch (IllegalAccessException e) {
-        throw new RuntimeException("Could not instansiate " + validator, e);
+        throw new RuntimeException("Could not instansiate " + aValidator, e);
       }
     }
   }
@@ -104,13 +113,13 @@ public enum Pkcs11SlotLabelType {
   }
 
   /**
-   * Returns a Pkcs11SlotLabelType based on a key
+   * Returns a Pkcs11SlotLabelType based on a key.
    *
    * @param key a key, must belong to one of the predefine types.
    * @return the Pkcs11SlotLabelType. Returns null if not found.
    */
-  public static Pkcs11SlotLabelType getFromKey(String key) {
-    return keyLookUpMap.get(key);
+  public static Pkcs11SlotLabelType getFromKey(final String key) {
+    return KEY_LOOKUP_MAP.get(key);
   }
 
   /**
@@ -121,7 +130,7 @@ public enum Pkcs11SlotLabelType {
    * @param otherType the Pkcs11SlotLabelType to compare with
    * @return true if the two types have the same key.
    */
-  public boolean isEqual(Pkcs11SlotLabelType otherType) {
+  public boolean isEqual(final Pkcs11SlotLabelType otherType) {
     return this.getKey().equals(otherType.getKey());
   }
 
@@ -132,7 +141,7 @@ public enum Pkcs11SlotLabelType {
    * @param value the value to be validated
    * @return true if the value can be used for this type.
    */
-  public boolean validate(String value) {
+  public boolean validate(final String value) {
     if (validator != null) {
       return validator.validate(value);
     } else {
@@ -145,7 +154,7 @@ public enum Pkcs11SlotLabelType {
    *
    * @version $Id: Pkcs11SlotLabelType.java 19902 2014-09-30 14:32:24Z anatom $
    */
-  private static interface LabelTypeValidator {
+  private interface LabelTypeValidator {
     /**
      * @param value the value to check
      * @return true if the value is applicable
@@ -160,16 +169,16 @@ public enum Pkcs11SlotLabelType {
    */
   protected static class NumberValidator implements LabelTypeValidator {
 
-    public NumberValidator() {}
+    public NumberValidator() { }
 
     @Override
-    public boolean validate(String value) {
+    public boolean validate(final String value) {
       try {
         Long.parseLong(value);
         return true;
       } catch (NumberFormatException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(value + " was not a number.", e);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(value + " was not a number.", e);
         }
         return false;
       }
@@ -184,13 +193,13 @@ public enum Pkcs11SlotLabelType {
    */
   protected static class IndexValidator extends NumberValidator {
 
-    public IndexValidator() {}
+    public IndexValidator() { }
 
     @Override
-    public boolean validate(String value) {
+    public boolean validate(final String value) {
       if (value.charAt(0) != 'i') {
-        if (log.isDebugEnabled()) {
-          log.debug(value + " did not start with 'i'");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(value + " did not start with 'i'");
         }
         return false;
       }
@@ -200,15 +209,16 @@ public enum Pkcs11SlotLabelType {
 
   protected static class LabelValidator implements LabelTypeValidator {
 
-    public LabelValidator() {}
+    public LabelValidator() { }
 
     @Override
-    public boolean validate(String value) {
+    public boolean validate(final String value) {
       // According to the PKCS#11 standard, the label field can be max 32 chars
       // long
-      if (value.length() > 32) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+      final int maxSize = 32;
+      if (value.length() > maxSize) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Value "
                   + value
                   + " was longer than the permitted 32 characters.");

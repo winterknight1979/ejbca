@@ -44,4 +44,5 @@
 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingFactory.java" lines="89"/>
  	<suppress checks="UnusedImportsCheck" files="PKCS11LibraryFileNotFoundException.java" lines="15"/> <!-- Used in Jdoc. -->
  	<suppress checks="UnusedImportsCheck" files="NoSuchSlotException.java" lines="15"/> <!-- Used in Jdoc. -->
+	<suppress checks="ParameterNumberCheck" files="P11Slot.java" lines="286,365"/>
  </suppressions>

@@ -41,32 +41,37 @@ import org.cesecore.keys.token.p11.exception.P11RuntimeException;
  */
 public class Pkcs11SlotLabel {
 
-  /** The name of Suns pkcs11 implementation */
+  /** The name of Suns pkcs11 implementation. */
   public static final String SUN_PKCS11_CLASS = "sun.security.pkcs11.SunPKCS11";
-
+ /** PKCS11. */
   public static final String IAIK_PKCS11_CLASS =
       "iaik.pkcs.pkcs11.provider.IAIKPkcs11";
+  /** JCE.*/
   public static final String IAIK_JCEPROVIDER_CLASS =
       "iaik.security.provider.IAIK";
 
-  private static final Logger log = Logger.getLogger(Pkcs11SlotLabel.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(Pkcs11SlotLabel.class);
 
+  /** Delimeter.*/
   private static final String DELIMETER = ":";
+  /** Type. */
   private final Pkcs11SlotLabelType type;
+  /** Value. */
   private final String value;
 
   /**
    * Use explicit values.
    *
-   * @param type type
-   * @param value value
+   * @param aType type
+   * @param aValue value
    */
-  public Pkcs11SlotLabel(final Pkcs11SlotLabelType type, final String value) {
-    if (type == null) {
+  public Pkcs11SlotLabel(final Pkcs11SlotLabelType aType, final String aValue) {
+    if (aType == null) {
       throw new IllegalArgumentException("Type can not be null");
     }
-    this.type = type;
-    this.value = value == null ? null : value.trim();
+    this.type = aType;
+    this.value = aValue == null ? null : aValue.trim();
   }
 
   /**
@@ -115,8 +120,8 @@ public class Pkcs11SlotLabel {
     // reflection, because
     // the sun class does not exist on all platforms in jdk5, and we want to be
     // able to compile everything.
-    if (log.isDebugEnabled()) {
-      log.debug("slot spec: " + toString());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("slot spec: " + toString());
     }
     if (this.type
         == Pkcs11SlotLabelType
@@ -129,15 +134,15 @@ public class Pkcs11SlotLabel {
                     Paths.get(fileName), StandardCharsets.UTF_8));
         replaceCkaLabel(fileContent, privateKeyLabel);
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final PrintWriter pw = new PrintWriter(baos)) {
+        try (PrintWriter pw = new PrintWriter(baos)) {
           for (String string : fileContent) {
             pw.println(string);
           }
         }
-        if (log.isDebugEnabled()) {
-          log.debug(baos.toString());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(baos.toString());
         }
-        try (final ByteArrayInputStream inputStream =
+        try (ByteArrayInputStream inputStream =
             new ByteArrayInputStream(baos.toByteArray())) {
           return getSunP11Provider(inputStream);
         }
@@ -179,23 +184,23 @@ public class Pkcs11SlotLabel {
         throw new IllegalStateException(
             "This should not ever happen if all type of slots are tested.");
     }
-    { // We will first try to construct the more competent IAIK provider, if it
+     // We will first try to construct the more competent IAIK provider, if it
       // exists in the classpath
-      final Provider prov = getIAIKP11Provider(slot, libFile, this.type);
+      Provider prov = getIAIKP11Provider(slot, libFile, this.type);
       if (prov != null) {
         return prov;
       }
-    }
-    { // if that does not exist, we will revert back to use the SUN provider
-      final Provider prov =
+
+      // if that does not exist, we will revert back to use the SUN provider
+      prov =
           getSunP11Provider(
               getSunP11ProviderInputStream(
                   slot, libFile, this.type, attributesFile, privateKeyLabel));
       if (prov != null) {
         return prov;
       }
-    }
-    log.error("No provider available.");
+
+    LOG.error("No provider available.");
     return null;
   }
 
@@ -207,19 +212,19 @@ public class Pkcs11SlotLabel {
   public static List<String> getExtendedTokenLabels(final File libFile) {
     final List<String> tokenLabels = new ArrayList<>();
     final Pkcs11Wrapper p11 = Pkcs11Wrapper.getInstance(libFile);
-    final long slots[] = p11.getSlotList();
-    if (log.isDebugEnabled()) {
-      log.debug("Found numer of slots:\t" + slots.length);
+    final long[] slots = p11.getSlotList();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Found numer of slots:\t" + slots.length);
     }
     for (int i = 0; i < slots.length; i++) {
       final long slotID = slots[i];
-      final char label[] = p11.getTokenLabel(slotID);
+      final char[] label = p11.getTokenLabel(slotID);
       if (label == null) {
         continue;
       }
       final String tokenLabel = new String(label);
-      if (log.isDebugEnabled()) {
-        log.debug(i + ": Found token label:\t" + tokenLabel + "\tid=" + slotID);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(i + ": Found token label:\t" + tokenLabel + "\tid=" + slotID);
       }
       tokenLabels.add(slotID + ";" + tokenLabel.trim());
     }
@@ -237,25 +242,25 @@ public class Pkcs11SlotLabel {
   private static long getSlotID(
       final String tokenLabel, final Pkcs11Wrapper p11)
       throws NoSuchSlotException {
-    final long slots[] = p11.getSlotList();
-    if (log.isDebugEnabled()) {
-      log.debug("Searching for token label:\t" + tokenLabel);
+    final long[] slots = p11.getSlotList();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Searching for token label:\t" + tokenLabel);
     }
 
     for (final long slotID : slots) {
-      final char label[] = p11.getTokenLabel(slotID);
+      final char[] label = p11.getTokenLabel(slotID);
       if (label == null) {
         continue;
       }
       final String candidateTokenLabel = new String(label);
-      if (log.isDebugEnabled()) {
-        log.debug("Candidate token label:\t" + candidateTokenLabel);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Candidate token label:\t" + candidateTokenLabel);
       }
       if (!tokenLabel.equals(candidateTokenLabel.trim())) {
         continue;
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Label '" + tokenLabel + "' found. The slot ID is:\t" + slotID);
       }
       return slotID;
@@ -288,16 +293,16 @@ public class Pkcs11SlotLabel {
         type.equals(Pkcs11SlotLabelType.SLOT_INDEX)
             ? ("[" + slot + "]")
             : Long.toString(slot));
-    if (log.isDebugEnabled()) {
-      log.debug(prop.toString());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(prop.toString());
     }
     final Provider ret;
     try {
       @SuppressWarnings("unchecked")
       final Class<? extends Provider> implClass =
           (Class<? extends Provider>) Class.forName(IAIK_PKCS11_CLASS);
-      if (log.isDebugEnabled()) {
-        log.debug("Using IAIK PKCS11 provider: " + IAIK_PKCS11_CLASS);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Using IAIK PKCS11 provider: " + IAIK_PKCS11_CLASS);
       }
       // iaik PKCS11 has Properties as constructor argument
       ret =
@@ -325,7 +330,7 @@ public class Pkcs11SlotLabel {
           (Class<? extends Provider>) Class.forName(IAIK_JCEPROVIDER_CLASS);
       final Provider iaikProvider = jceImplClass.getConstructor().newInstance();
       if (Security.getProvider(iaikProvider.getName()) == null) {
-        log.info(
+        LOG.info(
             "Adding IAIK JCE provider for Delegation: "
                 + IAIK_JCEPROVIDER_CLASS);
         Security.addProvider(iaikProvider);
@@ -360,7 +365,7 @@ public class Pkcs11SlotLabel {
       final File libFile,
       final Pkcs11SlotLabelType type,
       final String attributesFile,
-      String privateKeyLabel) {
+      final String privateKeyLabel) {
 
     // Properties for the SUN PKCS#11 provider
     final String sSlot = Long.toString(slot);
@@ -371,8 +376,8 @@ public class Pkcs11SlotLabel {
       throw new RuntimeException(
           "Could for unknown reason not construct canonical filename.", e);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           ">getSunP11ProviderInputStream: "
               + sSlot
               + ", "
@@ -385,7 +390,7 @@ public class Pkcs11SlotLabel {
               + privateKeyLabel);
     }
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final PrintWriter pw = new PrintWriter(baos)) {
+    try (PrintWriter pw = new PrintWriter(baos)) {
       pw.println("name = " + libFile.getName() + "-slot" + sSlot);
       pw.println("library = " + libFilePath);
       if (sSlot != null) {
@@ -452,8 +457,8 @@ public class Pkcs11SlotLabel {
           final String labelStr =
               "  CKA_LABEL = 0h"
                   + new String(Hex.encode(privateKeyLabel.getBytes()));
-          if (log.isDebugEnabled()) {
-            log.debug("Setting CKA_LABEL to '" + labelStr + "'");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting CKA_LABEL to '" + labelStr + "'");
           }
           pw.println(labelStr);
         }
@@ -487,14 +492,14 @@ public class Pkcs11SlotLabel {
         pw.println("}");
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(baos.toString());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(baos.toString());
     }
     return new ByteArrayInputStream(baos.toByteArray());
   }
 
   private static void replaceCkaLabel(
-      List<String> fileContent, String privateKeyLabel) {
+     final  List<String> fileContent, final String privateKeyLabel) {
     // If the attributes file contain a CKA_LABEL without a label, set it to our
     // desired label
     for (int i = 0; i < fileContent.size(); i++) {
@@ -507,14 +512,14 @@ public class Pkcs11SlotLabel {
           final String labelStr =
               "  CKA_LABEL = 0h"
                   + new String(Hex.encode(privateKeyLabel.getBytes()));
-          if (log.isDebugEnabled()) {
-            log.debug("Setting CKA_LABEL to '" + labelStr + "'");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting CKA_LABEL to '" + labelStr + "'");
           }
           fileContent.set(i, labelStr);
         } else {
           // If there is no privateKeyLabel, we have to remove the bogus empty
           // CKA_LABEL
-          log.debug("Removing placeholder CKA_LABEL");
+          LOG.debug("Removing placeholder CKA_LABEL");
           fileContent.remove(
               i); // .remove() is ok since we break out of the loop here, if we
                   // didn't this would be bad practice
@@ -546,8 +551,8 @@ public class Pkcs11SlotLabel {
     @SuppressWarnings("unchecked")
     final Class<? extends Provider> implClass =
         (Class<? extends Provider>) Class.forName(SUN_PKCS11_CLASS);
-    if (log.isDebugEnabled()) {
-      log.debug("Using SUN PKCS11 provider: " + SUN_PKCS11_CLASS);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Using SUN PKCS11 provider: " + SUN_PKCS11_CLASS);
     }
     return implClass
         .getConstructor(InputStream.class)
@@ -564,7 +569,7 @@ public class Pkcs11SlotLabel {
     } catch (Exception e) {
       final String msg =
           "Error constructing pkcs11 provider: " + e.getMessage();
-      log.error(msg);
+      LOG.error(msg);
       throw new IllegalStateException(msg, e);
     }
   }
@@ -582,7 +587,7 @@ public class Pkcs11SlotLabel {
    * @param libFile a file with the path of the p11 module on which C_Finalize
    *     should be called.
    */
-  static void doC_Initialize(final File libFile) {
+  static void doCInitialize(final File libFile) {
     try {
       getSunP11ProviderNoExceptionHandling(
           getSunP11ProviderInputStream(
@@ -591,7 +596,7 @@ public class Pkcs11SlotLabel {
       // the p11 module don't like the bogus arguments and throws an exception
       // but we don't bother about this since
       // C_Initialize has already been called with multithread arguments.
-      log.debug(
+      LOG.debug(
           "Get dummy sun provider throws an exception for "
               + libFile.getPath()
               + ". This is OK.",
@@ -599,7 +604,7 @@ public class Pkcs11SlotLabel {
     } catch (Exception e) {
       final String msg =
           "Error constructing pkcs11 provider: " + e.getMessage();
-      log.error(msg);
+      LOG.error(msg);
       throw new IllegalStateException(msg, e);
     }
   }
@@ -633,7 +638,7 @@ public class Pkcs11SlotLabel {
    */
   public static Provider getP11Provider(
       final String sSlot,
-      Pkcs11SlotLabelType slotLabelType,
+      final Pkcs11SlotLabelType slotLabelType,
       final String fileName,
       final String attributesFile)
       throws NoSuchSlotException {
