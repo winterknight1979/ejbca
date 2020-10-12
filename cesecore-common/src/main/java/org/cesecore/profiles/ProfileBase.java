@@ -28,32 +28,39 @@ public abstract class ProfileBase extends UpgradeableDataHashMap
     implements Profile, Serializable {
 
   private static final long serialVersionUID = 1L;
-
+  /** API version. */
   public static final float LATEST_VERSION = 1f;
-
+  /** config. */
   private static final String PROFILE_NAME_KEY = "profile.name";
+  /** Config. */
   private static final String PROFILE_ID_KEY = "profile.id";
-
+  /** Implementation. */
   private transient Class<? extends Profile> implementationClass = null;
-
+  /** Name. */
   private transient String name = null;
+  /** ID. */
   private transient Integer profileId = null;
 
   /** List separator. */
   protected static final String LIST_SEPARATOR = ";";
 
+  /** Default. */
   public ProfileBase() {
-    // Public constructor needed deserialization
+       // Public constructor needed deserialization
   }
 
-  public ProfileBase(final String name) {
+  /**
+   * @param aName name
+   */
+  public ProfileBase(final String aName) {
     super();
-    setProfileName(name);
+    setProfileName(aName);
     initialize();
   }
 
   /*
-   * This method only needs to be called by the factory method (and some unit tests), because it sets a ton of boilerplate stuff which isn't
+   * This method only needs to be called by the factory method (and some
+   * unit tests), because it sets a ton of boilerplate stuff which isn't
    * required by already initialized profiles.
    */
   @Override
@@ -79,7 +86,7 @@ public abstract class ProfileBase extends UpgradeableDataHashMap
   protected abstract void loadTransientObjects();
 
   @Override
-  public void setDataMap(LinkedHashMap<Object, Object> dataMap) {
+  public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
     loadData(dataMap);
     loadTransientObjects();
   }
@@ -102,9 +109,9 @@ public abstract class ProfileBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setProfileId(Integer profileId) {
-    this.profileId = profileId;
-    data.put(PROFILE_ID_KEY, profileId);
+  public void setProfileId(final Integer aProfileId) {
+    this.profileId = aProfileId;
+    data.put(PROFILE_ID_KEY, aProfileId);
   }
 
   @Override
@@ -116,19 +123,19 @@ public abstract class ProfileBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public void setProfileName(String profileName) {
+  public void setProfileName(final String profileName) {
     this.name = profileName;
     data.put(PROFILE_NAME_KEY, profileName);
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
   @Override
   public float getLatestVersion() {
     return LATEST_VERSION;
   }
 
   @Override
-  public void upgrade() {}
+  public void upgrade() { }
 
   /**
    * @param key key
@@ -153,7 +160,7 @@ public abstract class ProfileBase extends UpgradeableDataHashMap
   }
 
   @Override
-  public Map<Object, Object> diff(Profile newobj) {
+  public Map<Object, Object> diff(final Profile newobj) {
     Map<Object, Object> newmap = (Map<Object, Object>) newobj.getDataMap();
     return diffMaps(data, newmap);
   }

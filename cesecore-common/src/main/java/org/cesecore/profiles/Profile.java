@@ -25,13 +25,16 @@ public interface Profile extends Serializable {
 
   /**
    * Designator for the base type, in this case a Class which extends
-   * ProfileBase
+   * ProfileBase.
    */
-  final String PROFILE_TYPE = "profile.type";
+  String PROFILE_TYPE = "profile.type";
 
   /** @return the name of this particular profile type instance */
   String getProfileName();
 
+  /**
+   * @param profileName Name
+   */
   void setProfileName(String profileName);
 
   /**
@@ -40,6 +43,9 @@ public interface Profile extends Serializable {
    */
   Integer getProfileId();
 
+  /**
+   * @param profileId ID
+   */
   void setProfileId(Integer profileId);
 
   /**
@@ -54,6 +60,9 @@ public interface Profile extends Serializable {
    */
   LinkedHashMap<Object, Object> getDataMap();
 
+  /**
+   * @param dataMap Data
+   */
   void setDataMap(LinkedHashMap<Object, Object> dataMap);
 
   /** @return the implementing class */
