@@ -28,7 +28,8 @@ import org.apache.log4j.Logger;
  */
 public abstract class AccessRulesHelper {
 
-  private static final Logger log = Logger.getLogger(AccessRulesHelper.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AccessRulesHelper.class);
 
   /**
    * @param accessRules Rules
@@ -74,21 +75,21 @@ public abstract class AccessRulesHelper {
         state = accessRules.get(subString + "/");
       }
       if (state != null) {
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "hasAccessToResource: " + resource + ", " + state.booleanValue());
         }
         return state.booleanValue();
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("hasAccessToResource: " + resource + ", " + false);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("hasAccessToResource: " + resource + ", " + false);
     }
     return false;
   }
 
   /**
-   * Normalize access rules tree (make sure rules always end with a '/')
+   * Normalize access rules tree (make sure rules always end with a '/').
    *
    * @param accessRules rules
    */
@@ -106,7 +107,7 @@ public abstract class AccessRulesHelper {
   }
 
   /**
-   * Normalize access rules (make sure rules always end with a '/')
+   * Normalize access rules (make sure rules always end with a '/').
    *
    * @param resource rules
    * @return normalized string
@@ -127,8 +128,8 @@ public abstract class AccessRulesHelper {
       final HashMap<String, Boolean> accessRules) {
     // For each rule, check if there are higher level rules (e.g. shorter path)
     // with the same access state
-    for (final String resourceWithTrailingSlash :
-        new ArrayList<>(accessRules.keySet())) {
+    for (final String resourceWithTrailingSlash
+        : new ArrayList<>(accessRules.keySet())) {
       final Boolean currentState = accessRules.get(resourceWithTrailingSlash);
       if (currentState == null) {
         // Already removed from map
@@ -157,8 +158,8 @@ public abstract class AccessRulesHelper {
     }
     // Remove all top level deny rules (if nothing is explicitly permitted, we
     // don't need to deny it)
-    for (final String resourceWithTrailingSlash :
-        new ArrayList<>(accessRules.keySet())) {
+    for (final String resourceWithTrailingSlash
+        : new ArrayList<>(accessRules.keySet())) {
       final Boolean currentState = accessRules.get(resourceWithTrailingSlash);
       if (currentState != null && !currentState.booleanValue()) {
         boolean needed = false;
