@@ -20,7 +20,10 @@ package org.cesecore.util.ui;
  *     undulf $
  */
 public enum DynamicUiPropertyCallback {
-  NONE,
+  /** None. */
+    NONE,
+  /** Roles. */
   ROLES,
+  /** View. */
   ROLES_VIEW;
 }

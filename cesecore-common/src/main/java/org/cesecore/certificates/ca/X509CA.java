@@ -1898,7 +1898,7 @@ public class X509CA extends CA implements Serializable {
 
             eext =
                 sanExts.getExtension(
-                    new ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains));
+                    new ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS));
             if (eext != null) {
               certbuilder.addExtension(
                   eext.getExtnId(),
@@ -2282,7 +2282,7 @@ public class X509CA extends CA implements Serializable {
     if (publishToCT && sanEdited) {
       ASN1Encodable seq = new DERSequence(nrOfRecactedLables);
       gen.addExtension(
-          new ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains),
+          new ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS),
           false,
           seq);
     }

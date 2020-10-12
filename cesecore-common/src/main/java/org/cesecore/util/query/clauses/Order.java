@@ -23,22 +23,36 @@ public class Order implements Elem {
   private static final long serialVersionUID = 4277517808022497240L;
 
   public enum Value {
+      /** Ascending. */
     ASC,
+    /** Descending. */
     DESC
   }
 
+  /** Name. */
   private final String name;
+  /** Order. */
   private final Value order;
 
-  public Order(final String name, final Value order) {
-    this.name = name;
-    this.order = order;
+  /**
+   * @param aName Name
+   * @param anOrder Order
+   */
+  public Order(final String aName, final Value anOrder) {
+    this.name = aName;
+    this.order = anOrder;
   }
 
+  /**
+   * @return Name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * @return Order
+   */
   public Value getOrder() {
     return order;
   }

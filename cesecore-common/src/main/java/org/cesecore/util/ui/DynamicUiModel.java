@@ -33,14 +33,17 @@ import org.apache.log4j.Logger;
  */
 public class DynamicUiModel {
 
+    /** Prefix. */
   public static final String BASECLASS_PREFIX = "BASECLASS_";
 
+  /** Prefix. */
   public static final String SUBCLASS_PREFIX = "SUBCLASS_";
 
+  /** Sep. */
   public static final String LIST_SEPARATOR = ";";
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(DynamicUiModel.class);
+  private static final Logger LOG = Logger.getLogger(DynamicUiModel.class);
 
   /** Reference to data map. */
   private LinkedHashMap<Object, Object> data;
@@ -55,9 +58,12 @@ public class DynamicUiModel {
    */
   protected PropertyChangeSupport propertyChangeSupport;
 
+  /** Components. */
   protected Map<String, List<DynamicUiComponent>> viewComponents;
 
-  // True if the dynamic UI input components shall be disabled (i.e. view only).
+  /** True if the dynamic UI input components shall
+   * be disabled (i.e. view only).
+   */
   protected boolean disabled = false;
 
   /** Default constructor, required for serialization. */
@@ -68,15 +74,15 @@ public class DynamicUiModel {
   /**
    * Constructor with reference to the entity backing map.
    *
-   * @param data the map.
+   * @param theData the map.
    */
-  public DynamicUiModel(final LinkedHashMap<Object, Object> data) {
+  public DynamicUiModel(final LinkedHashMap<Object, Object> theData) {
     super();
     propertyChangeSupport = new PropertyChangeSupport(this);
     viewComponents = new HashMap<String, List<DynamicUiComponent>>();
-    this.data = data;
-    if (log.isDebugEnabled()) {
-      log.debug("Create dynmic UI model with data: " + data);
+    this.data = theData;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Create dynmic UI model with data: " + theData);
     }
   }
 
@@ -85,7 +91,7 @@ public class DynamicUiModel {
    *
    * @param property the dynamic UI property to add.
    */
-  public void add(DynamicUiProperty<? extends Serializable> property) {
+  public void add(final DynamicUiProperty<? extends Serializable> property) {
     property.setDynamicUiModel(this);
     properties.put(property.getName(), property);
   }
@@ -106,7 +112,8 @@ public class DynamicUiModel {
    * @param name the name of the dynamic UI property.
    * @return the dynamic property.
    */
-  public DynamicUiProperty<? extends Serializable> getProperty(String name) {
+  public DynamicUiProperty<? extends Serializable> getProperty(
+          final String name) {
     final DynamicUiProperty<? extends Serializable> property =
         properties.get(name);
     //        property.setValueGeneric(getData(name,
@@ -120,9 +127,9 @@ public class DynamicUiModel {
    * @param name the name of the dynamic UI property.
    * @param value the value.
    */
-  public void setProperty(String name, Serializable value) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+  public void setProperty(final String name, final Serializable value) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Set domain object attribute by dynamic property "
               + name
               + " with value "
@@ -164,8 +171,8 @@ public class DynamicUiModel {
         }
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Create dynamic UI properties raw data: " + result);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Create dynamic UI properties raw data: " + result);
     }
     return result;
   }
@@ -174,12 +181,12 @@ public class DynamicUiModel {
    * Writes the properties to the data map (does conversions, i.e. in case of
    * BigInteger etc.).
    *
-   * @param data the data map of the entity.
+   * @param theData the data map of the entity.
    */
-  public void writeProperties(Map<Object, Object> data) {
-    data.putAll(getRawData());
-    if (log.isDebugEnabled()) {
-      log.debug("Dynamic UI properties was written into data map: " + data);
+  public void writeProperties(final Map<Object, Object> theData) {
+    theData.putAll(getRawData());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Dynamic UI properties was written into data map: " + theData);
     }
   }
 
@@ -230,7 +237,7 @@ public class DynamicUiModel {
    * @param name the properties name.
    * @return the list of dynamic UI components for this property.
    */
-  public List<DynamicUiComponent> getViewComponents(String name) {
+  public List<DynamicUiComponent> getViewComponents(final String name) {
     final List<DynamicUiComponent> result = new ArrayList<DynamicUiComponent>();
     if (viewComponents.get(name) != null) {
       result.addAll(viewComponents.get(name));
@@ -247,8 +254,8 @@ public class DynamicUiModel {
    */
   public void firePropertyChange(
       final String name, final Object oldValue, final Object newValue) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Fire dynamic UI model property change event for "
               + name
               + " with old value "
@@ -273,8 +280,8 @@ public class DynamicUiModel {
   public void firePropertyChange(
       final Map<Object, Object> oldValues,
       final Map<Object, Object> newValues) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Fire dynamic UI model property change event with old values "
               + oldValues
               + ", new values "
@@ -312,10 +319,10 @@ public class DynamicUiModel {
   /**
    * Sets if the dynamic UI input components shall be disabled.
    *
-   * @param disabled if the dynamic UI input components shall be disabled (i.e.
-   *     view only).
+   * @param isDisabled if the dynamic UI input components shall be disabled
+   * (i.e. view only).
    */
-  public void setDisabled(boolean disabled) {
-    this.disabled = disabled;
+  public void setDisabled(final boolean isDisabled) {
+    this.disabled = isDisabled;
   }
 }

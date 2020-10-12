@@ -253,7 +253,7 @@ public class SecureXMLDecoderTest {
         new TreeMap<>(
             new Comparator<String>() {
               @Override
-              public int compare(String o1, String o2) {
+              public int compare(final String o1, final String o2) {
                 return o1.hashCode() - o2.hashCode();
               }
             });
@@ -321,7 +321,7 @@ public class SecureXMLDecoderTest {
       return intValue;
     }
 
-    public void setIntValue(int intValue) {
+    public void setIntValue(final int intValue) {
       this.intValue = intValue;
     }
 
@@ -329,7 +329,7 @@ public class SecureXMLDecoderTest {
       return booleanValue;
     }
 
-    public void setBooleanValue(boolean booleanValue) {
+    public void setBooleanValue(final boolean booleanValue) {
       this.booleanValue = booleanValue;
     }
   }

@@ -30,15 +30,21 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: XmlSerializer.java 34163 2020-01-02 15:00:17Z samuellb $
  */
-public class XmlSerializer {
+public final class XmlSerializer {
 
-  private static final Logger log = Logger.getLogger(XmlSerializer.class);
+    private XmlSerializer() { }
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(XmlSerializer.class);
 
+  /**
+   * @param input Input
+   * @return Map
+   */
   @SuppressWarnings("unchecked")
   public static Map<String, Object> decode(final String input) {
     Map<String, Object> ret = null;
     if (input != null) {
-      try (final SecureXMLDecoder decoder =
+      try (SecureXMLDecoder decoder =
           new SecureXMLDecoder(
               new ByteArrayInputStream(
                   input.getBytes(StandardCharsets.UTF_8)))) {
@@ -48,8 +54,8 @@ public class XmlSerializer {
         ret = new Base64GetHashMap(h);
       } catch (IOException e) {
         final String msg = "Failed to parse data map: " + e.getMessage();
-        if (log.isDebugEnabled()) {
-          log.debug(msg + ". Data:\n" + input);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(msg + ". Data:\n" + input);
         }
         throw new IllegalStateException(msg, e);
       }

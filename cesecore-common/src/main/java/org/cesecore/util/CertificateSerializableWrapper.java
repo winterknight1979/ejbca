@@ -42,20 +42,22 @@ final class CertificateSerializableWrapper
 
   private static final long serialVersionUID = 1L;
 
+  /** Butes. */
   private byte[] certificateBytes;
+  /** Crt. */
   private transient Certificate certificate = null;
 
   /**
    * Constructor is internal. Please use {@link
    * org.cesecore.util.EJBTools#wrap(Certificate)} to create a wrapper.
    *
-   * @param certificate Certificate, non-null.
+   * @param aCertificate Certificate, non-null.
    */
-  CertificateSerializableWrapper(final Certificate certificate) {
-    if (certificate == null) {
+  CertificateSerializableWrapper(final Certificate aCertificate) {
+    if (aCertificate == null) {
       throw new IllegalStateException("Can't wrap null certificate");
     }
-    this.certificate = certificate;
+    this.certificate = aCertificate;
     this.certificateBytes = null;
   }
 
@@ -73,7 +75,7 @@ final class CertificateSerializableWrapper
     return certificate;
   }
 
-  private void writeObject(ObjectOutputStream stream) throws IOException {
+  private void writeObject(final ObjectOutputStream stream) throws IOException {
     // Lazy encode before serialization
     if (certificateBytes == null) {
       try {

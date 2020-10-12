@@ -15,25 +15,35 @@ package org.cesecore.util.ui;
 import java.io.Serializable;
 
 /**
- * POJO for a set of radio buttons in a Dynamic UI Property
+ * POJO for a set of radio buttons in a Dynamic UI Property.
  *
  * @version $Id: RadioButton.java 34324 2020-01-17 12:22:39Z henriks $
  */
 public class RadioButton implements Serializable {
 
   private static final long serialVersionUID = 1L;
+  /** Label. */
   private String label;
 
-  public RadioButton(final String label) {
-    this.label = label;
+  /**
+   * @param aLabel Label
+   */
+  public RadioButton(final String aLabel) {
+    this.label = aLabel;
   }
 
+  /**
+   * @return label
+   */
   public String getLabel() {
     return label;
   }
 
-  public void setLabel(String label) {
-    this.label = label;
+  /**
+   * @param aLabel Label
+   */
+  public void setLabel(final String aLabel) {
+    this.label = aLabel;
   }
 
   @Override
@@ -50,10 +60,16 @@ public class RadioButton implements Serializable {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+        return true;
+    }
+    if (obj == null) {
+        return false;
+    }
+    if (getClass() != obj.getClass()) {
+        return false;
+    }
     RadioButton other = (RadioButton) obj;
     if (label == null) {
       return other.label == null;
@@ -61,7 +77,11 @@ public class RadioButton implements Serializable {
     return label.equals(other.label);
   }
 
-  public boolean equals(String encodedValue) {
+  /**
+   * @param encodedValue Value
+   * @return bool
+   */
+  public boolean equals(final String encodedValue) {
     return equals(
         DynamicUiProperty.getAsObject(encodedValue, RadioButton.class));
   }

@@ -25,11 +25,12 @@ import javax.net.ssl.X509TrustManager;
  *     netmackan $
  */
 abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
-
+  /** TM. */
   private X509TrustManager trustManager = null;
+  /** bool. */
   private boolean isInitialized = false;
 
-  public TrustManagerFactoryImpl() {
+  TrustManagerFactoryImpl() {
     // empty
   }
 
@@ -46,19 +47,21 @@ abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
   }
 
   /* (non-Javadoc)
-   * @see javax.net.ssl.TrustManagerFactorySpi#engineInit(java.security.KeyStore)
+   * @see
+   * javax.net.ssl.TrustManagerFactorySpi#engineInit(java.security.KeyStore)
    */
   @Override
-  protected void engineInit(KeyStore ks) throws KeyStoreException {
+  protected void engineInit(final KeyStore ks) throws KeyStoreException {
     this.trustManager = getInstance(ks);
     this.isInitialized = true;
   }
 
   /* (non-Javadoc)
-   * @see javax.net.ssl.TrustManagerFactorySpi#engineInit(javax.net.ssl.ManagerFactoryParameters)
+   * @see
+   * javax.net.ssl.TrustManagerFactorySpi#engineInit(javax.net.ssl.ManagerFactoryParameters)
    */
   @Override
-  protected void engineInit(ManagerFactoryParameters spec)
+  protected void engineInit(final ManagerFactoryParameters spec)
       throws InvalidAlgorithmParameterException {
     this.trustManager = getInstance(spec);
     this.isInitialized = true;
@@ -71,18 +74,20 @@ abstract class TrustManagerFactoryImpl extends TrustManagerFactorySpi {
 
   public static final class AcceptAll extends TrustManagerFactoryImpl {
     /* (non-Javadoc)
-     * @see org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(java.security.KeyStore)
+     * @see
+     * org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(java.security.KeyStore)
      */
     @Override
-    X509TrustManager getInstance(KeyStore ks) throws KeyStoreException {
+    X509TrustManager getInstance(final KeyStore ks) throws KeyStoreException {
       return new X509TrustManagerAcceptAll();
     }
 
     /* (non-Javadoc)
-     * @see org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(javax.net.ssl.ManagerFactoryParameters)
+     * @see
+     * org.ejbca.util.provider.TrustManagerFactoryImpl#getInstance(javax.net.ssl.ManagerFactoryParameters)
      */
     @Override
-    X509TrustManager getInstance(ManagerFactoryParameters spec)
+    X509TrustManager getInstance(final ManagerFactoryParameters spec)
         throws InvalidAlgorithmParameterException {
       return new X509TrustManagerAcceptAll();
     }

@@ -30,8 +30,8 @@ import org.cesecore.keys.util.KeyPairWrapper;
  */
 public final class EJBTools {
 
-  /** May not be instantiated */
-  private EJBTools() {}
+  /** May not be instantiated. */
+  private EJBTools() { }
 
   /**
    * Wraps a Certificate object in a CertificateWrapper, which can be sent over

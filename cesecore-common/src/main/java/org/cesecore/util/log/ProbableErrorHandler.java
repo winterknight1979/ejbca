@@ -29,17 +29,25 @@ import org.apache.log4j.spi.LoggingEvent;
  *     $
  */
 public class ProbableErrorHandler implements ErrorHandler {
+    /** date,. */
   private static Date lastFailure = null;
 
-  final String WARN_PREFIX = "log4j warning: ";
-  final String ERROR_PREFIX = "log4j error: ";
+  /** Warning. */
+  @SuppressWarnings("unused")
+private static final String WARN_PREFIX = "log4j warning: ";
+  /** Error. */
+  private static final String ERROR_PREFIX = "log4j error: ";
 
-  boolean firstTime = true;
+  /** Bool. */
+  private boolean firstTime = true;
 
-  static PrintStream output = System.err;
+  /**
+   * Output.
+   */
+  private static PrintStream output = System.err;
 
   @Override
-  public void error(String arg0) {
+  public void error(final String arg0) {
     if (firstTime) {
       output.println(ERROR_PREFIX + arg0);
       firstTime = false;
@@ -48,13 +56,17 @@ public class ProbableErrorHandler implements ErrorHandler {
   }
 
   @Override
-  public void error(String arg0, Exception arg1, int arg2) {
+  public void error(final String arg0, final Exception arg1, final int arg2) {
     error(arg0, arg1, arg2, null);
     lastFailure = new Date();
   }
 
   @Override
-  public void error(String arg0, Exception arg1, int arg2, LoggingEvent arg3) {
+  public void error(
+          final String arg0,
+          final Exception arg1,
+          final int arg2,
+          final LoggingEvent arg3) {
     if (firstTime) {
       output.println(ERROR_PREFIX + arg0);
       arg1.printStackTrace(output);
@@ -70,7 +82,7 @@ public class ProbableErrorHandler implements ErrorHandler {
    * @param date see if an error happened later than this date
    * @return true if an error has happened, false if logging works fine.
    */
-  public static boolean hasFailedSince(Date date) {
+  public static boolean hasFailedSince(final Date date) {
     if (lastFailure != null) {
       if (lastFailure.after(date)) {
         return true;
@@ -81,17 +93,17 @@ public class ProbableErrorHandler implements ErrorHandler {
 
   /** Does not do anything. */
   @Override
-  public void setLogger(Logger logger) {}
+  public void setLogger(final Logger logger) { }
 
   /** No options to activate. */
   @Override
-  public void activateOptions() {}
+  public void activateOptions() { }
 
   /** Does not do anything. */
   @Override
-  public void setAppender(Appender appender) {}
+  public void setAppender(final Appender appender) { }
 
   /** Does not do anything. */
   @Override
-  public void setBackupAppender(Appender appender) {}
+  public void setBackupAppender(final Appender appender) { }
 }

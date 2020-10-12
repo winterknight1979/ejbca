@@ -35,13 +35,16 @@ import org.apache.log4j.Logger;
  * @version $Id: FileTools.java 27126 2017-11-13 09:28:54Z anatom $
  */
 public abstract class FileTools {
-  private static final Logger log = Logger.getLogger(FileTools.class);
-
+    /** Log.*/
+  private static final Logger LOG = Logger.getLogger(FileTools.class);
+  /** kilobyte. */
+  private static final int K = 1024;
   /**
    * Reads binary bytes from a PEM-file. The PEM-file may contain other stuff,
    * the first item between beginKey and endKey is read. Example: <code>
    * -----BEGIN CERTIFICATE REQUEST-----
-   * base64 encoded PKCS10 certification request -----END CERTIFICATE REQUEST-----
+   * base64 encoded PKCS10 certification request
+   *  -----END CERTIFICATE REQUEST-----
    * </code>
    *
    * @param inbuf input buffer containing PEM-formatted stuff.
@@ -57,11 +60,18 @@ public abstract class FileTools {
     return getBytesFromPEM(instream, beginKey, endKey);
   } // getBytesfromPEM
 
+  /**
+   * @param instream stream
+   * @param beginKey start
+   * @param endKey end
+   * @return PEM
+   * @throws IOException Fail
+   */
   public static byte[] getBytesFromPEM(
       final InputStream instream, final String beginKey, final String endKey)
       throws IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(">getBytesFromPEM");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getBytesFromPEM");
     }
 
     final BufferedReader bufRdr =
@@ -101,8 +111,8 @@ public abstract class FileTools {
       throw new IOException(
           "Malformed PEM encoding or PEM of unknown type: " + e.getMessage());
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getBytesFromPEM");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getBytesFromPEM");
     }
     return bytes;
   } // getBytesfromPEM
@@ -131,7 +141,7 @@ public abstract class FileTools {
     final ByteArrayOutputStream os = new ByteArrayOutputStream();
     try {
       int len = 0;
-      final byte[] buf = new byte[1024];
+      final byte[] buf = new byte[K];
       while ((len = in.read(buf)) > 0) {
         os.write(buf, 0, len);
       }
@@ -156,6 +166,7 @@ public abstract class FileTools {
   }
 
   private static class FileComp implements Comparator<File> {
+     /** Collator. */
     private final Collator c = Collator.getInstance();
 
     @Override
@@ -173,11 +184,21 @@ public abstract class FileTools {
     }
   }
 
+  /**
+   * @return Location
+   * @throws IOException Fail
+   */
   public static File createTempDirectory() throws IOException {
     return createTempDirectory(null);
   }
 
-  public static File createTempDirectory(File location) throws IOException {
+  /**
+   * @param location Location
+   * @return Diectory
+   * @throws IOException Fail
+   */
+  public static File createTempDirectory(final File location)
+          throws IOException {
     final File temp =
         File.createTempFile("tmp", Long.toString(System.nanoTime()), location);
     if (!(temp.delete())) {
@@ -199,14 +220,14 @@ public abstract class FileTools {
    *
    * @param file the file to delete
    */
-  public static void delete(File file) {
+  public static void delete(final File file) {
     if (file.isDirectory()) {
       for (File subFile : file.listFiles()) {
         delete(subFile);
       }
     }
     if (!file.delete()) {
-      log.error("Could not delete directory " + file.getAbsolutePath());
+      LOG.error("Could not delete directory " + file.getAbsolutePath());
     }
   }
 
@@ -229,7 +250,7 @@ public abstract class FileTools {
       throw new StreamSizeLimitExceededException("Size limit was reached");
     }
 
-    final byte[] buff = new byte[16 * 1024];
+    final byte[] buff = new byte[16 * K];
     long bytesCopied = 0;
     while (true) {
       int len = input.read(buff);

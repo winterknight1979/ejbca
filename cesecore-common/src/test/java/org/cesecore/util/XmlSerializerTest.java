@@ -71,7 +71,7 @@ public class XmlSerializerTest {
    * @return object
    */
   private Object encDecAsXml(
-      String value, boolean useBase64, boolean expectBase64) {
+      final String value, final boolean useBase64, final boolean expectBase64) {
     final String KEY = "SomeKey";
     final Map<String, Object> inputMap = new LinkedHashMap<>();
     inputMap.put(KEY, value);

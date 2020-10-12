@@ -24,7 +24,7 @@ public class MyExtendedCAServiceInfo extends ExtendedCAServiceInfo {
 
   public static final int type = 4711;
 
-  public MyExtendedCAServiceInfo(int status) {
+  public MyExtendedCAServiceInfo(final int status) {
     super(status);
   }
 

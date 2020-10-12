@@ -205,7 +205,7 @@ public class SoftCATokenTest extends CATokenTestBase {
    * @param useAutoActivationPin PIN
    * @return token
    */
-  private CryptoToken createSoftToken(boolean useAutoActivationPin) {
+  private CryptoToken createSoftToken(final boolean useAutoActivationPin) {
     CryptoToken cryptoToken = SoftCryptoTokenTest.createSoftToken(true);
     Properties cryptoTokenProperties = cryptoToken.getProperties();
     // Use autoactivation for easy testing

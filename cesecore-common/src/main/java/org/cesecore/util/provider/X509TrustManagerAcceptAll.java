@@ -28,39 +28,47 @@ import org.cesecore.util.CertTools;
  *     netmackan $
  */
 public class X509TrustManagerAcceptAll implements X509TrustManager {
-
-  private static final Logger log =
+/** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(X509TrustManagerAcceptAll.class);
 
   /** */
-  public X509TrustManagerAcceptAll() {}
+  public X509TrustManagerAcceptAll() {
+
+  }
 
   /* (non-Javadoc)
-   * @see javax.net.ssl.X509TrustManager#checkClientTrusted(java.security.cert.X509Certificate[], java.lang.String)
+   * @see
+   * javax.net.ssl.X509TrustManager#checkClientTrusted(java.security.cert.X509Certificate[],
+   * java.lang.String)
    */
   @Override
-  public void checkClientTrusted(X509Certificate[] chain, String authType)
+  public void checkClientTrusted(
+          final X509Certificate[] chain, final String authType)
       throws CertificateException {
     // do nothing
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "checkClientTrusted: SubjectDN: " + CertTools.getSubjectDN(chain[0]));
-      log.debug(
+      LOG.debug(
           "checkClientTrusted: IssuerDN:  " + CertTools.getIssuerDN(chain[0]));
     }
   }
 
   /* (non-Javadoc)
-   * @see javax.net.ssl.X509TrustManager#checkServerTrusted(java.security.cert.X509Certificate[], java.lang.String)
+   * @see
+   * javax.net.ssl.X509TrustManager#checkServerTrusted(java.security.cert.X509Certificate[],
+   * java.lang.String)
    */
   @Override
-  public void checkServerTrusted(X509Certificate[] chain, String authType)
+  public void checkServerTrusted(
+          final X509Certificate[] chain, final String authType)
       throws CertificateException {
     // do nothing
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "checkServerTrusted: SubjectDN: " + CertTools.getSubjectDN(chain[0]));
-      log.debug(
+      LOG.debug(
           "checkServerTrusted: IssuerDN:  " + CertTools.getIssuerDN(chain[0]));
     }
   }
@@ -71,8 +79,8 @@ public class X509TrustManagerAcceptAll implements X509TrustManager {
   @Override
   public X509Certificate[] getAcceptedIssuers() {
     // only called from server side
-    if (log.isDebugEnabled()) {
-      log.debug(">getAcceptedIssuers");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(">getAcceptedIssuers");
     }
     return null;
   }

@@ -557,7 +557,7 @@ public class X509CATest {
 	    ExtensionsGenerator gen = ca.getSubjectAltNameExtensionForCert(ext, false);
 	    Extensions exts = gen.generate();
 	    Extension genext = exts.getExtension(Extension.subjectAlternativeName);
-        Extension ctext = exts.getExtension(new ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains));
+        Extension ctext = exts.getExtension(new ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS));
 	    assertNotNull("A subjectAltName extension should be present", genext);
 	    assertNull("No CT redated extension should be present", ctext);
         String altName = CertTools.getAltNameStringFromExtension(genext);
@@ -566,7 +566,7 @@ public class X509CATest {
 	    gen = ca.getSubjectAltNameExtensionForCert(ext, true);
 	    exts = gen.generate();
 	    genext = exts.getExtension(Extension.subjectAlternativeName);
-	    ctext = exts.getExtension(new ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains));
+	    ctext = exts.getExtension(new ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS));
 	    assertNotNull("A subjectAltName extension should be present", genext);
 	    assertNotNull("A CT redacted extension should be present", ctext);
         ASN1Sequence seq = ASN1Sequence.getInstance(ctext.getExtnValue().getOctets());
@@ -591,7 +591,7 @@ public class X509CATest {
         ExtensionsGenerator gen = ca.getSubjectAltNameExtensionForCTCert(ext);
         Extensions exts = gen.generate();
         Extension genext = exts.getExtension(Extension.subjectAlternativeName);
-        Extension ctext = exts.getExtension(new ASN1ObjectIdentifier(CertTools.id_ct_redacted_domains));
+        Extension ctext = exts.getExtension(new ASN1ObjectIdentifier(CertTools.ID_CT_REDACTED_DOMAINS));
         assertNotNull("A subjectAltName extension should be present", genext);
         assertNull("No CT redated extension should be present", ctext);
         String altName = CertTools.getAltNameStringFromExtension(genext);

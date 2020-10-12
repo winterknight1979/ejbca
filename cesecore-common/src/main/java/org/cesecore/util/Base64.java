@@ -24,7 +24,7 @@ import java.io.ByteArrayOutputStream;
  */
 public final class Base64 {
 
-  private Base64() {} // Not for instantiation
+  private Base64() { } // Not for instantiation
 
   /**
    * encode the input data producing a base 64 encoded byte array with the
@@ -36,7 +36,6 @@ public final class Base64 {
   public static byte[] encode(final byte[] data) {
     return encode(data, true);
   }
-
   /**
    * encode the input data producing a base 64 encoded byte array.
    *
@@ -46,13 +45,15 @@ public final class Base64 {
    * @return a byte array containing the base 64 encoded data.
    */
   public static byte[] encode(final byte[] data, final boolean splitlines) {
+
+    final int lineLength = 64;
     byte[] bytes = org.bouncycastle.util.encoders.Base64.encode(data);
     if (splitlines) {
       // make sure we get limited lines...
       final ByteArrayOutputStream os = new ByteArrayOutputStream();
-      for (int i = 0; i < bytes.length; i += 64) {
-        if ((i + 64) < bytes.length) {
-          os.write(bytes, i, 64);
+      for (int i = 0; i < bytes.length; i += lineLength) {
+        if ((i + lineLength) < bytes.length) {
+          os.write(bytes, i, lineLength);
           os.write('\n');
         } else {
           os.write(bytes, i, bytes.length - i);
@@ -63,11 +64,19 @@ public final class Base64 {
     return bytes;
   }
 
-  public static byte[] decodeURLSafe(String token) {
+  /**
+   * @param token Token
+   * @return Decoded
+   */
+  public static byte[] decodeURLSafe(final String token) {
     return org.apache.commons.codec.binary.Base64.decodeBase64(
         token.getBytes());
   }
 
+  /**
+   * @param bytes Bytes
+   * @return Base64
+   */
   public static byte[] decode(final byte[] bytes) {
     return org.bouncycastle.util.encoders.Base64.decode(bytes);
   }

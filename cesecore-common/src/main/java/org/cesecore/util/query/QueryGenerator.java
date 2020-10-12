@@ -43,21 +43,29 @@ import org.cesecore.util.query.elems.Term;
 public final class QueryGenerator implements Serializable {
 
   private static final long serialVersionUID = 1567027442267416376L;
+  /** Params. */
   private final Map<String, Object> parameters =
       new LinkedHashMap<String, Object>();
+  /** Qurey. */
   private final Query query;
+  /** Fields. */
   private final List<String> availableFields = new ArrayList<String>();
+  /** Criteria. */
   private final QueryCriteria criteria;
 
   /** Class holding query construction logic. */
   private final class Query {
-    public final StringBuilder query = new StringBuilder();
+      /** query. */
+    private final StringBuilder query = new StringBuilder();
+    /** alias. */
     private final String attrAlias;
+    /** Where. */
     private static final String WHERE = "WHERE";
+    /** Sep. */
     private static final String SEPARATOR = " ";
 
-    public Query(final String attrAlias) {
-      this.attrAlias = attrAlias;
+    Query(final String anAttrAlias) {
+      this.attrAlias = anAttrAlias;
     }
 
     public Query where() {
@@ -133,16 +141,18 @@ public final class QueryGenerator implements Serializable {
   }
 
   private QueryGenerator(
-      final Class<?> clazz, final QueryCriteria criteria, final String alias) {
+      final Class<?> clazz,
+      final QueryCriteria aCriteria,
+      final String alias) {
     query = new Query(alias);
-    this.criteria = criteria;
+    this.criteria = aCriteria;
     for (final Field f : clazz.getDeclaredFields()) {
       availableFields.add(f.getName());
     }
   }
 
   /**
-   * Returns a new QueryGenerator or null if criteria is null
+   * Returns a new QueryGenerator or null if criteria is null.
    *
    * @param clazz class
    * @param criteria QueryCriteria
@@ -190,7 +200,7 @@ public final class QueryGenerator implements Serializable {
    *
    * @param elements elements
    */
-  private void termTraversal(List<Elem> elements) {
+  private void termTraversal(final List<Elem> elements) {
     boolean first = true;
     for (final Elem element : elements) {
       if (!first) {
@@ -208,7 +218,7 @@ public final class QueryGenerator implements Serializable {
    *
    * @param clauses clauses
    */
-  private void clauseTraversal(List<Elem> clauses) {
+  private void clauseTraversal(final List<Elem> clauses) {
     for (final Elem clause : clauses) {
       generate(clause);
     }

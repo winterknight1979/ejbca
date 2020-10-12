@@ -66,7 +66,7 @@ public class OcspKeyBindingTest {
   public TestRule traceLogMethodsRule =
       new TestWatcher() {
         @Override
-        protected void starting(Description description) {
+        protected void starting(final Description description) {
           final Logger log = Logger.getLogger(description.getClassName());
           if (log.isTraceEnabled()) {
             log.trace(">" + description.getMethodName());
@@ -76,7 +76,7 @@ public class OcspKeyBindingTest {
         ;
 
         @Override
-        protected void finished(Description description) {
+        protected void finished(final Description description) {
           final Logger log = Logger.getLogger(description.getClassName());
           if (log.isTraceEnabled()) {
             log.trace("<" + description.getMethodName());

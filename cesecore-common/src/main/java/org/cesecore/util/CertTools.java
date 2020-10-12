@@ -172,9 +172,11 @@ import org.ejbca.cvc.exception.ParseException;
  * @version $Id: CertTools.java 30344 2018-11-01 13:10:21Z samuellb $
  */
 public abstract class CertTools {
-  private static final Logger log = Logger.getLogger(CertTools.class);
+    /** ogger. */
+  private static final Logger LOGGER = Logger.getLogger(CertTools.class);
 
-  private static final InternalResources intres =
+  /** Internal resource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   // Initialize dnComponents
@@ -182,120 +184,154 @@ public abstract class CertTools {
     DnComponents.getDnObjects(true);
   }
 
+
+  /** Config. */
   public static final String EMAIL = "rfc822name";
+  /** Config. */
   public static final String EMAIL1 = "email";
+  /** Config. */
   public static final String EMAIL2 = "EmailAddress";
+  /** Config. */
   public static final String EMAIL3 = "E";
+  /** Config. */
   public static final String DNS = "dNSName";
+  /** Config. */
   public static final String URI = "uniformResourceIdentifier";
+  /** Config. */
   public static final String URI1 = "uri";
+  /** Config. */
   public static final String URI2 = "uniformResourceId";
+  /** Config. */
   public static final String IPADDR = "iPAddress";
+  /** Config. */
   public static final String DIRECTORYNAME = "directoryName";
+  /** Config. */
   public static final String REGISTEREDID = "registeredID";
+  /** Config. */
   public static final String XMPPADDR = "xmppAddr";
+  /** Config. */
   public static final String SRVNAME = "srvName";
+  /** Config. */
   public static final String FASCN = "fascN";
 
-  /** Kerberos altName for smart card logon */
+  /** Kerberos altName for smart card logon. */
   public static final String KRB5PRINCIPAL = "krb5principal";
-  /** OID for Kerberos altName for smart card logon */
+  /** OID for Kerberos altName for smart card logon. */
   public static final String KRB5PRINCIPAL_OBJECTID = "1.3.6.1.5.2.2";
-  /** Microsoft altName for windows smart card logon */
+  /** Microsoft altName for windows smart card logon. */
   public static final String UPN = "upn";
-  /** ObjectID for upn altName for windows smart card logon */
+  /** ObjectID for upn altName for windows smart card logon.*/
   public static final String UPN_OBJECTID = "1.3.6.1.4.1.311.20.2.3";
-  /** ObjectID for XmppAddr, rfc6120#section-13.7.1.4 */
+  /** ObjectID for XmppAddr, rfc6120#section-13.7.1.4. */
   public static final String XMPPADDR_OBJECTID = "1.3.6.1.5.5.7.8.5";
-  /** ObjectID for srvName, rfc4985 */
+  /** ObjectID for srvName, rfc4985. */
   public static final String SRVNAME_OBJECTID = "1.3.6.1.5.5.7.8.7";
-
+  /** ID. */
   public static final String PERMANENTIDENTIFIER = "permanentIdentifier";
+  /** ASN.i ID. */
   public static final String PERMANENTIDENTIFIER_OBJECTID = "1.3.6.1.5.5.7.8.3";
+  /** Separator. */
   public static final String PERMANENTIDENTIFIER_SEP = "/";
+  /** ASN.i ID. */
   public static final String FASCN_OBJECTID = "2.16.840.1.101.3.6.6";
 
-  /** Microsoft altName for windows domain controller guid */
+  /** Microsoft altName for windows domain controller guid. */
   public static final String GUID = "guid";
-  /** ObjectID for upn altName for windows domain controller guid */
+  /** ObjectID for upn altName for windows domain controller guid. */
   public static final String GUID_OBJECTID = "1.3.6.1.4.1.311.25.1";
   /**
    * ObjectID for Microsoft Encrypted File System Certificates extended key
-   * usage
+   * usage.
    */
   public static final String EFS_OBJECTID = "1.3.6.1.4.1.311.10.3.4";
   /**
    * ObjectID for Microsoft Encrypted File System Recovery Certificates extended
-   * key usage
+   * key usage.
    */
   public static final String EFSR_OBJECTID = "1.3.6.1.4.1.311.10.3.4.1";
-  /** ObjectID for Microsoft Signer of documents extended key usage */
+  /** ObjectID for Microsoft Signer of documents extended key usage. */
   public static final String MS_DOCUMENT_SIGNING_OBJECTID =
       "1.3.6.1.4.1.311.10.3.12";
-  /** Object id id-pkix */
-  public static final String id_pkix = "1.3.6.1.5.5.7";
-  /** Object id id-kp */
-  public static final String id_kp = id_pkix + ".3";
-  /** Object id id-pda */
-  public static final String id_pda = id_pkix + ".9";
-  /** Object id id-pda-dateOfBirth DateOfBirth ::= GeneralizedTime */
-  public static final String id_pda_dateOfBirth = id_pda + ".1";
-  /** Object id id-pda-placeOfBirth PlaceOfBirth ::= DirectoryString */
-  public static final String id_pda_placeOfBirth = id_pda + ".2";
+  /** Object id id-pkix. */
+  public static final String ID_PKIX = "1.3.6.1.5.5.7";
+  /** Object id id-kp. */
+  public static final String ID_KP = ID_PKIX + ".3";
+  /** Object id id-pda. */
+  public static final String ID_PDA = ID_PKIX + ".9";
+  /** Object id id-pda-dateOfBirth DateOfBirth ::= GeneralizedTime .*/
+  public static final String ID_PDA_DATE_OF_BIRTH = ID_PDA + ".1";
+  /** Object id id-pda-placeOfBirth PlaceOfBirth ::= DirectoryString. */
+  public static final String ID_PDA_PLACE_OF_BIRTH = ID_PDA + ".2";
   /**
    * Object id id-pda-gender Gender ::= PrintableString (SIZE(1)) -- "M", "F",
-   * "m" or "f"
+   * "m" or "f".
    */
-  public static final String id_pda_gender = id_pda + ".3";
+  public static final String ID_PDA_GENDER = ID_PDA + ".3";
   /**
    * Object id id-pda-countryOfCitizenship CountryOfCitizenship ::=
-   * PrintableString (SIZE (2)) -- ISO 3166 Country Code
+   * PrintableString (SIZE (2)) -- ISO 3166 Country Code.
    */
-  public static final String id_pda_countryOfCitizenship = id_pda + ".4";
+  public static final String ID_PDA_COUNTRY_OF_CITIZENSHIP = ID_PDA + ".4";
   /**
    * Object id id-pda-countryOfResidence CountryOfResidence ::= PrintableString
-   * (SIZE (2)) -- ISO 3166 Country Code
+   * (SIZE (2)) -- ISO 3166 Country Code.
    */
-  public static final String id_pda_countryOfResidence = id_pda + ".5";
-  /** OID used for creating MS Templates certificate extension */
+  public static final String ID_PDA_COUNTRY_OF_RESIDENCE = ID_PDA + ".5";
+  /** OID used for creating MS Templates certificate extension .*/
   public static final String OID_MSTEMPLATE = "1.3.6.1.4.1.311.20.2";
-  /** extended key usage OID Intel AMT (out of band) network management */
-  public static final String Intel_amt = "2.16.840.1.113741.1.2.3";
+  /** extended key usage OID Intel AMT (out of band) network management. */
+  public static final String INTEL_AMT = "2.16.840.1.113741.1.2.3";
 
-  /** Object ID for CT (Certificate Transparency) specific extensions */
-  public static final String id_ct_redacted_domains = "1.3.6.1.4.1.11129.2.4.6";
-
+  /** Object ID for CT (Certificate Transparency) specific extensions. */
+  public static final String ID_CT_REDACTED_DOMAINS = "1.3.6.1.4.1.11129.2.4.6";
+ /** IDs. */
   private static final String[] EMAILIDS = {EMAIL, EMAIL1, EMAIL2, EMAIL3};
-
+ /** Regex. */
   private static final Pattern UNESCAPE_FIELD_REGEX =
       Pattern.compile("\\\\([,+\"\\\\<>; ])");
 
+  /** delimiter. */
   public static final String BEGIN_CERTIFICATE_REQUEST =
       "-----BEGIN CERTIFICATE REQUEST-----";
+  /** delimiter. */
   public static final String END_CERTIFICATE_REQUEST =
       "-----END CERTIFICATE REQUEST-----";
+  /** delimiter. */
   public static final String BEGIN_KEYTOOL_CERTIFICATE_REQUEST =
       "-----BEGIN NEW CERTIFICATE REQUEST-----";
+  /** delimiter. */
   public static final String END_KEYTOOL_CERTIFICATE_REQUEST =
       "-----END NEW CERTIFICATE REQUEST-----";
+  /** delimiter. */
   public static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+  /** delimiter. */
   public static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
+  /** delimiter. */
   public static final String BEGIN_CERTIFICATE_WITH_NL =
       "-----BEGIN CERTIFICATE-----\n";
+  /** delimiter. */
   public static final String END_CERTIFICATE_WITH_NL =
       "\n-----END CERTIFICATE-----\n";
+  /** delimiter. */
   public static final String BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
+  /** delimiter. */
   public static final String END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
+  /** delimiter. */
   public static final String BEGIN_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----";
+  /** delimiter. */
   public static final String END_PRIVATE_KEY = "-----END PRIVATE KEY-----";
+  /** delimiter. */
   public static final String BEGIN_X509_CRL_KEY = "-----BEGIN X509 CRL-----";
+  /** delimiter. */
   public static final String END_X509_CRL_KEY = "-----END X509 CRL-----";
+  /** delimiter. */
   public static final String BEGIN_PKCS7 = "-----BEGIN PKCS7-----";
+  /** delimiter. */
   public static final String END_PKCS7 = "-----END PKCS7-----";
 
   /**
    * See stringToBcX500Name(String, X500NameStyle, boolean), this method uses
-   * the default name style (CeSecoreNameStyle) and ldap order
+   * the default name style (CeSecoreNameStyle) and ldap order.
    *
    * @see #stringToBcX500Name(String, X500NameStyle, boolean)
    * @param dn String containing DN that will be transformed into X500Name, The
@@ -311,7 +347,7 @@ public abstract class CertTools {
 
   /**
    * See stringToBcX500Name(String, X500NameStyle, boolean), this method uses
-   * the default name style (CeSecoreNameStyle) and ldap order
+   * the default name style (CeSecoreNameStyle) and ldap order.
    *
    * @see #stringToBcX500Name(String, X500NameStyle, boolean)
    * @param dn String containing DN that will be transformed into X500Name, The
@@ -322,7 +358,7 @@ public abstract class CertTools {
    *     components, or null if input is null
    */
   public static X500Name stringToBcX500Name(
-      final String dn, boolean ldapOrder) {
+      final String dn, final boolean ldapOrder) {
     final X500NameStyle nameStyle = CeSecoreNameStyle.INSTANCE;
     return stringToBcX500Name(dn, nameStyle, ldapOrder);
   }
@@ -330,7 +366,8 @@ public abstract class CertTools {
   /**
    * Creates a (Bouncycastle) X500Name object from a string with a DN. Known OID
    * (with order) are: <code>
-   *  EmailAddress, UID, CN, SN (SerialNumber), GivenName, Initials, SurName, T, OU,
+   *  EmailAddress, UID, CN, SN (SerialNumber),
+   *   GivenName, Initials, SurName, T, OU,
    * O, L, ST, DC, C </code> To change order edit 'dnObjects' in this source
    * file. Important NOT to mess with the ordering within this class, since cert
    * vierification on some clients (IE :-() might depend on order.
@@ -348,7 +385,7 @@ public abstract class CertTools {
    * @throws IllegalArgumentException if DN is not valid
    */
   public static X500Name stringToBcX500Name(
-      String dn, final X500NameStyle nameStyle, final boolean ldaporder) {
+      final String dn, final X500NameStyle nameStyle, final boolean ldaporder) {
     return stringToBcX500Name(dn, nameStyle, ldaporder, null);
   }
   /**
@@ -371,15 +408,23 @@ public abstract class CertTools {
    *     components, or null if input is null
    */
   public static X500Name stringToBcX500Name(
-      String dn,
+      final String dn,
       final X500NameStyle nameStyle,
       final boolean ldaporder,
       final String[] order) {
     return stringToBcX500Name(dn, nameStyle, ldaporder, order, true);
   }
 
+  /**
+   * @param dn DN
+   * @param nameStyle Style
+   * @param ldaporder Order
+   * @param order Order
+   * @param applyLdapToCustomOrder Bool
+   * @return Name
+   */
   public static X500Name stringToBcX500Name(
-      String dn,
+      final String dn,
       final X500NameStyle nameStyle,
       final boolean ldaporder,
       final String[] order,
@@ -392,8 +437,8 @@ public abstract class CertTools {
     final X500Name orderedX500Name =
         getOrderedX500Name(
             x500Name, ldaporder, order, applyLdapToCustomOrder, nameStyle);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(
           ">stringToBcX500Name: x500Name="
               + x500Name.toString()
               + " orderedX500Name="
@@ -402,20 +447,28 @@ public abstract class CertTools {
     return orderedX500Name;
   }
 
+  /**
+   * @param odn DN
+   * @param nameStyle Style
+   * @return Name
+   */
   public static X500Name stringToUnorderedX500Name(
-      String dn, final X500NameStyle nameStyle) {
-    if (log.isTraceEnabled()) {
-      log.trace(">stringToUnorderedX500Name: " + dn);
+      final String odn, final X500NameStyle nameStyle) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">stringToUnorderedX500Name: " + odn);
     }
-    if (dn == null) {
+    if (odn == null) {
       return null;
     }
     // If the entire DN is quoted (which is strange but legacy), we just remove
     // these quotes and carry on
-    if (dn.length() > 2
-        && dn.charAt(0) == '"'
-        && dn.charAt(dn.length() - 1) == '"') {
-      dn = dn.substring(1, dn.length() - 1);
+   String dn;
+    if (odn.length() > 2
+        && odn.charAt(0) == '"'
+        && odn.charAt(odn.length() - 1) == '"') {
+      dn = odn.substring(1, odn.length() - 1);
+    } else {
+        dn = odn;
     }
     final X500NameBuilder nameBuilder = new X500NameBuilder(nameStyle);
     boolean quoted = false;
@@ -490,9 +543,9 @@ public abstract class CertTools {
             oid = new ASN1ObjectIdentifier(currentPartName);
           }
           nameBuilder.addRDN(oid, currentValue);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
           // If it is not an OID we will ignore it
-          log.warn(
+          LOGGER.warn(
               "Unknown DN component ignored and silently dropped: "
                   + currentPartName);
         }
@@ -512,8 +565,9 @@ public abstract class CertTools {
       }
     }
     final X500Name x500Name = nameBuilder.build();
-    if (log.isTraceEnabled()) {
-      log.trace("<stringToUnorderedX500Name: x500Name=" + x500Name.toString());
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<stringToUnorderedX500Name: x500Name="
+              + x500Name.toString());
     }
     return x500Name;
   }
@@ -541,14 +595,18 @@ public abstract class CertTools {
     return sb;
   }
 
-  // Remove extra '+' character escaping
+/** Remove extra '+' character escaping.
+ *
+ * @param value value
+ * @return unescaped
+ */
   public static String getUnescapedPlus(final String value) {
-    StringBuilder buf = new StringBuilder(value);
+    final StringBuilder buf = new StringBuilder(value);
     int index = 0;
     int end = buf.length();
     while (index < end) {
       if (buf.charAt(index) == '\\' && index + 1 != end) {
-        char c = buf.charAt(index + 1);
+        final char c = buf.charAt(index + 1);
         if (c == '+') {
           buf.deleteCharAt(index);
           end--;
@@ -580,7 +638,7 @@ public abstract class CertTools {
     while (index < end) {
       if (buf.charAt(index) == '+') {
         // Found an unescaped '+' character.
-        log.warn(
+        LOGGER.warn(
             "DN \""
                 + dn
                 + "\" contains an unescaped '+'-character that will be"
@@ -603,14 +661,15 @@ public abstract class CertTools {
    * Every DN-string should look the same. Creates a name string ordered and
    * looking like we want it...
    *
-   * @param dn String containing DN
+   * @param odn String containing DN
    * @return String containing DN, or empty string if dn does not contain any
    *     real DN components, or null if input is null
    */
-  public static String stringToBCDNString(String dn) {
+  public static String stringToBCDNString(final String odn) {
     // BC now seem to handle multi-valued RDNs, but we keep escaping this for
     // now to keep the behavior until support is required
-    dn = handleUnescapedPlus(dn); // Log warning if dn contains unescaped '+'
+    String dn = handleUnescapedPlus(odn);
+        // Log warning if dn contains unescaped '+'
     if (isDNReversed(dn)) {
       dn = reverseDN(dn);
     }
@@ -620,11 +679,14 @@ public abstract class CertTools {
       ret = name.toString();
     }
     /*
-     * For some databases (MySQL for instance) the database column holding subjectDN is only 250 chars long. There have been strange error
-     * reported (clipping DN naturally) that is hard to debug if DN is more than 250 chars and we don't have a good message
+     * For some databases (MySQL for instance) the database column
+     *  holding subjectDN is only 250 chars long. There have been strange error
+     * reported (clipping DN naturally) that is hard to debug if DN is
+     *  more than 250 chars and we don't have a good message
      */
-    if ((ret != null) && (ret.length() > 250)) {
-      log.info(
+    final int maxLength = 250;
+    if ((ret != null) && (ret.length() > maxLength)) {
+      LOGGER.info(
           "Warning! DN is more than 250 characters long. Some databases have"
               + " only 250 characters in the database for SubjectDN. Clipping"
               + " may occur! DN ("
@@ -644,19 +706,19 @@ public abstract class CertTools {
    * @param dn the DN
    * @return ArrayList containing email or empty list if email is not present
    */
-  public static ArrayList<String> getEmailFromDN(String dn) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getEmailFromDN(" + dn + ")");
+  public static ArrayList<String> getEmailFromDN(final String dn) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">getEmailFromDN(" + dn + ")");
     }
-    ArrayList<String> ret = new ArrayList<String>();
+    final ArrayList<String> ret = new ArrayList<String>();
     for (int i = 0; i < EMAILIDS.length; i++) {
-      List<String> emails = getPartsFromDN(dn, EMAILIDS[i]);
+      final List<String> emails = getPartsFromDN(dn, EMAILIDS[i]);
       if (!emails.isEmpty()) {
         ret.addAll(emails);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getEmailFromDN(" + dn + "): " + ret.size());
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<getEmailFromDN(" + dn + "): " + ret.size());
     }
     return ret;
   }
@@ -669,27 +731,27 @@ public abstract class CertTools {
    * @param certificate certificate
    * @return subject email or null if not present in certificate
    */
-  public static String getEMailAddress(Certificate certificate) {
-    log.debug("Searching for EMail Address in SubjectAltName");
+  public static String getEMailAddress(final Certificate certificate) {
+    LOGGER.debug("Searching for EMail Address in SubjectAltName");
     if (certificate == null) {
       return null;
     }
     if (certificate instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) certificate;
+      final X509Certificate x509cert = (X509Certificate) certificate;
       try {
         if (x509cert.getSubjectAlternativeNames() != null) {
-          for (List<?> item : x509cert.getSubjectAlternativeNames()) {
-            Integer type = (Integer) item.get(0);
+          for (final List<?> item : x509cert.getSubjectAlternativeNames()) {
+            final Integer type = (Integer) item.get(0);
             if (type.intValue() == 1) {
               return (String) item.get(1);
             }
           }
         }
-      } catch (CertificateParsingException e) {
-        log.error("Error parsing certificate: ", e);
+      } catch (final CertificateParsingException e) {
+        LOGGER.error("Error parsing certificate: ", e);
       }
-      log.debug("Searching for EMail Address in Subject DN");
-      ArrayList<String> emails =
+      LOGGER.debug("Searching for EMail Address in Subject DN");
+      final ArrayList<String> emails =
           CertTools.getEmailFromDN(x509cert.getSubjectDN().getName());
       if (!emails.isEmpty()) {
         return emails.get(0);
@@ -706,15 +768,15 @@ public abstract class CertTools {
    *     "C=SE, O=xx, OU=yy, CN=zz".
    * @return String containing reversed DN
    */
-  public static String reverseDN(String dn) {
-    if (log.isTraceEnabled()) {
-      log.trace(">reverseDN: dn: " + dn);
+  public static String reverseDN(final String dn) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">reverseDN: dn: " + dn);
     }
     String ret = null;
     if (dn != null) {
       String o;
       final BasicX509NameTokenizer xt = new BasicX509NameTokenizer(dn);
-      StringBuilder buf = new StringBuilder();
+      final StringBuilder buf = new StringBuilder();
       boolean first = true;
       while (xt.hasMoreTokens()) {
         o = xt.nextToken();
@@ -730,8 +792,8 @@ public abstract class CertTools {
         ret = buf.toString();
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<reverseDN: resulting dn: " + ret);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<reverseDN: resulting dn: " + ret);
     }
     return ret;
   }
@@ -752,7 +814,7 @@ public abstract class CertTools {
    *     "C=SE, O=xx, OU=yy, CN=zz".
    * @return true if the DN is believed to be in reversed order, false otherwise
    */
-  public static boolean isDNReversed(String dn) {
+  public static boolean isDNReversed(final String dn) {
     /*
      * if (log.isTraceEnabled()) { log.trace(">isDNReversed: dn: " + dn); }
      */
@@ -760,21 +822,22 @@ public abstract class CertTools {
     if (dn != null) {
       String first = null;
       String last = null;
-      X509NameTokenizer xt = new X509NameTokenizer(dn);
+      final X509NameTokenizer xt = new X509NameTokenizer(dn);
       if (xt.hasMoreTokens()) {
         first = xt.nextToken().trim();
       }
       while (xt.hasMoreTokens()) {
         last = xt.nextToken().trim();
       }
-      String[] dNObjects = DnComponents.getDnObjects(true);
+      final String[] dNObjects = DnComponents.getDnObjects(true);
       if ((first != null) && (last != null)) {
         // Be careful for bad input, that may not have any = sign in it
         final int fi = first.indexOf('=');
         first = first.substring(0, (fi != -1 ? fi : (first.length() - 1)));
         final int li = last.indexOf('=');
         last = last.substring(0, (li != -1 ? li : (last.length() - 1)));
-        int firsti = 0, lasti = 0;
+        int firsti = 0;
+        int lasti = 0;
         for (int i = 0; i < dNObjects.length; i++) {
           if (first.equalsIgnoreCase(dNObjects[i])) {
             firsti = i;
@@ -801,7 +864,7 @@ public abstract class CertTools {
    * @param dn DN
    * @return boolean
    */
-  public static boolean dnHasMultipleComponents(String dn) {
+  public static boolean dnHasMultipleComponents(final String dn) {
     final X509NameTokenizer xt = new X509NameTokenizer(dn);
     if (xt.hasMoreTokens()) {
       xt.nextToken();
@@ -820,7 +883,7 @@ public abstract class CertTools {
    *     or "OU" etc.
    * @return String containing dnpart or null if dnpart is not present
    */
-  public static String getPartFromDN(String dn, String dnpart) {
+  public static String getPartFromDN(final String dn, final String dnpart) {
     String part = null;
     final List<String> dnParts = getPartsFromDNInternal(dn, dnpart, true);
     if (!dnParts.isEmpty()) {
@@ -840,16 +903,23 @@ public abstract class CertTools {
    *     or "OU" etc.
    * @return ArrayList containing dnparts or empty list if dnpart is not present
    */
-  public static List<String> getPartsFromDN(String dn, String dnpart) {
+  public static List<String> getPartsFromDN(
+          final String dn, final String dnpart) {
     return getPartsFromDNInternal(dn, dnpart, false);
   }
 
+  /**
+   * @param dn DN
+   * @param dnPart Part
+   * @param onlyReturnFirstMatch bool
+   * @return parts
+   */
   public static List<String> getPartsFromDNInternal(
       final String dn,
       final String dnPart,
       final boolean onlyReturnFirstMatch) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(
           ">getPartsFromDNInternal: dn:'"
               + dn
               + "', dnpart="
@@ -933,8 +1003,8 @@ public abstract class CertTools {
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(
           "<getPartsFromDNInternal: resulting DN part=" + parts.toString());
     }
     return parts;
@@ -952,22 +1022,22 @@ public abstract class CertTools {
    * @return ArrayList containing unique oids or empty list if no custom OIDs
    *     are present
    */
-  public static ArrayList<String> getCustomOids(String dn) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCustomOids: dn:'" + dn);
+  public static ArrayList<String> getCustomOids(final String dn) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">getCustomOids: dn:'" + dn);
     }
-    ArrayList<String> parts = new ArrayList<String>();
+    final ArrayList<String> parts = new ArrayList<String>();
     if (dn != null) {
       String o;
-      X509NameTokenizer xt = new X509NameTokenizer(dn);
+      final X509NameTokenizer xt = new X509NameTokenizer(dn);
       while (xt.hasMoreTokens()) {
         o = xt.nextToken().trim();
         // Try to see if it is a valid OID
         try {
-          int i = o.indexOf('=');
+          final int i = o.indexOf('=');
           // An oid is never shorter than 3 chars and must start with 1.
           if ((i > 2) && (o.charAt(1) == '.')) {
-            String oid = o.substring(0, i);
+            final String oid = o.substring(0, i);
             // If we have multiple of the same custom oid, don't claim that we
             // have more
             // This method will only return "unique" custom oids.
@@ -978,13 +1048,13 @@ public abstract class CertTools {
               parts.add(oid);
             }
           }
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
           // Not a valid oid
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getCustomOids: resulting DN part=" + parts.toString());
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<getCustomOids: resulting DN part=" + parts.toString());
     }
     return parts;
   }
@@ -1061,9 +1131,10 @@ public abstract class CertTools {
           dn = x509cert.getIssuerDN().toString();
         }
         ret = stringToBCDNString(dn);
-      } catch (CertificateException ce) {
-        log.info("Could not get DN from X509Certificate. " + ce.getMessage());
-        log.debug("", ce);
+      } catch (final CertificateException ce) {
+        LOGGER.info("Could not get DN from X509Certificate. "
+                + ce.getMessage());
+        LOGGER.debug("", ce);
         return null;
       }
     } else if (StringUtils.equals(cert.getType(), "CVC")) {
@@ -1103,8 +1174,8 @@ public abstract class CertTools {
           }
           ret = stringToBCDNString(dn);
         }
-      } catch (NoSuchFieldException e) {
-        log.error("NoSuchFieldException: ", e);
+      } catch (final NoSuchFieldException e) {
+        LOGGER.error("NoSuchFieldException: ", e);
         return null;
       }
     }
@@ -1121,30 +1192,31 @@ public abstract class CertTools {
    * @throws IllegalArgumentException if null input of certificate type is not
    *     handled
    */
-  public static BigInteger getSerialNumber(Certificate cert) {
+  public static BigInteger getSerialNumber(final Certificate cert) {
     if (cert == null) {
       throw new IllegalArgumentException("Null input");
     }
     BigInteger ret = null;
     if (cert instanceof X509Certificate) {
-      X509Certificate xcert = (X509Certificate) cert;
+      final X509Certificate xcert = (X509Certificate) cert;
       ret = xcert.getSerialNumber();
     } else if (StringUtils.equals(cert.getType(), "CVC")) {
       // For CVC certificates the sequence field of the HolderReference is kind
       // of a serial number,
       // but if can be alphanumeric which means it can not be made into a
       // BigInteger
-      CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cert;
+      final CardVerifiableCertificate cvccert =
+              (CardVerifiableCertificate) cert;
       try {
-        String sequence =
+        final String sequence =
             cvccert
                 .getCVCertificate()
                 .getCertificateBody()
                 .getHolderReference()
                 .getSequence();
         ret = getSerialNumberFromString(sequence);
-      } catch (NoSuchFieldException e) {
-        log.error("getSerialNumber: NoSuchFieldException: ", e);
+      } catch (final NoSuchFieldException e) {
+        LOGGER.error("getSerialNumber: NoSuchFieldException: ", e);
         ret = BigInteger.valueOf(0);
       }
     } else {
@@ -1163,19 +1235,20 @@ public abstract class CertTools {
    * some numbers in it (cvc), will convert the numbers in it to a numeric
    * string (remove the letters) and convert to int - 5 letter alfanumeric
    * string with only letters (cvc), will convert to integer from string with
-   * radix 36
+   * radix 36.
    *
    * @param sernoString serial
    * @return BigInteger
    */
-  public static BigInteger getSerialNumberFromString(String sernoString) {
+  public static BigInteger getSerialNumberFromString(final String sernoString) {
     if (sernoString == null) {
       throw new IllegalArgumentException(
           "getSerialNumberFromString: cert is null");
     }
     BigInteger ret;
     try {
-      if (sernoString.length() != 5) {
+        final int cvcLength = 5;
+      if (sernoString.length() != cvcLength) {
         // This can not be a CVC certificate sequence, so it must be a hex
         // encoded regular certificate serial number
         ret = new BigInteger(sernoString, 16);
@@ -1186,12 +1259,12 @@ public abstract class CertTools {
           ret = NumberUtils.createBigInteger(sernoString);
         } else {
           // check if input is hexadecimal
-          log.info(
+          LOGGER.info(
               "getSerialNumber: Sequence is not a numeric string, trying to"
                   + " extract numerical sequence part.");
-          StringBuilder buf = new StringBuilder();
+          final StringBuilder buf = new StringBuilder();
           for (int i = 0; i < sernoString.length(); i++) {
-            char c = sernoString.charAt(i);
+            final char c = sernoString.charAt(i);
             if (CharUtils.isAsciiNumeric(c)) {
               buf.append(c);
             }
@@ -1199,14 +1272,14 @@ public abstract class CertTools {
           if (buf.length() > 0) {
             ret = NumberUtils.createBigInteger(buf.toString());
           } else {
-            log.info(
+            LOGGER.info(
                 "getSerialNumber: can not extract numeric sequence part,"
                     + " trying alfanumeric value (radix 36).");
             if (sernoString.matches("[0-9A-Z]{1,5}")) {
-              int numSeq = Integer.parseInt(sernoString, 36);
+              final int numSeq = Integer.parseInt(sernoString, 36);
               ret = BigInteger.valueOf(numSeq);
             } else {
-              log.info(
+              LOGGER.info(
                   "getSerialNumber: Sequence does not contain any numeric"
                       + " parts, returning 0.");
               ret = BigInteger.valueOf(0);
@@ -1214,10 +1287,10 @@ public abstract class CertTools {
           }
         }
       }
-    } catch (NumberFormatException e) {
+    } catch (final NumberFormatException e) {
       // If we can't make the sequence into a serial number big integer, set it
       // to 0
-      log.debug(
+      LOGGER.debug(
           "getSerialNumber: NumberFormatException for sequence: "
               + sernoString);
       ret = BigInteger.valueOf(0);
@@ -1236,20 +1309,21 @@ public abstract class CertTools {
    * @param cert Certificate
    * @return String to be displayed, or used in RoleMember objects
    */
-  public static String getSerialNumberAsString(Certificate cert) {
+  public static String getSerialNumberAsString(final Certificate cert) {
     String ret = null;
     if (cert == null) {
       throw new IllegalArgumentException("getSerialNumber: cert is null");
     }
     if (cert instanceof X509Certificate) {
-      X509Certificate xcert = (X509Certificate) cert;
+      final X509Certificate xcert = (X509Certificate) cert;
       ret = xcert.getSerialNumber().toString(16).toUpperCase();
     } else if (StringUtils.equals(cert.getType(), "CVC")) {
       // For CVC certificates the sequence field of the HolderReference is kind
       // of a serial number,
       // but if can be alphanumeric which means it can not be made into a
       // BigInteger
-      CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cert;
+      final CardVerifiableCertificate cvccert =
+              (CardVerifiableCertificate) cert;
       try {
         ret =
             cvccert
@@ -1257,8 +1331,8 @@ public abstract class CertTools {
                 .getCertificateBody()
                 .getHolderReference()
                 .getSequence();
-      } catch (NoSuchFieldException e) {
-        log.error("getSerialNumber: NoSuchFieldException: ", e);
+      } catch (final NoSuchFieldException e) {
+        LOGGER.error("getSerialNumber: NoSuchFieldException: ", e);
         ret = "N/A";
       }
     } else {
@@ -1279,20 +1353,21 @@ public abstract class CertTools {
    * @return byte[] containing the certificate signature bits, if cert is null a
    *     byte[] of size 0 is returned.
    */
-  public static byte[] getSignature(Certificate cert) {
+  public static byte[] getSignature(final Certificate cert) {
     byte[] ret = null;
     if (cert == null) {
       ret = new byte[0];
     } else {
       if (cert instanceof X509Certificate) {
-        X509Certificate xcert = (X509Certificate) cert;
+        final X509Certificate xcert = (X509Certificate) cert;
         ret = xcert.getSignature();
       } else if (StringUtils.equals(cert.getType(), "CVC")) {
-        CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cert;
+        final CardVerifiableCertificate cvccert =
+                (CardVerifiableCertificate) cert;
         try {
           ret = cvccert.getCVCertificate().getSignature();
-        } catch (NoSuchFieldException e) {
-          log.error("NoSuchFieldException: ", e);
+        } catch (final NoSuchFieldException e) {
+          LOGGER.error("NoSuchFieldException: ", e);
           return null;
         }
       }
@@ -1307,45 +1382,54 @@ public abstract class CertTools {
    * @param crl X509RL
    * @return String containing the DN.
    */
-  public static String getIssuerDN(X509CRL crl) {
+  public static String getIssuerDN(final X509CRL crl) {
     String dn = null;
     try {
-      CertificateFactory cf = CertTools.getCertificateFactory();
-      X509CRL x509crl =
+      final CertificateFactory cf = CertTools.getCertificateFactory();
+      final X509CRL x509crl =
           (X509CRL) cf.generateCRL(new ByteArrayInputStream(crl.getEncoded()));
       // log.debug("Created certificate of class: " +
       // x509crl.getClass().getName());
       dn = x509crl.getIssuerDN().toString();
-    } catch (CRLException ce) {
-      log.error("CRLException: ", ce);
+    } catch (final CRLException ce) {
+      LOGGER.error("CRLException: ", ce);
       return null;
     }
     return stringToBCDNString(dn);
   }
 
-  public static Date getNotBefore(Certificate cert) {
+  /**
+   * @param cert Cert
+   * @return Start date
+   */
+  public static Date getNotBefore(final Certificate cert) {
     Date ret = null;
     if (cert == null) {
       throw new IllegalArgumentException("getNotBefore: cert is null");
     }
     if (cert instanceof X509Certificate) {
-      X509Certificate xcert = (X509Certificate) cert;
+      final X509Certificate xcert = (X509Certificate) cert;
       ret = xcert.getNotBefore();
     } else if (StringUtils.equals(cert.getType(), "CVC")) {
-      CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cert;
+      final CardVerifiableCertificate cvccert =
+              (CardVerifiableCertificate) cert;
       try {
         ret = cvccert.getCVCertificate().getCertificateBody().getValidFrom();
-      } catch (NoSuchFieldException e) {
+      } catch (final NoSuchFieldException e) {
         // it is not uncommon that this field is missing in CVC certificate
         // requests (it's not in the EAC standard so)
-        log.debug("NoSuchFieldException: " + e.getMessage());
+        LOGGER.debug("NoSuchFieldException: " + e.getMessage());
         return null;
       }
     }
     return ret;
   }
 
-  public static Date getNotAfter(Certificate cert) {
+  /**
+   * @param cert Cert
+   * @return Expiry
+   */
+  public static Date getNotAfter(final Certificate cert) {
     Date ret = null;
     if (cert == null) {
       throw new IllegalArgumentException("getNotAfter: cert is null");
@@ -1358,11 +1442,11 @@ public abstract class CertTools {
           (CardVerifiableCertificate) cert;
       try {
         ret = cvccert.getCVCertificate().getCertificateBody().getValidTo();
-      } catch (NoSuchFieldException e) {
+      } catch (final NoSuchFieldException e) {
         // it is not uncommon that this field is missing in CVC certificate
         // requests (it's not in the EAC standard so)
-        if (log.isDebugEnabled()) {
-          log.debug("NoSuchFieldException: " + e.getMessage());
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("NoSuchFieldException: " + e.getMessage());
         }
         return null;
       }
@@ -1391,14 +1475,17 @@ public abstract class CertTools {
     }
     try {
       return CertificateFactory.getInstance("X.509", prov);
-    } catch (NoSuchProviderException nspe) {
-      log.error("NoSuchProvider: ", nspe);
-    } catch (CertificateException ce) {
-      log.error("CertificateException: ", ce);
+    } catch (final NoSuchProviderException nspe) {
+      LOGGER.error("NoSuchProvider: ", nspe);
+    } catch (final CertificateException ce) {
+      LOGGER.error("CertificateException: ", ce);
     }
     return null;
   }
 
+  /**
+   * @return factory
+   */
   public static CertificateFactory getCertificateFactory() {
     return getCertificateFactory(BouncyCastleProvider.PROVIDER_NAME);
   }
@@ -1418,7 +1505,7 @@ public abstract class CertTools {
    *     Class&lt;T&gt;) instead
    */
   @Deprecated
-  public static List<Certificate> getCertsFromPEM(String certFilename)
+  public static List<Certificate> getCertsFromPEM(final String certFilename)
       throws FileNotFoundException, CertificateParsingException {
     return getCertsFromPEM(certFilename, Certificate.class);
   }
@@ -1439,10 +1526,10 @@ public abstract class CertTools {
    *     certificate.
    */
   public static <T extends Certificate> List<T> getCertsFromPEM(
-      String certFilename, Class<T> returnType)
+      final String certFilename, final Class<T> returnType)
       throws FileNotFoundException, CertificateParsingException {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCertfromPEM: certFilename=" + certFilename);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">getCertfromPEM: certFilename=" + certFilename);
     }
     InputStream inStrm = null;
     final List<T> certs;
@@ -1453,13 +1540,13 @@ public abstract class CertTools {
       if (inStrm != null) {
         try {
           inStrm.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
           throw new IllegalStateException("Could not clode input stream", e);
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getCertfromPEM: certFile=" + certFilename);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<getCertfromPEM: certFile=" + certFilename);
     }
     return certs;
   }
@@ -1485,18 +1572,18 @@ public abstract class CertTools {
 
     final List<byte[]> cachain = new ArrayList<byte[]>();
     try (FileInputStream fis = new FileInputStream(file)) {
-      Collection<Certificate> certs =
+      final Collection<Certificate> certs =
           CertTools.getCertsFromPEM(fis, Certificate.class);
-      Iterator<Certificate> iter = certs.iterator();
+      final Iterator<Certificate> iter = certs.iterator();
       while (iter.hasNext()) {
-        Certificate cert = iter.next();
+        final Certificate cert = iter.next();
         cachain.add(cert.getEncoded());
       }
-    } catch (CertificateParsingException e) {
+    } catch (final CertificateParsingException e) {
       // It was perhaps not a PEM chain...see if it was a single binary
       // certificate
-      byte[] certbytes = FileTools.readFiletoBuffer(file);
-      Certificate cert =
+      final byte[] certbytes = FileTools.readFiletoBuffer(file);
+      final Certificate cert =
           CertTools.getCertfromByteArray(
               certbytes,
               Certificate
@@ -1505,8 +1592,8 @@ public abstract class CertTools {
       cachain.add(cert.getEncoded());
     }
 
-    try (final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-      for (byte[] bytes : cachain) {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+      for (final byte[] bytes : cachain) {
         bos.write(bytes);
       }
       final byte[] result = bos.toByteArray();
@@ -1514,6 +1601,11 @@ public abstract class CertTools {
     }
   }
 
+/**
+ * @param bytes Bytes
+ * @return Certs
+ * @throws CertificateParsingException Fail
+ */
   public static final List<CertificateWrapper>
       bytesToListOfCertificateWrapperOrThrow(final byte[] bytes)
           throws CertificateParsingException {
@@ -1523,10 +1615,10 @@ public abstract class CertTools {
           CertTools.getCertsFromPEM(
               new ByteArrayInputStream(bytes),
               java.security.cert.Certificate.class);
-    } catch (CertificateException e) {
-      log.debug("Input stream is not PEM certificate(s): " + e.getMessage());
+    } catch (final CertificateException e) {
+      LOGGER.debug("Input stream is not PEM certificate(s): " + e.getMessage());
       // See if it is a single binary certificate
-      java.security.cert.Certificate cert =
+      final java.security.cert.Certificate cert =
           CertTools.getCertfromByteArray(
               bytes, java.security.cert.Certificate.class);
       certs = new ArrayList<java.security.cert.Certificate>();
@@ -1549,7 +1641,7 @@ public abstract class CertTools {
    *     Class&lt;T&gt;) instead.
    */
   @Deprecated
-  public static List<Certificate> getCertsFromPEM(InputStream certstream)
+  public static List<Certificate> getCertsFromPEM(final InputStream certstream)
       throws CertificateParsingException {
     return getCertsFromPEM(certstream, Certificate.class);
   }
@@ -1569,14 +1661,14 @@ public abstract class CertTools {
    *     certificate.
    */
   public static <T extends Certificate> List<T> getCertsFromPEM(
-      InputStream certstream, Class<T> returnType)
+      final InputStream certstream, final Class<T> returnType)
       throws CertificateParsingException {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCertfromPEM");
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">getCertfromPEM");
     }
-    ArrayList<T> ret = new ArrayList<>();
-    String beginKeyTrust = "-----BEGIN TRUSTED CERTIFICATE-----";
-    String endKeyTrust = "-----END TRUSTED CERTIFICATE-----";
+    final ArrayList<T> ret = new ArrayList<>();
+    final String beginKeyTrust = "-----BEGIN TRUSTED CERTIFICATE-----";
+    final String endKeyTrust = "-----END TRUSTED CERTIFICATE-----";
     BufferedReader bufRdr = null;
     ByteArrayOutputStream ostr = null;
     PrintStream opstr = null;
@@ -1626,11 +1718,11 @@ public abstract class CertTools {
           }
           opstr.close();
 
-          byte[] certbuf = Base64.decode(ostr.toByteArray());
+          final byte[] certbuf = Base64.decode(ostr.toByteArray());
           ostr.close();
           // Phweeew, were done, now decode the cert from file back to
           // Certificate object
-          T cert = getCertfromByteArray(certbuf, returnType);
+          final T cert = getCertfromByteArray(certbuf, returnType);
           ret.add(cert);
         }
 
@@ -1645,14 +1737,14 @@ public abstract class CertTools {
           ostr.close();
         }
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new IllegalStateException(
           "Exception caught when attempting to read stream, see underlying"
               + " IOException",
           e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getcertfromPEM:" + ret.size());
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<getcertfromPEM:" + ret.size());
     }
     return ret;
   }
@@ -1670,23 +1762,23 @@ public abstract class CertTools {
    * @throws CertificateException if certifiate cannot be parsed
    */
   public static List<Certificate> getCertCollectionFromArray(
-      Certificate[] certs, String provider)
+      final Certificate[] certs, final String provider)
       throws CertificateException, NoSuchProviderException {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCertCollectionFromArray: " + provider);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">getCertCollectionFromArray: " + provider);
     }
-    ArrayList<Certificate> ret = new ArrayList<Certificate>();
+    final ArrayList<Certificate> ret = new ArrayList<Certificate>();
     String prov = provider;
     if (prov == null) {
       prov = "BC";
     }
     for (int i = 0; i < certs.length; i++) {
-      Certificate cert = certs[i];
-      Certificate newcert = getCertfromByteArray(cert.getEncoded(), prov);
+      final Certificate cert = certs[i];
+      final Certificate newcert = getCertfromByteArray(cert.getEncoded(), prov);
       ret.add(newcert);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getCertCollectionFromArray: " + ret.size());
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<getCertCollectionFromArray: " + ret.size());
     }
     return ret;
   }
@@ -1703,7 +1795,7 @@ public abstract class CertTools {
    *     instead
    */
   @Deprecated
-  public static byte[] getPEMFromCerts(Collection<Certificate> certs)
+  public static byte[] getPEMFromCerts(final Collection<Certificate> certs)
       throws CertificateException {
     return getPemFromCertificateChain(certs);
   }
@@ -1715,10 +1807,11 @@ public abstract class CertTools {
    * @return byte array containing PEM certificate
    * @throws CertificateEncodingException if an encoding error occurred
    */
-  public static byte[] getPemFromCertificateChain(Collection<Certificate> certs)
+  public static byte[] getPemFromCertificateChain(
+          final Collection<Certificate> certs)
       throws CertificateEncodingException {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final PrintStream printStream = new PrintStream(baos)) {
+    try (PrintStream printStream = new PrintStream(baos)) {
       for (final Certificate certificate : certs) {
         if (certificate != null) {
           printStream.println(
@@ -1741,10 +1834,10 @@ public abstract class CertTools {
    * @return byte array containing PEM certificate
    * @throws CertificateEncodingException if an encoding error occurred
    */
-  public static String getPemFromCertificate(Certificate cacert)
+  public static String getPemFromCertificate(final Certificate cacert)
       throws CertificateEncodingException {
-    byte[] enccert = cacert.getEncoded();
-    byte[] b64cert = Base64.encode(enccert);
+    final byte[] enccert = cacert.getEncoded();
+    final byte[] b64cert = Base64.encode(enccert);
     String out = BEGIN_CERTIFICATE_WITH_NL;
     out += new String(b64cert);
     out += END_CERTIFICATE_WITH_NL;
@@ -1755,9 +1848,9 @@ public abstract class CertTools {
    * @param crlBytes CRL
    * @return a CRL in PEM-format as a byte array.
    */
-  public static byte[] getPEMFromCrl(byte[] crlBytes) {
+  public static byte[] getPEMFromCrl(final byte[] crlBytes) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final PrintStream printStream = new PrintStream(baos)) {
+    try (PrintStream printStream = new PrintStream(baos)) {
       writeAsPemEncoded(
           printStream, crlBytes, BEGIN_X509_CRL_KEY, END_X509_CRL_KEY);
     }
@@ -1770,16 +1863,20 @@ public abstract class CertTools {
    */
   public static byte[] getPEMFromPublicKey(final byte[] publicKeyBytes) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final PrintStream printStream = new PrintStream(baos)) {
+    try (PrintStream printStream = new PrintStream(baos)) {
       writeAsPemEncoded(
           printStream, publicKeyBytes, BEGIN_PUBLIC_KEY, END_PUBLIC_KEY);
     }
     return baos.toByteArray();
   }
 
+  /**
+   * @param privateKeyBytes Bytes
+   * @return PEM
+   */
   public static byte[] getPEMFromPrivateKey(final byte[] privateKeyBytes) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final PrintStream printStream = new PrintStream(baos)) {
+    try (PrintStream printStream = new PrintStream(baos)) {
       writeAsPemEncoded(
           printStream, privateKeyBytes, BEGIN_PRIVATE_KEY, END_PRIVATE_KEY);
     }
@@ -1793,7 +1890,7 @@ public abstract class CertTools {
   public static byte[] getPEMFromCertificateRequest(
       final byte[] certificateRequestBytes) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final PrintStream printStream = new PrintStream(baos)) {
+    try (PrintStream printStream = new PrintStream(baos)) {
       writeAsPemEncoded(
           printStream,
           certificateRequestBytes,
@@ -1811,7 +1908,7 @@ public abstract class CertTools {
    */
   public static byte[] getPemFromPkcs7(final byte[] pkcs7Binary) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final PrintStream printStream = new PrintStream(baos)) {
+    try (PrintStream printStream = new PrintStream(baos)) {
       writeAsPemEncoded(printStream, pkcs7Binary, BEGIN_PKCS7, END_PKCS7);
     }
     return baos.toByteArray();
@@ -1827,10 +1924,10 @@ public abstract class CertTools {
    * @param endKey key end
    */
   private static void writeAsPemEncoded(
-      PrintStream printStream,
-      byte[] unencodedData,
-      String beginKey,
-      String endKey) {
+      final PrintStream printStream,
+      final byte[] unencodedData,
+      final String beginKey,
+      final String endKey) {
     printStream.println(beginKey);
     printStream.println(new String(Base64.encode(unencodedData)));
     printStream.println(endKey);
@@ -1838,7 +1935,7 @@ public abstract class CertTools {
 
   /**
    * Creates Certificate from byte[], can be either an X509 certificate or a
-   * CVCCertificate
+   * CVCCertificate.
    *
    * @param cert byte array containing certificate in binary (DER) format, or
    *     PEM encoded X.509 certificate
@@ -1851,14 +1948,15 @@ public abstract class CertTools {
    *     String, Class&lt;Y&gt;) instead.
    */
   @Deprecated
-  public static Certificate getCertfromByteArray(byte[] cert, String provider)
+  public static Certificate getCertfromByteArray(
+          final byte[] cert, final String provider)
       throws CertificateParsingException {
     return getCertfromByteArray(cert, provider, Certificate.class);
   }
 
   /**
    * Creates Certificate from byte[], can be either an X509 certificate or a
-   * CVCCertificate
+   * CVCCertificate.
    *
    * @param cert byte array containing certificate in binary (DER) format, or
    *     PEM encoded X.509 certificate
@@ -1873,7 +1971,7 @@ public abstract class CertTools {
    */
   @SuppressWarnings("unchecked")
   public static <T extends Certificate> T getCertfromByteArray(
-      byte[] cert, String provider, Class<T> returnType)
+      final byte[] cert, final String provider, final Class<T> returnType)
       throws CertificateParsingException {
     T ret = null;
     String prov = provider;
@@ -1889,10 +1987,10 @@ public abstract class CertTools {
       // Let's guess...
       try {
         ret = (T) parseX509Certificate(prov, cert);
-      } catch (CertificateParsingException e) {
+      } catch (final CertificateParsingException e) {
         try {
           ret = (T) parseCardVerifiableCertificate(prov, cert);
-        } catch (CertificateParsingException e1) {
+        } catch (final CertificateParsingException e1) {
           throw new CertificateParsingException(
               "No certificate could be parsed from byte array. See debug logs"
                   + " for details.");
@@ -1911,7 +2009,8 @@ public abstract class CertTools {
    *     contained a certificate other than an X509 Certificate.
    */
   private static X509Certificate parseX509Certificate(
-      String provider, byte[] cert) throws CertificateParsingException {
+      final String provider, final byte[] cert)
+              throws CertificateParsingException {
     final CertificateFactory cf = CertTools.getCertificateFactory(provider);
     X509Certificate result;
     try {
@@ -1920,7 +2019,7 @@ public abstract class CertTools {
               cf.generateCertificate(
                   new SecurityFilterInputStream(
                       new ByteArrayInputStream(cert)));
-    } catch (CertificateException e) {
+    } catch (final CertificateException e) {
       throw new CertificateParsingException(
           "Could not parse byte array as X509Certificate."
               + e.getCause().getMessage(),
@@ -1935,17 +2034,18 @@ public abstract class CertTools {
   }
 
   private static CardVerifiableCertificate parseCardVerifiableCertificate(
-      String provider, byte[] cert) throws CertificateParsingException {
+      final String provider, final byte[] cert)
+              throws CertificateParsingException {
     // We could not create an X509Certificate, see if it is a CVC certificate
     // instead
     try {
       final CVCertificate parsedObject =
           CertificateParser.parseCertificate(cert);
       return new CardVerifiableCertificate(parsedObject);
-    } catch (ParseException e) {
+    } catch (final ParseException e) {
       throw new CertificateParsingException(
           "ParseException trying to read CVCCertificate.", e);
-    } catch (ConstructionException e) {
+    } catch (final ConstructionException e) {
       throw new CertificateParsingException(
           "ConstructionException trying to read CVCCertificate.", e);
     }
@@ -1960,7 +2060,7 @@ public abstract class CertTools {
    *     Class&lt;T&gt;) to specify return type instead.
    */
   @Deprecated
-  public static Certificate getCertfromByteArray(byte[] cert)
+  public static Certificate getCertfromByteArray(final byte[] cert)
       throws CertificateParsingException {
     return getCertfromByteArray(cert, Certificate.class);
   }
@@ -1976,7 +2076,8 @@ public abstract class CertTools {
    *     proper certificate.
    */
   public static <T extends Certificate> T getCertfromByteArray(
-      byte[] cert, Class<T> returnType) throws CertificateParsingException {
+      final byte[] cert, final Class<T> returnType)
+              throws CertificateParsingException {
     return getCertfromByteArray(
         cert, BouncyCastleProvider.PROVIDER_NAME, returnType);
   }
@@ -1988,14 +2089,16 @@ public abstract class CertTools {
    * @return X509CRL
    * @throws CRLException if the byte array does not contain a correct CRL.
    */
-  public static X509CRL getCRLfromByteArray(byte[] crl) throws CRLException {
-    log.trace(">getCRLfromByteArray");
+  public static X509CRL getCRLfromByteArray(
+          final byte[] crl) throws CRLException {
+    LOGGER.trace(">getCRLfromByteArray");
     if (crl == null) {
       throw new CRLException("No content in crl byte array");
     }
-    CertificateFactory cf = CertTools.getCertificateFactory();
-    X509CRL x509crl = (X509CRL) cf.generateCRL(new ByteArrayInputStream(crl));
-    log.trace("<getCRLfromByteArray");
+    final CertificateFactory cf = CertTools.getCertificateFactory();
+    final X509CRL x509crl =
+            (X509CRL) cf.generateCRL(new ByteArrayInputStream(crl));
+    LOGGER.trace("<getCRLfromByteArray");
 
     return x509crl;
   } // getCRLfromByteArray
@@ -2008,18 +2111,18 @@ public abstract class CertTools {
    * @return boolean true if the certificate has the same issuer and subject,
    *     false otherwise.
    */
-  public static boolean isSelfSigned(Certificate cert) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+  public static boolean isSelfSigned(final Certificate cert) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(
           ">isSelfSigned: cert: "
               + CertTools.getIssuerDN(cert)
               + "\n"
               + CertTools.getSubjectDN(cert));
     }
-    boolean ret =
+    final boolean ret =
         CertTools.getSubjectDN(cert).equals(CertTools.getIssuerDN(cert));
-    if (log.isTraceEnabled()) {
-      log.trace("<isSelfSigned:" + ret);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<isSelfSigned:" + ret);
     }
     return ret;
   } // isSelfSigned
@@ -2036,19 +2139,19 @@ public abstract class CertTools {
       final X509Certificate signerCert, final boolean warnIfAboutToExpire) {
     try {
       signerCert.checkValidity();
-    } catch (CertificateExpiredException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+    } catch (final CertificateExpiredException e) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(
+            INTRES.getLocalizedMessage(
                 "ocsp.errorcerthasexpired",
                 signerCert.getSerialNumber().toString(16),
                 signerCert.getIssuerDN()));
       }
       return false;
-    } catch (CertificateNotYetValidException e) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+    } catch (final CertificateNotYetValidException e) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(
+            INTRES.getLocalizedMessage(
                 "ocsp.errornotyetvalid",
                 signerCert.getSerialNumber().toString(16),
                 signerCert.getIssuerDN()));
@@ -2064,22 +2167,22 @@ public abstract class CertTools {
         new Date(new Date().getTime() + warnBeforeExpirationTime);
     try {
       signerCert.checkValidity(warnDate);
-    } catch (CertificateExpiredException e) {
-      if (warnIfAboutToExpire || log.isDebugEnabled()) {
+    } catch (final CertificateExpiredException e) {
+      if (warnIfAboutToExpire || LOGGER.isDebugEnabled()) {
         final Level logLevel = warnIfAboutToExpire ? Level.WARN : Level.DEBUG;
-        log.log(
+        LOGGER.log(
             logLevel,
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "ocsp.warncertwillexpire",
                 signerCert.getSerialNumber().toString(16),
                 signerCert.getIssuerDN(),
                 signerCert.getNotAfter()));
       }
-    } catch (CertificateNotYetValidException e) {
+    } catch (final CertificateNotYetValidException e) {
       throw new IllegalStateException("This should never happen.", e);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(
           "Time for \"certificate will soon expire\" not yet reached. You will"
               + " be warned after: "
               + new Date(
@@ -2097,34 +2200,36 @@ public abstract class CertTools {
    * @param cert the certificate that shall be checked.
    * @return boolean true if the certificate belongs to a CA.
    */
-  public static boolean isCA(Certificate cert) {
-    if (log.isTraceEnabled()) {
-      log.trace(">isCA");
+  public static boolean isCA(final Certificate cert) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">isCA");
     }
     boolean ret = false;
     if (cert instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) cert;
+      final X509Certificate x509cert = (X509Certificate) cert;
       if (x509cert.getBasicConstraints() > -1) {
         ret = true;
       }
     } else if (StringUtils.equals(cert.getType(), "CVC")) {
-      CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cert;
+      final CardVerifiableCertificate cvccert =
+              (CardVerifiableCertificate) cert;
       try {
-        CVCAuthorizationTemplate templ =
+        final CVCAuthorizationTemplate templ =
             cvccert
                 .getCVCertificate()
                 .getCertificateBody()
                 .getAuthorizationTemplate();
-        AuthorizationRole role = templ.getAuthorizationField().getAuthRole();
+        final AuthorizationRole role =
+                templ.getAuthorizationField().getAuthRole();
         if (role.isCVCA() || role.isDV()) {
           ret = true;
         }
-      } catch (NoSuchFieldException e) {
-        log.error("NoSuchFieldException: ", e);
+      } catch (final NoSuchFieldException e) {
+        LOGGER.error("NoSuchFieldException: ", e);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<isCA:" + ret);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<isCA:" + ret);
     }
     return ret;
   }
@@ -2135,11 +2240,11 @@ public abstract class CertTools {
    * @param cert to check.
    * @return true if the extended key usage for OCSP is check
    */
-  public static boolean isOCSPCert(X509Certificate cert) {
+  public static boolean isOCSPCert(final X509Certificate cert) {
     final List<String> keyUsages;
     try {
       keyUsages = cert.getExtendedKeyUsage();
-    } catch (CertificateParsingException e) {
+    } catch (final CertificateParsingException e) {
       return false;
     }
     return keyUsages != null
@@ -2162,13 +2267,13 @@ public abstract class CertTools {
    * @throws OperatorCreationException if creation fails
    */
   public static X509Certificate genSelfCert(
-      String dn,
-      long validity,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA)
+      final String dn,
+      final long validity,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA)
       throws OperatorCreationException, CertificateException {
     return genSelfCert(
         dn,
@@ -2200,15 +2305,15 @@ public abstract class CertTools {
    * @throws OperatorCreationException if creation fails
    */
   public static X509Certificate genSelfCert(
-      String dn,
-      long validity,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA,
-      String provider,
-      boolean ldapOrder)
+      final String dn,
+      final long validity,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA,
+      final String provider,
+      final boolean ldapOrder)
       throws CertificateParsingException, OperatorCreationException {
     final int keyUsage;
     if (isCA) {
@@ -2239,14 +2344,14 @@ public abstract class CertTools {
    * @throws OperatorCreationException if creation fails
    */
   public static X509Certificate genSelfCert(
-      String dn,
-      long validity,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA,
-      String provider)
+      final String dn,
+      final long validity,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA,
+      final String provider)
       throws OperatorCreationException, CertificateException {
     return genSelfCert(
         dn, validity, policyId, privKey, pubKey, sigAlg, isCA, provider, true);
@@ -2270,15 +2375,15 @@ public abstract class CertTools {
    * @throws OperatorCreationException if creation fails
    */
   public static X509Certificate genSelfCertForPurpose(
-      String dn,
-      long validity,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA,
-      int keyusage,
-      boolean ldapOrder)
+      final String dn,
+      final long validity,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA,
+      final int keyusage,
+      final boolean ldapOrder)
       throws CertificateParsingException, OperatorCreationException {
     return genSelfCertForPurpose(
         dn,
@@ -2295,18 +2400,34 @@ public abstract class CertTools {
         ldapOrder);
   }
 
+  /**
+   * @param dn DN
+   * @param validity Validity
+   * @param policyId ID
+   * @param privKey Key
+   * @param pubKey Key
+   * @param sigAlg Alg
+   * @param isCA CA
+   * @param keyusage Usage
+   * @param privateKeyNotBefore Start
+   * @param privateKeyNotAfter End
+   * @param provider Prov
+   * @return Cert
+   * @throws CertificateParsingException fail
+   * @throws OperatorCreationException fail
+   */
   public static X509Certificate genSelfCertForPurpose(
-      String dn,
-      long validity,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA,
-      int keyusage,
-      Date privateKeyNotBefore,
-      Date privateKeyNotAfter,
-      String provider)
+      final String dn,
+      final long validity,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA,
+      final int keyusage,
+      final Date privateKeyNotBefore,
+      final Date privateKeyNotAfter,
+      final String provider)
       throws CertificateParsingException, OperatorCreationException {
     return genSelfCertForPurpose(
         dn,
@@ -2323,19 +2444,36 @@ public abstract class CertTools {
         true);
   }
 
+  /**
+   * @param dn DN
+   * @param validity Validity
+   * @param policyId Policy
+   * @param privKey Key
+   * @param pubKey Key
+   * @param sigAlg Alg
+   * @param isCA CA
+   * @param keyusage Usage
+   * @param privateKeyNotBefore Stary
+   * @param privateKeyNotAfter End
+   * @param provider Provider
+   * @param ldapOrder Order
+   * @return Cert
+   * @throws CertificateParsingException fail
+   * @throws OperatorCreationException fail
+   */
   public static X509Certificate genSelfCertForPurpose(
-      String dn,
-      long validity,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA,
-      int keyusage,
-      Date privateKeyNotBefore,
-      Date privateKeyNotAfter,
-      String provider,
-      boolean ldapOrder)
+      final String dn,
+      final long validity,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA,
+      final int keyusage,
+      final Date privateKeyNotBefore,
+      final Date privateKeyNotAfter,
+      final String provider,
+      final boolean ldapOrder)
       throws CertificateParsingException, OperatorCreationException {
     try {
       return genSelfCertForPurpose(
@@ -2352,7 +2490,7 @@ public abstract class CertTools {
           provider,
           ldapOrder,
           null);
-    } catch (CertIOException e) {
+    } catch (final CertIOException e) {
       throw new IllegalStateException(
           "CertIOException was thrown due to an invalid extension, but no"
               + " extensions were provided.",
@@ -2360,33 +2498,53 @@ public abstract class CertTools {
     }
   }
 
+  /**
+   * @param dn DN
+   * @param validity Validiy
+   * @param policyId Policy
+   * @param privKey Key
+   * @param pubKey Key
+   * @param sigAlg Alg
+   * @param isCA CA
+   * @param keyusage Usage
+   * @param privateKeyNotBefore Start
+   * @param privateKeyNotAfter End
+   * @param provider Provider
+   * @param ldapOrder Order
+   * @param additionalExtensions Exts
+   * @return Cert
+   * @throws CertificateParsingException fail
+   * @throws OperatorCreationException fail
+   * @throws CertIOException fail
+   */
   public static X509Certificate genSelfCertForPurpose(
-      String dn,
-      long validity,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA,
-      int keyusage,
-      Date privateKeyNotBefore,
-      Date privateKeyNotAfter,
-      String provider,
-      boolean ldapOrder,
-      List<Extension> additionalExtensions)
+      final String dn,
+      final long validity,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA,
+      final int keyusage,
+      final Date privateKeyNotBefore,
+      final Date privateKeyNotAfter,
+      final String provider,
+      final boolean ldapOrder,
+      final List<Extension> additionalExtensions)
       throws CertificateParsingException, OperatorCreationException,
           CertIOException {
     // Create self signed certificate
-    Date firstDate = new Date();
-
+    final Date firstDate = new Date();
+    final int tenMins = 10 * 60 * 1000;
+    final int oneDay = 24 * 60 * 60 * 1000;
     // Set back startdate ten minutes to avoid some problems with wrongly set
     // clocks.
-    firstDate.setTime(firstDate.getTime() - (10 * 60 * 1000));
+    firstDate.setTime(firstDate.getTime() - (tenMins));
 
-    Date lastDate = new Date();
+    final Date lastDate = new Date();
 
     // validity in days = validity*24*60*60*1000 milliseconds
-    lastDate.setTime(lastDate.getTime() + (validity * (24 * 60 * 60 * 1000)));
+    lastDate.setTime(lastDate.getTime() + (validity * (oneDay)));
 
     return genSelfCertForPurpose(
         dn,
@@ -2405,21 +2563,41 @@ public abstract class CertTools {
         additionalExtensions);
   }
 
+  /**
+   * @param dn DN
+   * @param firstDate Start
+   * @param lastDate End
+   * @param policyId ID
+   * @param privKey Key
+   * @param pubKey Key
+   * @param sigAlg Alg
+   * @param isCA CA
+   * @param keyusage Usage
+   * @param privateKeyNotBefore Start
+   * @param privateKeyNotAfter End
+   * @param provider Provider
+   * @param ldapOrder Order
+   * @param additionalExtensions Exyensions
+   * @return Cert
+   * @throws CertificateParsingException fail
+   * @throws OperatorCreationException fail
+   * @throws CertIOException fail
+   */
   public static X509Certificate genSelfCertForPurpose(
-      String dn,
-      Date firstDate,
-      Date lastDate,
-      String policyId,
-      PrivateKey privKey,
-      PublicKey pubKey,
-      String sigAlg,
-      boolean isCA,
-      int keyusage,
-      Date privateKeyNotBefore,
-      Date privateKeyNotAfter,
-      String provider,
-      boolean ldapOrder,
-      List<Extension> additionalExtensions)
+      final String dn,
+      final Date firstDate,
+      final Date lastDate,
+      final String policyId,
+      final PrivateKey privKey,
+      final PublicKey pubKey,
+      final String sigAlg,
+      final boolean isCA,
+      final int keyusage,
+      final Date privateKeyNotBefore,
+      final Date privateKeyNotAfter,
+      final String provider,
+      final boolean ldapOrder,
+      final List<Extension> additionalExtensions)
       throws CertificateParsingException, OperatorCreationException,
           CertIOException {
     // Transform the PublicKey to be sure we have it in a format that the X509
@@ -2427,22 +2605,22 @@ public abstract class CertTools {
     // a CVC public key that is passed as parameter
     PublicKey publicKey = null;
     if (pubKey instanceof RSAPublicKey) {
-      RSAPublicKey rsapk = (RSAPublicKey) pubKey;
-      RSAPublicKeySpec rSAPublicKeySpec =
+      final RSAPublicKey rsapk = (RSAPublicKey) pubKey;
+      final RSAPublicKeySpec rSAPublicKeySpec =
           new RSAPublicKeySpec(rsapk.getModulus(), rsapk.getPublicExponent());
       try {
         publicKey =
             KeyFactory.getInstance("RSA").generatePublic(rSAPublicKeySpec);
-      } catch (InvalidKeySpecException e) {
-        log.error("Error creating RSAPublicKey from spec: ", e);
+      } catch (final InvalidKeySpecException e) {
+        LOGGER.error("Error creating RSAPublicKey from spec: ", e);
         publicKey = pubKey;
-      } catch (NoSuchAlgorithmException e) {
+      } catch (final NoSuchAlgorithmException e) {
         throw new IllegalStateException("RSA was not a known algorithm", e);
       }
     } else if (pubKey instanceof ECPublicKey) {
-      ECPublicKey ecpk = (ECPublicKey) pubKey;
+      final ECPublicKey ecpk = (ECPublicKey) pubKey;
       try {
-        ECPublicKeySpec ecspec =
+        final ECPublicKeySpec ecspec =
             new ECPublicKeySpec(
                 ecpk.getW(),
                 ecpk.getParams()); // will throw NPE if key is "implicitlyCA"
@@ -2451,7 +2629,7 @@ public abstract class CertTools {
           try {
             publicKey =
                 KeyFactory.getInstance("ECGOST3410").generatePublic(ecspec);
-          } catch (NoSuchAlgorithmException e) {
+          } catch (final NoSuchAlgorithmException e) {
             throw new IllegalStateException(
                 "ECGOST3410 was not a known algorithm", e);
           }
@@ -2459,39 +2637,40 @@ public abstract class CertTools {
           try {
             publicKey =
                 KeyFactory.getInstance("DSTU4145").generatePublic(ecspec);
-          } catch (NoSuchAlgorithmException e) {
+          } catch (final NoSuchAlgorithmException e) {
             throw new IllegalStateException(
                 "DSTU4145 was not a known algorithm", e);
           }
         } else {
           try {
             publicKey = KeyFactory.getInstance("EC").generatePublic(ecspec);
-          } catch (NoSuchAlgorithmException e) {
+          } catch (final NoSuchAlgorithmException e) {
             throw new IllegalStateException("EC was not a known algorithm", e);
           }
         }
-      } catch (InvalidKeySpecException e) {
-        log.error("Error creating ECPublicKey from spec: ", e);
+      } catch (final InvalidKeySpecException e) {
+        LOGGER.error("Error creating ECPublicKey from spec: ", e);
         publicKey = pubKey;
-      } catch (NullPointerException e) {
-        log.debug(
+      } catch (final NullPointerException e) {
+        LOGGER.debug(
             "NullPointerException, probably it is implicitlyCA generated keys: "
                 + e.getMessage());
         publicKey = pubKey;
       }
     } else {
-      log.debug("Not converting key of class. " + pubKey.getClass().getName());
+      LOGGER.debug("Not converting key of class. "
+                  + pubKey.getClass().getName());
       publicKey = pubKey;
     }
 
     // Serialnumber is random bits, where random generator is initialized with
     // Date.getTime() when this
     // bean is created.
-    byte[] serno = new byte[8];
+    final byte[] serno = new byte[8];
     SecureRandom random;
     try {
       random = SecureRandom.getInstance("SHA1PRNG");
-    } catch (NoSuchAlgorithmException e) {
+    } catch (final NoSuchAlgorithmException e) {
       throw new IllegalStateException("SHA1PRNG was not a known algorithm", e);
     }
     random.setSeed(new Date().getTime());
@@ -2499,7 +2678,7 @@ public abstract class CertTools {
 
     final SubjectPublicKeyInfo pkinfo =
         SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
-    X509v3CertificateBuilder certbuilder =
+    final X509v3CertificateBuilder certbuilder =
         new X509v3CertificateBuilder(
             CertTools.stringToBcX500Name(dn, ldapOrder),
             new BigInteger(serno).abs(),
@@ -2510,12 +2689,12 @@ public abstract class CertTools {
 
     // Basic constranits is always critical and MUST be present at-least in
     // CA-certificates.
-    BasicConstraints bc = new BasicConstraints(isCA);
+    final BasicConstraints bc = new BasicConstraints(isCA);
     certbuilder.addExtension(Extension.basicConstraints, true, bc);
 
     // Put critical KeyUsage in CA-certificates
     if (isCA || keyusage != 0) {
-      X509KeyUsage ku = new X509KeyUsage(keyusage);
+      final X509KeyUsage ku = new X509KeyUsage(keyusage);
       certbuilder.addExtension(Extension.keyUsage, true, ku);
     }
 
@@ -2539,23 +2718,23 @@ public abstract class CertTools {
     // present for certificates to verify in Firefox.
     try {
       if (isCA) {
-        JcaX509ExtensionUtils extensionUtils =
+        final JcaX509ExtensionUtils extensionUtils =
             new JcaX509ExtensionUtils(SHA1DigestCalculator.buildSha1Instance());
-        SubjectKeyIdentifier ski =
+        final SubjectKeyIdentifier ski =
             extensionUtils.createSubjectKeyIdentifier(publicKey);
-        AuthorityKeyIdentifier aki =
+        final AuthorityKeyIdentifier aki =
             extensionUtils.createAuthorityKeyIdentifier(publicKey);
         certbuilder.addExtension(Extension.subjectKeyIdentifier, false, ski);
         certbuilder.addExtension(Extension.authorityKeyIdentifier, false, aki);
       }
-    } catch (IOException e) { // do nothing
+    } catch (final IOException e) { // do nothing
     }
 
     // CertificatePolicies extension if supplied policy ID, always non-critical
     if (policyId != null) {
-      PolicyInformation pi =
+      final PolicyInformation pi =
           new PolicyInformation(new ASN1ObjectIdentifier(policyId));
-      DERSequence seq = new DERSequence(pi);
+      final DERSequence seq = new DERSequence(pi);
       certbuilder.addExtension(Extension.certificatePolicies, false, seq);
     }
     // Add any additional
@@ -2579,7 +2758,7 @@ public abstract class CertTools {
       selfcert =
           (X509Certificate)
               CertTools.getCertfromByteArray(certHolder.getEncoded());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new IllegalStateException("Unexpected IOException was caught.", e);
     }
 
@@ -2587,7 +2766,7 @@ public abstract class CertTools {
   } // genselfCertForPurpose
 
   /**
-   * Get the authority key identifier from a certificate extensions
+   * Get the authority key identifier from a certificate extensions.
    *
    * @param certificate certificate containing the extension
    * @return byte[] containing the authority key identifier, or null if it does
@@ -2608,7 +2787,7 @@ public abstract class CertTools {
   }
 
   /**
-   * Get the subject key identifier from a certificate extensions
+   * Get the subject key identifier from a certificate extensions.
    *
    * @param certificate certificate containing the extension
    * @return byte[] containing the subject key identifier, or null if it does
@@ -2629,7 +2808,7 @@ public abstract class CertTools {
   }
 
   /**
-   * Get a certificate policy ID from a certificate policies extension
+   * Get a certificate policy ID from a certificate policies extension.
    *
    * @param certificate certificate containing the extension
    * @param pos position of the policy id, if several exist, the first is as pos
@@ -2638,7 +2817,8 @@ public abstract class CertTools {
    *     given position does not exist
    * @throws IOException if extension can not be parsed
    */
-  public static String getCertificatePolicyId(Certificate certificate, int pos)
+  public static String getCertificatePolicyId(
+          final Certificate certificate, final int pos)
       throws IOException {
     if (certificate != null && certificate instanceof X509Certificate) {
       final ASN1Sequence asn1Sequence =
@@ -2659,15 +2839,16 @@ public abstract class CertTools {
   }
 
   /**
-   * Get a list of certificate policy IDs from a certificate policies extension
+   * Get a list of certificate policy IDs from a certificate policies extension.
    *
    * @param certificate certificate containing the extension
    * @return List of ObjectIdentifiers, or empty list if no policies exist
    * @throws IOException if extension can not be parsed
    */
   public static List<ASN1ObjectIdentifier> getCertificatePolicyIds(
-      Certificate certificate) throws IOException {
-    List<ASN1ObjectIdentifier> ret = new ArrayList<ASN1ObjectIdentifier>();
+      final Certificate certificate) throws IOException {
+    final List<ASN1ObjectIdentifier> ret =
+            new ArrayList<ASN1ObjectIdentifier>();
     if (certificate != null && certificate instanceof X509Certificate) {
       final ASN1Sequence asn1Sequence =
           (ASN1Sequence)
@@ -2675,8 +2856,9 @@ public abstract class CertTools {
                   (X509Certificate) certificate,
                   Extension.certificatePolicies.getId());
       if (asn1Sequence != null) {
-        for (ASN1Encodable asn1Encodable : asn1Sequence) {
-          PolicyInformation pi = PolicyInformation.getInstance(asn1Encodable);
+        for (final ASN1Encodable asn1Encodable : asn1Sequence) {
+          final PolicyInformation pi =
+                  PolicyInformation.getInstance(asn1Encodable);
           ret.add(pi.getPolicyIdentifier());
         }
       }
@@ -2686,15 +2868,15 @@ public abstract class CertTools {
 
   /**
    * Get a list of certificate policy information from a certificate policies
-   * extension
+   * extension.
    *
    * @param certificate certificate containing the extension
    * @return List of PolicyInformation, or empty list if no policies exist
    * @throws IOException if extension can not be parsed
    */
   public static List<PolicyInformation> getCertificatePolicies(
-      Certificate certificate) throws IOException {
-    List<PolicyInformation> ret = new ArrayList<PolicyInformation>();
+      final Certificate certificate) throws IOException {
+    final List<PolicyInformation> ret = new ArrayList<PolicyInformation>();
     if (certificate != null && certificate instanceof X509Certificate) {
       final ASN1Sequence asn1Sequence =
           (ASN1Sequence)
@@ -2702,8 +2884,9 @@ public abstract class CertTools {
                   (X509Certificate) certificate,
                   Extension.certificatePolicies.getId());
       if (asn1Sequence != null) {
-        for (ASN1Encodable asn1Encodable : asn1Sequence) {
-          PolicyInformation pi = PolicyInformation.getInstance(asn1Encodable);
+        for (final ASN1Encodable asn1Encodable : asn1Sequence) {
+          final PolicyInformation pi =
+                  PolicyInformation.getInstance(asn1Encodable);
           ret.add(pi);
         }
       }
@@ -2726,7 +2909,7 @@ public abstract class CertTools {
    * @throws IOException On disk error
    * @throws CertificateParsingException if cert parse fails
    */
-  public static String getUPNAltName(Certificate cert)
+  public static String getUPNAltName(final Certificate cert)
       throws IOException, CertificateParsingException {
     return getUTF8AltNameOtherName(cert, CertTools.UPN_OBJECTID);
   }
@@ -2761,8 +2944,9 @@ public abstract class CertTools {
       throws IOException, CertificateParsingException {
     String ret = null;
     if (cert instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) cert;
-      Collection<List<?>> altNames = x509cert.getSubjectAlternativeNames();
+      final X509Certificate x509cert = (X509Certificate) cert;
+      final Collection<List<?>> altNames =
+              x509cert.getSubjectAlternativeNames();
       if (altNames != null) {
         for (final List<?> next : altNames) {
           ret = getUTF8StringFromSequence(getAltnameSequence(next), oid);
@@ -2787,17 +2971,17 @@ public abstract class CertTools {
       final ASN1Sequence seq, final String oid) {
     if (seq != null) {
       // First in sequence is the object identifier, that we must check
-      ASN1ObjectIdentifier id =
+      final ASN1ObjectIdentifier id =
           ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
       if (id.getId().equals(oid)) {
-        ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
+        final ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
         // Due to bug in java cert.getSubjectAltName regarding OtherName, it can
         // be tagged an extra time...
         ASN1Primitive obj = oobj.getObject();
         if (obj instanceof ASN1TaggedObject) {
           obj = ASN1TaggedObject.getInstance(obj).getObject();
         }
-        DERUTF8String str = DERUTF8String.getInstance(obj);
+        final DERUTF8String str = DERUTF8String.getInstance(obj);
         return str.getString();
       }
     }
@@ -2816,17 +3000,17 @@ public abstract class CertTools {
       final ASN1Sequence seq, final String oid) {
     if (seq != null) {
       // First in sequence is the object identifier, that we must check
-      ASN1ObjectIdentifier id =
+      final ASN1ObjectIdentifier id =
           ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
       if (id.getId().equals(oid)) {
-        ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
+        final ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
         // Due to bug in java cert.getSubjectAltName regarding OtherName, it can
         // be tagged an extra time...
         ASN1Primitive obj = oobj.getObject();
         if (obj instanceof ASN1TaggedObject) {
           obj = ASN1TaggedObject.getInstance(obj).getObject();
         }
-        DERIA5String str = DERIA5String.getInstance(obj);
+        final DERIA5String str = DERIA5String.getInstance(obj);
         return str.getString();
       }
     }
@@ -2845,17 +3029,17 @@ public abstract class CertTools {
       final ASN1Sequence seq, final String oid) {
     if (seq != null) {
       // First in sequence is the object identifier, that we must check
-      ASN1ObjectIdentifier id =
+      final ASN1ObjectIdentifier id =
           ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
       if (id.getId().equals(oid)) {
-        ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
+        final ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
         // Due to bug in java cert.getSubjectAltName regarding OtherName, it can
         // be tagged an extra time...
         ASN1Primitive obj = oobj.getObject();
         if (obj instanceof ASN1TaggedObject) {
           obj = ASN1TaggedObject.getInstance(obj).getObject();
         }
-        ASN1OctetString str = ASN1OctetString.getInstance(obj);
+        final ASN1OctetString str = ASN1OctetString.getInstance(obj);
         return str.getOctets();
       }
     }
@@ -2886,16 +3070,17 @@ public abstract class CertTools {
    * @throws IOException On disk error
    * @throws CertificateParsingException if cert parse fails
    */
-  public static String getPermanentIdentifierAltName(Certificate cert)
+  public static String getPermanentIdentifierAltName(final Certificate cert)
       throws IOException, CertificateParsingException {
     String ret = null;
     if (cert instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) cert;
-      Collection<List<?>> altNames = x509cert.getSubjectAlternativeNames();
+      final X509Certificate x509cert = (X509Certificate) cert;
+      final Collection<List<?>> altNames =
+              x509cert.getSubjectAlternativeNames();
       if (altNames != null) {
-        Iterator<List<?>> i = altNames.iterator();
+        final Iterator<List<?>> i = altNames.iterator();
         while (i.hasNext()) {
-          ASN1Sequence seq = getAltnameSequence(i.next());
+          final ASN1Sequence seq = getAltnameSequence(i.next());
           ret = getPermanentIdentifierStringFromSequence(seq);
           if (ret != null) {
             break;
@@ -2908,31 +3093,32 @@ public abstract class CertTools {
 
   /**
    * (This method intentionally has package level visibility to be able to be
-   * invoked from JUnit tests.)
+   * invoked from JUnit tests).
    *
    * @param seq asn.1 sequence
    * @return The extension values encoded as an permanentIdentifierString
    */
-  static String getPermanentIdentifierStringFromSequence(ASN1Sequence seq) {
+  static String getPermanentIdentifierStringFromSequence(
+          final ASN1Sequence seq) {
     if (seq != null) {
       // First in sequence is the object identifier, that we must check
-      ASN1ObjectIdentifier id =
+      final ASN1ObjectIdentifier id =
           ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
       if (id.getId().equals(CertTools.PERMANENTIDENTIFIER_OBJECTID)) {
         String identifierValue = null;
         String assigner = null;
 
         // Get the PermanentIdentifier sequence
-        ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
+        final ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
         // Due to bug in java cert.getSubjectAltName regarding OtherName, it can
         // be tagged an extra time...
         ASN1Primitive obj = oobj.getObject();
         if (obj instanceof ASN1TaggedObject) {
           obj = ASN1TaggedObject.getInstance(obj).getObject();
         }
-        ASN1Sequence piSeq = ASN1Sequence.getInstance(obj);
+        final ASN1Sequence piSeq = ASN1Sequence.getInstance(obj);
 
-        Enumeration<?> e = piSeq.getObjects();
+        final Enumeration<?> e = piSeq.getObjects();
         if (e.hasMoreElements()) {
           Object element = e.nextElement();
           if (element instanceof DERUTF8String) {
@@ -2946,7 +3132,7 @@ public abstract class CertTools {
           }
         }
 
-        StringBuilder buff = new StringBuilder();
+        final StringBuilder buff = new StringBuilder();
         if (identifierValue != null) {
           buff.append(escapePermanentIdentifierValue(identifierValue));
         }
@@ -2960,27 +3146,29 @@ public abstract class CertTools {
     return null;
   }
 
-  private static String escapePermanentIdentifierValue(String realValue) {
+  private static String escapePermanentIdentifierValue(final String realValue) {
     return realValue.replace(
         PERMANENTIDENTIFIER_SEP, "\\" + PERMANENTIDENTIFIER_SEP);
   }
 
-  private static String unescapePermanentIdentifierValue(String escapedValue) {
+  private static String unescapePermanentIdentifierValue(
+          final String escapedValue) {
     return escapedValue.replace(
         "\\" + PERMANENTIDENTIFIER, PERMANENTIDENTIFIER);
   }
 
   /**
    * (This method intentionally has package level visibility to be able to be
-   * invoked from JUnit tests.)
+   * invoked from JUnit tests).
    *
    * @param permanentIdentifierString filter
    * @return A two elements String array with the extension values
    */
   static String[] getPermanentIdentifierValues(
-      String permanentIdentifierString) {
-    String[] result = new String[2];
-    int sepPos = permanentIdentifierString.lastIndexOf(PERMANENTIDENTIFIER_SEP);
+      final String permanentIdentifierString) {
+    final String[] result = new String[2];
+    final int sepPos = permanentIdentifierString
+            .lastIndexOf(PERMANENTIDENTIFIER_SEP);
     if (sepPos == -1) {
       if (!permanentIdentifierString.isEmpty()) {
         result[0] = unescapePermanentIdentifierValue(permanentIdentifierString);
@@ -3004,26 +3192,26 @@ public abstract class CertTools {
   }
 
   /**
-   * Helper method to get MS GUID from GeneralName otherName sequence
+   * Helper method to get MS GUID from GeneralName otherName sequence.
    *
    * @param seq the OtherName sequence
    * @return GUID
    */
-  private static String getGUIDStringFromSequence(ASN1Sequence seq) {
+  private static String getGUIDStringFromSequence(final ASN1Sequence seq) {
     String ret = null;
     if (seq != null) {
       // First in sequence is the object identifier, that we must check
-      ASN1ObjectIdentifier id =
+      final ASN1ObjectIdentifier id =
           ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
       if (id.getId().equals(CertTools.GUID_OBJECTID)) {
-        ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
+        final ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
         // Due to bug in java cert.getSubjectAltName regarding OtherName, it can
         // be tagged an extra time...
         ASN1Primitive obj = oobj.getObject();
         if (obj instanceof ASN1TaggedObject) {
           obj = ASN1TaggedObject.getInstance(obj).getObject();
         }
-        ASN1OctetString str = ASN1OctetString.getInstance(obj);
+        final ASN1OctetString str = ASN1OctetString.getInstance(obj);
         ret = new String(Hex.encode(str.getOctets()));
       }
     }
@@ -3058,39 +3246,40 @@ public abstract class CertTools {
    *     "principal1/principal2@realm" or null if the altName does not exist
    */
   @SuppressWarnings("unchecked")
-  protected static String getKrb5PrincipalNameFromSequence(ASN1Sequence seq) {
+  protected static String getKrb5PrincipalNameFromSequence(
+          final ASN1Sequence seq) {
     String ret = null;
     if (seq != null) {
       // First in sequence is the object identifier, that we must check
-      ASN1ObjectIdentifier id =
+      final ASN1ObjectIdentifier id =
           ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
       if (id.getId().equals(CertTools.KRB5PRINCIPAL_OBJECTID)) {
         // Get the KRB5PrincipalName sequence
-        ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
+        final ASN1TaggedObject oobj = (ASN1TaggedObject) seq.getObjectAt(1);
         // Due to bug in java cert.getSubjectAltName regarding OtherName, it can
         // be tagged an extra time...
         ASN1Primitive obj = oobj.getObject();
         if (obj instanceof ASN1TaggedObject) {
           obj = ASN1TaggedObject.getInstance(obj).getObject();
         }
-        ASN1Sequence krb5Seq = ASN1Sequence.getInstance(obj);
+        final ASN1Sequence krb5Seq = ASN1Sequence.getInstance(obj);
         // Get the Realm tagged as 0
-        ASN1TaggedObject robj = (ASN1TaggedObject) krb5Seq.getObjectAt(0);
-        DERGeneralString realmObj =
+        final ASN1TaggedObject robj = (ASN1TaggedObject) krb5Seq.getObjectAt(0);
+        final DERGeneralString realmObj =
             DERGeneralString.getInstance(robj.getObject());
-        String realm = realmObj.getString();
+        final String realm = realmObj.getString();
         // Get the PrincipalName tagged as 1
-        ASN1TaggedObject pobj = (ASN1TaggedObject) krb5Seq.getObjectAt(1);
+        final ASN1TaggedObject pobj = (ASN1TaggedObject) krb5Seq.getObjectAt(1);
         // This is another sequence of type and name
-        ASN1Sequence nseq = ASN1Sequence.getInstance(pobj.getObject());
+        final ASN1Sequence nseq = ASN1Sequence.getInstance(pobj.getObject());
         // Get the name tagged as 1
-        ASN1TaggedObject nobj = (ASN1TaggedObject) nseq.getObjectAt(1);
+        final ASN1TaggedObject nobj = (ASN1TaggedObject) nseq.getObjectAt(1);
         // The name is yet another sequence of GeneralString
-        ASN1Sequence sseq = ASN1Sequence.getInstance(nobj.getObject());
-        Enumeration<ASN1Object> en = sseq.getObjects();
+        final ASN1Sequence sseq = ASN1Sequence.getInstance(nobj.getObject());
+        final Enumeration<ASN1Object> en = sseq.getObjects();
         while (en.hasMoreElements()) {
-          ASN1Primitive o = (ASN1Primitive) en.nextElement();
-          DERGeneralString str = DERGeneralString.getInstance(o);
+          final ASN1Primitive o = (ASN1Primitive) en.nextElement();
+          final DERGeneralString str = DERGeneralString.getInstance(o);
           if (ret != null) {
             ret += "/" + str.getString();
           } else {
@@ -3114,17 +3303,18 @@ public abstract class CertTools {
    * @throws IOException On disk error
    * @throws CertificateParsingException if cert parse fails
    */
-  public static String getGuidAltName(Certificate cert)
+  public static String getGuidAltName(final Certificate cert)
       throws IOException, CertificateParsingException {
     if (cert instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) cert;
-      Collection<List<?>> altNames = x509cert.getSubjectAlternativeNames();
+      final X509Certificate x509cert = (X509Certificate) cert;
+      final Collection<List<?>> altNames
+          = x509cert.getSubjectAlternativeNames();
       if (altNames != null) {
-        Iterator<List<?>> i = altNames.iterator();
+        final Iterator<List<?>> i = altNames.iterator();
         while (i.hasNext()) {
-          ASN1Sequence seq = getAltnameSequence(i.next());
+          final ASN1Sequence seq = getAltnameSequence(i.next());
           if (seq != null) {
-            String guid = CertTools.getGUIDStringFromSequence(seq);
+            final String guid = CertTools.getGUIDStringFromSequence(seq);
             if (guid != null) {
               return guid;
             }
@@ -3136,51 +3326,51 @@ public abstract class CertTools {
   } // getGuidAltName
 
   /**
-   * Helper for the above methods
+   * Helper for the above methods.
    *
    * @param listitem item
    * @return asn.1
    */
-  private static ASN1Sequence getAltnameSequence(List<?> listitem) {
-    Integer no = (Integer) listitem.get(0);
+  private static ASN1Sequence getAltnameSequence(final List<?> listitem) {
+    final Integer no = (Integer) listitem.get(0);
     if (no.intValue() == 0) {
-      byte[] altName = (byte[]) listitem.get(1);
+      final byte[] altName = (byte[]) listitem.get(1);
       return getAltnameSequence(altName);
     }
     return null;
   }
 
-  private static ASN1Sequence getAltnameSequence(byte[] value) {
+  private static ASN1Sequence getAltnameSequence(final byte[] value) {
     ASN1Primitive oct = null;
     try {
       oct = ASN1Primitive.fromByteArray(value);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException("Could not read ASN1InputStream", e);
     }
     if (oct instanceof ASN1TaggedObject) {
       oct = ((ASN1TaggedObject) oct).getObject();
     }
-    ASN1Sequence seq = ASN1Sequence.getInstance(oct);
+    final ASN1Sequence seq = ASN1Sequence.getInstance(oct);
     return seq;
   }
 
   /**
-   * Gets an altName string from an X509Extension
+   * Gets an altName string from an X509Extension.
    *
    * @param ext X509Extension with AlternativeNames
    * @return String as defined in method getSubjectAlternativeName
    */
-  public static String getAltNameStringFromExtension(Extension ext) {
+  public static String getAltNameStringFromExtension(final Extension ext) {
     String altName = null;
     // GeneralNames, the actual encoded name
-    GeneralNames names = getGeneralNamesFromExtension(ext);
+    final GeneralNames names = getGeneralNamesFromExtension(ext);
     if (names != null) {
       try {
-        GeneralName[] gns = names.getNames();
-        for (GeneralName gn : gns) {
-          int tag = gn.getTagNo();
-          ASN1Encodable name = gn.getName();
-          String str = CertTools.getGeneralNameString(tag, name);
+        final GeneralName[] gns = names.getNames();
+        for (final GeneralName gn : gns) {
+          final int tag = gn.getTagNo();
+          final ASN1Encodable name = gn.getName();
+          final String str = CertTools.getGeneralNameString(tag, name);
           if (str == null) {
             continue;
           }
@@ -3190,8 +3380,8 @@ public abstract class CertTools {
             altName += ", " + escapeFieldValue(str);
           }
         }
-      } catch (IOException e) {
-        log.error("IOException parsing altNames: ", e);
+      } catch (final IOException e) {
+        LOGGER.error("IOException parsing altNames: ", e);
         return null;
       }
     }
@@ -3199,15 +3389,15 @@ public abstract class CertTools {
   }
 
   /**
-   * Gets GeneralNames from an X509Extension
+   * Gets GeneralNames from an X509Extension.
    *
    * @param ext X509Extension with AlternativeNames
    * @return GeneralNames with all Alternative Names
    */
-  public static GeneralNames getGeneralNamesFromExtension(Extension ext) {
-    ASN1Encodable gnames = ext.getParsedValue();
+  public static GeneralNames getGeneralNamesFromExtension(final Extension ext) {
+    final ASN1Encodable gnames = ext.getParsedValue();
     if (gnames != null) {
-      GeneralNames names = GeneralNames.getInstance(gnames);
+      final GeneralNames names = GeneralNames.getInstance(gnames);
       return names;
     }
     return null;
@@ -3247,7 +3437,7 @@ public abstract class CertTools {
   }
 
   /**
-   * SubjectAltName ::= GeneralNames
+   * SubjectAltName ::= GeneralNames.
    *
    * <p>GeneralNames :: = SEQUENCE SIZE (1..MAX) OF GeneralName
    *
@@ -3276,19 +3466,20 @@ public abstract class CertTools {
    *     altNames exist. Values in returned String is from CertTools constants.
    *     AltNames not supported are simply not shown in the resulting string.
    */
-  public static String getSubjectAlternativeName(Certificate certificate) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getSubjectAlternativeName");
+  public static String getSubjectAlternativeName(
+          final Certificate certificate) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">getSubjectAlternativeName");
     }
     String result = "";
     if (certificate instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) certificate;
+      final X509Certificate x509cert = (X509Certificate) certificate;
 
       Collection<List<?>> altNames = null;
 
       try {
         altNames = x509cert.getSubjectAlternativeNames();
-      } catch (CertificateParsingException e) {
+      } catch (final CertificateParsingException e) {
         throw new RuntimeException("Could not parse certificate", e);
       }
 
@@ -3369,8 +3560,9 @@ public abstract class CertTools {
                                 getOctetStringFromSequence(
                                     sequence, CertTools.FASCN_OBJECTID)));
                 break;
+                default: break; // no-op
             }
-            ;
+
             break;
           case 1:
             rdn = CertTools.EMAIL + "=" + (String) value;
@@ -3404,8 +3596,8 @@ public abstract class CertTools {
           result += append + escapeFieldValue(rdn);
         }
       }
-      if (log.isTraceEnabled()) {
-        log.trace("<getSubjectAlternativeName: " + result);
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("<getSubjectAlternativeName: " + result);
       }
       if (StringUtils.isEmpty(result)) {
         return null;
@@ -3415,15 +3607,15 @@ public abstract class CertTools {
   }
 
   /**
-   * From an altName string as defined in getSubjectAlternativeName
+   * From an altName string as defined in getSubjectAlternativeName.
    *
    * @param altName name
    * @return ASN.1 GeneralNames
    * @see #getSubjectAlternativeName
    */
   public static GeneralNames getGeneralNamesFromAltName(final String altName) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getGeneralNamesFromAltName: " + altName);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">getGeneralNamesFromAltName: " + altName);
     }
     final ASN1EncodableVector vec = new ASN1EncodableVector();
 
@@ -3442,29 +3634,29 @@ public abstract class CertTools {
       final GeneralName gn = new GeneralName(4, x500DirectoryName);
       vec.add(gn);
     }
-
+    final int uriTag = 6;
     for (final String uri : CertTools.getPartsFromDN(altName, CertTools.URI)) {
-      vec.add(new GeneralName(6, new DERIA5String(uri)));
+      vec.add(new GeneralName(uriTag, new DERIA5String(uri)));
     }
     for (final String uri : CertTools.getPartsFromDN(altName, CertTools.URI1)) {
-      vec.add(new GeneralName(6, new DERIA5String(uri)));
+      vec.add(new GeneralName(uriTag, new DERIA5String(uri)));
     }
     for (final String uri : CertTools.getPartsFromDN(altName, CertTools.URI2)) {
-      vec.add(new GeneralName(6, new DERIA5String(uri)));
+      vec.add(new GeneralName(uriTag, new DERIA5String(uri)));
     }
 
-    for (final String addr :
-        CertTools.getPartsFromDN(altName, CertTools.IPADDR)) {
+    for (final String addr
+        : CertTools.getPartsFromDN(altName, CertTools.IPADDR)) {
       final byte[] ipoctets = StringTools.ipStringToOctets(addr);
       if (ipoctets.length > 0) {
         final GeneralName gn = new GeneralName(7, new DEROctetString(ipoctets));
         vec.add(gn);
       } else {
-        log.error("Cannot parse/encode ip address, ignoring: " + addr);
+        LOGGER.error("Cannot parse/encode ip address, ignoring: " + addr);
       }
     }
-    for (final String oid :
-        CertTools.getPartsFromDN(altName, CertTools.REGISTEREDID)) {
+    for (final String oid
+        : CertTools.getPartsFromDN(altName, CertTools.REGISTEREDID)) {
       vec.add(new GeneralName(GeneralName.registeredID, oid));
     }
 
@@ -3480,8 +3672,8 @@ public abstract class CertTools {
 
     // XmpAddr is an OtherName see method getUTF8String...... for asn.1
     // definition
-    for (final String xmppAddr :
-        CertTools.getPartsFromDN(altName, CertTools.XMPPADDR)) {
+    for (final String xmppAddr
+        : CertTools.getPartsFromDN(altName, CertTools.XMPPADDR)) {
       final ASN1EncodableVector v = new ASN1EncodableVector();
       v.add(new ASN1ObjectIdentifier(CertTools.XMPPADDR_OBJECTID));
       v.add(new DERTaggedObject(true, 0, new DERUTF8String(xmppAddr)));
@@ -3492,8 +3684,8 @@ public abstract class CertTools {
 
     // srvName is an OtherName see method getIA5String...... for asn.1
     // definition
-    for (final String srvName :
-        CertTools.getPartsFromDN(altName, CertTools.SRVNAME)) {
+    for (final String srvName
+       :  CertTools.getPartsFromDN(altName, CertTools.SRVNAME)) {
       final ASN1EncodableVector v = new ASN1EncodableVector();
       v.add(new ASN1ObjectIdentifier(CertTools.SRVNAME_OBJECTID));
       v.add(new DERTaggedObject(true, 0, new DERIA5String(srvName)));
@@ -3505,8 +3697,8 @@ public abstract class CertTools {
     // FASC-N is an OtherName see method getOctetString...... for asn.1
     // definition (PIV FIPS 201-2)
     // We take the input as being a hex encoded octet string
-    for (final String fascN :
-        CertTools.getPartsFromDN(altName, CertTools.FASCN)) {
+    for (final String fascN
+        : CertTools.getPartsFromDN(altName, CertTools.FASCN)) {
       final ASN1EncodableVector v = new ASN1EncodableVector();
       v.add(new ASN1ObjectIdentifier(CertTools.FASCN_OBJECTID));
       v.add(
@@ -3518,8 +3710,8 @@ public abstract class CertTools {
 
     // PermanentIdentifier is an OtherName see method
     // getPermananentIdentifier... for asn.1 definition
-    for (final String permanentIdentifier :
-        CertTools.getPartsFromDN(altName, CertTools.PERMANENTIDENTIFIER)) {
+    for (final String permanentIdentifier
+        : CertTools.getPartsFromDN(altName, CertTools.PERMANENTIDENTIFIER)) {
       final String[] values = getPermanentIdentifierValues(permanentIdentifier);
       final ASN1EncodableVector v =
           new ASN1EncodableVector(); // this is the OtherName
@@ -3539,10 +3731,10 @@ public abstract class CertTools {
       vec.add(gn);
     }
 
-    for (final String guid :
-        CertTools.getPartsFromDN(altName, CertTools.GUID)) {
+    for (final String guid
+        : CertTools.getPartsFromDN(altName, CertTools.GUID)) {
       final ASN1EncodableVector v = new ASN1EncodableVector();
-      byte[] guidbytes = Hex.decode(guid);
+      final byte[] guidbytes = Hex.decode(guid);
       if (guidbytes != null) {
         v.add(new ASN1ObjectIdentifier(CertTools.GUID_OBJECTID));
         v.add(new DERTaggedObject(true, 0, new DEROctetString(guidbytes)));
@@ -3550,17 +3742,17 @@ public abstract class CertTools {
             new DERTaggedObject(false, 0, new DERSequence(v));
         vec.add(gn);
       } else {
-        log.error("Cannot decode hexadecimal guid, ignoring: " + guid);
+        LOGGER.error("Cannot decode hexadecimal guid, ignoring: " + guid);
       }
     }
 
     // Krb5PrincipalName is an OtherName, see method getKrb5Principal...for
     // ASN.1 definition
-    for (final String principalString :
-        CertTools.getPartsFromDN(altName, CertTools.KRB5PRINCIPAL)) {
+    for (final String principalString
+        : CertTools.getPartsFromDN(altName, CertTools.KRB5PRINCIPAL)) {
       // Start by parsing the input string to separate it in different parts
-      if (log.isDebugEnabled()) {
-        log.debug("principalString: " + principalString);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("principalString: " + principalString);
       }
       // The realm is the last part moving back until an @
       final int index = principalString.lastIndexOf('@');
@@ -3568,8 +3760,8 @@ public abstract class CertTools {
       if (index > 0) {
         realm = principalString.substring(index + 1);
       }
-      if (log.isDebugEnabled()) {
-        log.debug("realm: " + realm);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("realm: " + realm);
       }
       // Now we can have several principals separated by /
       final ArrayList<String> principalarr = new ArrayList<String>();
@@ -3581,9 +3773,9 @@ public abstract class CertTools {
         if (jndex == -1) {
           jndex = index;
         }
-        String s = principalString.substring(bindex, jndex);
-        if (log.isDebugEnabled()) {
-          log.debug("adding principal name: " + s);
+        final String s = principalString.substring(bindex, jndex);
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("adding principal name: " + s);
         }
         principalarr.add(s);
         bindex = jndex + 1;
@@ -3619,19 +3811,20 @@ public abstract class CertTools {
     }
 
     // SIM is an OtherName. See RFC-4683
-    for (final String internalSimString :
-        CertTools.getPartsFromDN(
+    for (final String internalSimString
+        : CertTools.getPartsFromDN(
             altName, RFC4683Tools.SUBJECTIDENTIFICATIONMETHOD)) {
       if (StringUtils.isNotBlank(internalSimString)) {
+          final int index = 3;
         final String[] tokens =
             internalSimString.split(RFC4683Tools.LIST_SEPARATOR);
-        if (tokens.length == 3) {
-          ASN1Primitive gn =
+        if (tokens.length == index) {
+          final ASN1Primitive gn =
               RFC4683Tools.createSimGeneralName(
                   tokens[0], tokens[1], tokens[2]);
           vec.add(gn);
-          if (log.isDebugEnabled()) {
-            log.debug("SIM GeneralName added: " + gn.toString());
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("SIM GeneralName added: " + gn.toString());
           }
         }
       }
@@ -3660,7 +3853,7 @@ public abstract class CertTools {
    * GeneralName ::= CHOICE { otherName [0] OtherName, rfc822Name [1] IA5String,
    * dNSName [2] IA5String, x400Address [3] ORAddress, directoryName [4] Name,
    * ediPartyName [5] EDIPartyName, uniformResourceIdentifier [6] IA5String,
-   * iPAddress [7] OCTET STRING, registeredID [8] OBJECT IDENTIFIER}
+   * iPAddress [7] OCTET STRING, registeredID [8] OBJECT IDENTIFIER}.
    *
    * @param tag the no tag 0-8
    * @param value the ASN1Encodable value as returned by GeneralName.getName()
@@ -3668,15 +3861,16 @@ public abstract class CertTools {
    * @throws IOException on disk error
    * @see #getSubjectAlternativeName
    */
-  public static String getGeneralNameString(int tag, ASN1Encodable value)
+  public static String getGeneralNameString(
+          final int tag, final ASN1Encodable value)
       throws IOException {
     String ret = null;
     switch (tag) {
       case 0:
-        {
+
           final ASN1Sequence sequence =
               getAltnameSequence(value.toASN1Primitive().getEncoded());
-          final ASN1ObjectIdentifier oid =
+          ASN1ObjectIdentifier oid =
               ASN1ObjectIdentifier.getInstance(sequence.getObjectAt(0));
           switch (oid.getId()) {
             case CertTools.UPN_OBJECTID:
@@ -3727,10 +3921,11 @@ public abstract class CertTools {
                               getOctetStringFromSequence(
                                   sequence, CertTools.FASCN_OBJECTID)));
               break;
+              default: break; //no-op
           }
-          ;
+
           break;
-        }
+
       case 1:
         ret =
             CertTools.EMAIL + "=" + DERIA5String.getInstance(value).getString();
@@ -3750,7 +3945,7 @@ public abstract class CertTools {
         ret = CertTools.URI + "=" + DERIA5String.getInstance(value).getString();
         break;
       case 7:
-        ASN1OctetString oct = ASN1OctetString.getInstance(value);
+        final ASN1OctetString oct = ASN1OctetString.getInstance(value);
         ret =
             CertTools.IPADDR
                 + "="
@@ -3758,7 +3953,7 @@ public abstract class CertTools {
         break;
       case 8:
         // BC GeneralName stores the actual object value, which is an OID
-        ASN1ObjectIdentifier oid = ASN1ObjectIdentifier.getInstance(value);
+        oid = ASN1ObjectIdentifier.getInstance(value);
         ret = CertTools.REGISTEREDID + "=" + oid.getId();
         break;
       default: // SubjectAltName of unknown type
@@ -3779,54 +3974,55 @@ public abstract class CertTools {
    * @throws CertPathValidatorException if certificate could not be validated
    */
   public static boolean verify(
-      X509Certificate certificate,
-      Collection<X509Certificate> caCertChain,
-      Date date,
-      PKIXCertPathChecker... pkixCertPathCheckers)
+      final X509Certificate certificate,
+      final Collection<X509Certificate> caCertChain,
+      final Date date,
+      final PKIXCertPathChecker... pkixCertPathCheckers)
       throws CertPathValidatorException {
     try {
-      ArrayList<X509Certificate> certlist = new ArrayList<>();
+      final ArrayList<X509Certificate> certlist = new ArrayList<>();
       // Create CertPath
       certlist.add(certificate);
       // Add other certs...
-      CertPath cp =
+      final CertPath cp =
           CertificateFactory.getInstance(
                   "X.509", BouncyCastleProvider.PROVIDER_NAME)
               .generateCertPath(certlist);
 
       // Create TrustAnchor. Since EJBCA use BouncyCastle provider, we assume
       // certificate already in correct order
-      X509Certificate[] cac =
+      final X509Certificate[] cac =
           caCertChain.toArray(new X509Certificate[caCertChain.size()]);
-      TrustAnchor anchor = new TrustAnchor(cac[0], null);
+      final TrustAnchor anchor = new TrustAnchor(cac[0], null);
       // Set the PKIX parameters
-      PKIXParameters params = new PKIXParameters(Collections.singleton(anchor));
-      for (final PKIXCertPathChecker pkixCertPathChecker :
-          pkixCertPathCheckers) {
+      final PKIXParameters params =
+              new PKIXParameters(Collections.singleton(anchor));
+      for (final PKIXCertPathChecker pkixCertPathChecker
+          : pkixCertPathCheckers) {
         params.addCertPathChecker(pkixCertPathChecker);
       }
       params.setRevocationEnabled(false);
       params.setDate(date);
-      CertPathValidator cpv =
+      final CertPathValidator cpv =
           CertPathValidator.getInstance(
               "PKIX", BouncyCastleProvider.PROVIDER_NAME);
-      PKIXCertPathValidatorResult result =
+      final PKIXCertPathValidatorResult result =
           (PKIXCertPathValidatorResult) cpv.validate(cp, params);
-      if (log.isDebugEnabled()) {
-        log.debug("Certificate verify result: " + result.toString());
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Certificate verify result: " + result.toString());
       }
-    } catch (CertPathValidatorException cpve) {
+    } catch (final CertPathValidatorException cpve) {
       throw new CertPathValidatorException(
           "Invalid certificate or certificate not issued by specified CA: "
               + cpve.getMessage());
-    } catch (CertificateException e) {
+    } catch (final CertificateException e) {
       throw new IllegalArgumentException(
           "Something was wrong with the supplied certificate", e);
-    } catch (NoSuchProviderException e) {
+    } catch (final NoSuchProviderException e) {
       throw new IllegalStateException("BouncyCastle provider not found.", e);
-    } catch (NoSuchAlgorithmException e) {
+    } catch (final NoSuchAlgorithmException e) {
       throw new IllegalStateException("Algorithm PKIX was not found.", e);
-    } catch (InvalidAlgorithmParameterException e) {
+    } catch (final InvalidAlgorithmParameterException e) {
       throw new IllegalArgumentException(
           "Either ca certificate chain was empty, or the certificate was on an"
               + " inappropraite type for a PKIX path checker.",
@@ -3844,7 +4040,8 @@ public abstract class CertTools {
    * @throws CertPathValidatorException if verification failed
    */
   public static boolean verify(
-      X509Certificate certificate, Collection<X509Certificate> caCertChain)
+      final X509Certificate certificate,
+      final Collection<X509Certificate> caCertChain)
       throws CertPathValidatorException {
     return verify(certificate, caCertChain, null);
   }
@@ -3862,29 +4059,31 @@ public abstract class CertTools {
    * @return true if verified OK
    */
   public static boolean verifyWithTrustedCertificates(
-      X509Certificate certificate,
-      List<Collection<X509Certificate>> trustedCertificates,
-      PKIXCertPathChecker... pkixCertPathCheckers) {
+      final X509Certificate certificate,
+      final List<Collection<X509Certificate>> trustedCertificates,
+      final PKIXCertPathChecker... pkixCertPathCheckers) {
 
     if (trustedCertificates == null) {
-      if (log.isDebugEnabled()) {
-        log.debug("Input of trustedCertificates was null. Trusting nothing.");
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(
+                "Input of trustedCertificates was null. Trusting nothing.");
       }
       return false;
     }
 
     if (trustedCertificates.size() == 0) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(
             "Input of trustedCertificates was empty. Trusting everything.");
       }
       return true;
     }
 
-    BigInteger certSN = getSerialNumber(certificate);
-    for (Collection<X509Certificate> trustedCertChain : trustedCertificates) {
-      X509Certificate trustedCert = trustedCertChain.iterator().next();
-      BigInteger trustedCertSN = getSerialNumber(trustedCert);
+    final BigInteger certSN = getSerialNumber(certificate);
+    for (final Collection<X509Certificate> trustedCertChain
+            : trustedCertificates) {
+      final X509Certificate trustedCert = trustedCertChain.iterator().next();
+      final BigInteger trustedCertSN = getSerialNumber(trustedCert);
       if (certSN.equals(trustedCertSN)) {
         // If the serial number of the certificate matches the serial number of
         // a certificate in the list, make sure that it in
@@ -3899,8 +4098,8 @@ public abstract class CertTools {
       }
       try {
         verify(certificate, trustedCertChain, null, pkixCertPathCheckers);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug(
               "Trusting certificate with SubjectDN '"
                   + getSubjectDN(certificate)
                   + "' and issuerDN '"
@@ -3908,7 +4107,7 @@ public abstract class CertTools {
                   + "'.");
         }
         return true;
-      } catch (CertPathValidatorException e) {
+      } catch (final CertPathValidatorException e) {
         // Do nothing. Just try the next trusted certificate chain in the list
       }
     }
@@ -3949,15 +4148,15 @@ public abstract class CertTools {
           final Date end =
               cvccert.getCVCertificate().getCertificateBody().getValidTo();
           if (start.after(date)) {
-            String msg =
+            final String msg =
                 "CV Certificate startDate '"
                     + start
                     + "' is after check date '"
                     + date
                     + "'. Subject: "
                     + CertTools.getSubjectDN(cert);
-            if (log.isTraceEnabled()) {
-              log.trace(msg);
+            if (LOGGER.isTraceEnabled()) {
+              LOGGER.trace(msg);
             }
             throw new CertificateNotYetValidException(msg);
           }
@@ -3969,13 +4168,13 @@ public abstract class CertTools {
                     + date
                     + "'. Subject: "
                     + CertTools.getSubjectDN(cert);
-            if (log.isTraceEnabled()) {
-              log.trace(msg);
+            if (LOGGER.isTraceEnabled()) {
+              LOGGER.trace(msg);
             }
             throw new CertificateExpiredException(msg);
           }
-        } catch (NoSuchFieldException e) {
-          log.error("NoSuchFieldException: ", e);
+        } catch (final NoSuchFieldException e) {
+          LOGGER.error("NoSuchFieldException: ", e);
         }
       }
     }
@@ -4035,7 +4234,7 @@ public abstract class CertTools {
 
   private static Collection<URL> getCrlDistributionPoints(
       final X509Certificate x509cert, final boolean onlyfirst) {
-    ArrayList<URL> cdps = new ArrayList<URL>();
+    final ArrayList<URL> cdps = new ArrayList<URL>();
     final ASN1Primitive obj =
         getExtensionValue(x509cert, Extension.cRLDistributionPoints.getId());
     if (obj == null) {
@@ -4044,19 +4243,19 @@ public abstract class CertTools {
 
     final ASN1Sequence crlDistributionPoints = (ASN1Sequence) obj;
     for (int i = 0; i < crlDistributionPoints.size(); i++) {
-      ASN1Sequence distributionPoint =
+      final ASN1Sequence distributionPoint =
           (ASN1Sequence) crlDistributionPoints.getObjectAt(i);
       for (int j = 0; j < distributionPoint.size(); j++) {
-        ASN1TaggedObject tagged =
+        final ASN1TaggedObject tagged =
             (ASN1TaggedObject) distributionPoint.getObjectAt(j);
         if (tagged.getTagNo() == 0) {
-          String url = getStringFromGeneralNames(tagged.getObject());
+          final String url = getStringFromGeneralNames(tagged.getObject());
           if (url != null) {
             try {
               cdps.add(new URL(url));
-            } catch (MalformedURLException e) {
-              if (log.isDebugEnabled()) {
-                log.debug(
+            } catch (final MalformedURLException e) {
+              if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(
                     "Error parsing '"
                         + url
                         + "' as a URL. "
@@ -4075,29 +4274,31 @@ public abstract class CertTools {
 
   /**
    * This utility method extracts the Authority Information Access Extention's
-   * URLs
+   * URLs.
    *
    * @param crl a CRL to parse
    * @return the Authority Information Access Extention's URLs, or an empty
    *     Collection if none were found
    */
-  public static Collection<String> getAuthorityInformationAccess(CRL crl) {
-    Collection<String> result = new ArrayList<String>();
+  public static Collection<String> getAuthorityInformationAccess(
+          final CRL crl) {
+    final Collection<String> result = new ArrayList<String>();
     if (crl instanceof X509CRL) {
-      X509CRL x509crl = (X509CRL) crl;
-      ASN1Primitive derObject =
+      final X509CRL x509crl = (X509CRL) crl;
+      final ASN1Primitive derObject =
           getExtensionValue(x509crl, Extension.authorityInfoAccess.getId());
       if (derObject != null) {
-        AuthorityInformationAccess authorityInformationAccess =
+        final AuthorityInformationAccess authorityInformationAccess =
             AuthorityInformationAccess.getInstance(derObject);
-        AccessDescription[] accessDescriptions =
+        final AccessDescription[] accessDescriptions =
             authorityInformationAccess.getAccessDescriptions();
         if ((accessDescriptions != null) && (accessDescriptions.length > 0)) {
-          for (AccessDescription accessDescription : accessDescriptions) {
+          for (final AccessDescription accessDescription : accessDescriptions) {
             if (accessDescription
                 .getAccessMethod()
                 .equals(X509ObjectIdentifiers.id_ad_caIssuers)) {
-              GeneralName generalName = accessDescription.getAccessLocation();
+              final GeneralName generalName =
+                      accessDescription.getAccessLocation();
               if (generalName.getTagNo()
                   == GeneralName.uniformResourceIdentifier) {
                 // Due to bug in java getting some ASN.1 objects, it can be
@@ -4123,7 +4324,7 @@ public abstract class CertTools {
    *     extension or an empty list
    */
   public static List<String> getAuthorityInformationAccessCAIssuerUris(
-      Certificate cert) {
+      final Certificate cert) {
     return getAuthorityInformationAccessCaIssuerUris(cert, false);
   }
 
@@ -4132,8 +4333,9 @@ public abstract class CertTools {
    *     extension, or null.
    * @param cert is the certificate to parse
    */
-  public static String getAuthorityInformationAccessOcspUrl(Certificate cert) {
-    Collection<String> urls = getAuthorityInformationAccessOcspUrls(cert);
+  public static String getAuthorityInformationAccessOcspUrl(
+          final Certificate cert) {
+    final Collection<String> urls = getAuthorityInformationAccessOcspUrls(cert);
     if (!urls.isEmpty()) {
       return urls.iterator().next();
     }
@@ -4146,7 +4348,7 @@ public abstract class CertTools {
    *     an empty list
    */
   public static List<String> getAuthorityInformationAccessOcspUrls(
-      Certificate cert) {
+      final Certificate cert) {
     return getAuthorityInformationAccessOcspUrls(cert, false);
   }
 
@@ -4157,10 +4359,10 @@ public abstract class CertTools {
    *     extension or an empty list.
    */
   private static List<String> getAuthorityInformationAccessCaIssuerUris(
-      Certificate cert, final boolean onlyfirst) {
+      final Certificate cert, final boolean onlyfirst) {
     final List<String> urls = new ArrayList<>();
     if (cert instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) cert;
+      final X509Certificate x509cert = (X509Certificate) cert;
       final ASN1Primitive obj =
           getExtensionValue(x509cert, Extension.authorityInfoAccess.getId());
       if (obj != null) {
@@ -4207,10 +4409,10 @@ public abstract class CertTools {
    *     an empty list
    */
   private static List<String> getAuthorityInformationAccessOcspUrls(
-      Certificate cert, final boolean onlyfirst) {
+      final Certificate cert, final boolean onlyfirst) {
     final List<String> urls = new ArrayList<>();
     if (cert instanceof X509Certificate) {
-      X509Certificate x509cert = (X509Certificate) cert;
+      final X509Certificate x509cert = (X509Certificate) cert;
       final ASN1Primitive obj =
           getExtensionValue(x509cert, Extension.authorityInfoAccess.getId());
       if (obj != null) {
@@ -4260,8 +4462,8 @@ public abstract class CertTools {
     final byte[] extvalue =
         cert.getExtensionValue(Extension.privateKeyUsagePeriod.getId());
     if (extvalue != null && extvalue.length > 0) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace(
             "Found a PrivateKeyUsagePeriod in the certificate with subject: "
                 + cert.getSubjectDN().toString());
       }
@@ -4278,7 +4480,7 @@ public abstract class CertTools {
    * @return an Extension ASN1Primitive from a certificate, or null
    */
   protected static ASN1Primitive getExtensionValue(
-      X509Certificate cert, String oid) {
+      final X509Certificate cert, final String oid) {
     if (cert == null) {
       return null;
     }
@@ -4290,7 +4492,8 @@ public abstract class CertTools {
    * @param oid An OID for an extension
    * @return an Extension ASN1Primitive from a CRL
    */
-  protected static ASN1Primitive getExtensionValue(X509CRL crl, String oid) {
+  protected static ASN1Primitive getExtensionValue(
+          final X509CRL crl, final String oid) {
     if (crl == null || oid == null) {
       return null;
     }
@@ -4304,7 +4507,8 @@ public abstract class CertTools {
    *     extension exists
    */
   public static Extension getExtension(
-      final PKCS10CertificationRequest pkcs10CertificateRequest, String oid) {
+      final PKCS10CertificationRequest pkcs10CertificateRequest,
+      final String oid) {
     if (pkcs10CertificateRequest != null && oid != null) {
       final Extensions extensions =
           getPKCS10Extensions(pkcs10CertificateRequest);
@@ -4335,14 +4539,14 @@ public abstract class CertTools {
     return null;
   }
 
-  private static ASN1Primitive getDerObjectFromByteArray(byte[] bytes) {
+  private static ASN1Primitive getDerObjectFromByteArray(final byte[] bytes) {
     if (bytes == null) {
       return null;
     }
     try {
       return ASN1Primitive.fromByteArray(
           ASN1OctetString.getInstance(bytes).getOctets());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException("Caught an unexected IOException", e);
     }
   }
@@ -4354,13 +4558,13 @@ public abstract class CertTools {
    * @return String with URI if tagNo is 6 (uniformResourceIdentifier), null
    *     otherwise
    */
-  private static String getStringFromGeneralNames(ASN1Primitive names) {
-    ASN1Sequence namesSequence =
+  private static String getStringFromGeneralNames(final ASN1Primitive names) {
+    final ASN1Sequence namesSequence =
         ASN1Sequence.getInstance((ASN1TaggedObject) names, false);
     if (namesSequence.size() == 0) {
       return null;
     }
-    DERTaggedObject taggedObject =
+    final DERTaggedObject taggedObject =
         (DERTaggedObject) namesSequence.getObjectAt(0);
     if (taggedObject.getTagNo()
         != GeneralName
@@ -4379,16 +4583,16 @@ public abstract class CertTools {
    * @return String containing hex format of SHA1 fingerprint (lower case), or
    *     null if input is null.
    */
-  public static String getFingerprintAsString(Certificate cert) {
+  public static String getFingerprintAsString(final Certificate cert) {
     if (cert == null) {
       return null;
     }
     try {
-      byte[] res = generateSHA1Fingerprint(cert.getEncoded());
+      final byte[] res = generateSHA1Fingerprint(cert.getEncoded());
 
       return new String(Hex.encode(res));
-    } catch (CertificateEncodingException cee) {
-      log.error("Error encoding certificate.", cee);
+    } catch (final CertificateEncodingException cee) {
+      LOGGER.error("Error encoding certificate.", cee);
     }
 
     return null;
@@ -4400,13 +4604,13 @@ public abstract class CertTools {
    * @param crl X509CRL.
    * @return String containing hex format of SHA1 fingerprint.
    */
-  public static String getFingerprintAsString(X509CRL crl) {
+  public static String getFingerprintAsString(final X509CRL crl) {
     try {
-      byte[] res = generateSHA1Fingerprint(crl.getEncoded());
+      final byte[] res = generateSHA1Fingerprint(crl.getEncoded());
 
       return new String(Hex.encode(res));
-    } catch (CRLException ce) {
-      log.error("Error encoding CRL.", ce);
+    } catch (final CRLException ce) {
+      LOGGER.error("Error encoding CRL.", ce);
     }
 
     return null;
@@ -4418,8 +4622,8 @@ public abstract class CertTools {
    * @param in byte array to fingerprint.
    * @return String containing hex format of SHA1 fingerprint.
    */
-  public static String getFingerprintAsString(byte[] in) {
-    byte[] res = generateSHA1Fingerprint(in);
+  public static String getFingerprintAsString(final byte[] in) {
+    final byte[] res = generateSHA1Fingerprint(in);
     return new String(Hex.encode(res));
   }
 
@@ -4429,65 +4633,65 @@ public abstract class CertTools {
    * @param in byte array to fingerprint.
    * @return String containing hex format of SHA256 fingerprint.
    */
-  public static String getSHA256FingerprintAsString(byte[] in) {
-    byte[] res = generateSHA256Fingerprint(in);
+  public static String getSHA256FingerprintAsString(final byte[] in) {
+    final byte[] res = generateSHA256Fingerprint(in);
     return new String(Hex.encode(res));
   }
 
   /**
-   * Generate a SHA1 fingerprint from a byte array containing a certificate
+   * Generate a SHA1 fingerprint from a byte array containing a certificate.
    *
    * @param ba Byte array containing DER encoded Certificate or CRL.
    * @return Byte array containing SHA1 hash of DER encoded certificate.
    */
-  public static byte[] generateSHA1Fingerprint(byte[] ba) {
+  public static byte[] generateSHA1Fingerprint(final byte[] ba) {
     // log.trace(">generateSHA1Fingerprint");
     try {
-      MessageDigest md = MessageDigest.getInstance("SHA1");
+      final MessageDigest md = MessageDigest.getInstance("SHA1");
       return md.digest(ba);
-    } catch (NoSuchAlgorithmException nsae) {
-      log.error("SHA1 algorithm not supported", nsae);
+    } catch (final NoSuchAlgorithmException nsae) {
+      LOGGER.error("SHA1 algorithm not supported", nsae);
     }
     // log.trace("<generateSHA1Fingerprint");
     return null;
   } // generateSHA1Fingerprint
 
   /**
-   * Generate a SHA256 fingerprint from a byte array containing a certificate
+   * Generate a SHA256 fingerprint from a byte array containing a certificate.
    *
    * @param ba Byte array containing DER encoded Certificate or CRL.
    * @return Byte array containing SHA256 hash of DER encoded certificate.
    */
-  public static byte[] generateSHA256Fingerprint(byte[] ba) {
+  public static byte[] generateSHA256Fingerprint(final byte[] ba) {
     try {
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      final MessageDigest md = MessageDigest.getInstance("SHA-256");
       return md.digest(ba);
-    } catch (NoSuchAlgorithmException nsae) {
-      log.error("SHA-256 algorithm not supported", nsae);
+    } catch (final NoSuchAlgorithmException nsae) {
+      LOGGER.error("SHA-256 algorithm not supported", nsae);
     }
     return null;
   } // generateSHA256Fingerprint
 
   /**
-   * Generate a MD5 fingerprint from a byte array containing a certificate
+   * Generate a MD5 fingerprint from a byte array containing a certificate.
    *
    * @param ba Byte array containing DER encoded Certificate.
    * @return Byte array containing MD5 hash of DER encoded certificate (raw
    *     binary hash).
    */
-  public static byte[] generateMD5Fingerprint(byte[] ba) {
+  public static byte[] generateMD5Fingerprint(final byte[] ba) {
     try {
-      MessageDigest md = MessageDigest.getInstance("MD5");
+      final MessageDigest md = MessageDigest.getInstance("MD5");
       return md.digest(ba);
-    } catch (NoSuchAlgorithmException nsae) {
-      log.error("MD5 algorithm not supported", nsae);
+    } catch (final NoSuchAlgorithmException nsae) {
+      LOGGER.error("MD5 algorithm not supported", nsae);
     }
 
     return null;
   } // generateMD5Fingerprint
 
   /**
-   * Converts Sun Key usage bits to Bouncy castle key usage kits
+   * Converts Sun Key usage bits to Bouncy castle key usage kits.
    *
    * @param sku key usage bit fields according to
    *     java.security.cert.X509Certificate#getKeyUsage, must be a boolean aray
@@ -4497,7 +4701,7 @@ public abstract class CertTools {
    * @see java.security.cert.X509Certificate#getKeyUsage
    * @see org.bouncycastle.jce.X509KeyUsage#X509KeyUsage
    */
-  public static int sunKeyUsageToBC(boolean[] sku) {
+  public static int sunKeyUsageToBC(final boolean[] sku) {
     if (sku == null) {
       return -1;
     }
@@ -4533,20 +4737,20 @@ public abstract class CertTools {
   }
 
   /**
-   * Converts DERBitString ResonFlags to a RevokedCertInfo constant
+   * Converts DERBitString ResonFlags to a RevokedCertInfo constant.
    *
    * @param reasonFlags DERBITString received from
    *     org.bouncycastle.asn1.x509.ReasonFlags.
    * @return int according to org.cesecore.certificates.crl.RevokedCertInfo
    */
-  public static int bitStringToRevokedCertInfo(DERBitString reasonFlags) {
+  public static int bitStringToRevokedCertInfo(final DERBitString reasonFlags) {
     int ret = RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;
     if (reasonFlags == null) {
       return ret;
     }
-    int val = reasonFlags.intValue();
-    if (log.isDebugEnabled()) {
-      log.debug("Int value of bitString revocation reason: " + val);
+    final int val = reasonFlags.intValue();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Int value of bitString revocation reason: " + val);
     }
     if ((val & ReasonFlags.aACompromise) != 0) {
       ret = RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE;
@@ -4593,9 +4797,9 @@ public abstract class CertTools {
    * @return the new DN
    */
   public static String insertCNPostfix(
-      String dn, String cnpostfix, X500NameStyle nameStyle) {
-    if (log.isTraceEnabled()) {
-      log.trace(">insertCNPostfix: dn=" + dn + ", cnpostfix=" + cnpostfix);
+      final String dn, final String cnpostfix, final X500NameStyle nameStyle) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(">insertCNPostfix: dn=" + dn + ", cnpostfix=" + cnpostfix);
     }
     if (dn == null) {
       return null;
@@ -4609,7 +4813,7 @@ public abstract class CertTools {
       for (final AttributeTypeAndValue atav : attributeTypeAndValues) {
         if (atav.getType() != null) {
           final String currentSymbol =
-              CeSecoreNameStyle.DefaultSymbols.get(atav.getType());
+              CeSecoreNameStyle.DEFAULT_SYMBOLS.get(atav.getType());
           if (!replaced && "CN".equals(currentSymbol)) {
             nameBuilder.addRDN(
                 atav.getType(),
@@ -4622,8 +4826,8 @@ public abstract class CertTools {
       }
     }
     final String ret = nameBuilder.build().toString();
-    if (log.isTraceEnabled()) {
-      log.trace("<reverseDN: " + ret);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("<reverseDN: " + ret);
     }
     return ret;
   }
@@ -4635,9 +4839,9 @@ public abstract class CertTools {
    * @return DN components
    * @see X509NameTokenizer
    */
-  public static List<String> getX500NameComponents(String dn) {
-    List<String> ret = new ArrayList<String>();
-    X509NameTokenizer tokenizer = new X509NameTokenizer(dn);
+  public static List<String> getX500NameComponents(final String dn) {
+    final List<String> ret = new ArrayList<String>();
+    final X509NameTokenizer tokenizer = new X509NameTokenizer(dn);
     while (tokenizer.hasMoreTokens()) {
       ret.add(tokenizer.nextToken());
     }
@@ -4652,7 +4856,7 @@ public abstract class CertTools {
    * @param dn DN
    * @return Parent DN
    */
-  public static String getParentDN(String dn) {
+  public static String getParentDN(final String dn) {
     final X509NameTokenizer tokenizer = new X509NameTokenizer(dn);
     tokenizer.nextToken();
     return tokenizer.getRemainingString();
@@ -4663,25 +4867,29 @@ public abstract class CertTools {
    * java.util.StringTokenizer.
    */
   private static class X509NameTokenizer {
-    private String value;
+      /** Value. */
+    private final String value;
+    /** Index. */
     private int index;
-    private char separator;
-    private StringBuffer buf = new StringBuffer();
+    /** Sep. */
+    private final char separator;
+    /** Buffer. */
+    private final StringBuffer buf = new StringBuffer();
 
     /**
      * Creates the object, using the default comma (,) as separator for
-     * tokenization
+     * tokenization.
      *
      * @param oid OID
      */
-    public X509NameTokenizer(String oid) {
+    X509NameTokenizer(final String oid) {
       this(oid, ',');
     }
 
-    public X509NameTokenizer(String oid, char separator) {
+    X509NameTokenizer(final String oid, final char aSeparator) {
       this.value = oid;
       this.index = -1;
-      this.separator = separator;
+      this.separator = aSeparator;
     }
 
     public boolean hasMoreTokens() {
@@ -4700,7 +4908,7 @@ public abstract class CertTools {
       buf.setLength(0);
 
       while (end != value.length()) {
-        char c = value.charAt(end);
+        final char c = value.charAt(end);
 
         if (c == '"') {
           if (!escaped) {
@@ -4750,15 +4958,18 @@ public abstract class CertTools {
    * consider escaped characters. Used for reversing DNs without unescaping.
    */
   private static class BasicX509NameTokenizer {
+      /** OID. */
     private final String oid;
+    /** Index. */
     private int index = -1;
-    /*
-     * Since this class isn't thread safe anyway, we can use the slightly faster StringBuilder instead of StringBuffer
+    /**
+     * Since this class isn't thread safe anyway, we can use the slightly faster
+     * StringBuilder instead of StringBuffer.
      */
-    private StringBuilder buf = new StringBuilder();
+    private final StringBuilder buf = new StringBuilder();
 
-    public BasicX509NameTokenizer(String oid) {
-      this.oid = oid;
+    BasicX509NameTokenizer(final String anOid) {
+      this.oid = anOid;
     }
 
     public boolean hasMoreTokens() {
@@ -4777,7 +4988,7 @@ public abstract class CertTools {
       buf.setLength(0);
 
       while (end != oid.length()) {
-        char c = oid.charAt(end);
+        final char c = oid.charAt(end);
 
         if (c == '"') {
           if (!escaped) {
@@ -4810,7 +5021,7 @@ public abstract class CertTools {
 
   /**
    * Obtains a List with the ASN1ObjectIdentifiers for dNObjects names, in the
-   * specified order
+   * specified order.
    *
    * @param order an array of DN objects.
    * @return a List with ASN1ObjectIdentifiers defining the known order we
@@ -4818,8 +5029,9 @@ public abstract class CertTools {
    * @see org.cesecore.certificates.util.DnComponents#getDnObjects(boolean) for
    *     definition of the contents of the input array
    */
-  private static List<ASN1ObjectIdentifier> getX509FieldOrder(String[] order) {
-    List<ASN1ObjectIdentifier> fieldOrder =
+  private static List<ASN1ObjectIdentifier> getX509FieldOrder(
+          final String[] order) {
+    final List<ASN1ObjectIdentifier> fieldOrder =
         new ArrayList<ASN1ObjectIdentifier>();
     for (final String dNObject : order) {
       fieldOrder.add(DnComponents.getOid(dNObject));
@@ -4828,7 +5040,7 @@ public abstract class CertTools {
   }
   /**
    * Obtains a List with the ASN1ObjectIdentifiers for dNObjects names, in the
-   * specified pre-defined order
+   * specified pre-defined order.
    *
    * @param ldaporder if true the returned order are as defined in LDAP RFC
    *     (CN=foo,O=bar,C=SE), otherwise the order is a defined in X.500
@@ -4838,7 +5050,7 @@ public abstract class CertTools {
    * @see org.cesecore.certificates.util.DnComponents#getDnObjects(boolean)
    */
   public static List<ASN1ObjectIdentifier> getX509FieldOrder(
-      boolean ldaporder) {
+      final boolean ldaporder) {
     return getX509FieldOrder(DnComponents.getDnObjects(ldaporder));
   }
 
@@ -4855,7 +5067,7 @@ public abstract class CertTools {
     final Pattern pattern = Pattern.compile("[^0-9.]");
     final Matcher matcher = pattern.matcher(oidString);
     if (matcher.find()) {
-      int endIndex = matcher.start();
+      final int endIndex = matcher.start();
       retval = oidString.substring(0, endIndex - 1);
     }
     return retval;
@@ -4894,8 +5106,8 @@ public abstract class CertTools {
    */
   private static X500Name getOrderedX500Name(
       final X500Name x500Name,
-      boolean ldaporder,
-      String[] order,
+      final boolean ldaporder,
+      final String[] order,
       final boolean applyLdapToCustomOrder,
       final X500NameStyle nameStyle) {
     // -- New order for the X509 Fields
@@ -4913,7 +5125,7 @@ public abstract class CertTools {
     final List<ASN1ObjectIdentifier> ordering;
     final boolean useCustomOrder = (order != null) && (order.length > 0);
     if (useCustomOrder) {
-      log.debug("Using custom DN order");
+      LOGGER.debug("Using custom DN order");
       ordering = getX509FieldOrder(order);
     } else {
       ordering = getX509FieldOrder(isLdapOrder);
@@ -4941,8 +5153,8 @@ public abstract class CertTools {
         for (final RDN value : valueList) {
           newOrdering.add(oid);
           newValues.add(value.getFirst().getValue());
-          if (log.isDebugEnabled()) {
-            log.debug("added --> " + oid + " val: " + value);
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("added --> " + oid + " val: " + value);
           }
         }
       }
@@ -4955,8 +5167,8 @@ public abstract class CertTools {
     // from the custom
     if ((useCustomOrder && applyLdapToCustomOrder) || !useCustomOrder) {
       if (ldaporder != isLdapOrder) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug(
               "Reversing order of DN, ldaporder="
                   + ldaporder
                   + ", isLdapOrder="
@@ -4967,7 +5179,7 @@ public abstract class CertTools {
       }
     }
 
-    X500NameBuilder nameBuilder = new X500NameBuilder(nameStyle);
+    final X500NameBuilder nameBuilder = new X500NameBuilder(nameStyle);
     for (int i = 0; i < newOrdering.size(); i++) {
       nameBuilder.addRDN(newOrdering.get(i), newValues.get(i));
     }
@@ -4982,13 +5194,13 @@ public abstract class CertTools {
    * @param altName name
    * @return directory
    */
-  private static String getDirectoryStringFromAltName(String altName) {
-    String directoryName =
+  private static String getDirectoryStringFromAltName(final String altName) {
+    final String directoryName =
         CertTools.getPartFromDN(altName, CertTools.DIRECTORYNAME);
     // DNFieldExtractor dnfe = new DNFieldExtractor(altName,
     // DNFieldExtractor.TYPE_SUBJECTALTNAME);
     // String directoryName = dnfe.getField(DNFieldExtractor.DIRECTORYNAME, 0);
-    /** TODO: Validate or restrict the directoryName Fields? */
+    /* TODO: Validate or restrict the directoryName Fields? */
     return ("".equals(directoryName) ? null : directoryName);
   } // getDirectoryStringFromAltName
 
@@ -5007,7 +5219,8 @@ public abstract class CertTools {
    * @throws NoSuchAlgorithmException If algorithm not found
    * @throws CertificateException If certificate cannot be parsed
    */
-  public static List<Certificate> createCertChain(Collection<?> certlistin)
+  public static List<Certificate> createCertChain(
+          final Collection<?> certlistin)
       throws CertPathValidatorException, InvalidAlgorithmParameterException,
           NoSuchAlgorithmException, NoSuchProviderException,
           CertificateException {
@@ -5031,16 +5244,16 @@ public abstract class CertTools {
    * @throws CertificateException If certificate cannot be parsed
    */
   public static List<Certificate> createCertChain(
-      Collection<?> certlistin, Date now)
+      final Collection<?> certlistin, final Date now)
       throws CertPathValidatorException, InvalidAlgorithmParameterException,
           NoSuchAlgorithmException, NoSuchProviderException,
           CertificateException {
     final List<Certificate> returnval = new ArrayList<Certificate>();
 
-    Collection<Certificate> certlist = orderCertificateChain(certlistin);
+    final Collection<Certificate> certlist = orderCertificateChain(certlistin);
     // Verify that the chain contains a Root CA certificate
     Certificate rootca = null;
-    for (Certificate crt : certlist) {
+    for (final Certificate crt : certlist) {
       if (CertTools.isSelfSigned(crt)) {
         rootca = crt;
       }
@@ -5052,8 +5265,8 @@ public abstract class CertTools {
 
     // set certificate chain
     Certificate rootcert = null;
-    ArrayList<Certificate> calist = new ArrayList<Certificate>();
-    for (Certificate next : certlist) {
+    final ArrayList<Certificate> calist = new ArrayList<Certificate>();
+    for (final Certificate next : certlist) {
       if (CertTools.isSelfSigned(next)) {
         rootcert = next;
       } else {
@@ -5067,7 +5280,7 @@ public abstract class CertTools {
     } else {
       // We need a bit special handling for CV certificates because those can
       // not be handled using a PKIX CertPathValidator
-      Certificate test = calist.get(0);
+      final Certificate test = calist.get(0);
       if (test.getType().equals("CVC")) {
         if (calist.size() == 1) {
           returnval.add(test);
@@ -5078,36 +5291,36 @@ public abstract class CertTools {
         }
       } else {
         // Normal X509 certificates
-        HashSet<TrustAnchor> trustancors = new HashSet<TrustAnchor>();
+        final HashSet<TrustAnchor> trustancors = new HashSet<TrustAnchor>();
         TrustAnchor trustanchor = null;
         trustanchor = new TrustAnchor((X509Certificate) rootcert, null);
         trustancors.add(trustanchor);
 
         // Create the parameters for the validator
-        PKIXParameters params = new PKIXParameters(trustancors);
+        final PKIXParameters params = new PKIXParameters(trustancors);
 
         // Disable CRL checking since we are not supplying any CRLs
         params.setRevocationEnabled(false);
         params.setDate(now);
 
         // Create the validator and validate the path
-        CertPathValidator certPathValidator =
+        final CertPathValidator certPathValidator =
             CertPathValidator.getInstance(
                 CertPathValidator.getDefaultType(), "BC");
-        CertificateFactory fact = CertTools.getCertificateFactory();
-        CertPath certpath = fact.generateCertPath(calist);
+        final CertificateFactory fact = CertTools.getCertificateFactory();
+        final CertPath certpath = fact.generateCertPath(calist);
 
-        CertPathValidatorResult result =
+        final CertPathValidatorResult result =
             certPathValidator.validate(certpath, params);
 
         // Get the certificates validate in the path
-        PKIXCertPathValidatorResult pkixResult =
+        final PKIXCertPathValidatorResult pkixResult =
             (PKIXCertPathValidatorResult) result;
         returnval.addAll(certpath.getCertificates());
 
         // Get the CA used to validate this path
-        TrustAnchor ta = pkixResult.getTrustAnchor();
-        X509Certificate cert = ta.getTrustedCert();
+        final TrustAnchor ta = pkixResult.getTrustAnchor();
+        final X509Certificate cert = ta.getTrustedCert();
         returnval.add(cert);
       }
     }
@@ -5124,28 +5337,30 @@ public abstract class CertTools {
    * @return List with certificatechain, Root CA last.
    * @throws CertPathValidatorException if validation fails
    */
-  private static List<Certificate> orderCertificateChain(Collection<?> certlist)
+  private static List<Certificate> orderCertificateChain(
+          final Collection<?> certlist)
       throws CertPathValidatorException {
-    ArrayList<Certificate> returnval = new ArrayList<Certificate>();
+    final ArrayList<Certificate> returnval = new ArrayList<Certificate>();
     Certificate rootca = null;
-    HashMap<String, Certificate> cacertmap = new HashMap<String, Certificate>();
-    for (Object possibleCertificate : certlist) {
+    final HashMap<String, Certificate> cacertmap
+        = new HashMap<String, Certificate>();
+    for (final Object possibleCertificate : certlist) {
       Certificate cert = null;
       try {
         cert = (Certificate) possibleCertificate;
-      } catch (ClassCastException e) {
+      } catch (final ClassCastException e) {
         // This was not a certificate, is it byte encoded?
-        byte[] certBytes = (byte[]) possibleCertificate;
+        final byte[] certBytes = (byte[]) possibleCertificate;
         try {
           cert = CertTools.getCertfromByteArray(certBytes);
-        } catch (CertificateParsingException e1) {
+        } catch (final CertificateParsingException e1) {
           throw new CertPathValidatorException(e1);
         }
       }
       if (CertTools.isSelfSigned(cert)) {
         rootca = cert;
       } else {
-        log.debug(
+        LOGGER.debug(
             "Adding to cacertmap with index '"
                 + CertTools.getIssuerDN(cert)
                 + "'");
@@ -5161,18 +5376,19 @@ public abstract class CertTools {
     Certificate currentcert = rootca;
     int i = 0;
     while (certlist.size() != returnval.size() && i <= certlist.size()) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(
             "Looking in cacertmap for '"
                 + CertTools.getSubjectDN(currentcert)
                 + "'");
       }
-      Certificate nextcert = cacertmap.get(CertTools.getSubjectDN(currentcert));
+      final Certificate nextcert = cacertmap.get(
+              CertTools.getSubjectDN(currentcert));
       if (nextcert == null) {
-        if (log.isDebugEnabled()) {
-          log.debug("Dumping keys of CA certificate map:");
-          for (String issuerDn : cacertmap.keySet()) {
-            log.debug(issuerDn);
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Dumping keys of CA certificate map:");
+          for (final String issuerDn : cacertmap.keySet()) {
+            LOGGER.debug(issuerDn);
           }
         }
         throw new CertPathValidatorException(
@@ -5209,17 +5425,17 @@ public abstract class CertTools {
    */
   @SuppressWarnings("unchecked")
   public static List<X509Certificate> orderX509CertificateChain(
-      List<X509Certificate> certlist) throws CertPathValidatorException {
+      final List<X509Certificate> certlist) throws CertPathValidatorException {
     CertPath cp;
     try {
       cp =
           CertificateFactory.getInstance(
                   "X.509", BouncyCastleProvider.PROVIDER_NAME)
               .generateCertPath(certlist);
-    } catch (CertificateException e) {
+    } catch (final CertificateException e) {
       // Wasn't a certificate after all?
       throw new CertPathValidatorException(e);
-    } catch (NoSuchProviderException e) {
+    } catch (final NoSuchProviderException e) {
       // This is really bad
       throw new IllegalStateException(
           "BouncyCastle was not found as a provider.", e);
@@ -5234,7 +5450,7 @@ public abstract class CertTools {
    *     the same order
    */
   public static boolean compareCertificateChains(
-      Certificate[] chainA, Certificate[] chainB) {
+      final Certificate[] chainA, final Certificate[] chainB) {
     if (chainA == null || chainB == null) {
       return false;
     }
@@ -5266,7 +5482,7 @@ public abstract class CertTools {
         // ByteArrayInputStream(cert.getEncoded()));
         // ASN1Primitive obj = ais.readObject();
         // ret = ASN1Dump.dumpAsString(obj);
-      } catch (CertificateException e) {
+      } catch (final CertificateException e) {
         ret = e.getMessage();
       }
     } else if (StringUtils.equals(cert.getType(), "CVC")) {
@@ -5285,7 +5501,7 @@ public abstract class CertTools {
 
   /**
    * Creates PKCS10CertificateRequest object from PEM encoded certificate
-   * request
+   * request.
    *
    * @param pemEncodedCsr PEM encoded CSR
    * @return PKCS10CertificateRequest object
@@ -5309,16 +5525,17 @@ public abstract class CertTools {
         | DecoderException
             e) { // IOException that will be wrapped as (runtime)
                  // DecoderException
-      log.info(
+      LOGGER.info(
           "IOException while decoding certificate request from PEM: "
               + e.getMessage());
-      log.debug("IOException while decoding certificate request from PEM.", e);
+      LOGGER.debug("IOException while decoding certificate request from PEM.",
+              e);
     }
     return csr;
   }
 
   /**
-   * Generates a PKCS10CertificationRequest
+   * Generates a PKCS10CertificationRequest.
    *
    * <p>Code Example: ------------- An example of putting AltName and a password
    * challenge in an 'attributes' set (taken from
@@ -5351,46 +5568,50 @@ public abstract class CertTools {
    * @param attributes a set of attributes, for example, extensions, challenge
    *     password, etc.
    * @param privateKey the private key used to sign the CSR.
-   * @param provider the JCA/JCE provider to use.
+   * @param oprovider the JCA/JCE provider to use.
    * @return a PKCS10CertificateRequest based on the input parameters.
    * @throws OperatorCreationException if an error occurred while creating the
    *     signing key
    */
   // Should sign with. other private as well!
   public static PKCS10CertificationRequest genPKCS10CertificationRequest(
-      String signatureAlgorithm,
-      X500Name subject,
-      PublicKey publickey,
-      ASN1Set attributes,
-      PrivateKey privateKey,
-      String provider)
+      final String signatureAlgorithm,
+      final X500Name subject,
+      final PublicKey publickey,
+      final ASN1Set attributes,
+      final PrivateKey privateKey,
+      final String oprovider)
       throws OperatorCreationException {
 
     ContentSigner signer;
     CertificationRequestInfo reqInfo;
     try {
-      SubjectPublicKeyInfo pkinfo =
+      final SubjectPublicKeyInfo pkinfo =
           SubjectPublicKeyInfo.getInstance(publickey.getEncoded());
       reqInfo = new CertificationRequestInfo(subject, pkinfo, attributes);
 
-      if (provider == null) {
+      String provider;
+      if (oprovider == null) {
         provider = BouncyCastleProvider.PROVIDER_NAME;
+      } else {
+          provider = oprovider;
       }
+      final int bufferSize = 20480;
       signer =
           new BufferingContentSigner(
               new JcaContentSignerBuilder(signatureAlgorithm)
                   .setProvider(provider)
                   .build(privateKey),
-              20480);
+              bufferSize);
       signer.getOutputStream().write(reqInfo.getEncoded(ASN1Encoding.DER));
       signer.getOutputStream().flush();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new IllegalStateException("Unexpected IOException was caught.", e);
     }
-    byte[] sig = signer.getSignature();
-    DERBitString sigBits = new DERBitString(sig);
+    final byte[] sig = signer.getSignature();
+    final DERBitString sigBits = new DERBitString(sig);
 
-    CertificationRequest req =
+    final CertificationRequest req =
         new CertificationRequest(
             reqInfo, signer.getAlgorithmIdentifier(), sigBits);
     return new PKCS10CertificationRequest(req);
@@ -5410,12 +5631,12 @@ public abstract class CertTools {
   public static byte[] createCertsOnlyCMS(
       final List<X509Certificate> x509CertificateChain)
       throws CertificateEncodingException, CMSException {
-    if (log.isDebugEnabled()) {
+    if (LOGGER.isDebugEnabled()) {
       final String subjectdn =
           ((x509CertificateChain != null && x509CertificateChain.size() > 0)
               ? x509CertificateChain.get(0).getSubjectDN().toString()
               : "null");
-      log.debug("Creating a certs-only CMS for " + subjectdn);
+      LOGGER.debug("Creating a certs-only CMS for " + subjectdn);
     }
     final List<JcaX509CertificateHolder> certList =
         CertTools.convertToX509CertificateHolder(x509CertificateChain);
@@ -5427,7 +5648,7 @@ public abstract class CertTools {
         cmsSignedDataGenerator.generate(new CMSAbsentContent(), true);
     try {
       return cmsSignedData.getEncoded();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new CMSException(e.getMessage());
     }
   }
@@ -5441,7 +5662,7 @@ public abstract class CertTools {
    * @throws OperatorCreationException On fail
    */
   public static ContentVerifierProvider genContentVerifierProvider(
-      PublicKey pubkey) throws OperatorCreationException {
+      final PublicKey pubkey) throws OperatorCreationException {
     return new JcaContentVerifierProviderBuilder()
         .setProvider(BouncyCastleProvider.PROVIDER_NAME)
         .build(pubkey);
@@ -5484,7 +5705,8 @@ public abstract class CertTools {
    *     certificate information.
    */
   public static final JcaX509CertificateHolder[] convertToX509CertificateHolder(
-      X509Certificate[] certificateChain) throws CertificateEncodingException {
+      final X509Certificate[] certificateChain)
+              throws CertificateEncodingException {
     final JcaX509CertificateHolder[] certificateHolderChain =
         new JcaX509CertificateHolder[certificateChain.length];
     for (int i = 0; i < certificateChain.length; ++i) {
@@ -5503,11 +5725,12 @@ public abstract class CertTools {
    *     certificate information.
    */
   public static final List<JcaX509CertificateHolder>
-      convertToX509CertificateHolder(List<X509Certificate> certificateChain)
+      convertToX509CertificateHolder(
+              final List<X509Certificate> certificateChain)
           throws CertificateEncodingException {
     final List<JcaX509CertificateHolder> certificateHolderChain =
         new ArrayList<JcaX509CertificateHolder>();
-    for (X509Certificate certificate : certificateChain) {
+    for (final X509Certificate certificate : certificateChain) {
       certificateHolderChain.add(new JcaX509CertificateHolder(certificate));
     }
     return certificateHolderChain;
@@ -5522,13 +5745,13 @@ public abstract class CertTools {
    *     certificate information.
    */
   public static final List<X509Certificate> convertToX509CertificateList(
-      Collection<X509CertificateHolder> certificateHolderChain)
+      final Collection<X509CertificateHolder> certificateHolderChain)
       throws CertificateException {
     final List<X509Certificate> ret = new ArrayList<X509Certificate>();
     final JcaX509CertificateConverter jcaX509CertificateConverter =
         new JcaX509CertificateConverter();
-    for (final X509CertificateHolder certificateHolder :
-        certificateHolderChain) {
+    for (final X509CertificateHolder certificateHolder
+        : certificateHolderChain) {
       ret.add(jcaX509CertificateConverter.getCertificate(certificateHolder));
     }
     return ret;
@@ -5543,7 +5766,7 @@ public abstract class CertTools {
    *     certificate information.
    */
   public static final X509Certificate[] convertToX509CertificateArray(
-      Collection<X509CertificateHolder> certificateHolderChain)
+      final Collection<X509CertificateHolder> certificateHolderChain)
       throws CertificateException {
     return convertToX509CertificateList(certificateHolderChain)
         .toArray(new X509Certificate[0]);
@@ -5557,7 +5780,7 @@ public abstract class CertTools {
    * @throws CRLException if there is a problem extracting the CRL information.
    */
   public static final List<X509CRL> convertToX509CRLList(
-      Collection<X509CRLHolder> crlHolders) throws CRLException {
+      final Collection<X509CRLHolder> crlHolders) throws CRLException {
     final List<X509CRL> ret = new ArrayList<X509CRL>();
     final JcaX509CRLConverter jcaX509CRLConverter = new JcaX509CRLConverter();
     for (final X509CRLHolder crlHolder : crlHolders) {
@@ -5578,9 +5801,9 @@ public abstract class CertTools {
    * @throws IllegalNameException if the name(s) didn't pass naming constraints
    */
   public static void checkNameConstraints(
-      X509Certificate issuer,
-      X500Name subjectDNName,
-      GeneralNames subjectAltName)
+      final X509Certificate issuer,
+      final X500Name subjectDNName,
+      final GeneralNames subjectAltName)
       throws IllegalNameException {
     final byte[] ncbytes =
         issuer.getExtensionValue(Extension.nameConstraints.getId());
@@ -5604,35 +5827,35 @@ public abstract class CertTools {
       final PKIXNameConstraintValidator validator =
           new PKIXNameConstraintValidator();
 
-      GeneralSubtree[] permitted = nc.getPermittedSubtrees();
-      GeneralSubtree[] excluded = nc.getExcludedSubtrees();
+      final GeneralSubtree[] permitted = nc.getPermittedSubtrees();
+      final GeneralSubtree[] excluded = nc.getExcludedSubtrees();
 
       if (permitted != null) {
         validator.intersectPermittedSubtree(permitted);
       }
       if (excluded != null) {
-        for (GeneralSubtree subtree : excluded) {
+        for (final GeneralSubtree subtree : excluded) {
           validator.addExcludedSubtree(subtree);
         }
       }
 
       if (subjectDNName != null) {
-        GeneralName dngn = new GeneralName(subjectDNName);
+        final GeneralName dngn = new GeneralName(subjectDNName);
         try {
           validator.checkPermitted(dngn);
           validator.checkExcluded(dngn);
-        } catch (PKIXNameConstraintValidatorException e) {
+        } catch (final PKIXNameConstraintValidatorException e) {
           final String dnStr = subjectDNName.toString();
           final boolean isLdapOrder =
               dnHasMultipleComponents(dnStr) && !isDNReversed(dnStr);
           if (isLdapOrder) {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "nameconstraints.x500dnorderrequired");
             throw new IllegalNameException(msg);
           } else {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "nameconstraints.forbiddensubjectdn", subjectDNName);
             throw new IllegalNameException(msg, e);
           }
@@ -5640,13 +5863,13 @@ public abstract class CertTools {
       }
 
       if (subjectAltName != null) {
-        for (GeneralName sangn : subjectAltName.getNames()) {
+        for (final GeneralName sangn : subjectAltName.getNames()) {
           try {
             validator.checkPermitted(sangn);
             validator.checkExcluded(sangn);
-          } catch (PKIXNameConstraintValidatorException e) {
+          } catch (final PKIXNameConstraintValidatorException e) {
             final String msg =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "nameconstraints.forbiddensubjectaltname", sangn);
             throw new IllegalNameException(msg, e);
           }
@@ -5669,16 +5892,16 @@ public abstract class CertTools {
       digest.reset();
       digest.update(publicKey.getEncoded());
       final String result = Hex.toHexString(digest.digest());
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(
             "Fingerprint "
                 + result
                 + " created for public key: "
                 + new String(Base64.encode(publicKey.getEncoded())));
       }
       return result;
-    } catch (NoSuchAlgorithmException e) {
-      log.warn("Could not create fingerprint for public key ", e);
+    } catch (final NoSuchAlgorithmException e) {
+      LOGGER.warn("Could not create fingerprint for public key ", e);
       return null;
     }
   }

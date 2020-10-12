@@ -155,10 +155,10 @@ public class EkuPKIXCertPathCheckerTest {
    * @throws Exception fail
    */
   private boolean validateCert(
-      KeyPair keyPair,
-      boolean isCa,
-      List<String> actualOids,
-      List<String> requiredOids)
+      final KeyPair keyPair,
+      final boolean isCa,
+      final List<String> actualOids,
+      final List<String> requiredOids)
       throws Exception {
 
     final long now = System.currentTimeMillis();

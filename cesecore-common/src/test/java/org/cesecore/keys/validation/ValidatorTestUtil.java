@@ -50,7 +50,7 @@ public final class ValidatorTestUtil {
    * @throws IllegalArgumentException fail
    */
   public static final KeyValidator createKeyValidator(
-      Class<? extends KeyValidator> type,
+      final Class<? extends KeyValidator> type,
       final String name,
       final String description,
       final Date notBefore,

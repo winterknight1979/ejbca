@@ -45,7 +45,7 @@ public class CrlExtensionsTest {
           }
 
           @Override
-          public byte[] getExtensionValue(String oid) {
+          public byte[] getExtensionValue(final String oid) {
             if (Extension.reasonCode.getId().equals(oid)) {
               return null;
             } else {

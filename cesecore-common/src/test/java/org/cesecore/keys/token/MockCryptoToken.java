@@ -35,7 +35,7 @@ public class MockCryptoToken extends BaseCryptoToken {
   private int id;
 
   @Override
-  public void init(Properties properties, byte[] data, int id)
+  public void init(final Properties properties, final byte[] data, final int id)
       throws Exception {
     this.id = id;
     // Do nothing
@@ -52,12 +52,12 @@ public class MockCryptoToken extends BaseCryptoToken {
   }
 
   @Override
-  public PrivateKey getPrivateKey(String alias) {
+  public PrivateKey getPrivateKey(final String alias) {
     return null;
   }
 
   @Override
-  public PublicKey getPublicKey(String alias) {
+  public PublicKey getPublicKey(final String alias) {
     return null;
   }
 
@@ -83,7 +83,7 @@ public class MockCryptoToken extends BaseCryptoToken {
           KeyStoreException, CryptoTokenOfflineException {}
 
   @Override
-  public void activate(char[] authenticationcode) {
+  public void activate(final char[] authenticationcode) {
     // Do Nothing
   }
 

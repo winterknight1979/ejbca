@@ -32,33 +32,39 @@ public class CertificatePolicy implements Serializable, Cloneable {
   private static final long serialVersionUID = -6384137742329979249L;
 
   // Policy qualifier Ids are taken from BC classes
-  public static final String id_qt_cps = PolicyQualifierId.id_qt_cps.getId();
-  public static final String id_qt_unotice =
+  /** ID. */
+  public static final String ID_QT_CPS = PolicyQualifierId.id_qt_cps.getId();
+  /** ID. */
+  public static final String ID_QT_UNNOTICE =
       PolicyQualifierId.id_qt_unotice.getId();
 
   /** The special <code>anyPolicy</code> policy OID. */
   public static final String ANY_POLICY_OID = "2.5.29.32.0";
 
+  /** ID. */
   private String policyID;
-  /** CPS uri */
+  /** CPS uri.*/
   private String qualifierId;
-  /** user notice text */
+  /** user notice text. */
   private String qualifier;
 
+  /** Null constructor. */
   public CertificatePolicy() {
     super();
   }
 
   /**
-   * @param policyID ID
-   * @param qualifierId QUD
-   * @param qualifier qualifier
+   * @param aPolicyID ID
+   * @param aQualifierId QUD
+   * @param aQualifier qualifier
    */
   public CertificatePolicy(
-      final String policyID, final String qualifierId, final String qualifier) {
-    this.policyID = policyID;
-    this.qualifierId = qualifierId;
-    this.qualifier = qualifier;
+      final String aPolicyID,
+      final String aQualifierId,
+      final String aQualifier) {
+    this.policyID = aPolicyID;
+    this.qualifierId = aQualifierId;
+    this.qualifier = aQualifier;
   }
 
   /** @return the policyID */
@@ -66,9 +72,9 @@ public class CertificatePolicy implements Serializable, Cloneable {
     return this.policyID;
   }
 
-  /** @param policyID the policyID to set */
-  public void setPolicyID(final String policyID) {
-    this.policyID = policyID;
+  /** @param aPolicyID the policyID to set */
+  public void setPolicyID(final String aPolicyID) {
+    this.policyID = aPolicyID;
   }
 
   /** @return the qualifier string */
@@ -76,9 +82,9 @@ public class CertificatePolicy implements Serializable, Cloneable {
     return this.qualifier;
   }
 
-  /** @param qualifier the uri to set */
-  public void setQualifier(final String qualifier) {
-    this.qualifier = qualifier;
+  /** @param aQualifier the uri to set */
+  public void setQualifier(final String aQualifier) {
+    this.qualifier = aQualifier;
   }
 
   /** @return the QualifierId */
@@ -86,12 +92,13 @@ public class CertificatePolicy implements Serializable, Cloneable {
     return this.qualifierId;
   }
 
-  /** @param qualifierId the QualifierId to set */
-  public void setQualifierId(final String qualifierId) {
-    this.qualifierId = qualifierId;
+  /** @param aQualifierId the QualifierId to set */
+  public void setQualifierId(final String aQualifierId) {
+    this.qualifierId = aQualifierId;
   }
 
   /** @see java.lang.Object#clone() */
+  @Override
   protected Object clone()
       throws CloneNotSupportedException { // NOPMD by tomas on 1/7/11 1:04 PM
     return new CertificatePolicy(
@@ -99,6 +106,7 @@ public class CertificatePolicy implements Serializable, Cloneable {
   }
 
   /** @see java.lang.Object#toString() */
+  @Override
   public String toString() {
     final StringBuilder strBuffer = new StringBuilder(100);
     strBuffer.append("CertificatePolicy(policyID=");
@@ -112,6 +120,7 @@ public class CertificatePolicy implements Serializable, Cloneable {
   }
 
   /** @see java.lang.Object#equals(java.lang.Object) */
+  @Override
   public boolean equals(final Object obj) {
     if ((obj == null) || !(obj instanceof CertificatePolicy)) {
       return false;
@@ -136,17 +145,19 @@ public class CertificatePolicy implements Serializable, Cloneable {
     } else if (StringUtils.equals(policy.getQualifierId(), this.qualifierId)) {
       qualifierideq = true;
     }
-    boolean qualifier = false;
+    boolean aQualifier = false;
     if (StringUtils.isEmpty(policy.getQualifier())
         && StringUtils.isEmpty(this.qualifier)) {
-      qualifier = true;
+      aQualifier = true;
     } else if (StringUtils.equals(policy.getQualifier(), this.qualifier)) {
-      qualifier = true;
+      aQualifier = true;
     }
-    return policyeq && qualifierideq && qualifier;
+    return policyeq && qualifierideq && aQualifier;
   }
 
+
   /** @see java.lang.Object#hashCode() */
+  @Override
   public int hashCode() {
     return this.toString().hashCode();
   }

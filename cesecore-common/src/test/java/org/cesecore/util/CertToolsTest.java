@@ -2380,7 +2380,7 @@ public class CertToolsTest {
   }
 
   private DERSequence permanentIdentifier(
-      String identifierValue, String assigner) {
+      final String identifierValue, final String assigner) {
     DERSequence result;
     ASN1EncodableVector v = new ASN1EncodableVector(); // this is the OtherName
     v.add(new ASN1ObjectIdentifier(CertTools.PERMANENTIDENTIFIER_OBJECTID));
@@ -3471,10 +3471,10 @@ public class CertToolsTest {
   }
 
   private void checkNCException(
-      X509Certificate cacert,
-      X500Name subjectDNName,
-      GeneralName subjectAltName,
-      String message) {
+      final X509Certificate cacert,
+      final X500Name subjectDNName,
+      final GeneralName subjectAltName,
+      final String message) {
     try {
       CertTools.checkNameConstraints(
           cacert, subjectDNName, new GeneralNames(subjectAltName));

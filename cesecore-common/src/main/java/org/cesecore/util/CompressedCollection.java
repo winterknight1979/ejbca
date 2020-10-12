@@ -51,16 +51,27 @@ public class CompressedCollection<T extends Serializable>
     implements Collection<T>, Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CompressedCollection.class);
 
+  /** Output. */
   private ByteArrayOutputStream baos = null;
+  /** Output. */
   private ObjectOutputStream oos = null;
+  /** Data. */
   private byte[] compressedData = null;
+  /** Size. */
   private int size = 0;
+  /** Streams. */
   private final List<LookAheadObjectInputStream> oiss = new ArrayList<>();
+  /** Classes. */
   private final Set<Class<? extends Serializable>> acceptedClasses;
 
+  /**
+   * @param elementClass Class
+   * @param nestedClasses Classes
+   */
   @SuppressWarnings("unchecked")
   @SafeVarargs
   public CompressedCollection(
@@ -96,7 +107,7 @@ public class CompressedCollection<T extends Serializable>
   }
 
   /**
-   * Lazy initialization of our in memory object storage
+   * Lazy initialization of our in memory object storage.
    *
    * @return stream
    * @throws IOException on error
@@ -127,7 +138,7 @@ public class CompressedCollection<T extends Serializable>
       try {
         oos.close();
       } catch (IOException e) {
-        log.error(e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       }
       oos = null;
     }
@@ -138,14 +149,14 @@ public class CompressedCollection<T extends Serializable>
       try {
         ois.close();
       } catch (IOException e) {
-        log.error(e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       }
     }
     oiss.clear();
   }
 
   @Override
-  public boolean contains(Object object) {
+  public boolean contains(final Object object) {
     final Iterator<T> iterator = iterator();
     while (iterator.hasNext()) {
       final T t = iterator.next();
@@ -190,8 +201,8 @@ public class CompressedCollection<T extends Serializable>
           oos = null;
           compressedData = baos.toByteArray();
           baos = null;
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Compressed data of "
                     + size
                     + " entries to "
@@ -199,7 +210,7 @@ public class CompressedCollection<T extends Serializable>
                     + " bytes.");
           }
         } catch (IOException e) {
-          log.error(e.getMessage(), e);
+          LOG.error(e.getMessage(), e);
         }
       }
     }
@@ -278,24 +289,24 @@ public class CompressedCollection<T extends Serializable>
         try {
           ois.close();
         } catch (IOException e) {
-          log.error(e.getMessage(), e);
+          LOG.error(e.getMessage(), e);
         }
       }
     };
   }
 
   @Override
-  public boolean remove(Object arg0) {
+  public boolean remove(final Object arg0) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean removeAll(Collection<?> arg0) {
+  public boolean removeAll(final Collection<?> arg0) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean retainAll(Collection<?> arg0) {
+  public boolean retainAll(final Collection<?> arg0) {
     throw new UnsupportedOperationException();
   }
 

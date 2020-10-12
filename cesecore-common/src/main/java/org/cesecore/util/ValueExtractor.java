@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class ValueExtractor {
 
+    /** Logger. */
   private static final Logger LOG = Logger.getLogger(ValueExtractor.class);
 
   /**
@@ -39,7 +40,7 @@ public abstract class ValueExtractor {
    * @param object object
    * @return value
    */
-  public static int extractIntValue(Object object) {
+  public static int extractIntValue(final Object object) {
     try {
       final Object o = getObject(object, Integer.class);
       final Class<?> c = o.getClass();
@@ -59,7 +60,7 @@ public abstract class ValueExtractor {
    * @param object object
    * @return value
    */
-  public static long extractLongValue(Object object) {
+  public static long extractLongValue(final Object object) {
     try {
       final Object o = getObject(object, Long.class);
       final Class<?> c = o.getClass();

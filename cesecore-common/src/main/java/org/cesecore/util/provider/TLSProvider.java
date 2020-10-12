@@ -22,8 +22,10 @@ import java.security.Provider;
 public class TLSProvider extends Provider {
 
   private static final long serialVersionUID = -5295903987266780293L;
+  /** Info. */
   private static String info = "CESECORE TLS Provider";
 
+  /** Constructor. */
   public TLSProvider() {
     super("TLSProvider", "0.0", info);
     put(

@@ -193,13 +193,13 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     return createPKCS11TokenWithAttributesFile(null, null, true);
   }
 
-  public static CryptoToken createPKCS11Token(String name, boolean extractable)
+  public static CryptoToken createPKCS11Token(final String name, final boolean extractable)
       throws NoSuchSlotException {
     return createPKCS11TokenWithAttributesFile(null, name, extractable);
   }
 
   public static CryptoToken createPKCS11TokenWithAttributesFile(
-      String file, String tokenName, boolean extractable)
+      final String file, final String tokenName, final boolean extractable)
       throws NoSuchSlotException {
     Properties prop = new Properties();
     String hsmlib = PKCS11TestUtils.getHSMLibrary();

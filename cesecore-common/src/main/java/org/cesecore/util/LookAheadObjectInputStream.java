@@ -49,22 +49,34 @@ import org.apache.log4j.Logger;
  *     jekaterina_b_helmes $
  */
 public class LookAheadObjectInputStream extends ObjectInputStream {
-
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(LookAheadObjectInputStream.class);
+  /** Accepted. */
   private Set<Class<? extends Serializable>> acceptedClasses = null;
+  /** Accepted. */
   private Set<Class<? extends Serializable>> acceptedClassesDynamically = null;
-
+ /** Subclasses. */
   private boolean enabledSubclassing = false;
+  /** Interfaces. */
   private boolean enabledInterfaceImplementations = false;
-  private int maxObjects = 1;
+  /** Max objects. */
+   private int maxObjects = 1;
+  /** Bool. */
   private boolean enabledMaxObjects = true;
+  /** Objects. */
   private int objCount = 0;
+  /** Prefixes. */
   private List<String> allowedSubclassingPackagePrefixes = Arrays.asList();
+  /** Prefixes. */
   private List<String> allowedInterfaceImplementationsPackagePrefixes =
       Arrays.asList();
 
-  public LookAheadObjectInputStream(InputStream inputStream)
+  /**
+   * @param inputStream stream
+   * @throws IOException fail
+   */
+  public LookAheadObjectInputStream(final InputStream inputStream)
       throws IOException {
     super(inputStream);
     enableResolveObject(true);
@@ -95,7 +107,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    *     be sub-classed like "org.ejbca".
    */
   public void setEnabledSubclassing(
-      boolean enabled, String... packagePrefixes) {
+      final boolean enabled, final String... packagePrefixes) {
     this.enabledSubclassing = enabled;
     this.allowedSubclassingPackagePrefixes = Arrays.asList(packagePrefixes);
   }
@@ -117,7 +129,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    *     must comply to if set like "org.ejbca".
    */
   public void setEnabledInterfaceImplementations(
-      boolean enabled, String... packagePrefixes) {
+      final boolean enabled, final String... packagePrefixes) {
     this.enabledInterfaceImplementations = enabled;
     this.allowedInterfaceImplementationsPackagePrefixes =
         Arrays.asList(packagePrefixes);
@@ -129,12 +141,12 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    * wrappers (Boolean, Character, Integer,...) and String class are always
    * accepted. All other classes have to be specified with setAcceptedClassName*
    *
-   * @param acceptedClasses Collection of class names that will be accepted for
-   *     deserializing readObject. Default: null
+   * @param theAcceptedClasses Collection of class names that
+   *     will be accepted for deserializing readObject. Default: null
    */
   public void setAcceptedClasses(
-      final Set<Class<? extends Serializable>> acceptedClasses) {
-    this.acceptedClasses = acceptedClasses;
+      final Set<Class<? extends Serializable>> theAcceptedClasses) {
+    this.acceptedClasses = theAcceptedClasses;
     this.acceptedClassesDynamically = null;
   }
 
@@ -147,12 +159,12 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    * wrappers (Boolean, Character, Integer,...) and String class are always
    * accepted. All other classes have to be specified with setAcceptedClassName*
    *
-   * @param acceptedClasses Collection of class names that will be accepted for
-   *     deserializing readObject. Default: null
+   * @param theAcceptedClasses Collection of class names that will be
+   *     accepted for deserializing readObject. Default: null
    */
   public void setAcceptedClasses(
-      final Collection<Class<? extends Serializable>> acceptedClasses) {
-    this.acceptedClasses = new HashSet<>(acceptedClasses);
+      final Collection<Class<? extends Serializable>> theAcceptedClasses) {
+    this.acceptedClasses = new HashSet<>(theAcceptedClasses);
     this.acceptedClassesDynamically = null;
   }
 
@@ -171,16 +183,17 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    * LookAheadObjectInputStream. This method will also reset internal counter
    * for read objects.
    *
-   * @param maxObjects maximum amount of objects that can be read. Default: 1
+   * @param theMaxObjects maximum amount of objects that can be read.
+   *     Default: 1
    */
-  public void setMaxObjects(int maxObjects) {
+  public void setMaxObjects(final int theMaxObjects) {
     objCount = 0;
-    this.maxObjects = maxObjects;
+    this.maxObjects = theMaxObjects;
   }
 
-  /** Overriding resolveObject to limit amount of objects that could be read */
+  /** Overriding resolveObject to limit amount of objects that could be read. */
   @Override
-  protected Object resolveObject(Object obj) throws IOException {
+  protected Object resolveObject(final Object obj) throws IOException {
     if (enabledMaxObjects && ++objCount > maxObjects) {
       throw new SecurityException(
           "Attempt to deserialize too many objects from stream. Limit is "
@@ -200,7 +213,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    *     list of accepted classes (if enabledSubclassing==true)
    */
   @Override
-  protected Class<?> resolveClass(ObjectStreamClass desc)
+  protected Class<?> resolveClass(final ObjectStreamClass desc)
       throws IOException, ClassNotFoundException {
     Class<?> resolvedClass = super.resolveClass(desc); // can be an array
     Class<?> resolvedClassType =
@@ -220,8 +233,8 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
       }
       if (enabledSubclassing) {
         final String resolvedClassName = resolvedClassType.getName();
-        if (log.isTraceEnabled()) {
-          log.trace("resolvedClassName: " + resolvedClassName);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("resolvedClassName: " + resolvedClassName);
         }
         boolean allowedPrefixFound = false;
         for (final String allowedPrefix : allowedSubclassingPackagePrefixes) {
@@ -243,12 +256,12 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
       }
       if (enabledInterfaceImplementations) {
         final String resolvedClassName = resolvedClassType.getName();
-        if (log.isTraceEnabled()) {
-          log.trace("resolvedClassName: " + resolvedClassName);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("resolvedClassName: " + resolvedClassName);
         }
         boolean allowedPrefixFound = false;
-        for (final String allowedPrefix :
-            allowedInterfaceImplementationsPackagePrefixes) {
+        for (final String allowedPrefix
+            : allowedInterfaceImplementationsPackagePrefixes) {
           if (resolvedClassName.startsWith(allowedPrefix + ".")) {
             allowedPrefixFound = true;
             break;
@@ -258,14 +271,14 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
             || allowedPrefixFound) {
           Class<?> superclass = resolvedClassType;
           while (superclass != null) {
-            if (log.isTraceEnabled()) {
-              log.trace(
+            if (LOG.isTraceEnabled()) {
+              LOG.trace(
                   superclass.getName()
                       + " implements "
                       + Arrays.toString(superclass.getInterfaces()));
             }
-            for (final Class<?> implementedInterface :
-                superclass.getInterfaces()) {
+            for (final Class<?> implementedInterface
+                : superclass.getInterfaces()) {
               if (acceptedClasses.contains(implementedInterface)) {
                 whitelistImplementation(resolvedClassType);
                 return resolvedClass;
@@ -281,10 +294,14 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
             + resolvedClassType.getName()
             + "': "
             + desc;
-    log.info(msg);
+    LOG.info(msg);
     throw new SecurityException(msg);
   }
 
+  /**
+   * @param c Class
+   * @return Bool
+   */
   public static boolean isClassAlwaysWhiteListed(final Class<?> c) {
     final Class<?> classType = c.isArray() ? c.getComponentType() : c;
     return classType.equals(String.class)
@@ -309,8 +326,8 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
     newAcceptedClassesDynamically.addAll(
         getRequiredClassesToSerialize(resolvedClassType));
     newAcceptedClassesDynamically.removeAll(acceptedClasses);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Dynamically white-listed these classes for deserialization: "
               + Arrays.toString(newAcceptedClassesDynamically.toArray()));
     }
@@ -375,10 +392,10 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
    * Enable or disable checking for max objects that can be read. This method
    * will also reset internal counter for read objects.
    *
-   * @param enabledMaxObjects true or false
+   * @param theEnabledMaxObjects true or false
    */
-  public void setEnabledMaxObjects(boolean enabledMaxObjects) {
+  public void setEnabledMaxObjects(final boolean theEnabledMaxObjects) {
     objCount = 0;
-    this.enabledMaxObjects = enabledMaxObjects;
+    this.enabledMaxObjects = theEnabledMaxObjects;
   }
 }

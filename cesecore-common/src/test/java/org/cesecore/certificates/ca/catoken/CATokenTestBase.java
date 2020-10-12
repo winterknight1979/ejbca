@@ -52,9 +52,9 @@ public abstract class CATokenTestBase {
       "encryptionKey ÅaÄbbÖcccäâãêëẽć©A";
 
   protected void doCaTokenRSA(
-      String keySpecification,
-      CryptoToken cryptoToken,
-      Properties caTokenProperties)
+      final String keySpecification,
+      final CryptoToken cryptoToken,
+      final Properties caTokenProperties)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
           InvalidKeyException, SignatureException,
@@ -389,9 +389,9 @@ public abstract class CATokenTestBase {
   }
 
   protected void doCaTokenDSA(
-      String keySpecification,
-      CryptoToken cryptoToken,
-      Properties caTokenProperties)
+      final String keySpecification,
+      final CryptoToken cryptoToken,
+      final Properties caTokenProperties)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
           InvalidKeyException, SignatureException,
@@ -474,9 +474,9 @@ public abstract class CATokenTestBase {
   }
 
   protected void doCaTokenECC(
-      String keySpecification,
-      CryptoToken cryptoToken,
-      Properties caTokenProperties)
+      final String keySpecification,
+      final CryptoToken cryptoToken,
+      final Properties caTokenProperties)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
           InvalidKeyException, SignatureException,
@@ -723,9 +723,9 @@ public abstract class CATokenTestBase {
   abstract String getProvider();
 
   protected void doActivateDeactivate(
-      String keySpecification,
-      CryptoToken cryptoToken,
-      Properties caTokenProperties)
+      final String keySpecification,
+      final CryptoToken cryptoToken,
+      final Properties caTokenProperties)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
           InvalidKeyException, SignatureException,
@@ -821,9 +821,9 @@ public abstract class CATokenTestBase {
   }
 
   protected void doSaveAndLoad(
-      String keySpecification,
-      CryptoToken cryptoToken,
-      Properties caTokenProperties)
+      final String keySpecification,
+      final CryptoToken cryptoToken,
+      final Properties caTokenProperties)
       throws InvalidKeyException, CryptoTokenAuthenticationFailedException,
           CryptoTokenOfflineException, NoSuchAlgorithmException,
           CertificateException, KeyStoreException, NoSuchProviderException,

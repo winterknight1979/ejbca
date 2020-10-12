@@ -37,7 +37,7 @@ public interface DynamicUiPropertyValidator<T extends Serializable>
 
   /**
    * This method allows the JSF frontend to use different validators, depending
-   * on
+   * on.
    *
    * @return the ID of this validator, for JSF purposes. Must math an ID defined
    *     in modules/admin-gui/resources/WEB-INF/faces-config.xml

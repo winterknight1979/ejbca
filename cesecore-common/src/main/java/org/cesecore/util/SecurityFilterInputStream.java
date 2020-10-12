@@ -32,19 +32,28 @@ import java.io.InputStream;
  *     anatom $
  */
 public class SecurityFilterInputStream extends FilterInputStream {
-
+ /** Length. */
   private long len = 0;
+  /** max. */
   private long maxBytes = DEFAULT_MAX_BYTES;
-
+ /** Default. */
   public static final long DEFAULT_MAX_BYTES = 0xFFFFF;
 
-  public SecurityFilterInputStream(InputStream inputStream) {
+  /**
+   * @param inputStream IS
+   */
+  public SecurityFilterInputStream(final InputStream inputStream) {
     super(inputStream);
   }
 
-  public SecurityFilterInputStream(InputStream inputStream, long maxBytes) {
+  /**
+   * @param inputStream IS
+   * @param amaxBytes Max
+   */
+  public SecurityFilterInputStream(
+          final InputStream inputStream, final long amaxBytes) {
     super(inputStream);
-    this.maxBytes = maxBytes;
+    this.maxBytes = amaxBytes;
   }
 
   @Override
@@ -58,8 +67,9 @@ public class SecurityFilterInputStream extends FilterInputStream {
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    int val = super.read(b, off, len);
+  public int read(
+          final byte[] b, final int off, final int alen) throws IOException {
+    int val = super.read(b, off, alen);
     if (val > 0) {
       this.len += val;
       checkLength();
@@ -77,7 +87,7 @@ public class SecurityFilterInputStream extends FilterInputStream {
   }
 
   /**
-   * Set max bytes that can be read from serialized object
+   * Set max bytes that can be read from serialized object.
    *
    * @return max bytes that can be read from serialized object.
    */
@@ -88,10 +98,10 @@ public class SecurityFilterInputStream extends FilterInputStream {
   /**
    * Returns max bytes that can be read from serialized object.
    *
-   * @param maxBytes bytes that can be read from serialized object. Default:
+   * @param amaxBytes bytes that can be read from serialized object. Default:
    *     0xFFFFF
    */
-  public void setMaxBytes(long maxBytes) {
-    this.maxBytes = maxBytes;
+  public void setMaxBytes(final long amaxBytes) {
+    this.maxBytes = amaxBytes;
   }
 }

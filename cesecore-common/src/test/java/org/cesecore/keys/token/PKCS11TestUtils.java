@@ -150,7 +150,7 @@ public class PKCS11TestUtils {
     return ret;
   }
 
-  public static String getPkcs11SlotPin(String defaultValue) {
+  public static String getPkcs11SlotPin(final String defaultValue) {
     final String ret =
         getSystemTestsProperties().getProperty(PKCS11_SLOT_PIN, defaultValue);
     if (log.isDebugEnabled()) {

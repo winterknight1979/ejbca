@@ -39,9 +39,12 @@ import org.cesecore.util.CertTools;
  */
 public class EkuPKIXCertPathChecker extends PKIXCertPathChecker {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EkuPKIXCertPathChecker.class);
+  /** Empty list. */
   private static final List<String> EMPTY = new ArrayList<String>(0);
+  /** OIDs. */
   private final List<String> requiredKeyPurposeOids;
 
   /**
@@ -51,15 +54,15 @@ public class EkuPKIXCertPathChecker extends PKIXCertPathChecker {
    * <p>Parameters OIDs could be supplied using
    * org.bouncycastle.asn1.x509.KeyPurposeId.id_kp_*.getId()
    *
-   * @param requiredKeyPurposeOids a list of EKUs that at a minimum must be
+   * @param aRequiredKeyPurposeOids a list of EKUs that at a minimum must be
    *     present if the EKU exists and is critical.
    */
-  public EkuPKIXCertPathChecker(final String... requiredKeyPurposeOids) {
+  public EkuPKIXCertPathChecker(final String... aRequiredKeyPurposeOids) {
     super();
-    if (requiredKeyPurposeOids == null) {
+    if (aRequiredKeyPurposeOids == null) {
       this.requiredKeyPurposeOids = EMPTY;
     } else {
-      this.requiredKeyPurposeOids = Arrays.asList(requiredKeyPurposeOids);
+      this.requiredKeyPurposeOids = Arrays.asList(aRequiredKeyPurposeOids);
     }
   }
 
@@ -70,15 +73,15 @@ public class EkuPKIXCertPathChecker extends PKIXCertPathChecker {
    * <p>Parameters OIDs could be supplied using
    * org.bouncycastle.asn1.x509.KeyPurposeId.id_kp_*.getId()
    *
-   * @param requiredKeyPurposeOids a list of EKUs that at a minimum must be
+   * @param aRequiredKeyPurposeOids a list of EKUs that at a minimum must be
    *     present if the EKU exists and is critical.
    */
-  public EkuPKIXCertPathChecker(final List<String> requiredKeyPurposeOids) {
+  public EkuPKIXCertPathChecker(final List<String> aRequiredKeyPurposeOids) {
     super();
-    if (requiredKeyPurposeOids == null) {
+    if (aRequiredKeyPurposeOids == null) {
       this.requiredKeyPurposeOids = EMPTY;
     } else {
-      this.requiredKeyPurposeOids = requiredKeyPurposeOids;
+      this.requiredKeyPurposeOids = aRequiredKeyPurposeOids;
     }
   }
 
@@ -101,14 +104,14 @@ public class EkuPKIXCertPathChecker extends PKIXCertPathChecker {
           final List<String> ekusMissing =
               new ArrayList<String>(requiredKeyPurposeOids);
           ekusMissing.removeAll(ekus);
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "EKUs in certificate: "
                     + Arrays.toString(ekus.toArray())
                     + " EKUs required: "
                     + Arrays.toString(requiredKeyPurposeOids.toArray()));
           }
-          log.info(
+          LOG.info(
               "Validation of certificate with subject "
                   + CertTools.getSubjectDN(cert)
                   + " failed critical EKU validation. The missing EKUs were: "

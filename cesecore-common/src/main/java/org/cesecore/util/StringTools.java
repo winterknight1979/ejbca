@@ -57,29 +57,36 @@ import org.cesecore.config.ConfigurationHolder;
  * @version $Id: StringTools.java 30973 2019-01-03 14:33:40Z samuellb $
  */
 public final class StringTools {
-  private static final Logger log = Logger.getLogger(StringTools.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(StringTools.class);
 
-  private static Pattern VALID_IPV4_PATTERN = null;
-  private static Pattern VALID_IPV6_PATTERN = null;
+  /** IPv4. */
+  private static Pattern validIpv4Pattern = null;
+  /** IPv6. */
+  private static Pattern validIpv6Pattern = null;
+  /** newline. */
   private static Pattern windowsOrMacNewlines =
       Pattern.compile("\r\n?"); // Matches Windows \r\n and Mac \r
-  private static final String ipv4Pattern =
-      "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
-  private static final String ipv6Pattern =
+  /** IPv4. */
+  private static final String IPV4_PATTERN =
+      "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.)"
+      + "{3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
+ /** IPv6. */
+  private static final String IPV6_PATTERN =
       "([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}";
 
   static {
     try {
-      VALID_IPV4_PATTERN =
-          Pattern.compile(ipv4Pattern, Pattern.CASE_INSENSITIVE);
-      VALID_IPV6_PATTERN =
-          Pattern.compile(ipv6Pattern, Pattern.CASE_INSENSITIVE);
+      validIpv4Pattern =
+          Pattern.compile(IPV4_PATTERN, Pattern.CASE_INSENSITIVE);
+      validIpv6Pattern =
+          Pattern.compile(IPV6_PATTERN, Pattern.CASE_INSENSITIVE);
     } catch (PatternSyntaxException e) {
-      log.error("Unable to compile IP address validation pattern", e);
+      LOG.error("Unable to compile IP address validation pattern", e);
     }
   }
 
-  private StringTools() {} // Not for instantiation
+  private StringTools() { } // Not for instantiation
 
   /**
    * Class that will be used to see if a character belong to a specific
@@ -89,17 +96,26 @@ public final class StringTools {
    * dynamically, but a re-start of EJBCA is needed if this calue is changed in
    * the properties file
    */
-  public static class CharSet {
-    public static CharSet INSTANCE =
+  public static final class CharSet {
+      /** Singleton. */
+    private static CharSet instance =
         new CharSet(CesecoreConfiguration.getForbiddenCharacters());
 
+    /**
+     * @return the instance
+     */
+    public static CharSet getInstance() {
+        return instance;
+    }
+
+    /** Charset. */
     private Set<Character> charSet = null;
     /**
      * Create a set of characters from a char array.
      *
      * @param array chars
      */
-    private CharSet(char[] array) {
+    private CharSet(final char[] array) {
       final Set<Character> set = new HashSet<Character>();
       for (final char c : array) {
         set.add(Character.valueOf(c));
@@ -112,53 +128,59 @@ public final class StringTools {
      * @param c the character to test
      * @return true if belonging
      */
-    boolean contains(char c) {
+    boolean contains(final char c) {
       return this.charSet.contains(Character.valueOf(c));
     }
 
-    /** Used to reset the value so we can JUnit test the class */
+    /** Used to reset the value so we can JUnit test the class. */
     public static void reset() {
-      INSTANCE = new CharSet(CesecoreConfiguration.getForbiddenCharacters());
+      instance = new CharSet(CesecoreConfiguration.getForbiddenCharacters());
     }
   }
 
-  // Characters that are not allowed in XSS compatible strings
-  private static final CharSet stripXSS = new CharSet(new char[] {'<', '>'});
-  // Characters that are not allowed in strings that may be used in db queries
-  private static final CharSet stripSqlChars =
+  /** Characters that are not allowed in XSS compatible strings. */
+  private static final CharSet STRIP_XSS = new CharSet(new char[] {'<', '>'});
+  /** Characters that are not allowed
+   * in strings that may be used in db queries. */
+  private static final CharSet STRIP_SQL_CHARS =
       new CharSet(
           new char[] {
             '\'', '\"', '\n', '\r', '\\', ';', '&', '|', '!', '\0', '%', '`',
             '<', '>', '?', '$', '~'
           });
-  // Characters that are not allowed in strings that may be used in db queries,
-  // assuming single quote is escaped
-  private static final CharSet stripSqlCharsSingleQuoteEscaped =
+  /** Characters that are not allowed in strings that may be used in db queries,
+   assuming single quote is escaped. */
+  private static final CharSet STRIP_SQL_SINGLE_Q_ESCAPED =
       new CharSet(
           new char[] {
             '\"', '\n', '\r', '\\', ';', '&', '|', '!', '\0', '%', '`', '<',
             '>', '?', '$', '~'
           });
-  // Characters that are not allowed in filenames
-  private static final CharSet stripFilenameChars =
+  /** Characters that are not allowed in filenames. */
+  private static final CharSet STRIP_FILENAME_CHARS =
       new CharSet(
           new char[] {
             '\0', '\n', '\r', '/', '\\', '?', '%', '$', '*', ':', ';', '|',
             '\"', '\'', '`', '<', '>'
           });
-  // Characters that are allowed to escape in strings.
-  // RFC 2253, section 2.4 lists ',' '"' '\' '+' '<' '>' ';' as valid escaped
-  // chars.
-  // Also allow '=' to be escaped.
-  private static final CharSet allowedEscapeChars =
+  /** Characters that are allowed to escape in strings.
+   RFC 2253, section 2.4 lists ',' '"' '\' '+' '<' '>' ';' as valid escaped
+   chars.
+   Also allow '=' to be escaped. */
+  private static final CharSet ALLOWED_ESCAPE_CHARS =
       new CharSet(
           new char[] {',', '\"', '\\', '+', '<', '>', ';', '=', '#', ' '});
 
+  /** PAttern. */
   private static final Pattern WS = Pattern.compile("\\s+");
 
+  /** msk. */
   public static final int KEY_SEQUENCE_FORMAT_NUMERIC = 1;
+  /** msk. */
   public static final int KEY_SEQUENCE_FORMAT_ALPHANUMERIC = 2;
+  /** msk. */
   public static final int KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_NUMERIC = 4;
+  /** msk. */
   public static final int KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_ALPHANUMERIC =
       8;
 
@@ -185,7 +207,7 @@ public final class StringTools {
    * @return the stripped version of the input string.
    */
   public static String strip(final String str) {
-    return strip(str, CharSet.INSTANCE);
+    return strip(str, CharSet.instance);
   }
 
   /**
@@ -196,12 +218,12 @@ public final class StringTools {
    * @return the stripped version of the input string.
    */
   public static String stripUsername(final String str) {
-    String xssStripped = strip(str, stripXSS);
+    String xssStripped = strip(str, STRIP_XSS);
     return strip(xssStripped);
   }
 
   /**
-   * Strips characters that are not allowed in filenames
+   * Strips characters that are not allowed in filenames.
    *
    * @param str the string whose contents will be stripped.
    * @return the stripped version of the input string.
@@ -210,12 +232,12 @@ public final class StringTools {
     // The strip() method does not work here, because it replaces forbidden
     // characters with /
     // Also, there's no need to unescape anything here.
-    return stripWithEscapesDisallowed(str, stripFilenameChars);
+    return stripWithEscapesDisallowed(str, STRIP_FILENAME_CHARS);
   }
 
   /**
    * Strips characters that are not allowed in filenames, and replaces spaces
-   * with underscores
+   * with underscores.
    *
    * @param str the string whose contents will be stripped.
    * @return the stripped version of the input string.
@@ -225,7 +247,7 @@ public final class StringTools {
   }
 
   /**
-   * Removes all characters in stripThis from the given string
+   * Removes all characters in stripThis from the given string.
    *
    * @param str original string, to be stripped.
    * @param stripThis set of characters that should be stripped.
@@ -248,7 +270,8 @@ public final class StringTools {
   /**
    * Characters from 'str' will be stripped like this: any character that is in
    * the 'stripThis' set will be replaced with '/'. any character that is
-   * escaped (preceded with '\') and not in the {@value #allowedEscapeChars} set
+   * escaped (preceded with '\') and not in the
+   *  {@value #ALLOWED_ESCAPE_CHARS} set
    * will be replaced with '/'. when a character is replaced with '/' and also
    * escaped then the preceding escape character '\' will be removed.
    *
@@ -285,8 +308,8 @@ public final class StringTools {
       index++;
     }
     final String result = buf.toString();
-    if (log.isDebugEnabled() && !result.equals(str)) {
-      log.debug(
+    if (LOG.isDebugEnabled() && !result.equals(str)) {
+      LOG.debug(
           "Some chars stripped. Was '" + str + "' is now '" + result + "'.");
     }
     return result;
@@ -302,7 +325,7 @@ public final class StringTools {
    * @see #strip
    */
   public static Set<String> hasSqlStripChars(final String str) {
-    return hasStripChars(str, stripSqlChars);
+    return hasStripChars(str, STRIP_SQL_CHARS);
   }
 
   /**
@@ -317,7 +340,7 @@ public final class StringTools {
    */
   public static Set<String> hasSqlStripCharsAssumingSingleQuoteEscape(
       final String str) {
-    return hasStripChars(str, stripSqlCharsSingleQuoteEscaped);
+    return hasStripChars(str, STRIP_SQL_SINGLE_Q_ESCAPED);
   }
 
   /**
@@ -330,7 +353,7 @@ public final class StringTools {
    * @see #strip
    */
   public static Set<String> hasStripChars(final String str) {
-    return hasStripChars(str, CharSet.INSTANCE);
+    return hasStripChars(str, CharSet.instance);
   }
 
   /**
@@ -375,13 +398,13 @@ public final class StringTools {
 
   /**
    * Checks if a character is an allowed escape character according to
-   * allowedEscapeChars
+   * allowedEscapeChars.
    *
    * @param ch the char to check
    * @return true if char is an allowed escape character, false if now
    */
   private static boolean isAllowedEscape(final char ch) {
-    return allowedEscapeChars.contains(ch) && !CharSet.INSTANCE.contains(ch);
+    return ALLOWED_ESCAPE_CHARS.contains(ch) && !CharSet.instance.contains(ch);
   }
 
   /**
@@ -409,10 +432,11 @@ public final class StringTools {
    */
   public static String ipOctetsToString(final byte[] octets) {
     String ret = null;
-    if (octets.length == 4) {
+    final int length = 4;
+    if (octets.length == length) {
       String ip = "";
       // IPv4 address
-      for (int i = 0; i < 4; i++) {
+      for (int i = 0; i < length; i++) {
         // What is going on there is that we are promoting a (signed) byte to
         // int,
         // and then doing a bitwise AND operation on it to wipe out everything
@@ -426,7 +450,8 @@ public final class StringTools {
         // same as the byte, and bits 8 through 31 will be set to 1. So the
         // bitwise
         // AND with 0x000000FF clears out all of those bits.
-        final int intByte = 0x000000FF & octets[i];
+          final int mask = 0x000000FF;
+        final int intByte = mask & octets[i];
         final short t = (short) intByte; // NOPMD, we need short
         if (StringUtils.isNotEmpty(ip)) {
           ip += ".";
@@ -457,11 +482,11 @@ public final class StringTools {
         final InetAddress adr = InetAddress.getByName(str);
         ret = adr.getAddress();
       } catch (UnknownHostException e) {
-        log.info("Error parsing ip address (ipv4 or ipv6): ", e);
+        LOG.info("Error parsing ip address (ipv4 or ipv6): ", e);
       }
     }
     if (ret == null) {
-      log.info("Not a IPv4 or IPv6 address, returning empty array.");
+      LOG.info("Not a IPv4 or IPv6 address, returning empty array.");
       ret = new byte[0];
     }
     return ret;
@@ -479,12 +504,12 @@ public final class StringTools {
    * @return <code>true</code> if the string is a value that is a valid IP
    *     address, <code>false</code> otherwise.
    */
-  public static boolean isIpAddress(String ipAddress) {
-    Matcher m1 = StringTools.VALID_IPV4_PATTERN.matcher(ipAddress);
+  public static boolean isIpAddress(final String ipAddress) {
+    Matcher m1 = StringTools.validIpv4Pattern.matcher(ipAddress);
     if (m1.matches()) {
       return true;
     }
-    Matcher m2 = StringTools.VALID_IPV6_PATTERN.matcher(ipAddress);
+    Matcher m2 = StringTools.validIpv6Pattern.matcher(ipAddress);
     return m2.matches();
   }
 
@@ -513,10 +538,11 @@ public final class StringTools {
    * <p>Identification of TLDs and registry suffices are currently not supported
    * because this functionality requires a newer version of the Guava library.
    *
-   * @param dnsName the DNS name to check
+   * @param odnsName the DNS name to check
    * @return true if the input is valid SAN dNSName attribute value
    */
-  public static boolean isValidSanDnsName(String dnsName) {
+  public static boolean isValidSanDnsName(final String odnsName) {
+    String dnsName = odnsName;
     if (dnsName == null) {
       return false;
     }
@@ -556,7 +582,7 @@ public final class StringTools {
    * @return Base64 encoded string, or original string if it was null or empty
    */
   public static String putBase64String(
-      final String s, boolean dontEncodeAsciiPrintable) {
+      final String s, final boolean dontEncodeAsciiPrintable) {
     if (StringUtils.isEmpty(s)) {
       return s;
     }
@@ -605,18 +631,19 @@ public final class StringTools {
   /**
    * Converts hexadecimal string to BigInteger. Hex prefix (0x) is ignored
    *
-   * @param hexString HEX value with or without '0x' prefix
+   * @param ohexString HEX value with or without '0x' prefix
    * @return BigInteger value
    */
-  public static BigInteger getBigIntegerFromHexString(String hexString) {
-    if (hexString.startsWith("0x") || hexString.startsWith("0X")) {
+  public static BigInteger getBigIntegerFromHexString(final String ohexString) {
+      String hexString = ohexString;
+      if (hexString.startsWith("0x") || hexString.startsWith("0X")) {
       hexString = hexString.substring(2, hexString.length());
     }
     return new BigInteger(hexString, 16);
   }
 
   /**
-   * Obfuscates a String if it does not already start with "OBF:"
+   * Obfuscates a String if it does not already start with "OBF:".
    *
    * @see #obfuscate(String)
    * @param s string to obfuscate
@@ -667,7 +694,7 @@ public final class StringTools {
   }
 
   /**
-   * Deobfuscates a String if it does start with "OBF:"
+   * Deobfuscates a String if it does start with "OBF:".
    *
    * @see #deobfuscate(String)
    * @param s string to deobfuscate
@@ -682,7 +709,7 @@ public final class StringTools {
   }
   /**
    * Retrieves the clear text from a string obfuscated with the obfuscate
-   * methods
+   * methods.
    *
    * @param in obfuscated string, usually (but not necessarily) starts with OBF:
    * @return plain text string, or original if it was empty
@@ -695,14 +722,16 @@ public final class StringTools {
     if (StringUtils.isEmpty(s)) {
       return s;
     }
+    final int length = 4;
     byte[] b = new byte[s.length() / 2];
     int l = 0;
-    for (int i = 0; i < s.length(); i += 4) {
-      final String x = s.substring(i, i + 4);
+    for (int i = 0; i < s.length(); i += length) {
+      final int size = 256;
+      final String x = s.substring(i, i + length);
       final int i0 = Integer.parseInt(x, 36);
-      final int i1 = (i0 / 256);
-      final int i2 = (i0 % 256);
-      b[l++] = (byte) ((i1 + i2 - 254) / 2);
+      final int i1 = (i0 / size);
+      final int i2 = (i0 % size);
+      b[l++] = (byte) ((i1 + i2 - (size - 2)) / 2);
     }
 
     return new String(b, 0, l);
@@ -714,7 +743,7 @@ public final class StringTools {
 
   /**
    * Method takes an encrypted string (by using the methods in this class) and
-   * returns the method used to encrypt the string with
+   * returns the method used to encrypt the string with.
    *
    * @param in indata that is encrypted/obfuscated
    * @return "legacy" for old data, "encv1" or later to describe a specific
@@ -724,9 +753,10 @@ public final class StringTools {
     if (in != null && in.contains(":")) {
       // this is a newer version that has encryption version and parameters in
       // it
+      final int length  = 4;
       String[] strs = StringUtils.split(in, ':');
-      if (strs == null || strs.length != 4) {
-        log.warn(
+      if (strs == null || strs.length != length) {
+        LOG.warn(
             "Input contains : but is not an encryption string from EJBCA (with"
                 + " 4 fields).");
       } else {
@@ -745,15 +775,16 @@ public final class StringTools {
 
   private static byte[] getSalt() {
     final boolean legacy =
-        defaultP.equals(
+        DEAULT_P.equals(
             ConfigurationHolder.getString("password.encryption.key"));
     if (legacy) {
-      log.debug("Using legacy password encryption/decryption");
+      LOG.debug("Using legacy password encryption/decryption");
       return getDefaultSalt();
     } else {
       // Generate 32 random bytes
+        final int size = 32;
       final SecureRandom random = new SecureRandom();
-      byte[] bytes = new byte[32];
+      byte[] bytes = new byte[size];
       random.nextBytes(bytes);
       return bytes;
     }
@@ -763,16 +794,21 @@ public final class StringTools {
     return "1958473059684739584hfurmaqiekcmq".getBytes(StandardCharsets.UTF_8);
   }
 
-  private static final String defaultP =
+  /** Default. */
+  private static final String DEAULT_P =
       deobfuscate(
-          "OBF:1m0r1kmo1ioe1ia01j8z17y41l0q1abo1abm1abg1abe1kyc17ya1j631i5y1ik01kjy1lxf");
+          "OBF:1m0r1kmo1ioe1ia01j8z17y41l0q1abo1abm1abg"
+          + "1abe1kyc17ya1j631i5y1ik01kjy1lxf");
+  /** Default count. */
+  private static final int DEFAULT_COUNT = 100;
 
+  /** @return Default count. */
   private static int getDefaultCount() {
-    return 100;
+    return DEFAULT_COUNT;
   }
 
   /**
-   * number of rounds for password based encryption. FIXME 100 is not secure and
+   * number of rounds for password based encryption. TODO: 100 is not secure and
    * can easily be broken.
    *
    * @return count
@@ -781,7 +817,7 @@ public final class StringTools {
     final String str =
         ConfigurationHolder.getString("password.encryption.count");
     final boolean legacy =
-        defaultP.equals(
+        DEAULT_P.equals(
             ConfigurationHolder.getString("password.encryption.key"));
     if (StringUtils.isNumeric(str) && !legacy) {
       return Integer.valueOf(str);
@@ -828,12 +864,12 @@ public final class StringTools {
    * @throws InvalidKeySpecException if spec invalis
    */
   public static String pbeEncryptStringWithSha256Aes192(
-      final String in, char[] p)
+      final String in, final char[] p)
       throws InvalidKeyException, IllegalBlockSizeException,
           BadPaddingException, InvalidKeySpecException {
     CryptoProviderTools.installBCProviderIfNotAvailable();
     if (CryptoProviderTools.isUsingExportableCryptography()) {
-      log.warn("Encryption not possible due to weak crypto policy.");
+      LOG.warn("Encryption not possible due to weak crypto policy.");
       return in;
     }
     final byte[] salt = getSalt();
@@ -862,9 +898,10 @@ public final class StringTools {
     final byte[] enc = c.doFinal(in.getBytes(StandardCharsets.UTF_8));
     // Create a return value which is
     // "encryption_version:salt:count:encrypted_data"
-    StringBuilder ret = new StringBuilder(64);
+    final int size = 64;
+    StringBuilder ret = new StringBuilder(size);
     final boolean legacy =
-        defaultP.equals(
+        DEAULT_P.equals(
             ConfigurationHolder.getString("password.encryption.key"));
     if (legacy) {
       // In the old legacy system we only return the encrypted data without
@@ -879,8 +916,8 @@ public final class StringTools {
           .append(':')
           .append(Hex.toHexString(enc));
     }
-    if (log.isTraceEnabled()) {
-      log.trace("Encrypted data: " + ret.toString());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Encrypted data: " + ret.toString());
     }
     return ret.toString();
   }
@@ -915,12 +952,12 @@ public final class StringTools {
    * @throws InvalidKeySpecException if spec invalis
    */
   public static String pbeDecryptStringWithSha256Aes192(
-      final String in, char[] p)
+      final String in, final char[] p)
       throws IllegalBlockSizeException, BadPaddingException,
           InvalidKeyException, InvalidKeySpecException {
     CryptoProviderTools.installBCProviderIfNotAvailable();
     if (CryptoProviderTools.isUsingExportableCryptography()) {
-      log.warn("Decryption not possible due to weak crypto policy.");
+      LOG.warn("Decryption not possible due to weak crypto policy.");
       return in;
     }
     final byte[] salt;
@@ -931,7 +968,7 @@ public final class StringTools {
       // it
       String[] strs = StringUtils.split(in, ':');
       if (strs == null || strs.length != 4) {
-        log.warn(
+        LOG.warn(
             "Input contains : but is not an encryption string from EJBCA (with"
                 + " 4 fields).");
         return in;
@@ -971,7 +1008,7 @@ public final class StringTools {
   }
 
   /**
-   * Method to handle different versions of password encryption transparently
+   * Method to handle different versions of password encryption transparently.
    *
    * @param in The encrypted or clear text password to try to decrypt
    * @param sDebug A message to put in the debug log indicating where the
@@ -987,8 +1024,8 @@ public final class StringTools {
               in,
               ConfigurationHolder.getString("password.encryption.key")
                   .toCharArray());
-      if (log.isDebugEnabled()) {
-        log.debug("Using encrypted " + sDebug);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Using encrypted " + sDebug);
       }
       return tmp;
     } catch (Throwable t) { // NOPMD: we want to catch everything here
@@ -998,33 +1035,39 @@ public final class StringTools {
                 in,
                 ConfigurationHolder.getDefaultValue("password.encryption.key")
                     .toCharArray());
-        log.warn(
+        LOG.warn(
             "Using encrypted "
                 + sDebug
                 + " (falling back to default 'password.encryption.key')");
         return tmp;
       } catch (Throwable t2) { // NOPMD: we want to catch everything here
+          final int aesSize = 32;
         if (in.matches("[0-9a-fA-F]+")
-            && in.length() % 32
+            && in.length() % aesSize
                 == 0) { // If input is hexadecimal and its length is multiple of
           // 32 (i.e. 16 bytes, AES block size) we assume it is an
           // encrypted password.
-          log.error(
+          LOG.error(
               "Password decryption failed. 'password.encryption.key' might"
                   + " have been modified more than once.");
         }
-        if (log.isDebugEnabled()) {
-          log.debug("Using cleartext " + sDebug);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Using cleartext " + sDebug);
         }
         return in;
       }
     }
   }
 
+  /**
+   * @param keySequenceFormat Format
+   * @param oldSequence seq
+   * @return seq+1
+   */
   public static String incrementKeySequence(
       final int keySequenceFormat, final String oldSequence) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">incrementKeySequence: " + keySequenceFormat + ", " + oldSequence);
     }
     // If the sequence does not contain any number in it at all, we can only
@@ -1043,8 +1086,8 @@ public final class StringTools {
         == KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_NUMERIC) {
       final String countryCode =
           oldSequence.substring(0, Math.min(2, oldSequence.length()));
-      if (log.isDebugEnabled()) {
-        log.debug("countryCode: " + countryCode);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("countryCode: " + countryCode);
       }
       final String inc = incrementNumeric(oldSequence.substring(2));
       // Cut off the country code
@@ -1055,8 +1098,8 @@ public final class StringTools {
         == KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_ALPHANUMERIC) {
       final String countryCode =
           oldSequence.substring(0, Math.min(2, oldSequence.length()));
-      if (log.isDebugEnabled()) {
-        log.debug("countryCode: " + countryCode);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("countryCode: " + countryCode);
       }
       final String inc = incrementAlphaNumeric(oldSequence.substring(2));
       // Cut off the country code
@@ -1095,11 +1138,11 @@ public final class StringTools {
             new DecimalFormat("0000000000".substring(0, intStr.length()));
         final String fseq = df.format(seq);
         ret = rest + fseq;
-        if (log.isTraceEnabled()) {
-          log.trace("<incrementKeySequence: " + ret);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("<incrementKeySequence: " + ret);
         }
       } else {
-        log.info(
+        LOG.info(
             "incrementKeySequence - Sequence does not contain any nummeric"
                 + " part: "
                 + ret);
@@ -1127,19 +1170,20 @@ public final class StringTools {
   }
 
   private static String incrementAlphaNumeric(final String s) {
+    final int base = 36;
     // check if input is valid, if not return null
     if (!s.matches("[0-9A-Z]{1,5}")) {
       return null;
     }
     final int len = s.length();
     // Parse to int and increment by 1
-    int incrSeq = Integer.parseInt(s, 36) + 1;
+    int incrSeq = Integer.parseInt(s, base) + 1;
     // Reset if the maximum value is exceeded
-    if (incrSeq == Math.pow(36, len)) {
+    if (incrSeq == Math.pow(base, len)) {
       incrSeq = 0;
     }
     // Make a nice String again
-    String newSeq = "00000" + Integer.toString(incrSeq, 36);
+    String newSeq = "00000" + Integer.toString(incrSeq, base);
     newSeq = newSeq.substring(newSeq.length() - len);
     return newSeq.toUpperCase(Locale.ENGLISH);
   }
@@ -1167,7 +1211,7 @@ public final class StringTools {
    *     double-quotes
    * @return A collection of strings
    */
-  public static Collection<String> splitURIs(String dPoints) {
+  public static Collection<String> splitURIs(final String dPoints) {
 
     String dispPoints = dPoints.trim();
 
@@ -1212,7 +1256,7 @@ public final class StringTools {
     }
 
     final String dnStrings = "([a-zA-Z0-9]+|(([0-9]+\\.)*[0-9]+))";
-    final String formats[] = {
+    final String[] formats = {
       "(^[0-9A-Fa-f]+), ?(("
           + dnStrings
           + "=[^,]+,)*("
@@ -1221,7 +1265,7 @@ public final class StringTools {
       "(^[0-9A-Fa-f]+) : DN : \"([^\"]*)\"( ?: SubjectDN : \"[^\"]*\")?"
     };
 
-    String ret[] = null;
+    String[] ret = null;
 
     for (int i = 0; i < formats.length; i++) {
       final Pattern p = Pattern.compile(formats[i]);
@@ -1247,10 +1291,12 @@ public final class StringTools {
       return null;
     }
     /*
-     * In EJBCA 6.3.2 and earlier we allowed "[^a-zA-Z0-9.:-_]". There is however no source
+     * In EJBCA 6.3.2 and earlier we allowed "[^a-zA-Z0-9.:-_]".
+     * There is however no source
      * that non IP-addresses would be allowed.
      *
-     * Closest thing to a standardized example is available in RFC 7239 where the example
+     * Closest thing to a standardized example is available in
+     * RFC 7239 where the example
      *  "X-Forwarded-For: 192.0.2.43, 2001:db8:cafe::17"
      * is used.
      */
@@ -1275,13 +1321,14 @@ public final class StringTools {
   }
 
   /**
-   * Method that checks if an array contains a string, ignoring case
+   * Method that checks if an array contains a string, ignoring case.
    *
    * @param l array that we hope contains the string s (ignoring case)
    * @param s string that we hope is in the array l (ignoring case)
    * @return true if the string (ignoring case) is contained in the array
    */
-  public static boolean containsCaseInsensitive(String[] l, String s) {
+  public static boolean containsCaseInsensitive(
+          final String[] l, final String s) {
     for (String string : l) {
       if (string.equalsIgnoreCase(s)) {
         return true;
@@ -1318,7 +1365,7 @@ public final class StringTools {
    * @param listSeparator the list separator.
    * @return a list of Integer.
    */
-  public static final List<Integer> idStringToListOfInteger(
+  public static List<Integer> idStringToListOfInteger(
       final String ids, final String listSeparator) {
     final ArrayList<Integer> result = new ArrayList<Integer>();
     if (ids != null) {
@@ -1349,7 +1396,7 @@ public final class StringTools {
    * @return false of if the string contains any characters that are neither a
    *     letter (unicode) or an asciiPrintable character
    */
-  public static boolean isAlphaOrAsciiPrintable(String str) {
+  public static boolean isAlphaOrAsciiPrintable(final String str) {
     if (str == null) {
       return false;
     }
@@ -1374,8 +1421,8 @@ public final class StringTools {
    *     false otherwise.
    */
   public static boolean isLesserThan(final String first, final String second) {
-    if (log.isTraceEnabled()) {
-      log.trace("isLesserThan(" + first + ", " + second + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("isLesserThan(" + first + ", " + second + ")");
     }
     final String delimiter = "\\.";
     if (first == null) {

@@ -20,17 +20,21 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: ProfileID.java 23749 2016-06-30 11:12:39Z mikekushner $
  */
-public class ProfileID {
-  private static final Logger log = Logger.getLogger(ProfileID.class);
+public final class ProfileID {
+    private ProfileID() { }
+  /** Logger. */
+    private static final Logger LOG = Logger.getLogger(ProfileID.class);
+  /** Tandom. */
   private static final Random RANDOM = new Random();
+  /** Minimum. */
   private static final int MIN = 1 << 16;
   /**
    * Callback that is used from caller to check if the generated id can be used,
    * or if we should generate a new one.
    */
-  public static interface DB {
+  public interface DB {
     /**
-     * Test if an ID is not already used in a DB
+     * Test if an ID is not already used in a DB.
      *
      * @param i id to test.
      * @return true if not already used in DB
@@ -48,7 +52,7 @@ public class ProfileID {
       if (db.isFree(id)) {
         return id;
       }
-      log.info("ID " + id + " already exist in DB generating a new random ID.");
+      LOG.info("ID " + id + " already exist in DB generating a new random ID.");
     }
     // this throw is indicating an implementation error of the DB class and
     // should never occur. If it does the code must be fixed.
@@ -57,6 +61,9 @@ public class ProfileID {
             + db.getClass().getCanonicalName());
   }
 
+  /**
+   * @return random ID
+   */
   public static int getRandomIdNumber() {
     return RANDOM.nextInt(Integer.MAX_VALUE - MIN) + MIN;
   }

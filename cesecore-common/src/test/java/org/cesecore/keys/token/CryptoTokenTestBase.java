@@ -70,7 +70,7 @@ public abstract class CryptoTokenTestBase {
    * @throws CryptoTokenAuthenticationFailedException fail
    * @throws InvalidAlgorithmParameterException fail
    */
-  protected void doCryptoTokenRSA(CryptoToken cryptoToken)
+  protected void doCryptoTokenRSA(final CryptoToken cryptoToken)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
           InvalidKeyException, SignatureException,
@@ -167,7 +167,7 @@ public abstract class CryptoTokenTestBase {
     }
   }
 
-  protected void doCryptoTokenDSA(CryptoToken cryptoToken)
+  protected void doCryptoTokenDSA(final CryptoToken cryptoToken)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
           InvalidKeyException, SignatureException,
@@ -280,11 +280,11 @@ public abstract class CryptoTokenTestBase {
    * @throws InvalidAlgorithmParameterException fail
    */
   protected void doCryptoTokenECC(
-      CryptoToken cryptoToken,
-      String curve1,
-      int keyLen1,
-      String curve2,
-      int keyLen2)
+      final CryptoToken cryptoToken,
+      final String curve1,
+      final int keyLen1,
+      final String curve2,
+      final int keyLen2)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
           InvalidKeyException, SignatureException,
@@ -392,7 +392,7 @@ public abstract class CryptoTokenTestBase {
    * @throws CryptoTokenAuthenticationFailedException fail
    * @throws InvalidAlgorithmParameterException fail
    */
-  protected void doActivateDeactivate(CryptoToken cryptoToken)
+  protected void doActivateDeactivate(final CryptoToken cryptoToken)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, NoSuchProviderException,
           InvalidAlgorithmParameterException, InvalidKeyException,
@@ -490,7 +490,7 @@ public abstract class CryptoTokenTestBase {
    * @throws CryptoTokenAuthenticationFailedException fail
    * @throws InvalidAlgorithmParameterException fail
    */
-  protected void doAutoActivate(CryptoToken cryptoToken)
+  protected void doAutoActivate(final CryptoToken cryptoToken)
       throws CryptoTokenOfflineException, KeyStoreException,
           NoSuchProviderException, NoSuchAlgorithmException,
           CertificateException, IOException, InvalidKeyException,
@@ -528,7 +528,7 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.deleteEntry("rsatest00001");
   }
 
-  protected void doStoreAndLoad(CryptoToken cryptoToken)
+  protected void doStoreAndLoad(final CryptoToken cryptoToken)
       throws CryptoTokenOfflineException,
           CryptoTokenAuthenticationFailedException, KeyStoreException,
           NoSuchAlgorithmException, CertificateException, IOException,
@@ -575,7 +575,7 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.deleteEntry("rsatest00001");
   }
 
-  protected void doGenerateSymKey(CryptoToken cryptoToken)
+  protected void doGenerateSymKey(final CryptoToken cryptoToken)
       throws CryptoTokenOfflineException,
           CryptoTokenAuthenticationFailedException, InvalidKeyException,
           NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException,

@@ -37,7 +37,7 @@ public class ProfileIDTest {
     }
 
     @Override
-    public boolean isFree(int i) {
+    public boolean isFree(final int i) {
       if (this.triesUntilFree < 0) {
         this.triesUntilFree = RANDOM.nextInt(9);
       }
@@ -55,7 +55,7 @@ public class ProfileIDTest {
     }
 
     @Override
-    public boolean isFree(int i) {
+    public boolean isFree(final int i) {
       return this.ids.add(Integer.valueOf(i));
     }
   }
@@ -66,7 +66,7 @@ public class ProfileIDTest {
     }
 
     @Override
-    public boolean isFree(int i) {
+    public boolean isFree(final int i) {
       return false;
     }
   }

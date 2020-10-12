@@ -26,6 +26,7 @@ public class ExternalProcessException extends CesecoreException {
 
   private static final long serialVersionUID = 1L;
 
+  /** List. */
   private List<String> out;
 
   /** Default constructor. */
@@ -48,12 +49,12 @@ public class ExternalProcessException extends CesecoreException {
    *
    * @param message the message.
    * @param cause the cause
-   * @param out the list.
+   * @param anOut the list.
    */
   public ExternalProcessException(
-      final String message, final Throwable cause, final List<String> out) {
+      final String message, final Throwable cause, final List<String> anOut) {
     super(message, cause);
-    this.out = out;
+    this.out = anOut;
   }
 
   /**
@@ -69,12 +70,12 @@ public class ExternalProcessException extends CesecoreException {
    * Parameterized constructor.
    *
    * @param message the message.
-   * @param out the list.
+   * @param anOut the list.
    */
   public ExternalProcessException(
-      final String message, final List<String> out) {
+      final String message, final List<String> anOut) {
     super(message);
-    this.out = out;
+    this.out = anOut;
   }
 
   /**
@@ -100,9 +101,9 @@ public class ExternalProcessException extends CesecoreException {
    * Sets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}),
    * STDOUT and ERROUT.
    *
-   * @param out the list.
+   * @param anOut the list.
    */
-  public void setOut(List<String> out) {
-    this.out = out;
+  public void setOut(final List<String> anOut) {
+    this.out = anOut;
   }
 }

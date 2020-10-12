@@ -72,12 +72,17 @@ import org.xmlpull.v1.XmlPullParserFactory;
  */
 public class SecureXMLDecoder implements AutoCloseable {
 
-  private static final Logger log = Logger.getLogger(SecureXMLDecoder.class);
-
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(SecureXMLDecoder.class);
+  /** Stream. */
   private final InputStream is;
+  /** Bool. */
   private final boolean ignoreErrors;
+  /** Parser. */
   private final XmlPullParser parser;
+  /** Header seen. */
   private boolean seenHeader = false;
+  /** Closed. */
   private boolean closed = false;
   /** Map of id-to-object. Used to handle id references (idref) in the XML */
   private Map<String, Object> objectIdMap = new HashMap<>();
@@ -90,19 +95,19 @@ public class SecureXMLDecoder implements AutoCloseable {
    * Creates a SecureXMLDecoder. Errors when calling readObject() will generate
    * an IOException.
    *
-   * @param is stream
+   * @param ais stream
    */
-  public SecureXMLDecoder(final InputStream is) {
-    this(is, false);
+  public SecureXMLDecoder(final InputStream ais) {
+    this(ais, false);
   }
 
   /**
-   * @param is Input stream
-   * @param ignoreErrors If recoverable errors should be ignored.
+   * @param ais Input stream
+   * @param doIgnoreErrors If recoverable errors should be ignored.
    */
-  public SecureXMLDecoder(final InputStream is, final boolean ignoreErrors) {
-    this.is = is;
-    this.ignoreErrors = ignoreErrors;
+  public SecureXMLDecoder(final InputStream ais, final boolean doIgnoreErrors) {
+    this.is = ais;
+    this.ignoreErrors = doIgnoreErrors;
     try {
       final XmlPullParserFactory fact = XmlPullParserFactory.newInstance();
       fact.setFeature(
@@ -111,7 +116,7 @@ public class SecureXMLDecoder implements AutoCloseable {
       fact.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
       fact.setFeature(XmlPullParser.FEATURE_VALIDATION, false);
       parser = fact.newPullParser();
-      parser.setInput(is, "UTF-8");
+      parser.setInput(ais, "UTF-8");
     } catch (XmlPullParserException e) {
       throw new IllegalStateException(e);
     }
@@ -168,7 +173,7 @@ public class SecureXMLDecoder implements AutoCloseable {
   }
 
   /**
-   * Reads the &lt;java version="xx" class="xx"&gt; header
+   * Reads the &lt;java version="xx" class="xx"&gt; header.
    *
    * @throws XmlPullParserException on xml parse fail
    * @throws IOException on io error
@@ -214,7 +219,7 @@ public class SecureXMLDecoder implements AutoCloseable {
    * @throws IOException On not valid XMLEncoder XML
    * @throws NoValueException If no value could be parsed
    */
-  private Object readValue(boolean disallowTextAfterElement)
+  private Object readValue(final boolean disallowTextAfterElement)
       throws XmlPullParserException, IOException {
     final String tag = parser.getName();
     final String id = parser.getAttributeValue(null, "id");
@@ -311,7 +316,7 @@ public class SecureXMLDecoder implements AutoCloseable {
         // appropriate parse method.
         switch (className) {
           case "java.util.ArrayList":
-            {
+
               List<Object> list;
               if (isIntValue()) {
                 int capacity = Integer.valueOf(readText());
@@ -322,7 +327,7 @@ public class SecureXMLDecoder implements AutoCloseable {
               }
               value = parseCollection(list);
               break;
-            }
+
           case "java.util.LinkedList":
             value = parseCollection(new LinkedList<>());
             break;
@@ -471,9 +476,12 @@ public class SecureXMLDecoder implements AutoCloseable {
             break;
           default:
             /*
-             * We need to add support for plain Java objects that don't need special treatment. In EJBCA we need at least
-             * org.cesecore.certificates.certificateprofile.CertificatePolicy and org.cesecore.keybind.InternalKeyBindingTrustEntry.
-             * For these classes we need to construct an instance and then call the getters and setters. See ECA-4916.
+             * We need to add support for plain Java objects that don't need
+             * special treatment. In EJBCA we need at least
+             * org.cesecore.certificates.certificateprofile.CertificatePolicy
+             * and org.cesecore.keybind.InternalKeyBindingTrustEntry.
+             * For these classes we need to construct an instance and
+             * then call the getters and setters. See ECA-4916.
              */
             throw new IOException(
                 errorMessage(
@@ -513,8 +521,8 @@ public class SecureXMLDecoder implements AutoCloseable {
   private void storeObjectById(final String id, final Object value) {
     if (id != null && value != null) {
       // The object (or getter) has an ID, so it can be referenced again later
-      if (log.isTraceEnabled()) {
-        log.trace("Binding id '" + id + "' to " + value);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Binding id '" + id + "' to " + value);
       }
       objectIdMap.put(id, value);
     }
@@ -525,7 +533,7 @@ public class SecureXMLDecoder implements AutoCloseable {
     if (parser.getEventType() != XmlPullParser.END_TAG
         || !tag.equals(parser.getName())) {
       final String msg = "Cannot parse XML. Expected end tag of " + tag;
-      log.info(
+      LOG.info(
           errorMessage(
               msg
                   + ", but got type "
@@ -588,7 +596,7 @@ public class SecureXMLDecoder implements AutoCloseable {
   }
 
   /**
-   * Checks if the next item is an <int> start tag
+   * Checks if the next item is an <int> start tag.
    *
    * @return bool
    * @throws XmlPullParserException on xml parse fail
@@ -599,7 +607,7 @@ public class SecureXMLDecoder implements AutoCloseable {
   }
 
   /**
-   * Reads an &lt;array class="xx" length="xx"&gt; element
+   * Reads an &lt;array class="xx" length="xx"&gt; element.
    *
    * @return object
    * @throws XmlPullParserException on xml parse fail
@@ -751,7 +759,7 @@ public class SecureXMLDecoder implements AutoCloseable {
   }
 
   /**
-   * Parses data for Map objects
+   * Parses data for Map objects.
    *
    * @param map Map
    * @return Object
@@ -952,7 +960,7 @@ public class SecureXMLDecoder implements AutoCloseable {
     if (ignoreErrors) {
       // When ignoreErrors is true, errors are expected, so just log a debug
       // level
-      log.debug(message, cause);
+      LOG.debug(message, cause);
     } else {
       throw new IOException(message, cause);
     }

@@ -62,6 +62,7 @@ public final class RFC4683Tools {
   public static final String SUBJECTIDENTIFICATIONMETHOD_OBJECTID =
       "1.3.6.1.5.5.7.8.6";
 
+  /** Logger. */
   private static final Logger LOG = Logger.getLogger(RFC4683Tools.class);
 
   /**
@@ -71,7 +72,7 @@ public final class RFC4683Tools {
    * @return a list of ASN1ObjectIdentifier {@link TSPAlgorithms#ALLOWED}.
    */
   @SuppressWarnings("unchecked")
-  public static final List<ASN1ObjectIdentifier> getAllowedHashAlgorithms() {
+  public static List<ASN1ObjectIdentifier> getAllowedHashAlgorithms() {
     return new ArrayList<ASN1ObjectIdentifier>(TSPAlgorithms.ALLOWED);
   }
 
@@ -80,7 +81,7 @@ public final class RFC4683Tools {
    *
    * @return a list of OID strings {@link TSPAlgorithms#ALLOWED}.
    */
-  public static final List<String> getAllowedHashAlgorithmOidStrings() {
+  public static List<String> getAllowedHashAlgorithmOidStrings() {
     final List<ASN1ObjectIdentifier> identifiers = getAllowedHashAlgorithms();
     final List<String> result = new ArrayList<String>(identifiers.size());
     for (ASN1ObjectIdentifier identifier : identifiers) {
@@ -96,16 +97,22 @@ public final class RFC4683Tools {
    * {@link RFC4683Tools#generateInternalSimString(String, String, String,
    * String)}
    *
-   * @param san the SAN string in internal storage format with SIM as user
+   * @param osan the SAN string in internal storage format with SIM as user
    *     parameters.
    * @return SAN string in internal storage format with generated SIM strings.
    * @throws IllegalArgumentException on illegal request
    * @throws NoSuchProviderException If provider not found
    * @throws NoSuchAlgorithmException If algorithm not found
    */
-  public static final String generateSimForInternalSanFormat(String san)
+  public static String generateSimForInternalSanFormat(final String osan)
       throws IllegalArgumentException, NoSuchProviderException,
           NoSuchAlgorithmException {
+      final int hashIdx = 0;
+      final int tokIdx = 1;
+      final int typeIdx = 2;
+      final int ssiIdx = 3;
+      final int length = 4;
+      String san = osan;
     if (StringUtils.isNotBlank(san)
         && san.contains(DnComponents.SUBJECTIDENTIFICATIONMETHOD)) {
       final List<String> sims =
@@ -118,12 +125,13 @@ public final class RFC4683Tools {
         if (StringUtils.isNotBlank(sim)) {
           final String[] tokens = sim.split(LIST_SEPARATOR);
           // was entered as hash, password, SSIType and SSI, so generate the SIM
-          if (tokens.length == 4) {
+          if (tokens.length == length) {
             final String newSim =
                 generateInternalSimString(
-                    tokens[0], tokens[1], tokens[2], tokens[3]);
+                    tokens[hashIdx], tokens[tokIdx],
+                    tokens[typeIdx], tokens[ssiIdx]);
             san = san.replace(sim, newSim);
-          } else if (tokens.length == 3) {
+          } else if (tokens.length == length - 1) {
             // NOOP
           } else {
             throw new IllegalArgumentException(
@@ -159,7 +167,7 @@ public final class RFC4683Tools {
    * @throws NoSuchProviderException If provider not found
    * @throws NoSuchAlgorithmException If algorithm not found
    */
-  public static final String generateInternalSimString(
+  public static String generateInternalSimString(
       final String hashAlogrithmOidString,
       final String userChosenPassword,
       final String ssiType,
@@ -246,7 +254,7 @@ public final class RFC4683Tools {
    * ('hashAlgorithmOIDString::R::PEPSI') SIM ::= SEQUENCE { hashAlg
    * AlgorithmIdentifier, authorityRandom OCTET STRING, -- RA-chosen random
    * number -- used in computation of -- pEPSI pEPSI OCTET STRING -- hash of
-   * HashContent -- with algorithm hashAlg }
+   * HashContent -- with algorithm hashAlg }.
    *
    * @param hashAlgorithmIdentifier the OID string for the hash algorithm used
    *     to hash R and PEPSI.
@@ -258,7 +266,7 @@ public final class RFC4683Tools {
    * @return the RFC4683 SIM GeneralName (@see <a
    *     href="https://tools.ietf.org/html/rfc4683">RFC4683</a>.).
    */
-  public static final ASN1Primitive createSimGeneralName(
+  public static ASN1Primitive createSimGeneralName(
       final String hashAlgorithmIdentifier,
       final String authorityRandom,
       final String pepsi) {
@@ -354,10 +362,11 @@ public final class RFC4683Tools {
    * @param digestResult the resulting byte[] of the digester.
    * @return the HEX string.
    */
-  public static final String toHexString(final byte[] digestResult) {
+  public static String toHexString(final byte[] digestResult) {
     final StringBuffer buf = new StringBuffer(digestResult.length * 2);
+    final int mask = 0xff;
     for (int i = 0; i < digestResult.length; i++) {
-      int intVal = digestResult[i] & 0xff;
+      int intVal = digestResult[i] & mask;
       if (intVal < 0x10) {
         buf.append("0");
       }
@@ -367,5 +376,5 @@ public final class RFC4683Tools {
   }
 
   /** Avoid instantiation. */
-  private RFC4683Tools() {}
+  private RFC4683Tools() { }
 }

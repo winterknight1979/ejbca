@@ -24,12 +24,13 @@ import java.util.Map.Entry;
  */
 public final class MapTools {
 
-  /** Utility class, cannot be instantiated */
-  private MapTools() {}
+  /** Utility class, cannot be instantiated. */
+  private MapTools() { }
 
   /**
    * Adds an item to a map, and returns it. Useful for initialization: <code>
-   * doWorkWithMapExample(addToMap(new HashMap&lt;Integer,String&gt;(), 0, "none"));
+   * doWorkWithMapExample(addToMap(
+   *     new HashMap&lt;Integer,String&gt;(), 0, "none"));
    * </code>
    *
    * <p>Unlike the <code>new HashMap&lt;&gt;() {{ put(x,y); }}</code> pattern,
@@ -200,7 +201,9 @@ public final class MapTools {
     boolean first = true;
     sb.append('{');
     for (final Entry<?, ?> entry : map.entrySet()) {
-      if (!first) sb.append(", ");
+      if (!first) {
+          sb.append(", ");
+      }
       appendToStringOrNull(sb, entry.getKey());
       sb.append(": ");
       appendToStringOrNull(sb, entry.getValue());

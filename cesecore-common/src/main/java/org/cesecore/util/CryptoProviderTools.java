@@ -36,9 +36,10 @@ import org.ejbca.cvc.CVCProvider;
 @SuppressWarnings("deprecation")
 public final class CryptoProviderTools {
 
-  private static final Logger log = Logger.getLogger(CryptoProviderTools.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CryptoProviderTools.class);
 
-  private CryptoProviderTools() {} // Not for instantiation
+  private CryptoProviderTools() { } // Not for instantiation
 
   /**
    * Parameters used when generating or verifying ECDSA keys/certs using the
@@ -47,13 +48,16 @@ public final class CryptoProviderTools {
    */
   private static final String IMPLICITLYCA_Q =
       CesecoreConfiguration.getEcdsaImplicitlyCaQ();
-
+  /** Config. */
   private static final String IMPLICITLYCA_A =
       CesecoreConfiguration.getEcdsaImplicitlyCaA();
+  /** Config. */
   private static final String IMPLICITLYCA_B =
       CesecoreConfiguration.getEcdsaImplicitlyCaB();
+  /** Config. */
   private static final String IMPLICITLYCA_G =
       CesecoreConfiguration.getEcdsaImplicitlyCaG();
+  /** Config. */
   private static final String IMPLICITLYCA_N =
       CesecoreConfiguration.getEcdsaImplicitlyCaN();
 
@@ -62,7 +66,7 @@ public final class CryptoProviderTools {
    * by X509CAInfo, OCSPCAService, CMSCAService. Defaults to SUN but can be
    * changed to IBM by the installBCProvider method.
    */
-  public static String SYSTEM_SECURITY_PROVIDER = "SUN";
+  private static String systemSecurity = "SUN";
 
   /**
    * Detect if "Unlimited Strength" Policy files has bean properly installed.
@@ -73,8 +77,8 @@ public final class CryptoProviderTools {
     boolean returnValue = true;
     try {
       final int keylen = Cipher.getMaxAllowedKeyLength("DES");
-      if (log.isDebugEnabled()) {
-        log.debug("MaxAllowedKeyLength for DES is: " + keylen);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("MaxAllowedKeyLength for DES is: " + keylen);
       }
       if (keylen == Integer.MAX_VALUE) {
         returnValue = false;
@@ -85,18 +89,21 @@ public final class CryptoProviderTools {
     return returnValue;
   }
 
+  /** Install Bouncy CAstle. */
   public static synchronized void installBCProviderIfNotAvailable() {
     if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
       installBCProvider();
     }
   }
 
+  /** Remove (deflate?) Bouncy CAstle. */
   public static synchronized void removeBCProvider() {
     Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
     // Also remove the CVC provider
     Security.removeProvider("CVC");
   }
 
+  /** Install Bouncy Castle. */
   @SuppressWarnings({"unchecked"})
   public static synchronized void installBCProvider() {
 
@@ -111,7 +118,7 @@ public final class CryptoProviderTools {
       if (CesecoreConfiguration.isDevelopmentProviderInstallation()) {
         removeBCProvider();
         if (Security.addProvider(new BouncyCastleProvider()) < 0) {
-          log.error("Cannot even install BC provider again!");
+          LOG.error("Cannot even install BC provider again!");
         } else {
           installImplicitlyCA = true;
         }
@@ -124,7 +131,7 @@ public final class CryptoProviderTools {
     try {
       Security.addProvider(new CVCProvider());
     } catch (Exception e) {
-      log.info(
+      LOG.info(
           "CVC provider can not be installed, CVC certificate will not work: ",
           e);
     }
@@ -150,7 +157,7 @@ public final class CryptoProviderTools {
         config.setParameter(
             ConfigurableProvider.EC_IMPLICITLY_CA, implicitSpec);
       } else {
-        log.error(
+        LOG.error(
             "Can not get ConfigurableProvider, implicitlyCA EC parameters NOT"
                 + " set!");
       }
@@ -166,12 +173,12 @@ public final class CryptoProviderTools {
     // We hard specify the system security provider in a few cases (see
     // SYSTEM_SECURITY_PROVIDER).
     // If the SUN provider does not exist, we will always use BC.
-    final Provider p = Security.getProvider(SYSTEM_SECURITY_PROVIDER);
+    final Provider p = Security.getProvider(systemSecurity);
     if (p == null) {
-      log.debug(
+      LOG.debug(
           "SUN security provider does not exist, using BC as system default"
               + " provider.");
-      SYSTEM_SECURITY_PROVIDER = BouncyCastleProvider.PROVIDER_NAME;
+      systemSecurity = BouncyCastleProvider.PROVIDER_NAME;
     }
   }
 }

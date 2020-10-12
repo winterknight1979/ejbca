@@ -33,7 +33,7 @@
 
 <!-- 
 	Changes from Sun for EJBCA:
-	* Allow files to be up to 5000 lines
+	* Allow files to be up to 6000 lines
 	* Allow single word comments, case statements, and imports to be longer than 80 chars
 	* Don't complain about unknown jdoc tags (we use @apiNote, and Eclipse picks up all other non-standards) 
 	* Don't require jdoc on @Override
@@ -87,7 +87,7 @@
   <!-- Checks for Size Violations.                    -->
   <!-- See https://checkstyle.org/config_sizes.html -->
   <module name="FileLength">
-  	<property name="max" value="5000"/>
+  	<property name="max" value="6000"/>
   </module>
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>

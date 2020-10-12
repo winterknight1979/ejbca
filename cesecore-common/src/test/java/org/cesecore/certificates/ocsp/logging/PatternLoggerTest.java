@@ -73,7 +73,7 @@ public class PatternLoggerTest {
    * @throws Exception fail
    */
   private void testPatternLoggerInternal(
-      String pattern, String dateFormat, String timeZone, String expected)
+      final String pattern, final String dateFormat, final String timeZone, final String expected)
       throws Exception {
     log.trace(">testPatternLoggerInternal");
     final PatternLogger patternLogger =
@@ -99,10 +99,10 @@ public class PatternLoggerTest {
     private static final long serialVersionUID = -8096112483409703781L;
 
     protected TestPatternLogger(
-        String matchPattern,
-        String matchString,
-        String logDateFormat,
-        String timeZone) {
+        final String matchPattern,
+        final String matchString,
+        final String logDateFormat,
+        final String timeZone) {
       super(
           false,
           PatternLoggerTest.class,

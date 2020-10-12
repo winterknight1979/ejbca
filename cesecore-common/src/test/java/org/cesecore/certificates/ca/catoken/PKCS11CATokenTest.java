@@ -88,7 +88,7 @@ public class PKCS11CATokenTest extends CATokenTestBase {
         getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
 
-  private CryptoToken createPKCS11Token(boolean useAutoActivationPin)
+  private CryptoToken createPKCS11Token(final boolean useAutoActivationPin)
       throws NoSuchSlotException {
     CryptoToken cryptoToken = PKCS11CryptoTokenTest.createPKCS11Token();
     Properties cryptoTokenProperties = cryptoToken.getProperties();
@@ -100,7 +100,7 @@ public class PKCS11CATokenTest extends CATokenTestBase {
     return cryptoToken;
   }
 
-  private Properties getCaTokenProperties(String signAlias) {
+  private Properties getCaTokenProperties(final String signAlias) {
     Properties caTokenProperties = new Properties();
     caTokenProperties.setProperty(
         CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING,

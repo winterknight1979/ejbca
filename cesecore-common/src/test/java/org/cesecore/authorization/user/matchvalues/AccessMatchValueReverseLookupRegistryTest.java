@@ -102,7 +102,7 @@ public class AccessMatchValueReverseLookupRegistryTest {
     }
 
     @SuppressWarnings("unused")
-    public static AccessMatchValue lookup(Integer value) {
+    public static AccessMatchValue lookup(final Integer value) {
       return FOO;
     }
 

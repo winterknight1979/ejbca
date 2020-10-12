@@ -95,7 +95,7 @@ public final class SubjectDirAttrExtension extends CertTools {
         if (!StringUtils.isEmpty(result)) {
           prefix = ", ";
         }
-        if (attr.getAttrType().getId().equals(id_pda_dateOfBirth)) {
+        if (attr.getAttrType().getId().equals(ID_PDA_DATE_OF_BIRTH)) {
           ASN1Set set = attr.getAttrValues();
           // Come on, we'll only allow one dateOfBirth, we're not allowing such
           // frauds with multiple birth dates
@@ -105,25 +105,25 @@ public final class SubjectDirAttrExtension extends CertTools {
           String dateStr = dateF.format(date);
           result += prefix + "dateOfBirth=" + dateStr;
         }
-        if (attr.getAttrType().getId().equals(id_pda_placeOfBirth)) {
+        if (attr.getAttrType().getId().equals(ID_PDA_PLACE_OF_BIRTH)) {
           ASN1Set set = attr.getAttrValues();
           // same here only one placeOfBirth
           String pb = ((ASN1String) set.getObjectAt(0)).getString();
           result += prefix + "placeOfBirth=" + pb;
         }
-        if (attr.getAttrType().getId().equals(id_pda_gender)) {
+        if (attr.getAttrType().getId().equals(ID_PDA_GENDER)) {
           ASN1Set set = attr.getAttrValues();
           // same here only one gender
           String g = ((ASN1String) set.getObjectAt(0)).getString();
           result += prefix + "gender=" + g;
         }
-        if (attr.getAttrType().getId().equals(id_pda_countryOfCitizenship)) {
+        if (attr.getAttrType().getId().equals(ID_PDA_COUNTRY_OF_CITIZENSHIP)) {
           ASN1Set set = attr.getAttrValues();
           // same here only one citizenship
           String g = ((ASN1String) set.getObjectAt(0)).getString();
           result += prefix + "countryOfCitizenship=" + g;
         }
-        if (attr.getAttrType().getId().equals(id_pda_countryOfResidence)) {
+        if (attr.getAttrType().getId().equals(ID_PDA_COUNTRY_OF_RESIDENCE)) {
           ASN1Set set = attr.getAttrValues();
           // same here only one residence
           String g = ((ASN1String) set.getObjectAt(0)).getString();
@@ -155,7 +155,7 @@ public final class SubjectDirAttrExtension extends CertTools {
       vec.add(new DERPrintableString(value));
       attr =
           new Attribute(
-              new ASN1ObjectIdentifier(id_pda_countryOfResidence),
+              new ASN1ObjectIdentifier(ID_PDA_COUNTRY_OF_RESIDENCE),
               new DERSet(vec));
       ret.add(attr);
     }
@@ -165,7 +165,7 @@ public final class SubjectDirAttrExtension extends CertTools {
       vec.add(new DERPrintableString(value));
       attr =
           new Attribute(
-              new ASN1ObjectIdentifier(id_pda_countryOfCitizenship),
+              new ASN1ObjectIdentifier(ID_PDA_COUNTRY_OF_CITIZENSHIP),
               new DERSet(vec));
       ret.add(attr);
     }
@@ -175,7 +175,7 @@ public final class SubjectDirAttrExtension extends CertTools {
       vec.add(new DERPrintableString(value));
       attr =
           new Attribute(
-              new ASN1ObjectIdentifier(id_pda_gender), new DERSet(vec));
+              new ASN1ObjectIdentifier(ID_PDA_GENDER), new DERSet(vec));
       ret.add(attr);
     }
     value = CertTools.getPartFromDN(dirAttr, "placeOfBirth");
@@ -184,11 +184,11 @@ public final class SubjectDirAttrExtension extends CertTools {
       X509DefaultEntryConverter conv = new X509DefaultEntryConverter();
       ASN1Primitive obj =
           conv.getConvertedValue(
-              new ASN1ObjectIdentifier(id_pda_placeOfBirth), value);
+              new ASN1ObjectIdentifier(ID_PDA_PLACE_OF_BIRTH), value);
       vec.add(obj);
       attr =
           new Attribute(
-              new ASN1ObjectIdentifier(id_pda_placeOfBirth), new DERSet(vec));
+              new ASN1ObjectIdentifier(ID_PDA_PLACE_OF_BIRTH), new DERSet(vec));
       ret.add(attr);
     }
     // dateOfBirth that is a GeneralizedTime
@@ -202,7 +202,7 @@ public final class SubjectDirAttrExtension extends CertTools {
         vec.add(new DERGeneralizedTime(value));
         attr =
             new Attribute(
-                new ASN1ObjectIdentifier(id_pda_dateOfBirth), new DERSet(vec));
+                new ASN1ObjectIdentifier(ID_PDA_DATE_OF_BIRTH), new DERSet(vec));
         ret.add(attr);
       } else {
         LOG.error(

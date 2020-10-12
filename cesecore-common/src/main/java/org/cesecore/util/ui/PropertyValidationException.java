@@ -22,15 +22,25 @@ public class PropertyValidationException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  public PropertyValidationException(String message, Throwable cause) {
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public PropertyValidationException(
+          final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public PropertyValidationException(String message) {
+  /**
+   * @param message Message. */
+    public PropertyValidationException(final String message) {
     super(message);
   }
 
-  public PropertyValidationException(Throwable cause) {
+  /**
+   * @param cause Cause.
+   */
+  public PropertyValidationException(final Throwable cause) {
     super(cause);
   }
 }

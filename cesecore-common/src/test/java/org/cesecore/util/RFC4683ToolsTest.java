@@ -251,7 +251,7 @@ public class RFC4683ToolsTest {
   }
 
   private void testGetSimStringSequence(
-      String simString, ASN1Primitive generalName) {
+      final String simString, final ASN1Primitive generalName) {
     final ASN1Sequence otherName =
         ASN1Sequence.getInstance(
             ((DERTaggedObject) generalName.toASN1Primitive()).getObject());

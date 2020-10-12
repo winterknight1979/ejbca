@@ -128,12 +128,12 @@ public class SoftCryptoTokenTest extends CryptoTokenTestBase {
     return BouncyCastleProvider.PROVIDER_NAME;
   }
 
-  public static CryptoToken createSoftToken(boolean nodefaultpwd) {
+  public static CryptoToken createSoftToken(final boolean nodefaultpwd) {
     return createSoftToken(nodefaultpwd, true);
   }
 
   public static CryptoToken createSoftToken(
-      boolean nodefaultpwd, boolean extractable) {
+      final boolean nodefaultpwd, final boolean extractable) {
     Properties prop = new Properties();
     if (nodefaultpwd) {
       prop.setProperty(

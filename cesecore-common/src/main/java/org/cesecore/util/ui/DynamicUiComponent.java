@@ -26,5 +26,5 @@ public interface DynamicUiComponent {
    *
    * @param disabled boolean
    */
-  void setDisabled(final boolean disabled);
+  void setDisabled(boolean disabled);
 }

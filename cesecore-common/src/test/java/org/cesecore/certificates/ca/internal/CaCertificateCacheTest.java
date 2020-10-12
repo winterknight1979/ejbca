@@ -291,9 +291,9 @@ public class CaCertificateCacheTest {
   private static class CacheTester
       implements Runnable { // NOPMD, this is not a JEE app, only a test
     private CaCertificateCache cache = null;
-    private String dn;
+    private final String dn;
 
-    public CacheTester(CaCertificateCache cache, String lookfor) {
+    public CacheTester(final CaCertificateCache cache, final String lookfor) {
       this.cache = cache;
       this.dn = lookfor;
     }
@@ -316,7 +316,7 @@ public class CaCertificateCacheTest {
   private static class CacheExceptionHandler
       implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(
-        Thread t, Throwable e) { // NOPMD, this is not a JEE app, only a test
+        final Thread t, final Throwable e) { // NOPMD, this is not a JEE app, only a test
       CaCertificateCacheTest.threadException = e;
     }
   }

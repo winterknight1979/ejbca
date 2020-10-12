@@ -143,7 +143,7 @@ public class SimpleTimeTest {
    * @param time time
    * @param defaultTime defaulr
    */
-  private void failHelper(String time, String defaultTime) {
+  private void failHelper(final String time, final String defaultTime) {
     simpeTimeHelper(time, defaultTime, true, 0, 0, 0, 0, 0, 0, 0, 0);
   }
 
@@ -163,17 +163,17 @@ public class SimpleTimeTest {
    * @param milliSeconds ms
    */
   private void simpeTimeHelper(
-      String time,
-      String defaultTime,
-      boolean fail,
-      long longTime,
-      long years,
-      long months,
-      long days,
-      long hours,
-      long minutes,
-      long seconds,
-      long milliSeconds) {
+      final String time,
+      final String defaultTime,
+      final boolean fail,
+      final long longTime,
+      final long years,
+      final long months,
+      final long days,
+      final long hours,
+      final long minutes,
+      final long seconds,
+      final long milliSeconds) {
     SimpleTime simpleTime;
     if (defaultTime == null) {
       simpleTime = SimpleTime.getInstance(time);

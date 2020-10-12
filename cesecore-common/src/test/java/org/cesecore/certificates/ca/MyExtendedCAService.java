@@ -29,13 +29,13 @@ import org.cesecore.keys.token.CryptoToken;
  */
 public class MyExtendedCAService extends ExtendedCAService {
 
-  public MyExtendedCAService(ExtendedCAServiceInfo info) {
+  public MyExtendedCAService(final ExtendedCAServiceInfo info) {
     super(info);
     data.put(
         ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
   }
 
-  public MyExtendedCAService(HashMap<?, ?> data) {
+  public MyExtendedCAService(final HashMap<?, ?> data) {
     super(data);
     loadData(data);
   }
@@ -46,7 +46,7 @@ public class MyExtendedCAService extends ExtendedCAService {
 
   @Override
   public ExtendedCAServiceResponse extendedService(
-      CryptoToken cryptoToken, ExtendedCAServiceRequest request)
+      final CryptoToken cryptoToken, final ExtendedCAServiceRequest request)
       throws ExtendedCAServiceRequestException,
           IllegalExtendedCAServiceRequestException,
           ExtendedCAServiceNotActiveException {
@@ -69,15 +69,15 @@ public class MyExtendedCAService extends ExtendedCAService {
 
   @Override
   public void init(
-      CryptoToken cryptoToken,
-      CA ca,
-      AvailableCustomCertificateExtensionsConfiguration cceConfig)
+      final CryptoToken cryptoToken,
+      final CA ca,
+      final AvailableCustomCertificateExtensionsConfiguration cceConfig)
       throws Exception {}
 
   @Override
   public void update(
-      CryptoToken cryptoToken,
-      ExtendedCAServiceInfo info,
-      CA ca,
-      AvailableCustomCertificateExtensionsConfiguration cceConfig) {}
+      final CryptoToken cryptoToken,
+      final ExtendedCAServiceInfo info,
+      final CA ca,
+      final AvailableCustomCertificateExtensionsConfiguration cceConfig) {}
 }

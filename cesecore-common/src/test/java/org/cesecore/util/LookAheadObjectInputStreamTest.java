@@ -56,7 +56,7 @@ public class LookAheadObjectInputStreamTest {
   private static class ExploitClass implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private void readObject(java.io.ObjectInputStream stream)
+    private void readObject(final java.io.ObjectInputStream stream)
         throws IOException, ClassNotFoundException {
       stream.defaultReadObject();
       throw new IllegalStateException("Run exploit code...");
@@ -67,7 +67,7 @@ public class LookAheadObjectInputStreamTest {
     private static final long serialVersionUID = 2L;
     private int data = 0;
 
-    public GoodClass1(int data) {
+    public GoodClass1(final int data) {
       this.data = data;
     }
 
@@ -80,7 +80,7 @@ public class LookAheadObjectInputStreamTest {
     private static final long serialVersionUID = 3L;
     private int data = 0;
 
-    public GoodClass2(int data) {
+    public GoodClass2(final int data) {
       this.data = data;
     }
 
@@ -132,13 +132,13 @@ public class LookAheadObjectInputStreamTest {
     }
 
     @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
+    public void writeExternal(final ObjectOutput out) throws IOException {
       out.writeObject(
           writeExploitObject ? new ExploitClass() : new GoodClass1(123));
     }
 
     @Override
-    public void readExternal(ObjectInput in)
+    public void readExternal(final ObjectInput in)
         throws IOException, ClassNotFoundException {
       final GoodClass1 obj = (GoodClass1) in.readObject();
       assertEquals("Got wrong data in nested object.", 123, obj.getData());

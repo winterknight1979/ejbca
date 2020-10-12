@@ -27,15 +27,20 @@ public class Base64PutHashMap extends LinkedHashMap<Object, Object> {
 
   private static final long serialVersionUID = 785586648964618032L;
 
+  /** Default. */
   public Base64PutHashMap() {
     super();
   }
 
-  public Base64PutHashMap(Map<?, ?> m) {
+  /**
+   * @param m Map
+   */
+  public Base64PutHashMap(final Map<?, ?> m) {
     super(m);
   }
 
-  public Object put(Object key, Object value) {
+  @Override
+  public Object put(final Object key, final Object value) {
     if (value == null) {
       return super.put(key, value);
     }

@@ -268,7 +268,7 @@ public class DNFieldsUtilTest {
     }
   }
 
-  private String removeEmpties(String dn, boolean onlyTrailing) {
+  private String removeEmpties(final String dn, final boolean onlyTrailing) {
     final StringBuilder sb2 = new StringBuilder();
     final StringBuilder sb1 = DNFieldsUtil.removeEmpties(dn, sb2, true);
     final String removedEmpties1 = DNFieldsUtil.removeAllEmpties(dn);

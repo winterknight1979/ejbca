@@ -22,6 +22,7 @@ import org.cesecore.jndi.JndiHelper;
  * @version $Id: EjbRemoteHelper.java 29630 2018-08-14 08:55:21Z mikekushner $
  */
 public enum EjbRemoteHelper {
+    /** Singleton instance. */
   INSTANCE;
 
   /** The main EJBCA EJB jar. */
@@ -39,8 +40,10 @@ public enum EjbRemoteHelper {
   /** The EJB used by system test ProtocolLookupServerHttpTest. */
   public static final String MODULE_UNIDFNR = "unidfnr-ejb";
 
+  /** onfig. */
   public static final String MODULE_EDITION_SPECIFIC = "edition-specific-ejb";
 
+  /** Cache. */
   private Map<Class<?>, Object> interfaceCache;
 
   /**
@@ -59,19 +62,20 @@ public enum EjbRemoteHelper {
    *
    * @param key the @Remote-appended interface for this session bean
    * @param <T> type
-   * @param module the module where the bean is deployed, i.e. systemtests-ejb
+   * @param omodule the module where the bean is deployed, i.e. systemtests-ejb
    *     or cesecore-other-ejb, if null defaults to cesecore-ejb for packages
    *     under org.cesecore, otherwise ejbca-ejb.
    * @return the sought interface, or null if it doesn't exist in JNDI context.
    */
-  public <T> T getRemoteSession(final Class<T> key, String module) {
+  public <T> T getRemoteSession(final Class<T> key, final String omodule) {
     if (interfaceCache == null) {
       interfaceCache = new ConcurrentHashMap<Class<?>, Object>();
     }
     @SuppressWarnings("unchecked")
     T session = (T) interfaceCache.get(key);
+    String module;
     if (session == null) {
-      if (module == null) {
+      if (omodule == null) {
         if (key.getName().startsWith("org.cesecore")) {
           module = EjbRemoteHelper.MODULE_CESECORE;
         } else if (key.getName().endsWith("UnidfnrSessionRemote")) {
@@ -79,6 +83,8 @@ public enum EjbRemoteHelper {
         } else {
           module = EjbRemoteHelper.MODULE_EJBCA;
         }
+      } else {
+          module = omodule;
       }
       session = JndiHelper.getRemoteSession(key, module);
       if (session != null) {

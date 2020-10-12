@@ -27,38 +27,48 @@ import org.apache.commons.lang.StringUtils;
  * @version $Id: TimeUnitFormat.java 24933 2016-12-20 08:41:57Z mikekushner $
  */
 public final class TimeUnitFormat {
-
+  /** Start. */
   private static final String PATTERN_PREFIX = "\\s*(([+-]?\\d+)\\s*(";
+  /** End. */
   private static final String PATTERN_SUFFIX = "))\\s*";
+  /** Zero. */
   private static final String ZERO = "0";
+  /** Space. */
   private static final String SPACE = " ";
+  /** Or. */
   private static final String OR = "|";
 
+  /** Error message. */
   private static final String EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS =
       "Illegal characters.";
+  /** Error message. */
   private static final String EXCEPTION_MESSAGE_BLANK_STRING =
       "Cannot parse a blank string.";
 
-  private Pattern pattern;
-  private Map<String, Long> defaultValues;
-  private Map<String, Long> factors;
-  private List<String> units;
+  /** Pattern. */
+  private final Pattern pattern;
+  /** Defaults. */
+  private final Map<String, Long> defaultValues;
+  /** Factors. */
+  private final Map<String, Long> factors;
+  /** Units. */
+  private final List<String> units;
 
   /**
    * Instantiates a new TimeUnitFormat and initializes it with the given units.
    *
-   * @param units List of units (suffixes, i.e. 'ms', 'mo', 'y', 'd', 'h', 'm',
-   *     and 's').
-   * @param factors factors
+   * @param theUnits List of units
+   *     (suffixes, i.e. 'ms', 'mo', 'y', 'd', 'h', 'm', and 's').
+   * @param theFactors factors
    */
   public TimeUnitFormat(
-      final List<String> units, final Map<String, Long> factors) {
-    this.units = units;
-    this.factors = factors;
-    this.defaultValues = new LinkedHashMap<String, Long>(units.size());
+      final List<String> theUnits, final Map<String, Long> theFactors) {
+    this.units = theUnits;
+    this.factors = theFactors;
+    this.defaultValues = new LinkedHashMap<String, Long>(theUnits.size());
     final StringBuilder builder = new StringBuilder(PATTERN_PREFIX);
     int index = 0;
-    for (String unit : units) {
+    for (String unit : theUnits) {
       this.defaultValues.put(unit.toLowerCase(), 0L);
       if (index++ > 0) {
         builder.append(OR);
@@ -74,28 +84,32 @@ public final class TimeUnitFormat {
   /**
    * Parses a formatted time string.
    *
-   * @param formattedString time string, i.e '1y-2mo10d'.
+   * @param aformattedString time string, i.e '1y-2mo10d'.
    * @return the milliseconds as long value from 0.
    * @throws NumberFormatException if the string cannot be parsed, i.e. it
    *     contains units not listed or other illegal characters or forms.
    */
-  public long parseMillis(String formattedString) throws NumberFormatException {
+  public long parseMillis(final String aformattedString)
+          throws NumberFormatException {
+    String formattedString = aformattedString;
     long result = 0;
+    final int numlength = 3;
     if (StringUtils.isNotBlank(formattedString)) {
       formattedString = formattedString.trim();
       final Matcher matcher = pattern.matcher(formattedString);
       long parsedValue;
       String unit = null;
-      int start = 0, end = 0;
+      int start = 0;
+      int end = 0;
       while (matcher.find()) {
         start = matcher.start();
         if (start != end) {
           throw new NumberFormatException(EXCEPTION_MESSAGE_ILLEGAL_CHARACTERS);
         }
         end = matcher.end();
-        for (int i = 0; i < matcher.groupCount(); i = i + 3) {
+        for (int i = 0; i < matcher.groupCount(); i = i + numlength) {
           parsedValue = Long.parseLong(matcher.group(i + 2));
-          unit = matcher.group(i + 3).toLowerCase();
+          unit = matcher.group(i + numlength).toLowerCase();
           result += factors.get(unit) * parsedValue;
         }
       }
@@ -114,7 +128,7 @@ public final class TimeUnitFormat {
    * Formats the given period in milliseconds to a readable string.
    *
    * @param millis the milliseconds (count from 0 - not epoch).
-   * @param factors factors
+   * @param theFactors factors
    * @param zeroType the unit if the result is 0.
    * @return a readable string in form of the ordered value unit pairs (*y *mo
    *     *d *h *m *s), separated by white space character. Milliseconds are
@@ -122,14 +136,14 @@ public final class TimeUnitFormat {
    */
   public String format(
       final long millis,
-      final Map<String, Long> factors,
+      final Map<String, Long> theFactors,
       final String zeroType) {
     long value = millis;
     String unit = null;
     long factor = 0;
     long currentValue = 0;
     final StringBuilder builder = new StringBuilder();
-    for (Entry<String, Long> entry : factors.entrySet()) {
+    for (Entry<String, Long> entry : theFactors.entrySet()) {
       unit = entry.getKey();
       if (units.contains(unit)) {
         factor = entry.getValue();

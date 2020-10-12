@@ -599,7 +599,7 @@ public class KeyToolsTest {
   }
 
   // Helper method to create a test CV certificate
-  private CVCertificate createCVTestCertificate(AuthorizationRoleEnum role)
+  private CVCertificate createCVTestCertificate(final AuthorizationRoleEnum role)
       throws Exception {
     KeyPair keyPair =
         KeyTools.genKeys("prime192v1", AlgorithmConstants.KEYALGORITHM_ECDSA);

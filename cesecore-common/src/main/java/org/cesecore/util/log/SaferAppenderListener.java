@@ -23,6 +23,8 @@ package org.cesecore.util.log;
  *     $
  */
 public interface SaferAppenderListener {
-
-  public abstract void setCanlog(boolean pCanlog);
+  /**
+   * @param pCanlog Can Log.
+   */
+  void setCanlog(boolean pCanlog);
 }

@@ -34,25 +34,25 @@ import org.cesecore.internal.InternalResources;
 /**
  * Tools to handle calls with <a
  * href="https://docs.oracle.com/javase/8/docs/api/java/lang/Process.html">Java
- * Process API</a>
+ * Process API</a>.
  *
  * @version $Id: ExternalProcessTools.java 27126 2017-12-16 09:28:54Z anjakobs $
  */
 public final class ExternalProcessTools {
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(ExternalProcessTools.class);
 
   /** Internal localization of logs and errors. */
-  private static final InternalResources intres =
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /** Literal for the (platform dependent) line separator. */
   private static final String LINE_SEPARATOR =
       System.getProperty("line.separator");
 
-  /** Literal for place holder for the certificate issued */
+  /** Literal for place holder for the certificate issued. */
   public static final String PLACE_HOLDER_CERTIFICATE = "%cert%";
 
   /** Literal for default MS Windows shell. */
@@ -85,7 +85,7 @@ public final class ExternalProcessTools {
    * @param cmd the external command or script
    * @return the command array as list.
    */
-  protected static final List<String> buildShellCommand(final String cmd) {
+  protected static List<String> buildShellCommand(final String cmd) {
     final List<String> result = new ArrayList<String>();
     if (SystemUtils.IS_OS_WINDOWS) {
       result.add(WINDOWS_SHELL);
@@ -94,8 +94,8 @@ public final class ExternalProcessTools {
       result.add(UNIX_SHELL);
       result.add(UNIX_SHELL_OPTIONS);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Use platform shell command for "
               + SystemUtils.OS_NAME
               + " : "
@@ -125,7 +125,7 @@ public final class ExternalProcessTools {
    * @throws ExternalProcessException if the temporary file could not be written
    *     or the external process fails.
    */
-  public static final List<String> launchExternalCommand(
+  public static List<String> launchExternalCommand(
       final String cmd,
       final byte[] bytes,
       final boolean failOnCode,
@@ -160,7 +160,7 @@ public final class ExternalProcessTools {
    * @throws ExternalProcessException if the temporary file could not be written
    *     or the external process fails.
    */
-  public static final List<String> launchExternalCommand(
+  public static List<String> launchExternalCommand(
       final String cmd,
       final byte[] bytes,
       final boolean failOnCode,
@@ -204,8 +204,8 @@ public final class ExternalProcessTools {
         pemString =
             pemString.substring(
                 pemString.indexOf(LINE_SEPARATOR) + 1, pemString.length());
-        if (log.isDebugEnabled()) {
-          log.debug("Using certificates:\n" + pemString);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Using certificates:\n" + pemString);
         }
         arguments.remove(arguments.indexOf(PLACE_HOLDER_CERTIFICATE));
 
@@ -213,8 +213,10 @@ public final class ExternalProcessTools {
           // Broken. Command cannot be executed.
           cmdTokens.set(0, "echo \"" + pemString + "\" | " + cmdTokens.get(0));
           /*
-           * Hack needed for Windows, where Runtime.exec won't consistently encapsulate arguments, leading to arguments
-           * containing spaces (such as Subject DNs) sometimes being parsed as multiple arguments. Bash, on the other hand,
+           * Hack needed for Windows, where Runtime.exec won't consistently
+           *  encapsulate arguments, leading to arguments
+           * containing spaces (such as Subject DNs) sometimes being parsed
+           * as multiple arguments. Bash, on the other hand,
            * won't parse quote surrounded arguments.
            */
           qouteArguments(arguments);
@@ -229,8 +231,8 @@ public final class ExternalProcessTools {
       if (!writeFileToDisk) {
         cmdArray = buildShellCommand(StringUtils.join(cmdArray, " "));
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Process external command for "
                 + getPlatformString()
                 + ": "
@@ -278,7 +280,7 @@ public final class ExternalProcessTools {
           }
         }
         String msg =
-            intres.getLocalizedMessage("process.errorexternalapp", cmd);
+            INTRES.getLocalizedMessage("process.errorexternalapp", cmd);
         if (stdErrorOutput != null) {
           msg += " - " + stdErrorOutput + " - " + filename;
         }
@@ -296,26 +298,26 @@ public final class ExternalProcessTools {
         result.add(ERROUT_PREFIX + e.getMessage());
       }
       throw new ExternalProcessException(
-          intres.getLocalizedMessage("process.errorexternalapp", cmd),
+          INTRES.getLocalizedMessage("process.errorexternalapp", cmd),
           e,
           result);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ExternalProcessException(
-          intres.getLocalizedMessage("process.errorexternalapp", cmd),
+          INTRES.getLocalizedMessage("process.errorexternalapp", cmd),
           e,
           result);
     } finally {
       if (writeFileToDisk && file != null && file.exists() && !file.delete()) {
         // Remove temporary file or schedule for delete if delete fails.
         file.deleteOnExit();
-        log.info(
-            intres.getLocalizedMessage(
+        LOG.info(
+            INTRES.getLocalizedMessage(
                 "process.errordeletetempfile", filename));
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Time spent to execute external command (writeFileToDisk="
               + writeFileToDisk
               + "): "
@@ -325,7 +327,10 @@ public final class ExternalProcessTools {
     return result;
   }
 
-  public static final String getPlatformString() {
+  /**
+   * @return platform.
+   */
+  public static String getPlatformString() {
     return SystemUtils.OS_NAME
         + " / "
         + SystemUtils.OS_VERSION
@@ -344,7 +349,7 @@ public final class ExternalProcessTools {
    * @return the file or null.
    * @throws ExternalProcessException any exception.
    */
-  public static final File writeTemporaryFileToDisk(
+  public static File writeTemporaryFileToDisk(
       final byte[] bytes, final String filePrefix, final String fileSuffix)
       throws ExternalProcessException {
     File file = null;
@@ -353,15 +358,15 @@ public final class ExternalProcessTools {
           File.createTempFile(
               filePrefix + "-" + System.currentTimeMillis(), fileSuffix);
     } catch (IOException e) {
-      final String msg = intres.getLocalizedMessage("process.errortempfile");
-      log.error(msg, e);
+      final String msg = INTRES.getLocalizedMessage("process.errortempfile");
+      LOG.error(msg, e);
     }
     if (file != null) {
       try (FileOutputStream fos = new FileOutputStream(file)) {
         fos.write(bytes);
       } catch (FileNotFoundException e) {
-        final String msg = intres.getLocalizedMessage("process.errortempfile");
-        log.error(msg, e);
+        final String msg = INTRES.getLocalizedMessage("process.errortempfile");
+        LOG.error(msg, e);
         throw new ExternalProcessException(msg);
       } catch (IOException e) {
         try {
@@ -369,8 +374,8 @@ public final class ExternalProcessTools {
         } catch (Exception e1) {
           // NOOP
         }
-        final String msg = intres.getLocalizedMessage("process.errortempfile");
-        log.error(msg, e);
+        final String msg = INTRES.getLocalizedMessage("process.errortempfile");
+        LOG.error(msg, e);
         throw new ExternalProcessException(msg);
       }
     }
@@ -386,7 +391,7 @@ public final class ExternalProcessTools {
    * @param out the output of the external process.
    * @return the exit code.
    */
-  public static final Integer extractExitCode(final List<String> out) {
+  public static Integer extractExitCode(final List<String> out) {
     Integer result = null;
     if (CollectionUtils.isNotEmpty(out)) {
       result =
@@ -405,7 +410,7 @@ public final class ExternalProcessTools {
    * @param out the output of the external process.
    * @return true if the list contains logging to ERROUT.
    */
-  public static final boolean containsErrout(final List<String> out) {
+  public static boolean containsErrout(final List<String> out) {
     if (CollectionUtils.isNotEmpty(out) && out.size() > 1) {
       for (int i = 1, j = out.size(); i < j; i++) {
         if (out.get(i).startsWith(ERROUT_PREFIX)) {
@@ -421,7 +426,7 @@ public final class ExternalProcessTools {
    *
    * @param arguments the arguments list.
    */
-  private static final void qouteArguments(final List<String> arguments) {
+  private static void qouteArguments(final List<String> arguments) {
     for (int i = 0; i < arguments.size(); i++) {
       String argument = arguments.get(i);
       // Add quotes to encapsulate argument.
@@ -432,5 +437,5 @@ public final class ExternalProcessTools {
   }
 
   /** Avoid instantiation. */
-  private ExternalProcessTools() {}
+  private ExternalProcessTools() { }
 }

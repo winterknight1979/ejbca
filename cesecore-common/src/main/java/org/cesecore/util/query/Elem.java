@@ -20,4 +20,4 @@ import java.io.Serializable;
  *
  * @version $Id: Elem.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-public interface Elem extends Serializable {}
+public interface Elem extends Serializable { }

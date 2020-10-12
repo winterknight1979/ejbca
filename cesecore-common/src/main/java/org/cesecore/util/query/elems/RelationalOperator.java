@@ -16,14 +16,24 @@ package org.cesecore.util.query.elems;
  * @version $Id: RelationalOperator.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public enum RelationalOperator {
-  GT,
+  /** &gt;. */
+    GT,
+  /** &gt;=. */
   GE,
+  /** &lt;. */
   LT,
+  /** &lt;=. */
   LE,
+  /** ==. */
   EQ,
+  /** !=.*/
   NEQ,
+  /** Between. */
   BETWEEN,
+  /** Like. */
   LIKE,
+  /** Null. */
   NULL,
+  /** Not null. */
   NOTNULL
 }

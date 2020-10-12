@@ -28,10 +28,11 @@ import org.apache.log4j.spi.LoggingEvent;
  *     mikekushner $
  */
 public class SaferDailyRollingFileAppender extends DailyRollingFileAppender {
+    /** Subscriber. */
   private static SaferAppenderListener subscriber;
 
   @Override
-  public void append(LoggingEvent evt) {
+  public void append(final LoggingEvent evt) {
     super.append(evt);
     File logfile;
     try {
@@ -56,7 +57,7 @@ public class SaferDailyRollingFileAppender extends DailyRollingFileAppender {
    *
    * @param pSubscriber subscriber
    */
-  public static void addSubscriber(SaferAppenderListener pSubscriber) {
+  public static void addSubscriber(final SaferAppenderListener pSubscriber) {
     subscriber = pSubscriber;
   }
 

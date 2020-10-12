@@ -81,15 +81,20 @@ import org.cesecore.certificates.ocsp.SHA1DigestCalculator;
  */
 public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
 
-  private final Logger log =
+    /** Logger. */
+    private final Logger log =
       Logger.getLogger(PKIXCertRevocationStatusChecker.class);
-
-  private String ocspUrl;
-  private String crlUrl;
-  private X509Certificate issuerCert;
-  private Collection<X509Certificate> caCerts;
-
+    /** oCSP. */
+  private final String ocspUrl;
+  /** CRL. */
+  private final String crlUrl;
+  /** Issuer. */
+  private final X509Certificate issuerCert;
+  /** Certs. */
+  private final Collection<X509Certificate> caCerts;
+  /** Response. */
   private SingleResp ocspResponse = null;
+  /** CRL. */
   private CRL crl = null;
 
   /**
@@ -97,7 +102,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
    * using a CRL fetched using a URL extracted from the certificate's CRL
    * Distribution Points extension.
    *
-   * @param issuerCert The certificate of the issuer of the certificate whose
+   * @param anIssuerCert The certificate of the issuer of the certificate whose
    *     revocation status is to be checked. if 'null', the issuer certificate
    *     will be looked for among the certificates specified in 'cacerts'
    * @param cacerts A collection of certificates where one of them is the
@@ -105,11 +110,11 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
    *     checked. This parameter will be used only if 'issuerCert' is null
    */
   public PKIXCertRevocationStatusChecker(
-      final X509Certificate issuerCert,
+      final X509Certificate anIssuerCert,
       final Collection<X509Certificate> cacerts) {
     this.ocspUrl = null;
     this.crlUrl = null;
-    this.issuerCert = issuerCert;
+    this.issuerCert = anIssuerCert;
     this.caCerts = cacerts;
   }
 
@@ -120,7 +125,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
    * @param crlurl The URL to fetch the CRL from. If 'null', the CRL URL will be
    *     extracted from the certificate's CRLDistributionPoints extension if
    *     exists.
-   * @param issuerCert The certificate of the issuer of the certificate whose
+   * @param anIssuerCert The certificate of the issuer of the certificate whose
    *     revocation status is to be checked. if 'null', the issuer certificate
    *     will be looked for among the certificates specified in 'cacerts'
    * @param cacerts A collection of certificates where one of them is the
@@ -130,16 +135,16 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
   public PKIXCertRevocationStatusChecker(
       final String ocspurl,
       final String crlurl,
-      final X509Certificate issuerCert,
+      final X509Certificate anIssuerCert,
       final Collection<X509Certificate> cacerts) {
     this.ocspUrl = ocspurl;
     this.crlUrl = crlurl;
-    this.issuerCert = issuerCert;
+    this.issuerCert = anIssuerCert;
     this.caCerts = cacerts;
   }
 
   @Override
-  public void init(boolean forward) throws CertPathValidatorException {}
+  public void init(final boolean forward) throws CertPathValidatorException { }
 
   @Override
   public boolean isForwardCheckingSupported() {
@@ -187,7 +192,8 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
    * If that fails for any reason, then through a CRL
    */
   @Override
-  public void check(Certificate cert, Collection<String> unresolvedCritExts)
+  public void check(
+          final Certificate cert, final Collection<String> unresolvedCritExts)
       throws CertPathValidatorException {
 
     clearResult();
@@ -218,11 +224,12 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
         return;
       }
 
+      final int httpOk = 200;
       SingleResp ocspResp = null;
       for (String url : ocspurls) {
         ocspResp =
             getOCSPResponse(
-                url, req, cert, nonce, OCSPRespBuilder.SUCCESSFUL, 200);
+                url, req, cert, nonce, OCSPRespBuilder.SUCCESSFUL, httpOk);
         if (ocspResp != null) {
           log.info("Obtained OCSP response from " + url);
           break;
@@ -268,7 +275,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
   }
 
   /**
-   * Check the revocation status of 'cert' using a CRL
+   * Check the revocation status of 'cert' using a CRL.
    *
    * @param cert the certificate whose revocation status is to be checked
    * @param issuerDN DN
@@ -288,13 +295,13 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
       log.debug("Found " + crlUrls.size() + " CRL URLs");
     }
 
-    CRL crl = null;
+    CRL aCrl = null;
     for (URL url : crlUrls) {
-      crl = getCRL(url);
-      if (crl != null) {
-        if (isCorrectCRL(crl, issuerDN)) {
-          final boolean isRevoked = crl.isRevoked(cert);
-          this.crl = crl;
+      aCrl = getCRL(url);
+      if (aCrl != null) {
+        if (isCorrectCRL(aCrl, issuerDN)) {
+          final boolean isRevoked = aCrl.isRevoked(cert);
+          this.crl = aCrl;
           if (isRevoked) {
             throw new CertPathValidatorException(
                 "Certificate with serialnumber "
@@ -314,12 +321,12 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     }
   }
 
-  private boolean isCorrectCRL(final CRL crl, final String issuerDN) {
-    if (!(crl instanceof X509CRL)) {
+  private boolean isCorrectCRL(final CRL aCrl, final String issuerDN) {
+    if (!(aCrl instanceof X509CRL)) {
       return false;
     }
 
-    X509CRL x509crl = (X509CRL) crl;
+    X509CRL x509crl = (X509CRL) aCrl;
     if (!StringUtils.equals(issuerDN, CertTools.getIssuerDN(x509crl))) {
       return false;
     }
@@ -370,12 +377,12 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
   }
 
   private CRL getCRL(final URL url) {
-    CRL crl = null;
+    CRL aCrl = null;
     try {
       final URLConnection con = url.openConnection();
       final InputStream is = con.getInputStream();
       final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-      crl = cf.generateCRL(is);
+      aCrl = cf.generateCRL(is);
       is.close();
       log.info("Downloaded CRL from " + url);
     } catch (IOException | CertificateException | CRLException e) {
@@ -387,11 +394,11 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
                 + e.getLocalizedMessage());
       }
     }
-    return crl;
+    return aCrl;
   }
 
   /**
-   * Construct an OCSP request
+   * Construct an OCSP request.
    *
    * @param cacert The certificate of the issuer of the certificate to be
    *     checked
@@ -402,7 +409,9 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
    * @throws OCSPException if OCSP fails
    */
   private OCSPReq getOcspRequest(
-      Certificate cacert, BigInteger certSerialnumber, final byte[] nonce)
+      final Certificate cacert,
+      final BigInteger certSerialnumber,
+      final byte[] nonce)
       throws CertificateEncodingException, OCSPException {
     OCSPReqBuilder gen = new OCSPReqBuilder();
     gen.addRequest(
@@ -440,8 +449,8 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
       final OCSPReq ocspRequest,
       final Certificate cert,
       final byte[] nonce,
-      int expectedOcspRespCode,
-      int expectedHttpRespCode) {
+      final int expectedOcspRespCode,
+      final int expectedHttpRespCode) {
     if (log.isDebugEnabled()) {
       log.debug(
           "Sending OCSP request to "
@@ -617,7 +626,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     }
   }
 
-  private ArrayList<String> getOcspUrls(Certificate cert) {
+  private ArrayList<String> getOcspUrls(final Certificate cert) {
     ArrayList<String> urls = new ArrayList<String>();
     if (StringUtils.isNotEmpty(this.ocspUrl)) {
       urls.add(this.ocspUrl);

@@ -84,10 +84,10 @@ public abstract class DNFieldsUtil {
       result =
           StringUtils.isNotBlank(
                   map.get(
-                      CeSecoreNameStyle.DefaultSymbols.get(
+                      CeSecoreNameStyle.DEFAULT_SYMBOLS.get(
                           CeSecoreNameStyle.C)))
               && StringUtils.isNotBlank(
-                  CeSecoreNameStyle.DefaultSymbols.get(CeSecoreNameStyle.CN));
+                  CeSecoreNameStyle.DEFAULT_SYMBOLS.get(CeSecoreNameStyle.CN));
     }
     return result;
   }
@@ -110,7 +110,7 @@ public abstract class DNFieldsUtil {
     String value1;
     String value2;
     final String snAttributeKey =
-        CeSecoreNameStyle.DefaultSymbols.get(CeSecoreNameStyle.SN);
+        CeSecoreNameStyle.DEFAULT_SYMBOLS.get(CeSecoreNameStyle.SN);
     boolean result = true;
     for (Map.Entry<String, String> entry : map1.entrySet()) {
       key = entry.getKey();

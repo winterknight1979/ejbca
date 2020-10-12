@@ -105,9 +105,7 @@ public class DynamicUiProperty<T extends Serializable>
    */
   private boolean saveListAsString = false;
 
-  /** Hint for widget rendering. */
-  ;
-
+  /** Hint. */
   private String renderingHint;
 
   /** True if I18N labels has to be rendered. */
@@ -145,19 +143,19 @@ public class DynamicUiProperty<T extends Serializable>
    * Constructor required by java.lang.Serializable. Type must be set if this
    * constructor is used.
    */
-  public DynamicUiProperty() {}
+  public DynamicUiProperty() { }
 
   /**
    * Constructs a dynamic UI property rendered as a simple label in the UI.
    *
-   * @param name the name of this property, for display in the UI
+   * @param aName the name of this property, for display in the UI
    */
   @SuppressWarnings("unchecked")
-  public DynamicUiProperty(final String name) {
-    this.name = name;
+  public DynamicUiProperty(final String aName) {
+    this.name = aName;
     this.type = String.class;
-    this.defaultValue = (T) name;
-    this.values.add((T) name);
+    this.defaultValue = (T) aName;
+    this.values.add((T) aName);
     this.possibleValues = null;
     setLabelOnly(true);
     setTransientValue(true);
@@ -166,44 +164,44 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Constructor. Note the T must implement toString().
    *
-   * @param name the name of this property, for display in the UI.
-   * @param defaultValue the default value, if any.
+   * @param aName the name of this property, for display in the UI.
+   * @param aDefaultValue the default value, if any.
    */
-  public DynamicUiProperty(final String name, final T defaultValue) {
-    this.name = name;
-    this.defaultValue = defaultValue;
-    this.values.add(defaultValue);
+  public DynamicUiProperty(final String aName, final T aDefaultValue) {
+    this.name = aName;
+    this.defaultValue = aDefaultValue;
+    this.values.add(aDefaultValue);
     this.possibleValues = null;
-    if (defaultValue != null) {
-      this.type = defaultValue.getClass();
+    if (aDefaultValue != null) {
+      this.type = aDefaultValue.getClass();
     }
   }
 
   /**
    * Constructor. Note the T must implement toString().
    *
-   * @param type Class type (as workaround for forgotten parameter type at
+   * @param aType Class type (as workaround for forgotten parameter type at
    *     runtime).
-   * @param name the name of this property, for display in the UI.
-   * @param defaultValue the default value, if any.
+   * @param aName the name of this property, for display in the UI.
+   * @param aDefaultValue the default value, if any.
    */
   @SuppressWarnings("unchecked")
   public DynamicUiProperty(
-      final Class<T> type, final String name, final T defaultValue) {
-    this.name = name;
-    this.defaultValue = defaultValue;
-    if (String.class.equals(type)
-        && defaultValue != null
-        && ((String) defaultValue).contains(LIST_SEPARATOR)) {
-      for (String value :
-          StringUtils.split((String) defaultValue, LIST_SEPARATOR)) {
+      final Class<T> aType, final String aName, final T aDefaultValue) {
+    this.name = aName;
+    this.defaultValue = aDefaultValue;
+    if (String.class.equals(aType)
+        && aDefaultValue != null
+        && ((String) aDefaultValue).contains(LIST_SEPARATOR)) {
+      for (String value
+          : StringUtils.split((String) aDefaultValue, LIST_SEPARATOR)) {
         this.values.add((T) value);
       }
     } else {
-      this.values.add(defaultValue);
+      this.values.add(aDefaultValue);
     }
     this.possibleValues = null;
-    this.type = type;
+    this.type = aType;
     if (File.class.getName().equals(getType().getName())
         || byte[].class.getName().equals(getType().getName())) {
       setRenderingHint(RENDER_FILE_CHOOSER);
@@ -213,42 +211,42 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Constructor. Note the T must implement toString().
    *
-   * @param name the name of this property, for display in the UI.
-   * @param defaultValue the default value, if any. May not be null.
-   * @param possibleValues a Collection of possible values. If set to null no
+   * @param aName the name of this property, for display in the UI.
+   * @param aDefaultValue the default value, if any. May not be null.
+   * @param thePossibleValues a Collection of possible values. If set to null no
    *     validation will be performed, if set to an empty list then values are
    *     presumed to be set at runtime.
    */
   public DynamicUiProperty(
-      final String name,
-      final T defaultValue,
-      final Collection<T> possibleValues) {
-    this(name, defaultValue);
-    this.possibleValues = possibleValues;
+      final String aName,
+      final T aDefaultValue,
+      final Collection<T> thePossibleValues) {
+    this(aName, aDefaultValue);
+    this.possibleValues = thePossibleValues;
   }
 
   /**
    * Constructor. Note the T must implement toString().
    *
-   * @param type Class type (as workaround for forgotten parameter type at
+   * @param aType Class type (as workaround for forgotten parameter type at
    *     runtime).
-   * @param name The name of this property, for display in the UI
-   * @param defaultValue the default value, if any.
-   * @param possibleValues a Collection of possible values. If set to null no
+   * @param aNname The name of this property, for display in the UI
+   * @param aDefaultValue the default value, if any.
+   * @param thePossibleValues a Collection of possible values. If set to null no
    *     validation will be performed, if set to an empty list then values are
    *     presumed to be set at runtime.
    */
   public DynamicUiProperty(
-      final Class<T> type,
-      final String name,
-      final T defaultValue,
-      final Collection<T> possibleValues) {
-    this(type, name, defaultValue);
-    this.possibleValues = possibleValues;
+      final Class<T> aType,
+      final String aNname,
+      final T aDefaultValue,
+      final Collection<T> thePossibleValues) {
+    this(aType, aNname, aDefaultValue);
+    this.possibleValues = thePossibleValues;
   }
 
   /**
-   * Copy constructor for DynamicUiProperty objects
+   * Copy constructor for DynamicUiProperty objects.
    *
    * @param original the original property
    */
@@ -290,10 +288,10 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets the dynamic UI model reference.
    *
-   * @param dynamicUiModel the dynamic UI model reference.
+   * @param aDynamicUiModel the dynamic UI model reference.
    */
-  public void setDynamicUiModel(final DynamicUiModel dynamicUiModel) {
-    this.dynamicUiModel = dynamicUiModel;
+  public void setDynamicUiModel(final DynamicUiModel aDynamicUiModel) {
+    this.dynamicUiModel = aDynamicUiModel;
   }
 
   /**
@@ -314,7 +312,7 @@ public class DynamicUiProperty<T extends Serializable>
    * @return and Object instantiated as T, or null if value was not of a usable
    *     class or was invalid for T
    */
-  public Serializable valueOf(String value) {
+  public Serializable valueOf(final String value) {
     // ECA-6320 Re-factor: New implementation uses constructor with type
     // parameter (not only Generic Operator because this information is lost at
     // runtime!).
@@ -399,10 +397,10 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets if the UI widget is supposed to be filled with a value.
    *
-   * @param required true if required.
+   * @param isRequired true if required.
    */
-  public void setRequired(boolean required) {
-    this.required = required;
+  public void setRequired(final boolean isRequired) {
+    this.required = isRequired;
   }
 
   /**
@@ -417,10 +415,10 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets if the UI widget is supposed to be disabled.
    *
-   * @param disabled true if disabled.
+   * @param isDisabled true if disabled.
    */
-  public void setDisabled(boolean disabled) {
-    this.disabled = disabled;
+  public void setDisabled(final boolean isDisabled) {
+    this.disabled = isDisabled;
   }
 
   /**
@@ -435,10 +433,10 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets weather the value has to be stored in the domain objects properties.
    *
-   * @param transientValue true if transient.
+   * @param isTransientValue true if transient.
    */
-  public void setTransientValue(boolean transientValue) {
-    this.transientValue = transientValue;
+  public void setTransientValue(final boolean isTransientValue) {
+    this.transientValue = isTransientValue;
   }
 
   /**
@@ -462,11 +460,11 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets if only the label has to be rendered.
    *
-   * @param labelOnly true if the entry has to be rendered as label only (first
-   *     column only)
+   * @param isLabelOnly true if the entry has to be rendered as label only
+   * (first column only)
    */
-  public void setLabelOnly(boolean labelOnly) {
-    this.labelOnly = labelOnly;
+  public void setLabelOnly(final boolean isLabelOnly) {
+    this.labelOnly = isLabelOnly;
   }
 
   /**
@@ -477,8 +475,11 @@ public class DynamicUiProperty<T extends Serializable>
     return type;
   }
 
-  public void setType(final Class<? extends Serializable> type) {
-    this.type = type;
+  /**
+   * @param aType type
+   */
+  public void setType(final Class<? extends Serializable> aType) {
+    this.type = aType;
   }
 
   /**
@@ -493,10 +494,10 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets the given value of type &lt;T&gt;.
    *
-   * @param defaultValue the value.
+   * @param theDefaultValue the value.
    */
-  public void setDefaultValue(T defaultValue) {
-    this.defaultValue = defaultValue;
+  public void setDefaultValue(final T theDefaultValue) {
+    this.defaultValue = theDefaultValue;
   }
 
   /**
@@ -529,6 +530,9 @@ public class DynamicUiProperty<T extends Serializable>
     return values.get(0);
   }
 
+  /**
+   * @return values
+   */
   public List<String> getPossibleValuesAsStrings() {
     final List<String> strings = new ArrayList<String>();
     for (final T possibleValue : getPossibleValues()) {
@@ -537,6 +541,9 @@ public class DynamicUiProperty<T extends Serializable>
     return strings;
   }
 
+  /**
+   * @return values
+   */
   public List<String> getValuesAsStrings() {
     final List<String> strings = new ArrayList<String>();
     for (final T value : getValues()) {
@@ -560,7 +567,8 @@ public class DynamicUiProperty<T extends Serializable>
    * @param collection the collection of values.
    */
   @SuppressWarnings("unchecked")
-  public void setPossibleValues(Collection<? extends Serializable> collection) {
+  public void setPossibleValues(
+          final Collection<? extends Serializable> collection) {
     this.possibleValues = (Collection<T>) collection;
   }
 
@@ -570,7 +578,7 @@ public class DynamicUiProperty<T extends Serializable>
    * @param object a value for this property.
    * @throws PropertyValidationException if the validation of the value failed.
    */
-  public void setValue(T object) throws PropertyValidationException {
+  public void setValue(final T object) throws PropertyValidationException {
     if (hasMultipleValues) {
       throw new IllegalStateException(
           "Attempted to set multiple values from a dynamic property with"
@@ -610,7 +618,8 @@ public class DynamicUiProperty<T extends Serializable>
    * @throws PropertyValidationException if any one of the values didn't pass
    *     validation.
    */
-  public void setValues(List<T> objects) throws PropertyValidationException {
+  public void setValues(final List<T> objects)
+          throws PropertyValidationException {
     if (!hasMultipleValues) {
       throw new IllegalStateException(
           "Attempted to set single value from a dynamic property with multiple"
@@ -841,7 +850,7 @@ public class DynamicUiProperty<T extends Serializable>
    */
   private byte[] getAsByteArray(final Serializable o) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final ObjectOutputStream oos = new ObjectOutputStream(baos); ) {
+    try (ObjectOutputStream oos = new ObjectOutputStream(baos); ) {
       oos.writeObject(o);
     } catch (IOException e) {
       throw new IllegalStateException(e);
@@ -849,14 +858,26 @@ public class DynamicUiProperty<T extends Serializable>
     return baos.toByteArray();
   }
 
+  /**
+   * @param <T> Type
+   * @param encodedValue Value
+   * @param type Type
+   * @return T
+   */
   public static <T extends Serializable> T getAsObject(
-      final String encodedValue, Class<T> type) {
+      final String encodedValue, final Class<T> type) {
     return getAsObject(Base64.decode(encodedValue.getBytes()), type);
   }
 
+  /**
+   * @param <T> Type
+   * @param bytes Bytes
+   * @param type Type
+   * @return T
+   */
   private static <T extends Serializable> T getAsObject(
-      final byte[] bytes, Class<T> type) {
-    try (final LookAheadObjectInputStream lookAheadObjectInputStream =
+      final byte[] bytes, final Class<T> type) {
+    try (LookAheadObjectInputStream lookAheadObjectInputStream =
         new LookAheadObjectInputStream(new ByteArrayInputStream(bytes))) {
       lookAheadObjectInputStream.setAcceptedClasses(
           Arrays.asList(
@@ -901,10 +922,11 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets the action callback.
    *
-   * @param actionCallback the callback.
+   * @param anActionCallback the callback.
    */
-  public void setActionCallback(final DynamicUiActionCallback actionCallback) {
-    this.actionCallback = actionCallback;
+  public void setActionCallback(
+          final DynamicUiActionCallback anActionCallback) {
+    this.actionCallback = anActionCallback;
   }
 
   /**
@@ -919,15 +941,15 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets the property call back.
    *
-   * @param propertyCallback the call back.
+   * @param aPropertyCallback the call back.
    */
   public void setPropertyCallback(
-      final DynamicUiPropertyCallback propertyCallback) {
-    this.propertyCallback = propertyCallback;
+      final DynamicUiPropertyCallback aPropertyCallback) {
+    this.propertyCallback = aPropertyCallback;
   }
 
   /**
-   * Gets if the property is allowed to consist of multiple values
+   * Gets if the property is allowed to consist of multiple values.
    *
    * @return true if this property can have multiple values.
    */
@@ -939,12 +961,15 @@ public class DynamicUiProperty<T extends Serializable>
    * Sets if the property is allowed to consist of multiple values (i.e. list,
    * or LIST_SEPARATOR separated string).
    *
-   * @param hasMultipleValues true if the property may have multiple values.
+   * @param hasGotMultipleValues true if the property may have multiple values.
    */
-  public void setHasMultipleValues(final boolean hasMultipleValues) {
-    this.hasMultipleValues = hasMultipleValues;
+  public void setHasMultipleValues(final boolean hasGotMultipleValues) {
+    this.hasMultipleValues = hasGotMultipleValues;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isMultiValued() {
     return possibleValues != null;
   }
@@ -981,10 +1006,10 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets the validator instance.
    *
-   * @param validator the validator.
+   * @param aValidator the validator.
    */
-  public void setValidator(final DynamicUiPropertyValidator<T> validator) {
-    this.validator = validator;
+  public void setValidator(final DynamicUiPropertyValidator<T> aValidator) {
+    this.validator = aValidator;
   }
 
   /**
@@ -1012,11 +1037,11 @@ public class DynamicUiProperty<T extends Serializable>
   /**
    * Sets the map of I18N key / value pairs.
    *
-   * @param labels the map.
+   * @param theLabels the map.
    */
-  public void setLabels(final Map<?, String> labels) {
-    labeled = MapUtils.isNotEmpty(labels);
-    this.labels = labels;
+  public void setLabels(final Map<?, String> theLabels) {
+    labeled = MapUtils.isNotEmpty(theLabels);
+    this.labels = theLabels;
   }
 
   /**
@@ -1099,6 +1124,9 @@ public class DynamicUiProperty<T extends Serializable>
     return File.class.getName().equals(getType().getName());
   }
 
+  /**
+   * @return bool
+   */
   public boolean isByteArrayType() {
     return byte[].class.getName().equals(getType().getName());
   }
@@ -1126,11 +1154,11 @@ public class DynamicUiProperty<T extends Serializable>
    * Temp. method to store java.util.List as LIST_SEPARATOR separated List of
    * Strings (use for PublicKeyBlacklistKeyValidator only at the time).
    *
-   * @param saveListAsString true if the list of Strings has to be stored as
+   * @param doSaveListAsString true if the list of Strings has to be stored as
    *     string.
    */
-  public void setSaveListAsString(boolean saveListAsString) {
-    this.saveListAsString = saveListAsString;
+  public void setSaveListAsString(final boolean doSaveListAsString) {
+    this.saveListAsString = doSaveListAsString;
   }
 
   /**
@@ -1138,10 +1166,10 @@ public class DynamicUiProperty<T extends Serializable>
    * {@link #RENDER_CHECKBOX}, {@link #RENDER_TEXTFIELD}, {@link
    * #RENDER_SELECT_ONE} or {@link #RENDER_SELECT_MANY})).
    *
-   * @param renderingHint the rendering hint.
+   * @param aRenderingHint the rendering hint.
    */
-  public void setRenderingHint(final String renderingHint) {
-    this.renderingHint = renderingHint;
+  public void setRenderingHint(final String aRenderingHint) {
+    this.renderingHint = aRenderingHint;
   }
 
   /**
@@ -1211,8 +1239,8 @@ public class DynamicUiProperty<T extends Serializable>
 
   /** Update the view components attributes here! */
   public void updateViewComponents() {
-    for (DynamicUiComponent component :
-        getDynamicUiModel().getViewComponents(name)) {
+    for (DynamicUiComponent component
+        : getDynamicUiModel().getViewComponents(name)) {
       component.setDisabled(getDynamicUiModel().isDisabled() || isDisabled());
     }
   }

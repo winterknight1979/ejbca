@@ -28,33 +28,50 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: SimpleTime.java 24744 2016-11-15 14:36:16Z anatom $
  */
-public class SimpleTime {
+public final class SimpleTime {
 
+      /** Config. */
   public static final long MILLISECONDS_PER_YEAR = 31536000000L; // 365 days
+  /** Config. */
   public static final long MILLISECONDS_PER_MONTH = 2592000000L; // 30 days
+  /** Config. */
   public static final long MILLISECONDS_PER_DAY = 86400000L;
+  /** Config. */
   public static final long MILLISECONDS_PER_HOUR = 3600000L;
+  /** Config. */
   public static final long MILLISECONDS_PER_MINUTE = 60000L;
+  /** Config. */
   public static final long MILLISECONDS_PER_SECOND = 1000L;
 
+  /** Config. */
   public static final String TYPE_YEARS = "y";
+  /** Config. */
   public static final String TYPE_MONTHS = "mo";
+  /** Config. */
   public static final String TYPE_DAYS = "d";
+  /** Config. */
   public static final String TYPE_HOURS = "h";
+  /** Config. */
   public static final String TYPE_MINUTES = "m";
+  /** Config. */
   public static final String TYPE_SECONDS = "s";
+  /** Config. */
   public static final String TYPE_MILLISECONDS = "ms";
-
+  /** MS. */
   public static final String PRECISION_MILLISECONDS = "milliseconds";
+  /** Secs. */
   public static final String PRECISION_SECONDS = "seconds";
+  /** Days. */
   public static final String PRECISION_DAYS = "days";
 
+  /** Lost. */
   public static final List<String> AVAILABLE_PRECISIONS =
       Arrays.asList(
           new String[] {
             PRECISION_MILLISECONDS, PRECISION_SECONDS, PRECISION_DAYS
           });
 
+  /** Map. */
   private static final Map<String, Long> MILLISECONDS_FACTOR =
       new LinkedHashMap<String, Long>();
 
@@ -68,13 +85,16 @@ public class SimpleTime {
     MILLISECONDS_FACTOR.put(TYPE_MILLISECONDS, 1L);
   }
 
-  private static final Logger log = Logger.getLogger(SimpleTime.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(SimpleTime.class);
 
+  /** Format. */
   private static final TimeUnitFormat DAYS_FORMAT_INSTANCE =
       new TimeUnitFormat(
           Arrays.asList(new String[] {TYPE_YEARS, TYPE_MONTHS, TYPE_DAYS}),
           MILLISECONDS_FACTOR);
 
+  /** Format. */
   private static final TimeUnitFormat SECONDS_FORMAT_INSTANCE =
       new TimeUnitFormat(
           Arrays.asList(
@@ -88,8 +108,9 @@ public class SimpleTime {
               }),
           MILLISECONDS_FACTOR);
 
-  // Limitation 'ms' (or 'mo') MUST NOT be configured after units containing one
-  // of their characters 'm', 's' or 'o'!
+  /** Limitation 'ms' (or 'mo') MUST NOT be configured
+   * after units containing one
+     of their characters 'm', 's' or 'o'! */
   private static final TimeUnitFormat MILLISECONDS_FORMAT_INSTANCE =
       new TimeUnitFormat(
           Arrays.asList(
@@ -104,17 +125,25 @@ public class SimpleTime {
               }),
           MILLISECONDS_FACTOR);
 
+  /** Long. */
   private long longTime = 0;
+  /** Y. */
   private long years = 0;
+  /** M. */
   private long months = 0;
+  /** D. */
   private long days = 0;
+  /** h. */
   private long hours = 0;
+  /** m. */
   private long minutes = 0;
+  /** s. */
   private long seconds = 0;
+  /** MS.*/
   private long milliSeconds = 0;
 
   /** @param time milliseconds */
-  private SimpleTime(long time) {
+  private SimpleTime(final long time) {
     setTime(time);
   }
 
@@ -123,18 +152,20 @@ public class SimpleTime {
    *     milliseconds
    * @throws Exception if unable to parse a String
    */
-  private SimpleTime(String time) throws Exception {
+  private SimpleTime(final String time) throws Exception {
     setTime(parseMillies(time));
   }
 
   /**
-   * @param time AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E
+   * @param otime AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E
    *     milliseconds
    * @param defaultTime AdBhCmDsEu meaning A days, B hours, C minutes, D seconds
    *     and E milliseconds
    * @throws Exception if unable to parse a String
    */
-  private SimpleTime(String time, String defaultTime) throws Exception {
+  private SimpleTime(
+          final String otime, final String defaultTime) throws Exception {
+      String time = otime;
     if (time == null || time.trim().length() == 0) {
       time = defaultTime;
     }
@@ -147,7 +178,7 @@ public class SimpleTime {
    * @param time milliseconds
    * @return new instance of class
    */
-  public static SimpleTime getInstance(long time) {
+  public static SimpleTime getInstance(final long time) {
     return new SimpleTime(time);
   }
 
@@ -158,12 +189,12 @@ public class SimpleTime {
    *     milliseconds
    * @return new instance of class or null if there were errors
    */
-  public static SimpleTime getInstance(String time) {
+  public static SimpleTime getInstance(final String time) {
     SimpleTime simpleTime = null;
     try {
       simpleTime = new SimpleTime(time);
     } catch (Exception e) {
-      log.info("Failed to parse time \"" + time + "\". " + e.getMessage());
+      LOG.info("Failed to parse time \"" + time + "\". " + e.getMessage());
     }
     return simpleTime;
   }
@@ -177,12 +208,13 @@ public class SimpleTime {
    *     and E milliseconds
    * @return new instance of class or null if there were errors
    */
-  public static SimpleTime getInstance(String time, String defaultTime) {
+  public static SimpleTime getInstance(
+          final String time, final String defaultTime) {
     SimpleTime simpleTime = null;
     try {
       simpleTime = new SimpleTime(time, defaultTime);
     } catch (Exception e) {
-      log.info(
+      LOG.info(
           "Failed to parse time or defaultTime \""
               + time
               + "\", \""
@@ -199,7 +231,7 @@ public class SimpleTime {
    *
    * @return a time unit formatter.
    */
-  public static final TimeUnitFormat getDaysFormat() {
+  public static TimeUnitFormat getDaysFormat() {
     return DAYS_FORMAT_INSTANCE;
   }
 
@@ -210,7 +242,7 @@ public class SimpleTime {
    *
    * @return a time unit formatter.
    */
-  public static final TimeUnitFormat getSecondsFormat() {
+  public static TimeUnitFormat getSecondsFormat() {
     return SECONDS_FORMAT_INSTANCE;
   }
 
@@ -221,7 +253,7 @@ public class SimpleTime {
    *
    * @return a time unit formatter.
    */
-  public static final TimeUnitFormat getMilliSecondsFormat() {
+  public static TimeUnitFormat getMilliSecondsFormat() {
     return MILLISECONDS_FORMAT_INSTANCE;
   }
 
@@ -233,7 +265,7 @@ public class SimpleTime {
    * @throws IllegalArgumentException if invalid args
    * @see SimpleTime#AVAILABLE_PRECISIONS
    */
-  public static final TimeUnitFormat getTimeUnitFormatOrThrow(
+  public static TimeUnitFormat getTimeUnitFormatOrThrow(
       final String precision) throws IllegalArgumentException {
     TimeUnitFormat result = null;
     if (!AVAILABLE_PRECISIONS.contains(precision)) {
@@ -256,18 +288,29 @@ public class SimpleTime {
     return result;
   }
 
-  public static final String toString(
+  /**
+   * @param millis MS
+   * @param zeroType Zero
+   * @return string
+   */
+  public static String toString(
       final long millis, final String zeroType) {
     return SimpleTime.getMilliSecondsFormat()
         .format(millis, MILLISECONDS_FACTOR, zeroType);
   }
 
-  public static final long parseMillies(String time)
+  /**
+   * @param time MS
+   * @return time
+   * @throws NumberFormatException fail
+   */
+  public static long parseMillies(final String time)
       throws NumberFormatException {
     return SimpleTime.getMilliSecondsFormat().parseMillis(time);
   }
 
-  private void setTime(long time) {
+  private void setTime(final long otime) {
+    long time = otime;
     longTime = time;
     years = time / MILLISECONDS_PER_YEAR;
     time %= MILLISECONDS_PER_YEAR;
@@ -294,30 +337,51 @@ public class SimpleTime {
     return longTime;
   }
 
+  /**
+   * @return Y
+   */
   public long getYears() {
     return years;
   }
 
+  /**
+   * @return M
+   */
   public long getMonths() {
     return months;
   }
 
+  /**
+   * @return D
+   */
   public long getDays() {
     return days;
   }
 
+  /**
+   * @return h
+   */
   public long getHours() {
     return hours;
   }
 
+  /**
+   * @return m
+   */
   public long getMinutes() {
     return minutes;
   }
 
+  /**
+   * @return s
+   */
   public long getSeconds() {
     return seconds;
   }
 
+  /**
+   * @return ms
+   */
   public long getMilliSeconds() {
     return milliSeconds;
   }
@@ -338,7 +402,7 @@ public class SimpleTime {
    * @return time in the format AdBhCmDsEu meaning A days, B hours, C minutes, D
    *     seconds and E milliseconds
    */
-  public String toString(String zeroType) {
+  public String toString(final String zeroType) {
     return SimpleTime.getMilliSecondsFormat()
         .format(getLong(), MILLISECONDS_FACTOR, zeroType);
   }

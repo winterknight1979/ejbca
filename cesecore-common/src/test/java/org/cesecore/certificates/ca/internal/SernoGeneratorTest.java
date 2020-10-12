@@ -367,9 +367,9 @@ public class SernoGeneratorTest {
 
   private static class SernoTester
       implements Runnable { // NOPMD, this is not a JEE app, only a test
-    private int noOctets;
+    private final int noOctets;
 
-    public SernoTester(int noOctets) {
+    public SernoTester(final int noOctets) {
       this.noOctets = noOctets;
     }
 
@@ -395,7 +395,7 @@ public class SernoGeneratorTest {
   private static class CacheExceptionHandler
       implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(
-        Thread t, Throwable e) { // NOPMD, this is not a JEE app, only a test
+        final Thread t, final Throwable e) { // NOPMD, this is not a JEE app, only a test
       SernoGeneratorTest.threadException = e;
     }
   }

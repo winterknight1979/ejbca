@@ -23,19 +23,31 @@ public class StreamSizeLimitExceededException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
+  /** Default constructor. */
   public StreamSizeLimitExceededException() {
     super();
   }
 
-  public StreamSizeLimitExceededException(String message) {
+  /**
+   * @param message message
+   */
+  public StreamSizeLimitExceededException(final String message) {
     super(message);
   }
 
-  public StreamSizeLimitExceededException(String message, Throwable cause) {
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public StreamSizeLimitExceededException(
+          final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public StreamSizeLimitExceededException(Throwable cause) {
+  /**
+   * @param cause cause
+   */
+  public StreamSizeLimitExceededException(final Throwable cause) {
     super(cause);
   }
 }

@@ -29,16 +29,21 @@ public class Base64GetHashMap extends LinkedHashMap {
 
   private static final long serialVersionUID = 510436675714264809L;
 
+  /** Default. */
   public Base64GetHashMap() {
     super();
   }
 
+  /**
+   * @param m Map
+   */
   @SuppressWarnings("unchecked")
-  public Base64GetHashMap(Map<?, ?> m) {
+  public Base64GetHashMap(final Map<?, ?> m) {
     super(m);
   }
 
-  public Object get(Object key) {
+  @Override
+  public Object get(final Object key) {
     Object o = super.get(key);
     if (o == null) {
       return o;

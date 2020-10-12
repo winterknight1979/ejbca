@@ -52,7 +52,7 @@ public class UpgradeableDataHashMapTest {
     // JEE application
     final String decodeXML;
 
-    DecoderThread(String decodeXML) {
+    DecoderThread(final String decodeXML) {
       this.decodeXML = decodeXML;
     }
 

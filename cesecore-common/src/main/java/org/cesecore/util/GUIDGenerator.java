@@ -22,14 +22,16 @@ import org.apache.log4j.Logger;
  *
  * @version $Id: GUIDGenerator.java 20325 2014-11-25 19:22:49Z samuellb $
  */
-public class GUIDGenerator {
-  private static final Logger log = Logger.getLogger(GUIDGenerator.class);
+public final class GUIDGenerator {
+    private GUIDGenerator() { }
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(GUIDGenerator.class);
 
   /** Cached per JVM server IP. */
   private static String hexServerIP = null;
 
-  // Initialize the secure random instance
-  private static final Random seeder = new Random();
+  /** Initialize the secure random instance. */
+  private static final Random SEEDER = new Random();
 
   /**
    * A 32 byte GUID generator (Globally Unique ID). These artificial keys SHOULD
@@ -44,7 +46,7 @@ public class GUIDGenerator {
    * @param o object
    * @return guid
    */
-  public static final String generateGUID(Object o) {
+  public static final String generateGUID(final Object o) {
 
     if (hexServerIP == null) {
       java.net.InetAddress localInetAddress = null;
@@ -52,14 +54,14 @@ public class GUIDGenerator {
         // get the inet address
         localInetAddress = java.net.InetAddress.getLocalHost();
       } catch (java.net.UnknownHostException uhe) {
-        log.error(
+        LOG.error(
             "Could not get the local IP address using"
                 + " InetAddress.getLocalHost(): ",
             uhe);
         // todo: find better way to get around this...
         return null;
       }
-      byte serverIP[] = localInetAddress.getAddress();
+      byte[] serverIP = localInetAddress.getAddress();
       hexServerIP = hexFormat(getInt(serverIP), 8);
     }
 
@@ -71,7 +73,7 @@ public class GUIDGenerator {
     // may be always zero (how many is system and JDK dependent).
     long timeNow = System.currentTimeMillis() ^ System.nanoTime();
     int timeLow = (int) timeNow & 0xFFFFFFFF;
-    int node = seeder.nextInt();
+    int node = SEEDER.nextInt();
     final StringBuilder guid = new StringBuilder(32);
 
     guid.append(hexFormat(timeLow, 8));
@@ -81,23 +83,25 @@ public class GUIDGenerator {
     return guid.toString();
   }
 
-  private static int getInt(byte bytes[]) {
+  private static int getInt(final byte[] bytes) {
+    final int threebytes = 24;
     int i = 0;
-    int j = 24;
+    int j = threebytes;
+    final int mask = 0xff;
     for (int k = 0; j >= 0; k++) {
-      int l = bytes[k] & 0xff;
+      int l = bytes[k] & mask;
       i += l << j;
       j -= 8;
     }
     return i;
   }
 
-  private static String hexFormat(int i, int j) {
+  private static String hexFormat(final int i, final int j) {
     final String s = Integer.toHexString(i);
     return padHex(s, j) + s;
   }
 
-  private static String padHex(String s, int i) {
+  private static String padHex(final String s, final int i) {
     final StringBuilder tmpBuffer = new StringBuilder();
     if (s.length() < i) {
       for (int j = 0; j < i - s.length(); j++) {

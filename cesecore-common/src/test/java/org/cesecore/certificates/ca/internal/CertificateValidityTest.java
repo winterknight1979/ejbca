@@ -796,7 +796,7 @@ public class CertificateValidityTest {
     CertificateValidity.checkPrivateKeyUsagePeriod(cert);
   }
 
-  private void testBaseTestCertificateValidity(String encodedValidity)
+  private void testBaseTestCertificateValidity(final String encodedValidity)
       throws Exception {
     final Date caFrom = new Date();
     caFrom.setTime(caFrom.getTime() - 20L * (24L * 60L * 60L * 1000L));

@@ -64,7 +64,7 @@ public class AuthorizationCacheTest {
         new AuthorizationCacheCallback() {
           @Override
           public AuthorizationResult loadAuthorization(
-              AuthenticationToken authenticationToken)
+              final AuthenticationToken authenticationToken)
               throws AuthenticationFailedException {
             if (at1 == authenticationToken) {
               return new AuthorizationResult(accessRules1, updateNumber.get());
@@ -79,7 +79,7 @@ public class AuthorizationCacheTest {
 
           @Override
           public void subscribeToAuthorizationCacheReload(
-              AuthorizationCacheReloadListener
+              final AuthorizationCacheReloadListener
                   authorizationCacheReloadListener) {
             // Not needed for this test
           }
@@ -100,7 +100,7 @@ public class AuthorizationCacheTest {
         new AuthorizationCacheCallback() {
           @Override
           public AuthorizationResult loadAuthorization(
-              AuthenticationToken authenticationToken)
+              final AuthenticationToken authenticationToken)
               throws AuthenticationFailedException {
             return new AuthorizationResult(null, updateNumber.get());
           }
@@ -112,7 +112,7 @@ public class AuthorizationCacheTest {
 
           @Override
           public void subscribeToAuthorizationCacheReload(
-              AuthorizationCacheReloadListener
+              final AuthorizationCacheReloadListener
                   authorizationCacheReloadListener) {
             // Not needed for this test
           }
@@ -167,7 +167,7 @@ public class AuthorizationCacheTest {
         new AuthorizationCacheCallback() {
           @Override
           public AuthorizationResult loadAuthorization(
-              AuthenticationToken authenticationToken)
+              final AuthenticationToken authenticationToken)
               throws AuthenticationFailedException {
             if (at1 == authenticationToken) {
               return new AuthorizationResult(accessRules1, updateNumber.get());
@@ -182,7 +182,7 @@ public class AuthorizationCacheTest {
 
           @Override
           public void subscribeToAuthorizationCacheReload(
-              AuthorizationCacheReloadListener
+              final AuthorizationCacheReloadListener
                   authorizationCacheReloadListener) {
             authorizationCacheReloadListeners.add(
                 authorizationCacheReloadListener);
@@ -207,7 +207,7 @@ public class AuthorizationCacheTest {
         new AuthorizationCacheCallback() {
           @Override
           public AuthorizationResult loadAuthorization(
-              AuthenticationToken authenticationToken)
+              final AuthenticationToken authenticationToken)
               throws AuthenticationFailedException {
             if (at1 == authenticationToken) {
               return new AuthorizationResult(accessRules2, updateNumber.get());
@@ -222,7 +222,7 @@ public class AuthorizationCacheTest {
 
           @Override
           public void subscribeToAuthorizationCacheReload(
-              AuthorizationCacheReloadListener
+              final AuthorizationCacheReloadListener
                   authorizationCacheReloadListener) {
             fail("This should only be invoked once on first from the cache.");
           }
@@ -264,7 +264,7 @@ public class AuthorizationCacheTest {
         new AuthorizationCacheCallback() {
           @Override
           public AuthorizationResult loadAuthorization(
-              AuthenticationToken authenticationToken)
+              final AuthenticationToken authenticationToken)
               throws AuthenticationFailedException {
             if (at1 == authenticationToken) {
               return new AuthorizationResult(accessRules1, updateNumber.get());
@@ -279,7 +279,7 @@ public class AuthorizationCacheTest {
 
           @Override
           public void subscribeToAuthorizationCacheReload(
-              AuthorizationCacheReloadListener
+              final AuthorizationCacheReloadListener
                   authorizationCacheReloadListener) {
             authorizationCacheReloadListeners.add(
                 authorizationCacheReloadListener);
@@ -304,7 +304,7 @@ public class AuthorizationCacheTest {
         new AuthorizationCacheCallback() {
           @Override
           public AuthorizationResult loadAuthorization(
-              AuthenticationToken authenticationToken)
+              final AuthenticationToken authenticationToken)
               throws AuthenticationFailedException {
             if (at1 == authenticationToken) {
               return new AuthorizationResult(accessRules2, updateNumber.get());
@@ -319,7 +319,7 @@ public class AuthorizationCacheTest {
 
           @Override
           public void subscribeToAuthorizationCacheReload(
-              AuthorizationCacheReloadListener
+              final AuthorizationCacheReloadListener
                   authorizationCacheReloadListener) {
             fail("This should only be invoked once on first from the cache.");
           }
@@ -359,7 +359,7 @@ public class AuthorizationCacheTest {
         new AuthorizationCacheCallback() {
           @Override
           public AuthorizationResult loadAuthorization(
-              AuthenticationToken authenticationToken)
+              final AuthenticationToken authenticationToken)
               throws AuthenticationFailedException {
             loadInvocations.incrementAndGet();
             if (at1 == authenticationToken) {
@@ -382,7 +382,7 @@ public class AuthorizationCacheTest {
 
           @Override
           public void subscribeToAuthorizationCacheReload(
-              AuthorizationCacheReloadListener
+              final AuthorizationCacheReloadListener
                   authorizationCacheReloadListener) {
             // Not needed for this test
           }
@@ -427,9 +427,9 @@ public class AuthorizationCacheTest {
     HashMap<String, Boolean> result = null;
 
     public CacheReaderThread(
-        CountDownLatch countDownLatch,
-        AuthenticationToken authenticationToken,
-        AuthorizationCacheCallback authorizationCacheCallback) {
+        final CountDownLatch countDownLatch,
+        final AuthenticationToken authenticationToken,
+        final AuthorizationCacheCallback authorizationCacheCallback) {
       this.countDownLatch = countDownLatch;
       this.authenticationToken = authenticationToken;
       this.authorizationCacheCallback = authorizationCacheCallback;

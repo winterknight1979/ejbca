@@ -37,9 +37,10 @@ import java.util.List;
 public final class QueryCriteria implements Serializable {
 
   private static final long serialVersionUID = 1823996498624633259L;
-  private List<Elem> elements = new ArrayList<Elem>();
+  /** Elements. */
+  private final List<Elem> elements = new ArrayList<Elem>();
 
-  private QueryCriteria() {}
+  private QueryCriteria() { }
 
   /** @return a new QueryCriteria */
   public static QueryCriteria create() {
@@ -47,16 +48,19 @@ public final class QueryCriteria implements Serializable {
   }
 
   /**
-   * Adds a new Criteria (Restriction)
+   * Adds a new Criteria (Restriction).
    *
    * @param elem element to be added
    * @return QueryCriteria instance for chained calls.
    */
-  public QueryCriteria add(Elem elem) {
+  public QueryCriteria add(final Elem elem) {
     elements.add(elem);
     return this;
   }
 
+  /**
+   * @return Elements.
+   */
   public List<Elem> getElements() {
     return elements;
   }
