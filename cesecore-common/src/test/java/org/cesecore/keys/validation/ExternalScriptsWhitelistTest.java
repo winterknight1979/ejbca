@@ -26,6 +26,9 @@ import org.junit.Test;
  *     samuellb $
  */
 public class ExternalScriptsWhitelistTest {
+    /**
+       * Test.
+       */
   @Test
   public void testConstructionFromText() {
     final ExternalScriptsWhitelist whitelist =
@@ -50,7 +53,9 @@ public class ExternalScriptsWhitelistTest {
         "Command which is commented out should not be on whitelist",
         whitelist.isPermitted("#/foo/disabled"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testConstructionFromPaths() {
     final ExternalScriptsWhitelist whitelist =
@@ -69,7 +74,9 @@ public class ExternalScriptsWhitelistTest {
         "Directory path should be considered",
         whitelist.isPermitted("/usr/bin/allowed"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testPermitAll() {
     final ExternalScriptsWhitelist whitelist =
@@ -79,7 +86,9 @@ public class ExternalScriptsWhitelistTest {
         "/foo/allowed should be permitted",
         whitelist.isPermitted("/foo/allowed"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testInvalidPaths() {
     final ExternalScriptsWhitelist whitelist =

@@ -64,14 +64,19 @@ public class SignWithWorkingAlgorithmTest {
 
   private class SignOperation implements ISignOperation {
 
-    public SignOperation(final KeyPair kp) {
+    SignOperation(final KeyPair kp) {
       this.keyPair = kp;
     }
 
-    private final byte bvOriginal[] = "Här är orginalet!".getBytes();
+    /** Config. */
+    private final byte[] bvOriginal = "Här är orginalet!".getBytes();
+    /** Config. */
     private final KeyPair keyPair;
-    private byte bvSignature[];
+    /** Config. */
+    private byte[] bvSignature;
+    /** Config. */
     private String usedAlgorithm;
+    /** Config. */
     private int nrOfCalls = 0;
 
     @Override

@@ -30,9 +30,12 @@ import org.junit.Test;
  * @version $Id: PublicKeyWrapperTest.java 20836 2015-03-04 14:32:00Z anatom $
  */
 public class PublicKeyWrapperTest {
-
-  public static PublicKey testKey;
-
+/** Key. */
+  private static PublicKey testKey;
+/**
+ * setup.
+ * @throws InvalidAlgorithmParameterException fail
+ */
   @BeforeClass
   public static void beforeClass() throws InvalidAlgorithmParameterException {
     CryptoProviderTools.installBCProviderIfNotAvailable();
@@ -40,7 +43,9 @@ public class PublicKeyWrapperTest {
         KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA)
             .getPublic();
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetPublicKey() {
     PublicKeyWrapper testWrapper = new PublicKeyWrapper(testKey);
@@ -49,7 +54,11 @@ public class PublicKeyWrapperTest {
         testKey,
         testWrapper.getPublicKey());
   }
-
+  /**
+   * Test.
+ * @throws IOException fail
+ * @throws ClassNotFoundException fail
+   */
   @Test
   public void testPublicKeySerialization()
       throws IOException, ClassNotFoundException {

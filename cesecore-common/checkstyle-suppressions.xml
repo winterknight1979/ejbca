@@ -64,4 +64,5 @@
 	<suppress checks="MethodLengthCheck" files="RequestMessageTest.java" lines="76"/>
 	<suppress checks="MethodLengthCheck" files="CertificateProfileTest.java" lines="836"/>
 	<suppress checks="MethodLengthCheck" files="AlgorithmToolsTest.java" lines="272,585"/>
+	<suppress checks="ParameterNumberCheck" files="ValidatorTestUtil.java" lines="51"/>
  </suppressions>

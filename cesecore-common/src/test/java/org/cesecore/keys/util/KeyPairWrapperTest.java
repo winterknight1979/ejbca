@@ -24,12 +24,17 @@ import org.junit.Test;
 
 /** @version $Id: KeyPairWrapperTest.java 26057 2017-06-22 08:08:34Z anatom $ */
 public class KeyPairWrapperTest {
+    /** Setup. */
 
   @BeforeClass
   public static void beforeClass() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
   }
-
+  /**
+   * Test.
+ * @throws InvalidAlgorithmParameterException fail
+ * @throws InvalidKeySpecException  fail
+   */
   @Test
   public void testGetKeyPair()
       throws InvalidAlgorithmParameterException, InvalidKeySpecException {

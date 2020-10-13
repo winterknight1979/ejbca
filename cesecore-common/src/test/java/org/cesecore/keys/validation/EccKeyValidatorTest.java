@@ -11,13 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/**
- * Test class fot RSA key validator functional methods, see {@link
- * RsaKeyValidator}.
- *
- * @version $Id: EccKeyValidatorTest.java 27832 2018-01-10 14:34:42Z mikekushner
- *     $
- */
 package org.cesecore.keys.validation;
 
 import static org.junit.Assert.assertEquals;
@@ -43,25 +36,34 @@ import org.junit.Test;
 public class EccKeyValidatorTest {
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(EccKeyValidatorTest.class);
-
+  private static final Logger LOG = Logger.getLogger(EccKeyValidatorTest.class);
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Before
   public void setUp() throws Exception {
-    log.trace(">setUp()");
+    LOG.trace(">setUp()");
     CryptoProviderTools.installBCProvider();
-    log.trace("<setUp()");
+    LOG.trace("<setUp()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @After
   public void tearDown() throws Exception {
-    log.trace(">tearDown()");
+    LOG.trace(">tearDown()");
     // NOOP
-    log.trace("<tearDown()");
+    LOG.trace("<tearDown()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testPublicKeyValidation() throws Exception {
-    log.trace(">testPublicKeyValidation()");
+    LOG.trace(">testPublicKeyValidation()");
 
     // Test ECC key validation OK with an allowed curve.
     KeyPair keys =
@@ -85,7 +87,7 @@ public class EccKeyValidatorTest {
     curves.add("secp256r1");
     keyValidator.setCurves(curves);
     List<String> messages = keyValidator.validate(keys.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue(
         "Key valildation should have been successful.", messages.size() == 0);
     // Set custom curve to something else, so it's not supported
@@ -93,7 +95,7 @@ public class EccKeyValidatorTest {
     curves.add("secp384r1");
     keyValidator.setCurves(curves);
     messages = keyValidator.validate(keys.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue("Key validation should have failed.", messages.size() > 0);
     assertEquals(
         "Key validation should have failed.",
@@ -102,12 +104,16 @@ public class EccKeyValidatorTest {
         messages.get(0));
 
     // TODO: create some failed EC key to test validation on
-    log.trace("<testPublicKeyValidation()");
+    LOG.trace("<testPublicKeyValidation()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testPublicKeyValidationWithAlgorithmEC() throws Exception {
-    log.trace(">testPublicKeyValidation()");
+    LOG.trace(">testPublicKeyValidation()");
     // Test ECC key validation OK with an allowed curve.
     KeyPair keys =
         KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_EC);
@@ -130,7 +136,7 @@ public class EccKeyValidatorTest {
     curves.add("secp256r1");
     keyValidator.setCurves(curves);
     List<String> messages = keyValidator.validate(keys.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue(
         "Key valildation should have been successful.", messages.size() == 0);
     // Set custom curve to something else, so it's not supported
@@ -138,13 +144,13 @@ public class EccKeyValidatorTest {
     curves.add("secp384r1");
     keyValidator.setCurves(curves);
     messages = keyValidator.validate(keys.getPublic(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertTrue("Key validation should have failed.", messages.size() > 0);
     assertEquals(
         "Key validation should have failed.",
         "Invalid: ECDSA curve [secp256r1, prime256v1, P-256]: Use one of the"
             + " following [secp384r1].",
         messages.get(0));
-    log.trace("<testPublicKeyValidation()");
+    LOG.trace("<testPublicKeyValidation()");
   }
 }

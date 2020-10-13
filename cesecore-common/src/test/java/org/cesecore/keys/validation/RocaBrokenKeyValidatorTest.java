@@ -30,7 +30,8 @@ import org.junit.Test;
  */
 public class RocaBrokenKeyValidatorTest {
 
-  private final String KNOWN_VULNERABLE_KEY =
+    /** Key. */
+  private final String knownVulnerableKey =
       "-----BEGIN PUBLIC KEY-----\n"
           + "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEBqcWmh9uPsqMPgt/43aFU\n"
           + "wpHvJ7BLJeGFuKsgxMal9gSFn+We3lSgr3wOcoiACtcZO7cxpb8eEXDXocZpMNQe\n"
@@ -41,7 +42,8 @@ public class RocaBrokenKeyValidatorTest {
           + "IQIDAQAB\n"
           + "-----END PUBLIC KEY-----\n";
 
-  private final String KNOWN_GOOD_KEY =
+  /** Key. */
+  private final String knownGoodKey =
       "-----BEGIN PUBLIC KEY-----\n"
           + "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArHNuuo2dva/7s3wNTJ8O\n"
           + "jFcogDTlekhMBaJFcLYZMoDTgBKWZO2NcNX5GBBos4h8B4eahdG/BRGedPhFzcg/\n"
@@ -54,7 +56,7 @@ public class RocaBrokenKeyValidatorTest {
 
   /**
    * Run a test on a known bad key (from
-   * https://github.com/crocs-muni/roca/blob/master/roca/tests/data/csr05.pem)
+   * https://github.com/crocs-muni/roca/blob/master/roca/tests/data/csr05.pem).
    *
    * @throws NoSuchAlgorithmException fail
    * @throws InvalidKeySpecException fail
@@ -65,7 +67,7 @@ public class RocaBrokenKeyValidatorTest {
     X509EncodedKeySpec spec =
         new X509EncodedKeySpec(
             KeyTools.getBytesFromPEM(
-                KNOWN_VULNERABLE_KEY,
+                knownVulnerableKey,
                 CertTools.BEGIN_PUBLIC_KEY,
                 CertTools.END_PUBLIC_KEY));
     KeyFactory kf = KeyFactory.getInstance("RSA");
@@ -76,7 +78,7 @@ public class RocaBrokenKeyValidatorTest {
   }
 
   /**
-   * Run a test on a known good key
+   * Run a test on a known good key.
    *
    * @throws NoSuchAlgorithmException fail
    * @throws InvalidKeySpecException fail
@@ -87,7 +89,7 @@ public class RocaBrokenKeyValidatorTest {
     X509EncodedKeySpec spec =
         new X509EncodedKeySpec(
             KeyTools.getBytesFromPEM(
-                KNOWN_GOOD_KEY,
+                knownGoodKey,
                 CertTools.BEGIN_PUBLIC_KEY,
                 CertTools.END_PUBLIC_KEY));
     KeyFactory kf = KeyFactory.getInstance("RSA");

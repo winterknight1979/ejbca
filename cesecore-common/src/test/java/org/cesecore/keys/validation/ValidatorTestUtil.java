@@ -11,11 +11,7 @@
  *                                                                       *
  *************************************************************************/
 
-/**
- * Static helper key validator tests.
- *
- * @version $Id: ValidatorTestUtil.java 27654 2017-12-22 13:56:31Z mikekushner $
- */
+
 package org.cesecore.keys.validation;
 
 import java.lang.reflect.InvocationTargetException;
@@ -24,6 +20,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ **
+ * Static helper key validator tests.
+ *
  * @version $Id: ValidatorTestUtil.java 27654 2017-12-22 13:56:31Z mikekushner $
  */
 public final class ValidatorTestUtil {
@@ -49,7 +48,7 @@ public final class ValidatorTestUtil {
    * @throws InvocationTargetException fail
    * @throws IllegalArgumentException fail
    */
-  public static final KeyValidator createKeyValidator(
+  public static KeyValidator createKeyValidator(
       final Class<? extends KeyValidator> type,
       final String name,
       final String description,
@@ -91,5 +90,5 @@ public final class ValidatorTestUtil {
   }
 
   /** Avoid instantiation. */
-  private ValidatorTestUtil() {}
+  private ValidatorTestUtil() { }
 }

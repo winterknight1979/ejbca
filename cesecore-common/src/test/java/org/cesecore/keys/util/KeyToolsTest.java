@@ -75,9 +75,11 @@ import org.junit.Test;
  */
 public class KeyToolsTest {
 
-  private static Logger log = Logger.getLogger(KeyToolsTest.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(KeyToolsTest.class);
 
-  private static final byte[] ks3 =
+  /** Key. */
+  private static final byte[] KS3 =
       Base64.decode(
           ("MIACAQMwgAYJKoZIhvcNAQcBoIAkgASCAyYwgDCABgkqhkiG9w0BBwGggCSABIID"
            + "DjCCAwowggMGBgsqhkiG9w0BDAoBAqCCAqkwggKlMCcGCiqGSIb3DQEMAQMwGQQU"
@@ -144,8 +146,8 @@ public class KeyToolsTest {
            + "BBSS2GOUxqv3IT+aesPrMPNn9RQ//gQUYhjCLPh/h2ULjh+1L2s3f5JIZf0CAWQA"
            + "AA==")
               .getBytes());
-
-  private static final byte[] keys1024bit =
+/** Key. */
+  private static final byte[] KEYS_1024_BIT =
       Base64.decode(
           ("MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAKA5rNhYbPuVcArT"
            + "mkthfrW2tX1Z7SkCD01sDYrkiwOcodFmS1cSyz8eHM51iwHA7CW0WFvfUjomBT5y"
@@ -163,8 +165,8 @@ public class KeyToolsTest {
            + "La09g2BE+Q5oUUFx")
               .getBytes());
 
-  /** self signed cert done with above private key */
-  private static final byte[] certbytes =
+  /** self signed cert done with above private key. */
+  private static final byte[] CERT_BYTES =
       Base64.decode(
           ("MIICNzCCAaCgAwIBAgIIIOqiVwJHz+8wDQYJKoZIhvcNAQEFBQAwKzENMAsGA1UE"
            + "AxMEVGVzdDENMAsGA1UEChMEVGVzdDELMAkGA1UEBhMCU0UwHhcNMDQwNTA4MDkx"
@@ -180,27 +182,33 @@ public class KeyToolsTest {
            + "nKuay+xl5aoUcVEs3h3uJDjcpgMAtyusMEyv4d+RFYvWJWFzRTKDueyanw==")
               .getBytes());
 
-  private static final String storepwd = "foo123";
-  private static final String pkAlias = "privateKey";
-
+  /** Config. */
+  private static final String STORE_PWD = "foo123";
+  /** config. */
+  private static final String PK_ALIAS = "privateKey";
+/** SETUP.
+ * @throws Exception fail*/
   @BeforeClass
   public static void beforeClass() throws Exception {
     // Install BouncyCastle provider
     CryptoProviderTools.installBCProvider();
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGetCertChain() throws Exception {
     KeyStore store =
         KeyStore.getInstance("PKCS12", BouncyCastleProvider.PROVIDER_NAME);
-    ByteArrayInputStream fis = new ByteArrayInputStream(ks3);
-    store.load(fis, storepwd.toCharArray());
-    Certificate[] certs = KeyTools.getCertChain(store, pkAlias);
-    log.debug("Number of certs: " + certs.length);
+    ByteArrayInputStream fis = new ByteArrayInputStream(KS3);
+    store.load(fis, STORE_PWD.toCharArray());
+    Certificate[] certs = KeyTools.getCertChain(store, PK_ALIAS);
+    LOG.debug("Number of certs: " + certs.length);
     assertEquals("Wrong number of certs returned", 3, certs.length);
     for (int i = 0; i < certs.length; i++) {
       X509Certificate cert = (X509Certificate) certs[i];
-      log.debug("SubjectDN: " + cert.getSubjectDN().toString());
+      LOG.debug("SubjectDN: " + cert.getSubjectDN().toString());
       if (i == 0) {
         assertEquals(
             "Wrong subjectDN", cert.getSubjectDN().toString(), "CN=fooca,C=SE");
@@ -219,7 +227,10 @@ public class KeyToolsTest {
       }
     }
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysRSA() throws Exception {
     KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
@@ -246,7 +257,7 @@ public class KeyToolsTest {
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
     // Test that fails
-    PKCS8EncodedKeySpec pkKeySpec = new PKCS8EncodedKeySpec(keys1024bit);
+    PKCS8EncodedKeySpec pkKeySpec = new PKCS8EncodedKeySpec(KEYS_1024_BIT);
     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     PrivateKey pk = keyFactory.generatePrivate(pkKeySpec);
     try {
@@ -271,12 +282,15 @@ public class KeyToolsTest {
     String str = out.toString();
     assertTrue(str.contains("RSA key"));
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCreateP12() throws Exception {
     Certificate cert =
-        CertTools.getCertfromByteArray(certbytes, Certificate.class);
-    PKCS8EncodedKeySpec pkKeySpec = new PKCS8EncodedKeySpec(keys1024bit);
+        CertTools.getCertfromByteArray(CERT_BYTES, Certificate.class);
+    PKCS8EncodedKeySpec pkKeySpec = new PKCS8EncodedKeySpec(KEYS_1024_BIT);
     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     PrivateKey pk = keyFactory.generatePrivate(pkKeySpec);
     KeyStore ks = KeyTools.createP12("Foo", pk, cert, (X509Certificate) null);
@@ -294,12 +308,15 @@ public class KeyToolsTest {
     assertTrue(str.contains("-----BEGIN PRIVATE KEY-----"));
     assertTrue(str.contains("-----BEGIN CERTIFICATE-----"));
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCreateJKS() throws Exception {
     Certificate cert =
-        CertTools.getCertfromByteArray(certbytes, Certificate.class);
-    PKCS8EncodedKeySpec pkKeySpec = new PKCS8EncodedKeySpec(keys1024bit);
+        CertTools.getCertfromByteArray(CERT_BYTES, Certificate.class);
+    PKCS8EncodedKeySpec pkKeySpec = new PKCS8EncodedKeySpec(KEYS_1024_BIT);
     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     PrivateKey pk = keyFactory.generatePrivate(pkKeySpec);
     KeyStore ks =
@@ -314,7 +331,10 @@ public class KeyToolsTest {
     assertTrue(str.contains("-----BEGIN PRIVATE KEY-----"));
     assertTrue(str.contains("-----BEGIN CERTIFICATE-----"));
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysECDSAx9() throws Exception {
     KeyPair keys =
@@ -393,7 +413,10 @@ public class KeyToolsTest {
     String str = out.toString();
     assertTrue(str.contains("Elliptic curve key"));
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysECDSANist() throws Exception {
     KeyPair keys =
@@ -422,7 +445,10 @@ public class KeyToolsTest {
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysECDSAImplicitlyCA() throws Exception {
     KeyPair keys =
@@ -451,7 +477,10 @@ public class KeyToolsTest {
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysECDSAFail() throws Exception {
     try {
@@ -465,7 +494,10 @@ public class KeyToolsTest {
     } catch (InvalidAlgorithmParameterException e) {
     }
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysDSA() throws Exception {
     KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_DSA);
@@ -520,7 +552,10 @@ public class KeyToolsTest {
     String str = out.toString();
     assertTrue(str.contains("DSA key"));
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysECDSAAlgorithmSpec() throws Exception {
     KeyPairGenerator keygen =
@@ -557,7 +592,10 @@ public class KeyToolsTest {
         keys.getPublic(),
         BouncyCastleProvider.PROVIDER_NAME);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGetECDSACvcPubKeyParams() throws Exception {
     // Test to enrich an EC public key that does not contain domain parameters
@@ -616,11 +654,14 @@ public class KeyToolsTest {
         "SHA1WithECDSA",
         role);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysGOSTAlgorithmSpec() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
-    log.trace(">testGenKeysGOSTAlgorithmSpec");
+    LOG.trace(">testGenKeysGOSTAlgorithmSpec");
     KeyPairGenerator keygen =
         KeyPairGenerator.getInstance(
             "ECGOST3410", BouncyCastleProvider.PROVIDER_NAME);
@@ -713,13 +754,16 @@ public class KeyToolsTest {
     KeyFactory.getInstance("EC")
         .generatePublic(ecspec); // return value not tested
 
-    log.trace("<testGenKeysGOSTAlgorithmSpec");
+    LOG.trace("<testGenKeysGOSTAlgorithmSpec");
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenKeysDSTU4145AlgorithmSpec() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
-    log.trace(">testGenKeysDSTU4145AlgorithmSpec");
+    LOG.trace(">testGenKeysDSTU4145AlgorithmSpec");
     KeyPairGenerator keygen =
         KeyPairGenerator.getInstance(
             "DSTU4145", BouncyCastleProvider.PROVIDER_NAME);
@@ -812,19 +856,19 @@ public class KeyToolsTest {
     KeyFactory.getInstance("EC")
         .generatePublic(ecspec); // return value not tested
 
-    log.trace("<testGenKeysDSTU4145AlgorithmSpec");
+    LOG.trace("<testGenKeysDSTU4145AlgorithmSpec");
   }
 
   /**
    * Tests {@link KeyTools#getBytesFromPEM} and {@link
-   * KeyTools#getBytesFromPublicKeyFile}
+   * KeyTools#getBytesFromPublicKeyFile}.
    *
    * @throws Exception fail
    */
   @Test
   public void testGetBytes() throws Exception {
     final Certificate cert =
-        CertTools.getCertfromByteArray(certbytes, Certificate.class);
+        CertTools.getCertfromByteArray(CERT_BYTES, Certificate.class);
 
     final byte[] der = cert.getPublicKey().getEncoded();
     final byte[] pem = CertTools.getPEMFromPublicKey(der);
@@ -861,11 +905,14 @@ public class KeyToolsTest {
       // NOPMD expected
     }
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testBlackListedEcCurves() throws Exception {
-    for (final String blackListedEcCurve :
-        AlgorithmConstants.BLACKLISTED_EC_CURVES) {
+    for (final String blackListedEcCurve
+        : AlgorithmConstants.BLACKLISTED_EC_CURVES) {
       try {
         KeyTools.genKeys(
             blackListedEcCurve, AlgorithmConstants.KEYALGORITHM_ECDSA);
@@ -874,11 +921,14 @@ public class KeyToolsTest {
                 + blackListedEcCurve
                 + " now works. Please update black list.");
       } catch (InvalidAlgorithmParameterException e) {
-        log.debug(e.getMessage(), e);
+        LOG.debug(e.getMessage(), e);
       }
     }
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testNotBlackListedEcCurves() throws Exception {
     final StringBuilder sb = new StringBuilder();
@@ -892,11 +942,11 @@ public class KeyToolsTest {
       }
       try {
         KeyTools.genKeys(namedEcCurve, AlgorithmConstants.KEYALGORITHM_ECDSA);
-        log.debug("Succeeded to generate EC key pair using " + namedEcCurve);
+        LOG.debug("Succeeded to generate EC key pair using " + namedEcCurve);
       } catch (InvalidAlgorithmParameterException
           | IllegalStateException
           | IllegalArgumentException e) {
-        log.debug("Failed to generate EC key pair using " + namedEcCurve, e);
+        LOG.debug("Failed to generate EC key pair using " + namedEcCurve, e);
         sb.append(namedEcCurve + " ");
       }
     }

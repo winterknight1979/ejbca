@@ -11,13 +11,7 @@
  *                                                                       *
  *************************************************************************/
 
-/**
- * Test class for RSA key validator functional methods, see {@link
- * RsaKeyValidator}.
- *
- * @version $Id: RsaKeyValidatorTest.java 29486 2018-07-11 13:56:35Z
- *     andrey_s_helmes $
- */
+
 package org.cesecore.keys.validation;
 
 import static org.junit.Assert.assertEquals;
@@ -52,38 +46,47 @@ import org.junit.Test;
 public class RsaKeyValidatorTest {
 
   /** Class logger. */
-  private static final Logger log = Logger.getLogger(RsaKeyValidatorTest.class);
-
+  private static final Logger LOG = Logger.getLogger(RsaKeyValidatorTest.class);
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @BeforeClass
   public static void setClassUp() throws Exception {
-    log.trace("setClassUp()");
+    LOG.trace("setClassUp()");
     CryptoProviderTools.installBCProvider();
-    log.trace("setClassUp()");
+    LOG.trace("setClassUp()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Before
   public void setUp() throws Exception {
-    log.trace(">setUp()");
+    LOG.trace(">setUp()");
     // NOOP
-    log.trace("<setUp()");
+    LOG.trace("<setUp()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @After
   public void tearDown() throws Exception {
-    log.trace(">tearDown()");
+    LOG.trace(">tearDown()");
     // NOOP
-    log.trace("<tearDown()");
+    LOG.trace("<tearDown()");
   }
 
   /**
    * Testing that no fields for RSA Key Validator configuration can be set to a
-   * negative value
+   * negative value.
    *
    * @throws Exception Exception
    */
   @Test
   public void testNoNegativeNumbers() throws Exception {
-    log.trace(">testNoNegativeNumbers()");
+    LOG.trace(">testNoNegativeNumbers()");
     RsaKeyValidator keyValidator =
         (RsaKeyValidator)
             ValidatorTestUtil.createKeyValidator(
@@ -149,7 +152,7 @@ public class RsaKeyValidatorTest {
             + " value ",
         keyValidator.getPublicKeyModulusMinFactor(),
         Integer.valueOf("2"));
-    log.trace("<testNoNegativeNumbers()");
+    LOG.trace("<testNoNegativeNumbers()");
   }
 
   /**
@@ -160,7 +163,7 @@ public class RsaKeyValidatorTest {
    */
   @Test
   public void testPublicKeyExponentMinSmallerThanMax() throws Exception {
-    log.trace(">testPublicKeyExponentMinSmallerThanMax()");
+    LOG.trace(">testPublicKeyExponentMinSmallerThanMax()");
 
     RsaKeyValidator keyValidator =
         (RsaKeyValidator)
@@ -220,7 +223,7 @@ public class RsaKeyValidatorTest {
         keyValidator.getPublicKeyExponentMaxAsString(),
         "3");
 
-    log.trace("<testPublicKeyExponentMinSmallerThanMax()");
+    LOG.trace("<testPublicKeyExponentMinSmallerThanMax()");
   }
 
   /**
@@ -231,7 +234,7 @@ public class RsaKeyValidatorTest {
    */
   @Test
   public void testPublicKeyModulusMinSmallerThanMax() throws Exception {
-    log.trace(">testPublicKeyModulusMinSmallerThanMax()");
+    LOG.trace(">testPublicKeyModulusMinSmallerThanMax()");
 
     RsaKeyValidator keyValidator =
         (RsaKeyValidator)
@@ -291,12 +294,15 @@ public class RsaKeyValidatorTest {
         keyValidator.getPublicKeyModulusMaxAsString(),
         "30");
 
-    log.trace("<testPublicKeyModulusMinSmallerThanMax()");
+    LOG.trace("<testPublicKeyModulusMinSmallerThanMax()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test01HasSmallerFactorThan() throws Exception {
-    log.trace(">test01HasSmallerFactorThan()");
+    LOG.trace(">test01HasSmallerFactorThan()");
 
     // Test both zero -> false
     BigInteger modulus = new BigInteger("0");
@@ -360,7 +366,7 @@ public class RsaKeyValidatorTest {
     Assert.assertTrue(
         "Test 2048 bits even modulus",
         RsaKeyValidator.hasSmallerFactorThan(modulus, 752));
-    log.trace(
+    LOG.trace(
         ">test01HasSmallerFactorThan() ms spent for 2048 bit even modulus: "
             + (System.currentTimeMillis() - time));
 
@@ -410,12 +416,15 @@ public class RsaKeyValidatorTest {
     profileHasSmallerFactor(
         factor, new BigInteger[] {modulus2048, modulus4096, modulus8192});
 
-    log.trace("<test01HasSmallerFactorThan()");
+    LOG.trace("<test01HasSmallerFactorThan()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test03RsaParameterValidations() throws Exception {
-    log.trace(">test03RsaParameterValidations()");
+    LOG.trace(">test03RsaParameterValidations()");
 
     final KeyFactory keyFactory =
         KeyFactory.getInstance(
@@ -446,7 +455,7 @@ public class RsaKeyValidatorTest {
     bitLengths.add(Integer.toString(modulus.bitLength()));
     keyValidator.setBitLengths(bitLengths);
     List<String> messages = keyValidator.validate(publicKey, null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     Assert.assertTrue(
         "Key validation should have been successful.", messages.size() == 0);
 
@@ -465,7 +474,7 @@ public class RsaKeyValidatorTest {
     bitLengths.add(Integer.toString(modulus.bitLength()));
     keyValidator.setBitLengths(bitLengths);
     messages = keyValidator.validate(publicKey, null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     Assert.assertTrue(
         "Key valildation should have failed because of even RSA parameter and"
             + " outside parameter bounds.",
@@ -515,7 +524,7 @@ public class RsaKeyValidatorTest {
     keyValidator.setPublicKeyModulusOnlyAllowOdd(true);
     keyValidator.setPublicKeyModulusMinFactor(6); // smallest factor = 5
     messages = keyValidator.validate(publicKey, null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     Assert.assertTrue(
         "Key valildation should have failed because of smallest factor"
             + " restriction for modulus.",
@@ -530,7 +539,7 @@ public class RsaKeyValidatorTest {
     keyValidator.setPublicKeyModulusMinFactor(5); // smallest factor = 5
     keyValidator.setPublicKeyModulusDontAllowPowerOfPrime(true);
     messages = keyValidator.validate(publicKey, null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     Assert.assertTrue(
         "Key valildation should have failed because of power of prime"
             + " restriction for modulus.",
@@ -541,7 +550,7 @@ public class RsaKeyValidatorTest {
             + " prime.",
         messages.get(0));
 
-    log.trace("<test03RsaParameterValidations()");
+    LOG.trace("<test03RsaParameterValidations()");
   }
 
   /**
@@ -564,7 +573,7 @@ public class RsaKeyValidatorTest {
           IllegalAccessException, ValidatorNotApplicableException,
           ValidationException, IllegalArgumentException,
           InvocationTargetException, NoSuchMethodException, SecurityException {
-    log.trace(">testRocaWeakKeys()");
+    LOG.trace(">testRocaWeakKeys()");
     X509Certificate noroca =
         CertTools.getCertfromByteArray(noRocaCert, X509Certificate.class);
     X509Certificate roca =
@@ -593,13 +602,13 @@ public class RsaKeyValidatorTest {
     bitLengths.add("2050"); // The positive sample ROCA cert is 2050 bits
     keyValidator.setBitLengths(bitLengths);
     List<String> messages = keyValidator.validate(noroca.getPublicKey(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key validation should have been successful: " + messages,
         0,
         messages.size());
     messages = keyValidator.validate(roca.getPublicKey(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key validation should have been successful: " + messages,
         0,
@@ -608,13 +617,13 @@ public class RsaKeyValidatorTest {
     // Check for ROCA weak keys
     keyValidator.setPublicKeyModulusDontAllowRocaWeakKeys(true);
     messages = keyValidator.validate(noroca.getPublicKey(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals(
         "Key validation should have been successful: " + messages,
         0,
         messages.size());
     messages = keyValidator.validate(roca.getPublicKey(), null);
-    log.trace("Key validation error messages: " + messages);
+    LOG.trace("Key validation error messages: " + messages);
     assertEquals("Key validation should have failes", 1, messages.size());
     assertEquals(
         "It should have been a ROCA failure.",
@@ -622,12 +631,12 @@ public class RsaKeyValidatorTest {
             + " CVE-2017-15361.",
         messages.get(0));
 
-    log.trace("<testRocaWeakKeys()");
+    LOG.trace("<testRocaWeakKeys()");
   }
 
   private void profileHasSmallerFactor(
       final int factor, final BigInteger... modulus) {
-    log.trace(">profileHasSmallerFactor()");
+    LOG.trace(">profileHasSmallerFactor()");
 
     final long time = System.currentTimeMillis();
     int size;
@@ -636,8 +645,8 @@ public class RsaKeyValidatorTest {
       Assert.assertFalse(
           "Test " + size + " bits modulus",
           RsaKeyValidator.hasSmallerFactorThan(m, factor));
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             ">ms spent for "
                 + size
                 + " bit odd modulus with factor "
@@ -647,9 +656,9 @@ public class RsaKeyValidatorTest {
       }
     }
 
-    log.trace("<profileHasSmallerFactor()");
+    LOG.trace("<profileHasSmallerFactor()");
   }
-
+/** Cert. */
   private static byte[] noRocaCert =
       Base64.decode(
           ("MIIEdDCCA1ygAwIBAgIIVjkVCQFZomowDQYJKoZIhvcNAQEFBQAwNTEWMBQGA1UE"
@@ -677,7 +686,7 @@ public class RsaKeyValidatorTest {
            + "CJG3EfrGDJ91eVUlGyfDpHRr9a3WOWbypLjh1Q92xxHOJbvgnS9J6mybaOpQYyCn"
            + "MVWCdyTMTi9Ik0eybpeVMZYaSEO4xIqwoGbvuBgE2WKm+RuMnMOkfA==")
               .getBytes());
-
+/** Cert. */
   private static byte[] rocaCert =
       Base64.decode(
           ("MIICpTCCAYwCCQC2u0PIfFaGMjANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDDAls"
