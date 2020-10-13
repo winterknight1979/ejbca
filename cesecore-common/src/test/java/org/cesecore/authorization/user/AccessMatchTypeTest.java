@@ -23,6 +23,10 @@ import org.junit.Test;
  */
 public class AccessMatchTypeTest {
 
+    /** Match test.
+     *
+     * @throws SecurityException fail
+     */
   @Test
   public void testAccessMatchEnum() throws SecurityException {
     AccessMatchType type0 = AccessMatchType.matchFromDatabase(0);

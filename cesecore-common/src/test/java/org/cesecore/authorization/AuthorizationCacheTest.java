@@ -45,13 +45,19 @@ import org.junit.Test;
  */
 public class AuthorizationCacheTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AuthorizationCacheTest.class);
 
+  /** Test vasic ops.
+   *
+   * @throws InterruptedException fail
+   * @throws AuthenticationFailedException fail
+   */
   @Test
   public void testBasicOperations()
       throws InterruptedException, AuthenticationFailedException {
-    log.trace(">testBasicOperations");
+    LOG.trace(">testBasicOperations");
     AuthorizationCache.INSTANCE.reset();
     final AtomicInteger updateNumber = new AtomicInteger(0);
     final AtomicLong keepUnusedEntriesFor = new AtomicLong(3600000L);
@@ -139,12 +145,12 @@ public class AuthorizationCacheTest {
     Thread.sleep(100L);
     AuthorizationCache.INSTANCE.refresh(callback, updateNumber.get());
     assertEquals(0, AuthorizationCache.INSTANCE.get(at1, callback).size());
-    log.trace("<testBasicOperations");
+    LOG.trace("<testBasicOperations");
   }
 
   /**
    * Test already cached entries are reloaded if there is an update to the
-   * authorization system
+   * authorization system.
    *
    * @throws InterruptedException fail
    * @throws AuthenticationFailedException fail
@@ -152,7 +158,7 @@ public class AuthorizationCacheTest {
   @Test
   public void testSubscribeToAuthorizationCacheReload()
       throws InterruptedException, AuthenticationFailedException {
-    log.trace(">testSubscribeToAuthorizationCacheReload");
+    LOG.trace(">testSubscribeToAuthorizationCacheReload");
     AuthorizationCache.INSTANCE.reset();
     final AtomicInteger updateNumber = new AtomicInteger(0);
     final AtomicLong keepUnusedEntriesFor = new AtomicLong(3600000L);
@@ -236,12 +242,12 @@ public class AuthorizationCacheTest {
         .next()
         .onReload(new AuthorizationCacheReload(updateNumber.get()));
     assertEquals(2, AuthorizationCache.INSTANCE.get(at1, callback2).size());
-    log.trace("<testSubscribeToAuthorizationCacheReload");
+    LOG.trace("<testSubscribeToAuthorizationCacheReload");
   }
 
   /**
    * Test cache refresh similar to what AuthorizationSessionBean timeout
-   * performs on the cache
+   * performs on the cache.
    *
    * @throws InterruptedException fail
    * @throws AuthenticationFailedException fail
@@ -249,7 +255,7 @@ public class AuthorizationCacheTest {
   @Test
   public void testAuthorizationCacheRefresh()
       throws InterruptedException, AuthenticationFailedException {
-    log.trace(">testAuthorizationCacheRefresh");
+    LOG.trace(">testAuthorizationCacheRefresh");
     AuthorizationCache.INSTANCE.reset();
     final AtomicInteger updateNumber = new AtomicInteger(0);
     final AtomicLong keepUnusedEntriesFor = new AtomicLong(3600000L);
@@ -330,7 +336,7 @@ public class AuthorizationCacheTest {
     // After AuthorizationCache refresh it should be detected
     AuthorizationCache.INSTANCE.refresh(callback2, updateNumber.get());
     assertEquals(2, AuthorizationCache.INSTANCE.get(at1, callback2).size());
-    log.trace("<testAuthorizationCacheRefresh");
+    LOG.trace("<testAuthorizationCacheRefresh");
   }
 
   /**
@@ -341,7 +347,7 @@ public class AuthorizationCacheTest {
    */
   @Test
   public void testConcurrentRead() throws InterruptedException {
-    log.trace(">testConcurrentRead");
+    LOG.trace(">testConcurrentRead");
     AuthorizationCache.INSTANCE.reset();
     final AtomicInteger updateNumber = new AtomicInteger(0);
     final AtomicLong keepUnusedEntriesFor = new AtomicLong(3600000L);
@@ -415,24 +421,27 @@ public class AuthorizationCacheTest {
       assertTrue(lastResult == null || lastResult == cacheReaderThread.result);
       lastResult = cacheReaderThread.result;
     }
-    log.trace("<testConcurrentRead");
+    LOG.trace("<testConcurrentRead");
   }
 
-  /** Helper class for retrieving a cache entry in a background thread */
+  /** Helper class for retrieving a cache entry in a background thread. */
   private class CacheReaderThread extends Thread {
-
+    /** Latch. */
     private final CountDownLatch countDownLatch;
+    /** Token. */
     private final AuthenticationToken authenticationToken;
+    /** Callback. */
     private final AuthorizationCacheCallback authorizationCacheCallback;
-    HashMap<String, Boolean> result = null;
+    /** Map. */
+    private HashMap<String, Boolean> result = null;
 
-    public CacheReaderThread(
-        final CountDownLatch countDownLatch,
-        final AuthenticationToken authenticationToken,
-        final AuthorizationCacheCallback authorizationCacheCallback) {
-      this.countDownLatch = countDownLatch;
-      this.authenticationToken = authenticationToken;
-      this.authorizationCacheCallback = authorizationCacheCallback;
+    CacheReaderThread(
+        final CountDownLatch aCountDownLatch,
+        final AuthenticationToken anAuthenticationToken,
+        final AuthorizationCacheCallback anAuthorizationCacheCallback) {
+      this.countDownLatch = aCountDownLatch;
+      this.authenticationToken = anAuthenticationToken;
+      this.authorizationCacheCallback = anAuthorizationCacheCallback;
     }
 
     @Override
@@ -443,7 +452,7 @@ public class AuthorizationCacheTest {
             AuthorizationCache.INSTANCE.get(
                 authenticationToken, authorizationCacheCallback);
       } catch (AuthenticationFailedException e) {
-        log.debug(e.getMessage());
+        LOG.debug(e.getMessage());
       }
     }
   }

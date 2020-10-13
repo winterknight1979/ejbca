@@ -30,6 +30,10 @@ import org.junit.Test;
  */
 public class AccessMatchValueReverseLookupRegistryTest {
 
+    /**
+     * Match value test.
+     * @throws SecurityException fail
+     */
   @Test
   public void testVanillaMatchValue() throws SecurityException {
     try {
@@ -59,7 +63,7 @@ public class AccessMatchValueReverseLookupRegistryTest {
 
   /**
    * Tests that the lookup registry gives a nice reply to an unregistered token
-   * type
+   * type.
    */
   @Test
   public void testLookupUnregisteredTokenType() {
@@ -78,8 +82,10 @@ public class AccessMatchValueReverseLookupRegistryTest {
 
   public static class VanillaAuthenticationTokenMetaData
       extends AuthenticationTokenMetaDataBase {
+      /** type. */
     public static final String TOKEN_TYPE = "foo";
 
+    /** constructor. */
     public VanillaAuthenticationTokenMetaData() {
       super(
           TOKEN_TYPE,
@@ -89,6 +95,7 @@ public class AccessMatchValueReverseLookupRegistryTest {
   }
 
   private enum VanillaAccessMatchValueMock implements AccessMatchValue {
+      /** arbitrary value. */
     FOO;
 
     @Override

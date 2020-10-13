@@ -37,22 +37,26 @@ import org.junit.Test;
 @SuppressWarnings("deprecation")
 public final class RemoteAccessSetCacheHolderTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RemoteAccessSetCacheHolderTest.class);
 
+  /** Token. */
   private final AuthenticationToken token1 =
       new PublicAccessAuthenticationToken("CN=test1", false);
+  /** Token. */
   private final AuthenticationToken token2 =
       new PublicAccessAuthenticationToken("CN=test2", false);
 
+  /** Test cycle. */
   @Test
   public void testStartFinishCycle() {
-    log.trace(">testStartFinishCycle");
+    LOG.trace(">testStartFinishCycle");
     assertTrue(
         "The cache should be empty initially",
         RemoteAccessSetCacheHolder.getCache().getKeys().isEmpty());
 
-    log.debug("Starting a update number 10");
+    LOG.debug("Starting a update number 10");
     Set<AuthenticationToken> existing =
         RemoteAccessSetCacheHolder.startCacheReload(10);
     assertTrue("Returned set should be empty", existing.isEmpty());
@@ -76,7 +80,7 @@ public final class RemoteAccessSetCacheHolderTest {
         1,
         RemoteAccessSetCacheHolder.getCache().getKeys().size());
 
-    log.debug("Starting a update number 11");
+    LOG.debug("Starting a update number 11");
     existing = RemoteAccessSetCacheHolder.startCacheReload(11);
     assertEquals(
         "Wrong number of entries in list of existing auth tokens",
@@ -93,22 +97,29 @@ public final class RemoteAccessSetCacheHolderTest {
     newCache2.put(token1, as2);
     newCache2.put(token2, as2);
 
-    log.debug("Should not overwrite cache");
+    LOG.debug("Should not overwrite cache");
     RemoteAccessSetCacheHolder.finishCacheReload(10, newCache2);
     assertEquals(
         "Old update number should not overwrite the cache",
         1,
         RemoteAccessSetCacheHolder.getCache().getKeys().size());
 
-    log.debug("Should overwrite cache");
+    LOG.debug("Should overwrite cache");
     RemoteAccessSetCacheHolder.finishCacheReload(11, newCache2);
     assertEquals(
         "Cache should have been updated again",
         2,
         RemoteAccessSetCacheHolder.getCache().getKeys().size());
-    log.trace("<testStartFinishCycle");
+    LOG.trace("<testStartFinishCycle");
   }
 
+  /**
+   * Reset.
+   * @throws IllegalArgumentException fail
+   * @throws IllegalAccessException fail
+   * @throws NoSuchFieldException fail
+   * @throws SecurityException fail
+   */
   @Before
   @After
   public void reset()
