@@ -440,7 +440,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.11</version>
+				<version>4.13.1</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
