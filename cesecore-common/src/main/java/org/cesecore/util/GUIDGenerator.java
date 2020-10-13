@@ -46,7 +46,7 @@ public final class GUIDGenerator {
    * @param o object
    * @return guid
    */
-  public static final String generateGUID(final Object o) {
+  public static String generateGUID(final Object o) {
 
     if (hexServerIP == null) {
       java.net.InetAddress localInetAddress = null;

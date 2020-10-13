@@ -72,7 +72,7 @@ public class LookAheadObjectInputStreamTest {
    /** Data. */
     private int data = 0;
 
-   GoodClass1(final int aData) {
+   public GoodClass1(final int aData) {
       this.data = aData;
     }
 
@@ -86,7 +86,7 @@ public class LookAheadObjectInputStreamTest {
     /** Data. */
     private int data = 0;
 
-    GoodClass2(final int aData) {
+    public GoodClass2(final int aData) {
       this.data = aData;
     }
 
@@ -116,7 +116,7 @@ public class LookAheadObjectInputStreamTest {
     /** Obj. */
     private Object object;
 
-    BadDog(final Object anObject) {
+    public BadDog(final Object anObject) {
       this.object = anObject;
     }
 
@@ -131,7 +131,7 @@ public class LookAheadObjectInputStreamTest {
     private final boolean writeExploitObject;
 
     @SuppressWarnings("unused")
-    ExternalizableClass() {
+    public ExternalizableClass() {
       this(false);
     }
 

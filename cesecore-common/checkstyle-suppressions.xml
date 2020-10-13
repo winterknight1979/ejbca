@@ -69,5 +69,6 @@
 	<suppress checks="LocalFinalVariableNameCheck" files="CertToolsTest.java" lines="2081-2084"/>
 	<suppress checks="ParameterNumberCheck" files="SimpleTimeTest.java" lines="165"/>
 	<suppress checks="MethodLengthCheck" files="StringToolsTest.java" lines="643"/>
-	<suppress checks="MethodLengthCheck" files="TimeUnitFormatTest.java" lines="86"/>
+	<suppress checks="MethodLengthCheck" files="TimeUnitFormatTest.java" lines="85"/>
+	<suppress checks="RedundantModifierCheck" files="LookAheadObjectInputStreamTest.java" lines="75,89,119,134"/> <!-- These are instantiated by reflection so must be explicitly public. -->
  </suppressions>
