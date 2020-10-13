@@ -24,27 +24,35 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Some general test methods for Pkcs11SlotLabel
+ * Some general test methods for Pkcs11SlotLabel.
  *
  * @version $Id: Pkcs11SlotLabelTest.java 26879 2017-10-24 09:43:21Z bastianf $
  */
 public class Pkcs11SlotLabelTest {
-
+  /** Num. */
   private static final String SLOT_NUMBER = "1";
+  /** Index. */
   private static final String SLOT_INDEX = "i1";
+  /** Label. */
   private static final String SLOT_LABEL = "ejbca";
 
+  /** Setup. */
   @BeforeClass
   public static void beforeClass() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
   }
-
+  /**
+   * Test.
+   */
   @Before
   public void checkPkcs11DriverAvailable() {
     // Skip test if no PKCS11 driver is installed
     assumeTrue(PKCS11TestUtils.getHSMLibrary() != null);
   }
-
+  /**
+   * Test.
+   * @throws NoSuchSlotException fail
+   */
   @Test
   public void testgetProviderWithNumber() throws NoSuchSlotException {
     Provider provider =
@@ -57,7 +65,10 @@ public class Pkcs11SlotLabelTest {
         "No provider for slot number : " + SLOT_NUMBER + " was found.",
         provider);
   }
-
+  /**
+   * Test.
+   * @throws NoSuchSlotException fail
+   */
   @Test
   public void testgetProviderWithIndex() throws NoSuchSlotException {
     Provider provider =
@@ -70,6 +81,10 @@ public class Pkcs11SlotLabelTest {
         "No provider for slot index : " + SLOT_INDEX + " was found.", provider);
   }
 
+  /**
+   * Test.
+   * @throws NoSuchSlotException fail
+   */
   @Test
   public void testgetProviderWithLabel() throws NoSuchSlotException {
     Provider provider =

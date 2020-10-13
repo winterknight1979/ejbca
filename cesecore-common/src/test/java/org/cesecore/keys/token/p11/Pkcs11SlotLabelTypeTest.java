@@ -22,7 +22,9 @@ import org.junit.Test;
  *     $
  */
 public class Pkcs11SlotLabelTypeTest {
-
+    /**
+       * Test.
+       */
   @Test
   public void testNumberTypeValidator() {
     Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_NUMBER;
@@ -30,7 +32,9 @@ public class Pkcs11SlotLabelTypeTest {
     assertFalse("Validator falsely validated a label", type.validate("foo"));
     assertFalse("Validator falsely validated an index", type.validate("i7"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testIndexTypeValidator() {
     Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_INDEX;
@@ -39,7 +43,9 @@ public class Pkcs11SlotLabelTypeTest {
     assertTrue(
         "Validator did not correctly validate an index", type.validate("i7"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testLabelTypeValidator() {
     Pkcs11SlotLabelType type = Pkcs11SlotLabelType.SLOT_LABEL;
@@ -50,7 +56,9 @@ public class Pkcs11SlotLabelTypeTest {
     assertTrue(
         "Validator did not correctly validate a label", type.validate("i7"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testLongLabelValidation() {
     assertFalse(

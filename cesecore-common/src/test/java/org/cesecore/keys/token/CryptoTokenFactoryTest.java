@@ -20,13 +20,16 @@ import java.util.Collection;
 import org.junit.Test;
 
 /**
- * Tests crypto token manager
+ * Tests crypto token manager.
  *
  * @version $Id: CryptoTokenFactoryTest.java 22132 2015-11-02 13:52:46Z
  *     mikekushner $
  */
 public class CryptoTokenFactoryTest {
-
+     /**
+       * Test.
+     * @throws Exception fail
+       */
   @Test
   public void testAvailableCryptoToken() throws Exception {
     CryptoTokenFactory mgr = CryptoTokenFactory.instance();

@@ -36,11 +36,13 @@ import org.junit.Test;
  */
 public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
 
+    /** Setup. */
   @BeforeClass
   public static void beforeClass() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
   }
 
+  /** setup. */
   @Before
   public void checkPkcs11DriverAvailable() {
     // Skip test if no PKCS11 driver is installed
@@ -48,49 +50,71 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     assumeTrue(PKCS11TestUtils.getHSMProvider() != null);
   }
 
+  /** teardown. */
   @After
   public void tearDown() {
     // Make sure we remove the provider after one test, so it is not still there
     // affecting the next test
     Security.removeProvider(getProvider());
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCryptoTokenRSA() throws Exception {
     CryptoToken catoken = createPKCS11Token();
     doCryptoTokenRSA(catoken);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCryptoTokenECC() throws Exception {
     CryptoToken catoken = createPKCS11Token();
     doCryptoTokenECC(catoken, "secp256r1", 256, "secp384r1", 384);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testActivateDeactivate() throws Exception {
     CryptoToken catoken = createPKCS11Token();
     doActivateDeactivate(catoken);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testAutoActivate() throws Exception {
     CryptoToken catoken = createPKCS11Token();
     doAutoActivate(catoken);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testStoreAndLoad() throws Exception {
     CryptoToken token = createPKCS11Token();
     doStoreAndLoad(token);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenerateSymKey() throws Exception {
     CryptoToken token = createPKCS11Token();
     doGenerateSymKey(token);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testPKCS11TokenCreation() throws Exception {
     PKCS11CryptoToken token1 = (PKCS11CryptoToken) createPKCS11Token();
@@ -114,12 +138,14 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
         token3.getP11slot(),
         token5.getP11slot());
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings(
       "deprecation") // This test will be removed when the deprecated methods it
   // tests are.
   @Test
-  public void testUpgradePropertiesFileFrom5_0_x() {
+  public void testUpgradePropertiesFileFrom50x() {
     Properties slotNumberProperties = new Properties();
     slotNumberProperties.setProperty("slot", "7");
     Properties indexProperties = new Properties();
@@ -139,10 +165,12 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
         Pkcs11SlotLabelType.SLOT_INDEX.getKey(),
         newIndexNumber.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE));
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
-  public void testUpgradePropertiesFileFrom5_0_11() {
+  public void testUpgradePropertiesFileFrom5011() {
     Properties slotPropertiesWithNumber = new Properties();
     slotPropertiesWithNumber.setProperty("slot", "SLOT_ID:7");
     Properties newSlotPropertiesWithNumber =
@@ -189,16 +217,32 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     return PKCS11TestUtils.getHSMProvider();
   }
 
+  /** build.
+ * @return token
+ * @throws NoSuchSlotException fail */
   public static CryptoToken createPKCS11Token() throws NoSuchSlotException {
     return createPKCS11TokenWithAttributesFile(null, null, true);
   }
 
+  /**
+   * @param name name
+   * @param extractable obj
+   * @return token
+   * @throws NoSuchSlotException fail
+   */
   public static CryptoToken createPKCS11Token(
           final String name, final boolean extractable)
       throws NoSuchSlotException {
     return createPKCS11TokenWithAttributesFile(null, name, extractable);
   }
 
+  /**
+   * @param file fila
+   * @param tokenName nbame
+   * @param extractable obj
+   * @return token
+   * @throws NoSuchSlotException fail
+   */
   public static CryptoToken createPKCS11TokenWithAttributesFile(
       final String file, final String tokenName, final boolean extractable)
       throws NoSuchSlotException {

@@ -32,12 +32,14 @@ public class MockCryptoToken extends BaseCryptoToken {
 
   private static final long serialVersionUID = -6136504057204777472L;
 
+  /** ID. */
   private int id;
 
   @Override
-  public void init(final Properties properties, final byte[] data, final int id)
+  public void init(
+          final Properties properties, final byte[] data, final int anid)
       throws Exception {
-    this.id = id;
+    this.id = anid;
     // Do nothing
   }
 
@@ -64,23 +66,23 @@ public class MockCryptoToken extends BaseCryptoToken {
   @Override
   public void deleteEntry(final String alias)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
-          IOException {}
+          IOException { }
 
   @Override
   public void generateKeyPair(final String keySpec, final String alias)
-      throws InvalidAlgorithmParameterException {}
+      throws InvalidAlgorithmParameterException { }
 
   @Override
   public void generateKeyPair(
       final AlgorithmParameterSpec spec, final String alias)
       throws InvalidAlgorithmParameterException, CertificateException,
-          IOException, CryptoTokenOfflineException {}
+          IOException, CryptoTokenOfflineException { }
 
   @Override
   public void generateKey(
       final String algorithm, final int keysize, final String alias)
       throws NoSuchAlgorithmException, NoSuchProviderException,
-          KeyStoreException, CryptoTokenOfflineException {}
+          KeyStoreException, CryptoTokenOfflineException { }
 
   @Override
   public void activate(final char[] authenticationcode) {

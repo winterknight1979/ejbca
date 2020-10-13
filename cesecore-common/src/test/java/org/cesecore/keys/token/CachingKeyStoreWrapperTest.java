@@ -34,19 +34,26 @@ import org.junit.Test;
  *     mikekushner $
  */
 public class CachingKeyStoreWrapperTest {
-
+/** Constructor. */
   public CachingKeyStoreWrapperTest() {
     CryptoProviderTools.installBCProvider();
   }
-
+/** PWD. */
   private static final String ALIAS = "alias";
+  /** alias. */
   private static final char[] PASSWORD = "foo123".toCharArray();
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenerateUseDeleteNoCache() throws Exception {
     testGenerateUseDelete(false);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenerateUseDeleteCache() throws Exception {
     testGenerateUseDelete(true);
@@ -62,12 +69,18 @@ public class CachingKeyStoreWrapperTest {
     testUse(cachingKeyStoreWrapper, ALIAS);
     testRemove(cachingKeyStoreWrapper, ALIAS);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testPersistLoadNoCache() throws Exception {
     testPersistLoad(false);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testPersistLoadCache() throws Exception {
     testPersistLoad(true);

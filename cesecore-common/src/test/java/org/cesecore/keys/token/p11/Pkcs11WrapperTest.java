@@ -25,35 +25,41 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Tests instantiating the Pkcs11Wrapper
+ * Tests instantiating the Pkcs11Wrapper.
  *
  * @version $Id: Pkcs11WrapperTest.java 26889 2017-10-25 13:29:54Z bastianf $
  */
 public class Pkcs11WrapperTest {
 
-  private static final Logger log = Logger.getLogger(Pkcs11WrapperTest.class);
-
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(Pkcs11WrapperTest.class);
+  /** Label. */
   private static final String SLOT_LABEL = "ejbca";
+  /** Num. */
   private static final long SLOT_NUMBER = 1;
 
+  /** Setup. */
   @BeforeClass
   public static void beforeClass() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
   }
+  /** Setup. */
 
   @Before
   public void checkPkcs11DriverAvailable() {
     // Skip test if no PKCS11 driver is installed
     assumeTrue(PKCS11TestUtils.getHSMLibrary() != null);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testInstantiatePkcs11Wrapper() {
     String pkcs11Library = PKCS11TestUtils.getHSMLibrary();
     try {
       Pkcs11Wrapper.getInstance(new File(pkcs11Library));
     } catch (Exception e) {
-      log.error("Unknown exception encountered", e);
+      LOG.error("Unknown exception encountered", e);
       fail("Exception was thrown, instantiation failed.");
     }
   }

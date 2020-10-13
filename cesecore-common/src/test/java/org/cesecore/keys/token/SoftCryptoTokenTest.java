@@ -22,65 +22,92 @@ import org.cesecore.util.CryptoProviderTools;
 import org.junit.Test;
 
 /**
- * Tests soft keystore crypto token
+ * Tests soft keystore crypto token.
  *
  * @version $Id: SoftCryptoTokenTest.java 22596 2016-01-18 14:59:25Z mikekushner
  *     $
  */
 public class SoftCryptoTokenTest extends CryptoTokenTestBase {
-
+/** constructor. */
   public SoftCryptoTokenTest() {
     CryptoProviderTools.installBCProvider();
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCryptoTokenRSA() throws Exception {
     CryptoToken catoken = createSoftToken(true);
     doCryptoTokenRSA(catoken);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCryptoTokenECC() throws Exception {
     CryptoToken catoken = createSoftToken(true);
     doCryptoTokenECC(catoken, "secp256r1", 256, "secp384r1", 384);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCryptoTokenECCImplicitlyCA() throws Exception {
     CryptoToken catoken = createSoftToken(true);
     doCryptoTokenECC(catoken, "implicitlyCA", 0, "prime192v1", 192);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testCryptoTokenDSA() throws Exception {
     CryptoToken catoken = createSoftToken(true);
     doCryptoTokenDSA(catoken);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testActivateDeactivate() throws Exception {
     CryptoToken catoken = createSoftToken(true);
     doActivateDeactivate(catoken);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testAutoActivate() throws Exception {
     CryptoToken catoken = createSoftToken(true);
     doAutoActivate(catoken);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testStoreAndLoad() throws Exception {
     CryptoToken token = createSoftToken(true);
     doStoreAndLoad(token);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testGenerateSymKey() throws Exception {
     CryptoToken token = createSoftToken(true);
     doGenerateSymKey(token);
   }
-
+  /**
+   * Test.
+ * @throws Exception fail
+   */
   @Test
   public void testDefaultPwdOrNot() throws Exception {
     final CryptoToken cryptoToken1 = createSoftToken(true);
@@ -128,10 +155,19 @@ public class SoftCryptoTokenTest extends CryptoTokenTestBase {
     return BouncyCastleProvider.PROVIDER_NAME;
   }
 
+  /**
+   * @param nodefaultpwd bool
+   * @return token
+   */
   public static CryptoToken createSoftToken(final boolean nodefaultpwd) {
     return createSoftToken(nodefaultpwd, true);
   }
 
+  /**
+   * @param nodefaultpwd bool
+   * @param extractable bool
+   * @return token
+   */
   public static CryptoToken createSoftToken(
       final boolean nodefaultpwd, final boolean extractable) {
     Properties prop = new Properties();

@@ -22,39 +22,59 @@ import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
 /**
  * @version $Id: PKCS11TestUtils.java 22132 2015-11-02 13:52:46Z mikekushner $
  */
-public class PKCS11TestUtils {
+public final class PKCS11TestUtils {
+    private PKCS11TestUtils() { }
 
-  private static final Logger log = Logger.getLogger(PKCS11TestUtils.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(PKCS11TestUtils.class);
 
+  /** Config. */
   private static final String PROPERTYFILE = "/systemtests.properties";
+  /** Config. */
   private static Properties properties = null;
 
+  /** Config. */
   public static final String PKCS11_LIBRARY = "pkcs11.library";
+  /** Config. */
   public static final String PKCS11_SLOT_PIN = "pkcs11.slotpin";
+  /** Config. */
   public static final String PKCS11_SECURITY_PROVIDER = "pkcs11.provider";
+  /** Config. */
   public static final String PKCS11_SLOT_TYPE = "pkcs11.slottype";
+  /** Config. */
   public static final String PKCS11_SLOT_VALUE = "pkcs11.slottypevalue";
 
+  /** Library. **/
   private static final String UTIMACO_PKCS11_LINUX_LIB =
       "/etc/utimaco/libcs2_pkcs11.so";
+  /** Library. **/
   private static final String UTIMACO_PKCS11_WINDOWS_LIB =
       "C:/Program Files/Utimaco/SafeGuard CryptoServer/Lib/cs2_pkcs11.dll";
+  /** Library. **/
   private static final String LUNASA_PKCS11_LINUX_LIB =
       "/usr/lunasa/lib/libCryptoki2_64.so";
+  /** Library. **/
   private static final String LUNASA_PKCS11_LINUX32_LIB =
       "/usr/lunasa/lib/libCryptoki2.so";
+  /** Library. **/
   private static final String PROTECTSERVER_PKCS11_LINUX_LIB =
       "/opt/PTK/lib/libcryptoki.so"; // this symlink is set by
   // safeNet-install.sh->"5 Set the default
   // cryptoki and/or hsm link". Use it
   // instead of symlinking manually.
+  /** Library. **/
   private static final String PROTECTSERVER_PKCS11_LINUX64_LIB =
       "/opt/ETcpsdk/lib/linux-x86_64/libcryptoki.so";
+  /** Library. **/
   private static final String PROTECTSERVER_PKCS11_LINUX32_LIB =
       "/opt/ETcpsdk/lib/linux-i386/libcryptoki.so";
+  /** Library. **/
   private static final String PROTECTSERVER_PKCS11_WINDOWS_LIB =
       "C:/Program Files/SafeNet/ProtectToolkit C SDK/bin/sw/cryptoki.dll";
 
+  /**
+   * @return provider
+   */
   public static String getHSMProvider() {
     final File utimacoCSLinux = new File(UTIMACO_PKCS11_LINUX_LIB);
     final File utimacoCSWindows = new File(UTIMACO_PKCS11_WINDOWS_LIB);
@@ -85,12 +105,15 @@ public class PKCS11TestUtils {
     }
     // Override auto-detected properties if configuration exists
     ret = getSystemTestsProperties().getProperty(PKCS11_SECURITY_PROVIDER, ret);
-    if (log.isDebugEnabled()) {
-      log.debug("getHSMProvider: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getHSMProvider: " + ret);
     }
     return ret;
   }
 
+  /**
+   * @return lib
+   */
   public static String getHSMLibrary() {
     final File utimacoCSLinux = new File(UTIMACO_PKCS11_LINUX_LIB);
     final File utimacoCSWindows = new File(UTIMACO_PKCS11_WINDOWS_LIB);
@@ -123,38 +146,49 @@ public class PKCS11TestUtils {
     }
     // Override auto-detected properties if configuration exists
     ret = getSystemTestsProperties().getProperty(PKCS11_LIBRARY, ret);
-    if (log.isDebugEnabled()) {
-      log.debug("getHSMLibrary: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("getHSMLibrary: " + ret);
     }
     return ret;
   }
-
+  /**
+   * @param defaultValue value
+   * @return slot
+   */
   public static String getPkcs11SlotValue(final String defaultValue) {
     final String ret =
         getSystemTestsProperties().getProperty(PKCS11_SLOT_VALUE, defaultValue);
-    if (log.isDebugEnabled()) {
-      log.debug("PKCS11_SLOT_VALUE: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("PKCS11_SLOT_VALUE: " + ret);
     }
     return ret;
   }
 
+  /**
+   * @param defaultValue value
+   * @return type
+   */
   public static Pkcs11SlotLabelType getPkcs11SlotType(
       final String defaultValue) {
     final Pkcs11SlotLabelType ret =
         Pkcs11SlotLabelType.getFromKey(
             getSystemTestsProperties()
                 .getProperty(PKCS11_SLOT_TYPE, defaultValue));
-    if (log.isDebugEnabled()) {
-      log.debug("PKCS11_SLOT_TYPE: " + ret.getKey());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("PKCS11_SLOT_TYPE: " + ret.getKey());
     }
     return ret;
   }
 
+  /**
+   * @param defaultValue value
+   * @return PIN
+   */
   public static String getPkcs11SlotPin(final String defaultValue) {
     final String ret =
         getSystemTestsProperties().getProperty(PKCS11_SLOT_PIN, defaultValue);
-    if (log.isDebugEnabled()) {
-      log.debug("PKCS11_SLOT_PIN: " + ret);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("PKCS11_SLOT_PIN: " + ret);
     }
     return ret;
   }
@@ -175,12 +209,12 @@ public class PKCS11TestUtils {
           is.close();
         }
       } catch (IOException e) {
-        log.warn(e.getMessage());
+        LOG.warn(e.getMessage());
       }
       if (properties.isEmpty()) {
-        log.info(PROPERTYFILE + " was not detected. Defaults will be used.");
+        LOG.info(PROPERTYFILE + " was not detected. Defaults will be used.");
       } else {
-        log.info(PROPERTYFILE + " was detected.");
+        LOG.info(PROPERTYFILE + " was detected.");
       }
     }
     return properties;

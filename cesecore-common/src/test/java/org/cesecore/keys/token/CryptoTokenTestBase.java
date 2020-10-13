@@ -47,12 +47,15 @@ import org.cesecore.util.CertTools;
  */
 public abstract class CryptoTokenTestBase {
 
-  public static final String tokenpin =
+    /** PIN. */
+  public static final String TOKEN_PIN =
       PKCS11TestUtils.getPkcs11SlotPin("userpin1");
 
-  private static final InternalResources intres =
+  /** resource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** constructor. */
   public CryptoTokenTestBase() {
     super();
   }
@@ -87,7 +90,7 @@ public abstract class CryptoTokenTestBase {
     } catch (CryptoTokenOfflineException e) {
       // NOPMD
     }
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     // Should still be ACTIVE now, because we run activate
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
     cryptoToken.deleteEntry("rsatest00001");
@@ -167,6 +170,19 @@ public abstract class CryptoTokenTestBase {
     }
   }
 
+  /**
+   * @param cryptoToken token
+   * @throws CryptoTokenOfflineException fail
+   * @throws CryptoTokenAuthenticationFailedException fail
+   * @throws InvalidKeyException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws KeyStoreException fail
+   * @throws InvalidAlgorithmParameterException fail
+   * @throws SignatureException fail
+   * @throws CertificateException fail
+   * @throws IOException fail
+   */
   protected void doCryptoTokenDSA(final CryptoToken cryptoToken)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
           IOException, CryptoTokenOfflineException, NoSuchProviderException,
@@ -184,7 +200,7 @@ public abstract class CryptoTokenTestBase {
     } catch (CryptoTokenOfflineException e) {
       // NOPMD
     }
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     // Should still be ACTIVE now, because we run activate
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
     cryptoToken.deleteEntry("dsatest00001");
@@ -301,7 +317,7 @@ public abstract class CryptoTokenTestBase {
     } catch (CryptoTokenOfflineException e) {
       // NOPMD
     }
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     // Should still be ACTIVE now, because we run activate
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
     cryptoToken.deleteEntry("ecctest00001");
@@ -416,7 +432,7 @@ public abstract class CryptoTokenTestBase {
     } catch (CryptoTokenOfflineException e) {
       // NOPMD
     }
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     // Should still be ACTIVE now, because we run activate
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
     cryptoToken.deleteEntry("rsatest00001");
@@ -437,7 +453,7 @@ public abstract class CryptoTokenTestBase {
           e.getMessage(),
           e.getMessage()
               .contains(
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "token.errornosuchkey", "sdfsdf77474")));
     }
     // We have not set auto activate, so the internal key storage in CryptoToken
@@ -467,7 +483,7 @@ public abstract class CryptoTokenTestBase {
       String strp11 = "Failed to initialize PKCS11 provider slot '1'.";
       assert (e.getMessage().equals(strsoft) || e.getMessage().equals(strp11));
     }
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     priv = cryptoToken.getPrivateKey("rsatest00001");
     pub = cryptoToken.getPublicKey("rsatest00001");
     KeyTools.testKey(priv, pub, cryptoToken.getSignProviderName());
@@ -497,7 +513,7 @@ public abstract class CryptoTokenTestBase {
           SignatureException, CryptoTokenAuthenticationFailedException,
           InvalidAlgorithmParameterException {
     Properties prop = cryptoToken.getProperties();
-    prop.setProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY, tokenpin);
+    prop.setProperty(CryptoToken.AUTOACTIVATE_PIN_PROPERTY, TOKEN_PIN);
     cryptoToken.setProperties(prop);
 
     // We have autoactivation, so status should be ACTIVE
@@ -507,7 +523,7 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.deactivate();
     // It should autoactivate getting status
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
 
     // Generate a key
@@ -528,6 +544,20 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.deleteEntry("rsatest00001");
   }
 
+  /**
+   * @param cryptoToken token
+   * @throws CryptoTokenOfflineException fail
+   * @throws CryptoTokenAuthenticationFailedException fail
+   * @throws InvalidKeyException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws KeyStoreException fail
+   * @throws InvalidAlgorithmParameterException fail
+   * @throws SignatureException fail
+   * @throws CertificateException fail
+   * @throws IOException fail
+   * @throws NoSuchSlotException fail
+   */
   protected void doStoreAndLoad(final CryptoToken cryptoToken)
       throws CryptoTokenOfflineException,
           CryptoTokenAuthenticationFailedException, KeyStoreException,
@@ -535,7 +565,7 @@ public abstract class CryptoTokenTestBase {
           InvalidKeyException, NoSuchProviderException,
           InvalidAlgorithmParameterException, SignatureException,
           NoSuchSlotException {
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
     cryptoToken.deleteEntry("rsatest00001");
 
@@ -561,7 +591,7 @@ public abstract class CryptoTokenTestBase {
             data,
             555,
             "Another cryptoToken");
-    token2.activate(tokenpin.toCharArray());
+    token2.activate(TOKEN_PIN.toCharArray());
     // Now we have a new crypto token, so lets do the same key test again
     priv = token2.getPrivateKey("rsatest00001");
     pub = token2.getPublicKey("rsatest00001");
@@ -575,6 +605,23 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.deleteEntry("rsatest00001");
   }
 
+  /**
+   * @param cryptoToken token
+   * @throws CryptoTokenOfflineException fail
+   * @throws CryptoTokenAuthenticationFailedException fail
+   * @throws InvalidKeyException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws KeyStoreException fail
+   * @throws InvalidAlgorithmParameterException fail
+   * @throws SignatureException fail
+   * @throws CertificateException fail
+   * @throws NoSuchPaddingException fail
+   * @throws IllegalBlockSizeException fail
+   * @throws IOException fail
+   * @throws BadPaddingException fail
+   * @throws NoSuchSlotException fail
+   */
   protected void doGenerateSymKey(final CryptoToken cryptoToken)
       throws CryptoTokenOfflineException,
           CryptoTokenAuthenticationFailedException, InvalidKeyException,
@@ -583,7 +630,7 @@ public abstract class CryptoTokenTestBase {
           CertificateException, NoSuchPaddingException,
           IllegalBlockSizeException, IOException, BadPaddingException,
           NoSuchSlotException {
-    cryptoToken.activate(tokenpin.toCharArray());
+    cryptoToken.activate(TOKEN_PIN.toCharArray());
     assertEquals(CryptoToken.STATUS_ACTIVE, cryptoToken.getTokenStatus());
     cryptoToken.deleteEntry("aestest00001");
     // Generate the symm key
@@ -613,7 +660,7 @@ public abstract class CryptoTokenTestBase {
             data,
             555,
             "Some cryptoToken");
-    token2.activate(tokenpin.toCharArray());
+    token2.activate(TOKEN_PIN.toCharArray());
     // Now we have a new crypto token, so lets do the same hmac again and
     // compare
     Key symkey2 = token2.getKey("aestest00001");
