@@ -15,29 +15,32 @@ package org.cesecore.util.ui;
 import java.io.Serializable;
 
 /**
- * This interface defines common methods for all Validator types, i.e classes which can be attached to DynamicUiProperties in order to validate 
- * their values. Extends javax.faces.validator.Validator, meaning that it can be used both internally (through the validate(T value) method 
- * defined here) and through the one defined in Validator. 
+ * This interface defines common methods for all Validator types, i.e classes
+ * which can be attached to DynamicUiProperties in order to validate their
+ * values. Extends javax.faces.validator.Validator, meaning that it can be used
+ * both internally (through the validate(T value) method defined here) and
+ * through the one defined in Validator.
  *
- * @version $Id: DynamicUiPropertyValidator.java 24958 2016-12-28 17:07:58Z mikekushner $
+ * @version $Id: DynamicUiPropertyValidator.java 24958 2016-12-28 17:07:58Z
+ *     mikekushner $
  * @param <T> Type
- *
  */
-public interface DynamicUiPropertyValidator<T extends Serializable> extends Serializable {
-    
-    /**
-     * 
-     * @param value the value to be validated
-     * 
-     * @throws PropertyValidationException if the validation failed, including a detailed error message.
-     */
-    void validate(T value) throws PropertyValidationException;
-    
-    /**
-     * This method allows the JSF frontend to use different validators, depending on 
-     * 
-     * @return the ID of this validator, for JSF purposes. Must math an ID defined in modules/admin-gui/resources/WEB-INF/faces-config.xml
-     */
-    String getValidatorType();
+public interface DynamicUiPropertyValidator<T extends Serializable>
+    extends Serializable {
 
+  /**
+   * @param value the value to be validated
+   * @throws PropertyValidationException if the validation failed, including a
+   *     detailed error message.
+   */
+  void validate(T value) throws PropertyValidationException;
+
+  /**
+   * This method allows the JSF frontend to use different validators, depending
+   * on.
+   *
+   * @return the ID of this validator, for JSF purposes. Must math an ID defined
+   *     in modules/admin-gui/resources/WEB-INF/faces-config.xml
+   */
+  String getValidatorType();
 }

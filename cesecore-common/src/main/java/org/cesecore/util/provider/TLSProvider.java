@@ -17,14 +17,19 @@ import java.security.Provider;
 /**
  * Provider with to be used for TLS session.
  *
- * @version  $Id: TLSProvider.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: TLSProvider.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class TLSProvider extends Provider {
 
-    private static final long serialVersionUID = -5295903987266780293L;
-    private static String info = "CESECORE TLS Provider";
-    public TLSProvider() {
-        super("TLSProvider", "0.0", info);
-        put("TrustManagerFactory.AcceptAll", TrustManagerFactoryImpl.AcceptAll.class.getName());
-    }
+  private static final long serialVersionUID = -5295903987266780293L;
+  /** Info. */
+  private static String info = "CESECORE TLS Provider";
+
+  /** Constructor. */
+  public TLSProvider() {
+    super("TLSProvider", "0.0", info);
+    put(
+        "TrustManagerFactory.AcceptAll",
+        TrustManagerFactoryImpl.AcceptAll.class.getName());
+  }
 }

@@ -14,30 +14,45 @@ package org.cesecore.authorization.user;
 
 /**
  * Thrown when an AccessUserAspect is not found.
- * 
- * @version $Id: AccessUserAspectNotFoundException.java 25461 2017-03-14 00:10:54Z jeklund $
  *
+ * @version $Id: AccessUserAspectNotFoundException.java 25461 2017-03-14
+ *     00:10:54Z jeklund $
  */
 public class AccessUserAspectNotFoundException extends RuntimeException {
 
-    private static final long serialVersionUID = -3503860340121024920L;
+  private static final long serialVersionUID = -3503860340121024920L;
 
-    public AccessUserAspectNotFoundException() {
-        super();
-    }
+  /** Bare exception. */
+  public AccessUserAspectNotFoundException() {
+    super();
+  }
 
-    public AccessUserAspectNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * Exception with messsage and cause.
+   *
+   * @param message Message
+   * @param cause Cause
+   */
+  public AccessUserAspectNotFoundException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public AccessUserAspectNotFoundException(String message) {
-        super(message);
-    }
+  /**
+   * Exception with message.
+   *
+   * @param message Message
+   */
+  public AccessUserAspectNotFoundException(final String message) {
+    super(message);
+  }
 
-    public AccessUserAspectNotFoundException(Throwable cause) {
-        super(cause);
-    } 
-
-    
-
+  /**
+   * Exception with cause.
+   *
+   * @param cause cause
+   */
+  public AccessUserAspectNotFoundException(final Throwable cause) {
+    super(cause);
+  }
 }

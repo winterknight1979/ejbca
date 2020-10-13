@@ -12,72 +12,91 @@
  *************************************************************************/
 package org.cesecore.certificates.endentity;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
 /**
- * Unit tests for the {@link EndEntityType} class and the {@link EndEntityTypes} enum.
- * 
- * @version $Id: EndEntityTypeTest.java 22121 2015-10-29 13:49:30Z mikekushner $
+ * Unit tests for the {@link EndEntityType} class and the {@link EndEntityTypes}
+ * enum.
  *
+ * @version $Id: EndEntityTypeTest.java 22121 2015-10-29 13:49:30Z mikekushner $
  */
 public class EndEntityTypeTest {
-
-    @Test
-    public void testIsTypeBasic() {
-        //Basic test.
-        EndEntityType basicType = new EndEntityType(EndEntityTypes.ADMINISTRATOR);
-        assertTrue(basicType.isType(EndEntityTypes.ADMINISTRATOR));
-        assertFalse(basicType.isType(EndEntityTypes.ENDUSER));
-        assertFalse(basicType.isType(EndEntityTypes.INVALID));
+     /** Test. */
+  @Test
+  public void testIsTypeBasic() {
+    // Basic test.
+    EndEntityType basicType = new EndEntityType(EndEntityTypes.ADMINISTRATOR);
+    assertTrue(basicType.isType(EndEntityTypes.ADMINISTRATOR));
+    assertFalse(basicType.isType(EndEntityTypes.ENDUSER));
+    assertFalse(basicType.isType(EndEntityTypes.INVALID));
+  }
+  /** Test. */
+  @Test
+  public void testIsTypeComplex() {
+    // Complex test
+    EndEntityType complexType =
+        new EndEntityType(EndEntityTypes.ENDUSER, EndEntityTypes.ADMINISTRATOR);
+    assertFalse(complexType.isType(EndEntityTypes.ENDUSER));
+    assertFalse(complexType.isType(EndEntityTypes.ADMINISTRATOR));
+  }
+  /** Test. */
+  @Test
+  public void testAddToType() {
+    EndEntityType type = new EndEntityType();
+    if ((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue())
+        == EndEntityTypes.ENDUSER.hexValue()) {
+      throw new RuntimeException(
+          "Type shouldn't contain ENDUSER to begin with.");
     }
-    
-    @Test
-    public void testIsTypeComplex() {
-        //Complex test
-        EndEntityType complexType = new EndEntityType(EndEntityTypes.ENDUSER, EndEntityTypes.ADMINISTRATOR);
-        assertFalse(complexType.isType(EndEntityTypes.ENDUSER));
-        assertFalse(complexType.isType(EndEntityTypes.ADMINISTRATOR));
+    type.addType(EndEntityTypes.ENDUSER);
+    assertTrue(
+        (type.getHexValue() & EndEntityTypes.ENDUSER.hexValue())
+            == EndEntityTypes.ENDUSER.hexValue());
+    type.addType(EndEntityTypes.ADMINISTRATOR);
+    assertTrue(
+        (type.getHexValue() & EndEntityTypes.ADMINISTRATOR.hexValue())
+            == EndEntityTypes.ADMINISTRATOR.hexValue());
+  }
+  /** Test. l*/
+  @Test
+  public void testContains() {
+    EndEntityType type = new EndEntityType(EndEntityTypes.INVALID);
+    if (type.contains(EndEntityTypes.ENDUSER)) {
+      throw new RuntimeException(
+          "Type shouldn't contain ENDUSER to begin with.");
     }
-    
-    @Test
-    public void testAddToType() {
-        EndEntityType type = new EndEntityType();
-        if((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue()) == EndEntityTypes.ENDUSER.hexValue()) {
-            throw new RuntimeException("Type shouldn't contain ENDUSER to begin with.");
-        }
-        type.addType(EndEntityTypes.ENDUSER);
-        assertTrue((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue()) == EndEntityTypes.ENDUSER.hexValue()); 
-        type.addType(EndEntityTypes.ADMINISTRATOR);
-        assertTrue((type.getHexValue() & EndEntityTypes.ADMINISTRATOR.hexValue()) == EndEntityTypes.ADMINISTRATOR.hexValue()); 
+    type.addType(EndEntityTypes.ENDUSER);
+    assertTrue(type.contains(EndEntityTypes.ENDUSER));
+    // Since EndEntityTypes.INVALID is 0x0, it can always be considered
+    // "contained".
+    assertTrue(type.contains(EndEntityTypes.INVALID));
+  }
+  /** Test. */
+  @Test
+  public void testRemoveType() {
+    EndEntityType type =
+        new EndEntityType(EndEntityTypes.ENDUSER, EndEntityTypes.PRINT);
+    if ((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue())
+        != EndEntityTypes.ENDUSER.hexValue()) {
+      throw new RuntimeException(
+          "Type doesn't contain ENDUSER, can't continue");
     }
-    
-    @Test
-    public void testContains() {
-        EndEntityType type = new EndEntityType(EndEntityTypes.INVALID);
-        if(type.contains(EndEntityTypes.ENDUSER)) {
-            throw new RuntimeException("Type shouldn't contain ENDUSER to begin with.");
-        }
-        type.addType(EndEntityTypes.ENDUSER);
-        assertTrue(type.contains(EndEntityTypes.ENDUSER));   
-        //Since EndEntityTypes.INVALID is 0x0, it can always be considered "contained". 
-        assertTrue(type.contains(EndEntityTypes.INVALID));
+    type.removeType(EndEntityTypes.ENDUSER);
+    assertTrue(
+        "EndEntityTypes.ENDUSER wasn't removed properly",
+        (type.getHexValue() & EndEntityTypes.ENDUSER.hexValue())
+            != EndEntityTypes.ENDUSER.hexValue());
+    try {
+      type.removeType(EndEntityTypes.ADMINISTRATOR);
+    } catch (Exception e) {
+      fail("Unexistant type should have been removed safely.");
     }
-    
-    @Test 
-    public void testRemoveType() {
-        EndEntityType type = new EndEntityType(EndEntityTypes.ENDUSER, EndEntityTypes.PRINT);
-        if((type.getHexValue() & EndEntityTypes.ENDUSER.hexValue()) != EndEntityTypes.ENDUSER.hexValue()) {
-            throw new RuntimeException("Type doesn't contain ENDUSER, can't continue");
-        }
-        type.removeType(EndEntityTypes.ENDUSER);
-        assertTrue("EndEntityTypes.ENDUSER wasn't removed properly", (type.getHexValue() & EndEntityTypes.ENDUSER.hexValue()) != EndEntityTypes.ENDUSER.hexValue());
-        try {
-            type.removeType(EndEntityTypes.ADMINISTRATOR);
-        } catch(Exception e) {
-            fail("Unexistant type should have been removed safely.");
-        }
-        assertTrue((type.getHexValue() & EndEntityTypes.PRINT.hexValue()) == EndEntityTypes.PRINT.hexValue());
-    }
+    assertTrue(
+        (type.getHexValue() & EndEntityTypes.PRINT.hexValue())
+            == EndEntityTypes.PRINT.hexValue());
+  }
 }

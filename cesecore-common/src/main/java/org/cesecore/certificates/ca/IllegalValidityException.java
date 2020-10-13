@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/  
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
@@ -17,28 +17,29 @@ import org.cesecore.CesecoreException;
 /**
  * Error due to an invalid request validity period for a certificate.
  *
- * @version $Id: IllegalValidityException.java 20928 2015-03-19 10:59:21Z mikekushner $
+ * @version $Id: IllegalValidityException.java 20928 2015-03-19 10:59:21Z
+ *     mikekushner $
  */
 public class IllegalValidityException extends CesecoreException {
- 
-    private static final long serialVersionUID = 6774153561528947364L;
-  
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human readable error message, can not be NULL.
-     */
-    public IllegalValidityException(final String message) {
-        super(message);
-    }
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass <code>Exception</code>.
-     *
-     * @param exception exception to be embedded.
-     */
-    public IllegalValidityException(final Exception exception) {
-        super(exception);
-    }
+
+  private static final long serialVersionUID = 6774153561528947364L;
+
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human readable error message, can not be NULL.
+   */
+  public IllegalValidityException(final String message) {
+    super(message);
+  }
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass <code>Exception</code>.
+   *
+   * @param exception exception to be embedded.
+   */
+  public IllegalValidityException(final Exception exception) {
+    super(exception);
+  }
 }

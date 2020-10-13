@@ -15,86 +15,95 @@ package org.cesecore.util.log;
 
 import java.io.PrintStream;
 import java.util.Date;
-
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.ErrorHandler;
 import org.apache.log4j.spi.LoggingEvent;
 
 /**
- * The purpose of this errorhandler is that we can still respond with InternalServer error if and error occurs, but repeated errors will only be
+ * The purpose of this errorhandler is that we can still respond with
+ * InternalServer error if and error occurs, but repeated errors will only be
  * logged once.
- * 
- * @version $Id: ProbableErrorHandler.java 17647 2013-09-20 14:02:02Z netmackan $
+ *
+ * @version $Id: ProbableErrorHandler.java 17647 2013-09-20 14:02:02Z netmackan
+ *     $
  */
-
 public class ProbableErrorHandler implements ErrorHandler {
-    private static Date lastFailure = null;
+    /** date,. */
+  private static Date lastFailure = null;
 
-    final String WARN_PREFIX = "log4j warning: ";
-    final String ERROR_PREFIX = "log4j error: ";
+  /** Warning. */
+  @SuppressWarnings("unused")
+private static final String WARN_PREFIX = "log4j warning: ";
+  /** Error. */
+  private static final String ERROR_PREFIX = "log4j error: ";
 
-    boolean firstTime = true;
+  /** Bool. */
+  private boolean firstTime = true;
 
-    static PrintStream output = System.err;
-    
-    @Override
-    public void error(String arg0) {
-        if (firstTime) {
-            output.println(ERROR_PREFIX + arg0);
-            firstTime = false;
-        }
-        lastFailure = new Date();
+  /**
+   * Output.
+   */
+  private static PrintStream output = System.err;
+
+  @Override
+  public void error(final String arg0) {
+    if (firstTime) {
+      output.println(ERROR_PREFIX + arg0);
+      firstTime = false;
     }
+    lastFailure = new Date();
+  }
 
-    @Override
-    public void error(String arg0, Exception arg1, int arg2) {
-        error(arg0, arg1, arg2, null);
-        lastFailure = new Date();
-    }
+  @Override
+  public void error(final String arg0, final Exception arg1, final int arg2) {
+    error(arg0, arg1, arg2, null);
+    lastFailure = new Date();
+  }
 
-    @Override
-    public void error(String arg0, Exception arg1, int arg2, LoggingEvent arg3) {
-        if (firstTime) {
-            output.println(ERROR_PREFIX + arg0);
-            arg1.printStackTrace(output);
-            firstTime = false;
-        }
-        lastFailure = new Date();
+  @Override
+  public void error(
+          final String arg0,
+          final Exception arg1,
+          final int arg2,
+          final LoggingEvent arg3) {
+    if (firstTime) {
+      output.println(ERROR_PREFIX + arg0);
+      arg1.printStackTrace(output);
+      firstTime = false;
     }
+    lastFailure = new Date();
+  }
 
-    /**
-     * Returns true if an error writing to the log files have happened since 'date'.
-     * 
-     * @param date see if an error happened later than this date
-     * @return true if an error has happened, false if logging works fine.
-     */
-    public static boolean hasFailedSince(Date date) {
-        if (lastFailure != null) {
-            if (lastFailure.after(date)) {
-                return true;
-            }
-        }
-        return false;
+  /**
+   * Returns true if an error writing to the log files have happened since
+   * 'date'.
+   *
+   * @param date see if an error happened later than this date
+   * @return true if an error has happened, false if logging works fine.
+   */
+  public static boolean hasFailedSince(final Date date) {
+    if (lastFailure != null) {
+      if (lastFailure.after(date)) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    /** Does not do anything. */
-    @Override
-    public void setLogger(Logger logger) {
-    }
+  /** Does not do anything. */
+  @Override
+  public void setLogger(final Logger logger) { }
 
-    /** No options to activate. */
-    @Override
-    public void activateOptions() {
-    }
-    
-    /** Does not do anything. */
-    @Override
-    public void setAppender(Appender appender) {
-    }
+  /** No options to activate. */
+  @Override
+  public void activateOptions() { }
 
-    /** Does not do anything. */
-    @Override
-    public void setBackupAppender(Appender appender) {
-    }
+  /** Does not do anything. */
+  @Override
+  public void setAppender(final Appender appender) { }
+
+  /** Does not do anything. */
+  @Override
+  public void setBackupAppender(final Appender appender) { }
 }

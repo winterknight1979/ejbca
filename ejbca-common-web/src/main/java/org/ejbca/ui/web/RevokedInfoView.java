@@ -69,13 +69,13 @@ public class RevokedInfoView implements Serializable {
      * @return DOCUMENT ME!
      */
     public Date getRevocationDate() {
-        return this.revokedcertinfo.revocationDate;
+        return this.revokedcertinfo.getRevocationDate();
     }
 
     /** @return the text key for the revocation reason if any, null otherwise */
     public String getRevocationReason() {
         String ret = null;
-        final int reason = this.revokedcertinfo.revocationReason;
+        final int reason = this.revokedcertinfo.getRevocationReason();
         if ((reason >= 0) && (reason < SecConst.HIGN_REASON_BOUNDRARY)) {
             ret = SecConst.reasontexts[reason];
         }
@@ -83,7 +83,7 @@ public class RevokedInfoView implements Serializable {
     }
 
     public boolean isRevokedAndOnHold(){
-    	return this.revokedcertinfo.revocationReason == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD;
+    	return this.revokedcertinfo.getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD;
     }
 
     public boolean isRevoked(){

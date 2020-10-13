@@ -14,37 +14,39 @@ package org.cesecore.util.ui;
 
 /**
  * Any exception in dynamic UI property context.
- * 
- * @version $Id: DynamicUiModelException.java 28531 2018-03-21 06:57:37Z mikekushner $
  *
+ * @version $Id: DynamicUiModelException.java 28531 2018-03-21 06:57:37Z
+ *     mikekushner $
  */
 public class DynamicUiModelException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates an exception with a message and a cause.
-     * 
-     * @param message the message.
-     * @param cause the cause.
-     */
-    public DynamicUiModelException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * Creates an exception with a message and a cause.
+   *
+   * @param message the message.
+   * @param cause the cause.
+   */
+  public DynamicUiModelException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    /**
-     * Creates an exception with a message.
-     * @param message the message.
-     */
-    public DynamicUiModelException(final String message) {
-        super(message);
-    }
+  /**
+   * Creates an exception with a message.
+   *
+   * @param message the message.
+   */
+  public DynamicUiModelException(final String message) {
+    super(message);
+  }
 
-    /**
-     * Creates an exception a cause.
-     * @param cause the cause.
-     */
-    public DynamicUiModelException(final Throwable cause) {
-        super(cause);
-    }
+  /**
+   * Creates an exception a cause.
+   *
+   * @param cause the cause.
+   */
+  public DynamicUiModelException(final Throwable cause) {
+    super(cause);
+  }
 }

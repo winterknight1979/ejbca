@@ -15,43 +15,42 @@ package org.cesecore.keys.validation;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.cesecore.profiles.Profile;
 
 /**
- * Base validator interface that contains references to certificate profiles. 
- * 
- * @version $Id: CertificateProfileAwareValidator.java 27527 2017-12-12 15:49:13Z mikekushner $
+ * Base validator interface that contains references to certificate profiles.
  *
+ * @version $Id: CertificateProfileAwareValidator.java 27527 2017-12-12
+ *     15:49:13Z mikekushner $
  */
-
 public interface CertificateProfileAwareValidator extends Profile {
 
-    /** 
-     * If the validator should apply to All certificate profiles. 
-     * 
-     * @return true or false.
-     */
-    boolean isAllCertificateProfileIds();
+  /**
+   * If the validator should apply to All certificate profiles.
+   *
+   * @return true or false.
+   */
+  boolean isAllCertificateProfileIds();
 
-    /** 
-     * Sets if validation should be performed for all certificate profile ids.
-     * 
-     * @param isAll true if validation should be done for all certificate profiles.
-     */
-    void setAllCertificateProfileIds(boolean isAll);
+  /**
+   * Sets if validation should be performed for all certificate profile ids.
+   *
+   * @param isAll true if validation should be done for all certificate
+   *     profiles.
+   */
+  void setAllCertificateProfileIds(boolean isAll);
 
-    /** 
-     * Gets a list of selected certificate profile ids. 
-     * 
-     * @return the list.
-     */
-    List<Integer> getCertificateProfileIds();
+  /**
+   * Gets a list of selected certificate profile ids.
+   *
+   * @return the list.
+   */
+  List<Integer> getCertificateProfileIds();
 
-    /** 
-     * Sets the selected certificate profile ids.
-     * 
-     * @param ids the collection of ids.
-     */
-    void setCertificateProfileIds(Collection<Integer> ids);
+  /**
+   * Sets the selected certificate profile ids.
+   *
+   * @param ids the collection of ids.
+   */
+  void setCertificateProfileIds(Collection<Integer> ids);
 }

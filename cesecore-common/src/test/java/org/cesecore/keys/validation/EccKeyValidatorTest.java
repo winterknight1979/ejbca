@@ -11,11 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/**
- * Test class fot RSA key validator functional methods, see {@link RsaKeyValidator}.
- * 
- * @version $Id: EccKeyValidatorTest.java 27832 2018-01-10 14:34:42Z mikekushner $
- */
 package org.cesecore.keys.validation;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyTools;
@@ -35,80 +29,128 @@ import org.junit.Test;
 
 /**
  * Tests ECC key validator functions.
- * 
- * @version $Id: EccKeyValidatorTest.java 27832 2018-01-10 14:34:42Z mikekushner $
+ *
+ * @version $Id: EccKeyValidatorTest.java 27832 2018-01-10 14:34:42Z mikekushner
+ *     $
  */
 public class EccKeyValidatorTest {
 
-    /** Class logger. */
-    private static final Logger log = Logger.getLogger(EccKeyValidatorTest.class);
+  /** Class logger. */
+  private static final Logger LOG = Logger.getLogger(EccKeyValidatorTest.class);
+  /**
+   * Test.
+   * @throws Exception fail
+   */
+  @Before
+  public void setUp() throws Exception {
+    LOG.trace(">setUp()");
+    CryptoProviderTools.installBCProvider();
+    LOG.trace("<setUp()");
+  }
+  /**
+   * Test.
+   * @throws Exception fail
+   */
+  @After
+  public void tearDown() throws Exception {
+    LOG.trace(">tearDown()");
+    // NOOP
+    LOG.trace("<tearDown()");
+  }
+  /**
+   * Test.
+   * @throws Exception fail
+   */
+  @Test
+  public void testPublicKeyValidation() throws Exception {
+    LOG.trace(">testPublicKeyValidation()");
 
-    @Before
-    public void setUp() throws Exception {
-        log.trace(">setUp()");
-        CryptoProviderTools.installBCProvider();
-        log.trace("<setUp()");
-    }
+    // Test ECC key validation OK with an allowed curve.
+    KeyPair keys =
+        KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
+    EccKeyValidator keyValidator =
+        (EccKeyValidator)
+            ValidatorTestUtil.createKeyValidator(
+                EccKeyValidator.class,
+                "ecc-parameter-validation-test-1",
+                "Description",
+                null,
+                -1,
+                null,
+                -1,
+                -1,
+                new Integer[] {});
+    keyValidator.setSettingsTemplate(
+        KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption());
+    // Set custom curve
+    List<String> curves = new ArrayList<String>();
+    curves.add("secp256r1");
+    keyValidator.setCurves(curves);
+    List<String> messages = keyValidator.validate(keys.getPublic(), null);
+    LOG.trace("Key validation error messages: " + messages);
+    assertTrue(
+        "Key valildation should have been successful.", messages.size() == 0);
+    // Set custom curve to something else, so it's not supported
+    curves.clear();
+    curves.add("secp384r1");
+    keyValidator.setCurves(curves);
+    messages = keyValidator.validate(keys.getPublic(), null);
+    LOG.trace("Key validation error messages: " + messages);
+    assertTrue("Key validation should have failed.", messages.size() > 0);
+    assertEquals(
+        "Key validation should have failed.",
+        "Invalid: ECDSA curve [secp256r1, prime256v1, P-256]: Use one of the"
+            + " following [secp384r1].",
+        messages.get(0));
 
-    @After
-    public void tearDown() throws Exception {
-        log.trace(">tearDown()");
-        // NOOP
-        log.trace("<tearDown()");
-    }
+    // TODO: create some failed EC key to test validation on
+    LOG.trace("<testPublicKeyValidation()");
+  }
 
-    @Test
-    public void testPublicKeyValidation() throws Exception {
-        log.trace(">testPublicKeyValidation()");
-
-        // Test ECC key validation OK with an allowed curve.
-        KeyPair keys = KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_ECDSA);
-        EccKeyValidator keyValidator = (EccKeyValidator) ValidatorTestUtil.createKeyValidator(EccKeyValidator.class,
-                "ecc-parameter-validation-test-1", "Description", null, -1, null, -1, -1, new Integer[] {});
-        keyValidator.setSettingsTemplate(KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption());
-        // Set custom curve
-        List<String> curves = new ArrayList<String>();
-        curves.add("secp256r1");
-        keyValidator.setCurves(curves);
-        List<String> messages = keyValidator.validate(keys.getPublic(), null);
-        log.trace("Key validation error messages: " + messages);
-        assertTrue("Key valildation should have been successful.", messages.size() == 0);
-        // Set custom curve to something else, so it's not supported
-        curves.clear();
-        curves.add("secp384r1");
-        keyValidator.setCurves(curves);
-        messages = keyValidator.validate(keys.getPublic(), null);
-        log.trace("Key validation error messages: " + messages);
-        assertTrue("Key validation should have failed.", messages.size() > 0);
-        assertEquals("Key validation should have failed.", "Invalid: ECDSA curve [secp256r1, prime256v1, P-256]: Use one of the following [secp384r1].", messages.get(0));
-
-        // TODO: create some failed EC key to test validation on
-        log.trace("<testPublicKeyValidation()");
-    }
-    
-    @Test
-    public void testPublicKeyValidationWithAlgorithmEC() throws Exception {
-        log.trace(">testPublicKeyValidation()");
-        // Test ECC key validation OK with an allowed curve.
-        KeyPair keys = KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_EC);
-        EccKeyValidator keyValidator = (EccKeyValidator) ValidatorTestUtil.createKeyValidator(EccKeyValidator.class,
-                "ecc-parameter-validation-test-1", "Description", null, -1, null, -1, -1, new Integer[] {});
-        keyValidator.setSettingsTemplate(KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption());
-        // Set custom curve
-        List<String> curves = new ArrayList<String>();
-        curves.add("secp256r1");
-        keyValidator.setCurves(curves);
-        List<String> messages = keyValidator.validate(keys.getPublic(), null);
-        log.trace("Key validation error messages: " + messages);
-        assertTrue("Key valildation should have been successful.", messages.size() == 0);
-        // Set custom curve to something else, so it's not supported
-        curves.clear();
-        curves.add("secp384r1");
-        keyValidator.setCurves(curves);
-        messages = keyValidator.validate(keys.getPublic(), null);
-        log.trace("Key validation error messages: " + messages);
-        assertTrue("Key validation should have failed.", messages.size() > 0);
-        assertEquals("Key validation should have failed.", "Invalid: ECDSA curve [secp256r1, prime256v1, P-256]: Use one of the following [secp384r1].", messages.get(0));
-        log.trace("<testPublicKeyValidation()");
-    }
+  /**
+   * Test.
+   * @throws Exception fail
+   */
+  @Test
+  public void testPublicKeyValidationWithAlgorithmEC() throws Exception {
+    LOG.trace(">testPublicKeyValidation()");
+    // Test ECC key validation OK with an allowed curve.
+    KeyPair keys =
+        KeyTools.genKeys("secp256r1", AlgorithmConstants.KEYALGORITHM_EC);
+    EccKeyValidator keyValidator =
+        (EccKeyValidator)
+            ValidatorTestUtil.createKeyValidator(
+                EccKeyValidator.class,
+                "ecc-parameter-validation-test-1",
+                "Description",
+                null,
+                -1,
+                null,
+                -1,
+                -1,
+                new Integer[] {});
+    keyValidator.setSettingsTemplate(
+        KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption());
+    // Set custom curve
+    List<String> curves = new ArrayList<String>();
+    curves.add("secp256r1");
+    keyValidator.setCurves(curves);
+    List<String> messages = keyValidator.validate(keys.getPublic(), null);
+    LOG.trace("Key validation error messages: " + messages);
+    assertTrue(
+        "Key valildation should have been successful.", messages.size() == 0);
+    // Set custom curve to something else, so it's not supported
+    curves.clear();
+    curves.add("secp384r1");
+    keyValidator.setCurves(curves);
+    messages = keyValidator.validate(keys.getPublic(), null);
+    LOG.trace("Key validation error messages: " + messages);
+    assertTrue("Key validation should have failed.", messages.size() > 0);
+    assertEquals(
+        "Key validation should have failed.",
+        "Invalid: ECDSA curve [secp256r1, prime256v1, P-256]: Use one of the"
+            + " following [secp384r1].",
+        messages.get(0));
+    LOG.trace("<testPublicKeyValidation()");
+  }
 }

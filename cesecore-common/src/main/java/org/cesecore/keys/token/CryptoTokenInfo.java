@@ -14,92 +14,166 @@ package org.cesecore.keys.token;
 
 import java.io.Serializable;
 import java.util.Properties;
-
 import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
 
 /**
  * Non-sensitive information about a CryptoToken.
- * 
- * @version $Id: CryptoTokenInfo.java 28849 2018-05-04 12:33:49Z jekaterina_b_helmes $
+ *
+ * @version $Id: CryptoTokenInfo.java 28849 2018-05-04 12:33:49Z
+ *     jekaterina_b_helmes $
  */
 public class CryptoTokenInfo implements Serializable {
 
-    private static final long serialVersionUID = 5025517840531557857L;
-    private final Integer cryptoTokenId;
-    private final String name;
-    private final boolean active;
-    private final boolean autoActivation;
-    private final String type;
-    private final Properties cryptoTokenProperties;
+  private static final long serialVersionUID = 5025517840531557857L;
+  /** ID. */
+  private final Integer cryptoTokenId;
+  /** Name. */
+  private final String name;
+  /** bool. */
+  private final boolean active;
+  /** bool. */
+  private final boolean autoActivation;
+  /** Type. */
+  private final String type;
+  /** Properties. */
+  private final Properties cryptoTokenProperties;
 
-    public CryptoTokenInfo(Integer cryptoTokenId, String name, boolean active, boolean autoActivation, Class<? extends CryptoToken> type, Properties cryptoTokenProperties) {
-        this.cryptoTokenId = cryptoTokenId;
-        this.name = name;
-        this.active = active;
-        this.autoActivation = autoActivation;
-        this.type = type.getSimpleName();
-        this.cryptoTokenProperties = cryptoTokenProperties;
-    }
+  /**   *
+   * @param aCryptoTokenId ID
+   * @param aName Name
+   * @param isActive Active
+   * @param isAutoActivation Auto activate
+   * @param aType Type
+   * @param aCryptoTokenProperties Properties
+   */
+  public CryptoTokenInfo(
+      final Integer aCryptoTokenId,
+      final String aName,
+      final boolean isActive,
+      final boolean isAutoActivation,
+      final Class<? extends CryptoToken> aType,
+      final Properties aCryptoTokenProperties) {
+    this.cryptoTokenId = aCryptoTokenId;
+    this.name = aName;
+    this.active = isActive;
+    this.autoActivation = isAutoActivation;
+    this.type = aType.getSimpleName();
+    this.cryptoTokenProperties = aCryptoTokenProperties;
+  }
 
-    public Integer getCryptoTokenId() {
-        return cryptoTokenId;
-    }
+  /**
+   * @return id
+   */
+  public Integer getCryptoTokenId() {
+    return cryptoTokenId;
+  }
 
-    public String getName() {
-        return name;
-    }
+  /**
+   * @return name
+   */
+  public String getName() {
+    return name;
+  }
 
-    public boolean isActive() {
-        return active;
-    }
+  /**
+   * @return bool
+   */
+  public boolean isActive() {
+    return active;
+  }
 
-    public boolean isAutoActivation() {
-        return autoActivation;
-    }
+  /**
+   * @return bool
+   */
+  public boolean isAutoActivation() {
+    return autoActivation;
+  }
 
-    public String getType() {
-        return type;
-    }
+  /**
+   * @return type
+   */
+  public String getType() {
+    return type;
+  }
 
-    public boolean isAllowExportPrivateKey() {
-        return Boolean.valueOf(cryptoTokenProperties.getProperty(SoftCryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY, Boolean.FALSE.toString()));
-    }
+  /**
+   * @return bool
+   */
+  public boolean isAllowExportPrivateKey() {
+    return Boolean.valueOf(
+        cryptoTokenProperties.getProperty(
+            SoftCryptoToken.ALLOW_EXTRACTABLE_PRIVATE_KEY,
+            Boolean.FALSE.toString()));
+  }
 
-    public boolean isAllowExplicitParameters() {
-        return Boolean.valueOf(cryptoTokenProperties.getProperty(SoftCryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS, Boolean.FALSE.toString()));
-    }
-    
-    public String getP11Library() {
-        return cryptoTokenProperties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY, "");
-    }
+  /**
+   * @return bool
+   */
+  public boolean isAllowExplicitParameters() {
+    return Boolean.valueOf(
+        cryptoTokenProperties.getProperty(
+            SoftCryptoToken.EXPLICIT_ECC_PUBLICKEY_PARAMETERS,
+            Boolean.FALSE.toString()));
+  }
 
-    public String getP11Slot() {
-        return cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_VALUE);
-    }
+  /**
+   * @return library
+   */
+  public String getP11Library() {
+    return cryptoTokenProperties.getProperty(
+        PKCS11CryptoToken.SHLIB_LABEL_KEY, "");
+  }
 
-    public String getP11SlotLabelType() {
-        Pkcs11SlotLabelType slotLabelType = Pkcs11SlotLabelType.getFromKey(cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE));
-        if (slotLabelType != null) {
-            return slotLabelType.getKey();
-        } else {
-            return null;
-        }
-    }
+  /**
+   * @return slot
+   */
+  public String getP11Slot() {
+    return cryptoTokenProperties.getProperty(
+        PKCS11CryptoToken.SLOT_LABEL_VALUE);
+  }
 
-    public String getP11SlotLabelTypeDescription() {
-        Pkcs11SlotLabelType slotLabelType = Pkcs11SlotLabelType.getFromKey(cryptoTokenProperties.getProperty(PKCS11CryptoToken.SLOT_LABEL_TYPE));
-        if (slotLabelType != null) {
-            return slotLabelType.getDescription();
-        } else {
-            return null;
-        }
+  /**
+   * @return label type
+   */
+  public String getP11SlotLabelType() {
+    Pkcs11SlotLabelType slotLabelType =
+        Pkcs11SlotLabelType.getFromKey(
+            cryptoTokenProperties.getProperty(
+                PKCS11CryptoToken.SLOT_LABEL_TYPE));
+    if (slotLabelType != null) {
+      return slotLabelType.getKey();
+    } else {
+      return null;
     }
+  }
 
-    public String getP11AttributeFile() {
-        return cryptoTokenProperties.getProperty(PKCS11CryptoToken.ATTRIB_LABEL_KEY, "");
+  /**
+   * @return Label description
+   */
+  public String getP11SlotLabelTypeDescription() {
+    Pkcs11SlotLabelType slotLabelType =
+        Pkcs11SlotLabelType.getFromKey(
+            cryptoTokenProperties.getProperty(
+                PKCS11CryptoToken.SLOT_LABEL_TYPE));
+    if (slotLabelType != null) {
+      return slotLabelType.getDescription();
+    } else {
+      return null;
     }
+  }
 
-    public Properties getCryptoTokenProperties() {
-        return cryptoTokenProperties;
-    }
+  /**
+   * @return File
+   */
+  public String getP11AttributeFile() {
+    return cryptoTokenProperties.getProperty(
+        PKCS11CryptoToken.ATTRIB_LABEL_KEY, "");
+  }
+
+  /**
+   * @return Properties
+   */
+  public Properties getCryptoTokenProperties() {
+    return cryptoTokenProperties;
+  }
 }

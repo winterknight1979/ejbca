@@ -14,31 +14,31 @@
 package org.cesecore.keys.validation;
 
 import javax.xml.ws.WebFault;
-
 import org.cesecore.CesecoreException;
 
 /**
- * An exception thrown when someone tries to access a key validator that doesn't exits.
+ * An exception thrown when someone tries to access a key validator that doesn't
+ * exits.
  *
- * @version $Id: KeyValidatorDoesntExistsException.java 26105 2017-06-30 13:38:32Z anatom $
+ * @version $Id: KeyValidatorDoesntExistsException.java 26105 2017-06-30
+ *     13:38:32Z anatom $
  */
 @WebFault
 public class KeyValidatorDoesntExistsException extends CesecoreException {
 
-    private static final long serialVersionUID = 4122021467195662691L;
+  private static final long serialVersionUID = 4122021467195662691L;
 
-    /**
-     * Creates a new instance.
-     */
-    public KeyValidatorDoesntExistsException() {
-        super( "Key validator does not exist in datastore.");
-    }
+  /** Creates a new instance. */
+  public KeyValidatorDoesntExistsException() {
+    super("Key validator does not exist in datastore.");
+  }
 
-    /**
-     * Creates a new instance with the specified detail message.
-     * @param message the detail message.
-     */
-    public KeyValidatorDoesntExistsException(final String message) {
-        super(message);
-    }
+  /**
+   * Creates a new instance with the specified detail message.
+   *
+   * @param message the detail message.
+   */
+  public KeyValidatorDoesntExistsException(final String message) {
+    super(message);
+  }
 }

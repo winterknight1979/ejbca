@@ -9,45 +9,54 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
-
 /**
- * An exception thrown when someone tries to use a CA Token that isn't available
+ * An exception thrown when someone tries to use a CA Token
+ *  that isn't available.
  *
- * @version $Id: CryptoTokenOfflineException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: CryptoTokenOfflineException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class CryptoTokenOfflineException extends CesecoreException {
-    
-    private static final long serialVersionUID = -4228966531990184850L;
 
+  private static final long serialVersionUID = -4228966531990184850L;
 
-    /**
-     * Creates a new instance of <code>CryptoTokenOfflineException</code> without detail message.
-     */
-    public CryptoTokenOfflineException() {
-        super();
-        super.setErrorCode(ErrorCode.CA_OFFLINE);
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>CryptoTokenOfflineException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CryptoTokenOfflineException(String msg) {
-        super(ErrorCode.CA_OFFLINE, msg);
-    }
+  /**
+   * Creates a new instance of <code>CryptoTokenOfflineException</code> without
+   * detail message.
+   */
+  public CryptoTokenOfflineException() {
+    super();
+    super.setErrorCode(ErrorCode.CA_OFFLINE);
+  }
 
-    public CryptoTokenOfflineException(Exception e) {
-        super(ErrorCode.CA_OFFLINE, e);
-    }
-    public CryptoTokenOfflineException(String msg, Exception e) {
-        super(ErrorCode.CA_OFFLINE, msg, e);
-    }
+  /**
+   * Constructs an instance of <code>CryptoTokenOfflineException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CryptoTokenOfflineException(final String msg) {
+    super(ErrorCode.CA_OFFLINE, msg);
+  }
 
+  /**
+   * @param e cause
+   */
+  public CryptoTokenOfflineException(final Exception e) {
+    super(ErrorCode.CA_OFFLINE, e);
+  }
+
+  /**
+   * @param msg message
+   * @param e cause
+   */
+  public CryptoTokenOfflineException(final String msg, final Exception e) {
+    super(ErrorCode.CA_OFFLINE, msg, e);
+  }
 }

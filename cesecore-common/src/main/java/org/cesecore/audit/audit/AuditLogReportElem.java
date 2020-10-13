@@ -18,79 +18,99 @@ import java.util.List;
 
 /**
  * A sub-element of a AuditLogValidationReport representing an error or warning.
- * 
+ *
  * @version $Id: AuditLogReportElem.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class AuditLogReportElem implements Serializable {
 
-    private static final long serialVersionUID = -7018231147212983227L;
-    
-    private Long first;
-    private Long second;
-    private final List<String> reasons = new ArrayList<String>();
-    
-    public AuditLogReportElem() {
-    }
-    
-    public AuditLogReportElem(final Long first, final Long second, final List<String> reasons) {
-    	this.first = first;
-    	this.second = second;
-    	this.reasons.addAll(reasons);
-    }
-    
-    public AuditLogReportElem(final Long first, final Long second, final String reason) {
-    	this.first = first;
-    	this.second = second;
-    	this.reasons.add(reason);
-    }
-    
-    /**
-     * Gets the first for this instance.
-     *
-     * @return The first.
-     */
-    public Long getFirst() {
-        return this.first;
-    }
-    /**
-     * Sets the first for this instance.
-     *
-     * @param first The first.
-     */
-    public void setFirst(Long first) {
-        this.first = first;
-    }
-    /**
-     * Gets the second for this instance.
-     *
-     * @return The second.
-     */
-    public Long getSecond() {
-        return this.second;
-    }
-    /**
-     * Sets the second for this instance.
-     *
-     * @param second The second.
-     */
-    public void setSecond(Long second) {
-        this.second = second;
-    }
-    /**
-     * Gets the reasons for this instance.
-     *
-     * @return The reasons.
-     */
-    public List<String> getReasons() {
-        return this.reasons;
-    }
-    /**
-     * Sets the reasons for this instance.
-     *
-     * @param reason The reasons.
-     */
-    public void setReason(String reason) {
-        this.reasons.add(reason);
-    }
+  private static final long serialVersionUID = -7018231147212983227L;
 
+  /** First. */
+  private Long first;
+  /** Second. */
+  private Long second;
+  /** Reasons. */
+  private final List<String> reasons = new ArrayList<String>();
+
+  /** Constructor. */
+  public AuditLogReportElem() { }
+
+  /**
+   * Constructor.
+   *
+   * @param firstElem First element
+   * @param secondElem Second element
+   * @param reasonsList Reasons
+   */
+  public AuditLogReportElem(
+      final Long firstElem,
+      final Long secondElem,
+      final List<String> reasonsList) {
+    this.first = firstElem;
+    this.second = secondElem;
+    this.reasons.addAll(reasonsList);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param firstElem First element
+   * @param secondElem Second element
+   * @param reason Reason
+   */
+  public AuditLogReportElem(
+      final Long firstElem, final Long secondElem, final String reason) {
+    this.first = firstElem;
+    this.second = secondElem;
+    this.reasons.add(reason);
+  }
+
+  /**
+   * Gets the first for this instance.
+   *
+   * @return The first.
+   */
+  public Long getFirst() {
+    return this.first;
+  }
+  /**
+   * Sets the first for this instance.
+   *
+   * @param newFirst The first.
+   */
+  public void setFirst(final Long newFirst) {
+    this.first = newFirst;
+  }
+  /**
+   * Gets the second for this instance.
+   *
+   * @return The second.
+   */
+  public Long getSecond() {
+    return this.second;
+  }
+  /**
+   * Sets the second for this instance.
+   *
+   * @param newSecond The second.
+   */
+  public void setSecond(final Long newSecond) {
+    this.second = newSecond;
+  }
+  /**
+   * Gets the reasons for this instance.
+   *
+   * @return The reasons.
+   */
+  public List<String> getReasons() {
+    return this.reasons;
+  }
+  /**
+   * Sets the reasons for this instance.
+   *
+   * @param reason The reasons.
+   */
+  public void setReason(final String reason) {
+    this.reasons.add(reason);
+  }
 }

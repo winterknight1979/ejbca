@@ -19,63 +19,145 @@ import java.util.Date;
  * This class encapsulates a Date object that represents a trusted time. It also
  * provides information related to thhe trusted time source: accuracy and
  * stratum
- * 
+ *
  * @version $Id: TrustedTime.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class TrustedTime implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private static final Integer delta = 1;
+  private static final long serialVersionUID = 1L;
+  /** Delta. */
+  private static final Integer DELTA = 1;
+  /** Source. */
+  private String source;
+  /** Accuracy. */
+  private Double accuracy;
+  /** Stratum. */
+  private Integer stratum;
+  /** Last update. */
+  private Long previousUpdate; // seconds
+  /** Nest update. */
+  private Long nextUpdate; // seconds
+  /** Sync. */
+  private boolean sync = false;
 
-    private String source;
-    private Double accuracy;
-    private Integer stratum;
-    private Long previousUpdate; //seconds
-    private Long nextUpdate; //seconds
-    private boolean sync = false;
+  /** Default constructor. */
+  public TrustedTime() { }
 
-    public TrustedTime() { }
+  /**
+   * @return stratum
+   */
+  public Integer getStratum() {
+    return stratum;
+  }
 
-    public Integer getStratum() { return stratum; }
-    public void setStratum(final Integer stratum) { this.stratum = stratum; }
+  /**
+   * @param aStratum stratum
+   */
+  public void setStratum(final Integer aStratum) {
+    this.stratum = aStratum;
+  }
 
-    public Long getPreviousUpdate() { return this.previousUpdate; }
-    public Long getNextUpdate() { return this.nextUpdate; }
+  /**
+   * @return last update
+   */
+  public Long getPreviousUpdate() {
+    return this.previousUpdate;
+  }
 
-    public void setNextUpdate(Integer when, Integer poll) {
-        Long nextUpdate = Long.valueOf(((poll - when) + delta)*1000);
-        if(nextUpdate.longValue() <= 0) { 
-            nextUpdate = Long.valueOf(1); 
-        }
+  /**
+   * @return Nest update
+   */
+  public Long getNextUpdate() {
+    return this.nextUpdate;
+  }
 
-        if(this.nextUpdate != null) {
-            this.previousUpdate = this.nextUpdate;
-        } 
-
-        this.nextUpdate = nextUpdate;
+  /**
+   * @param when When
+   * @param poll Poll
+   */
+  public void setNextUpdate(final Integer when, final Integer poll) {
+    final long msPerSec = 1000L;
+    Long lnextUpdate = Long.valueOf(((poll - when) + DELTA) * msPerSec);
+    if (lnextUpdate.longValue() <= 0) {
+      lnextUpdate = Long.valueOf(1);
     }
 
-    public boolean isSync() { return this.sync; }
-    public void setSync(boolean sync) { this.sync = sync; }
-
-    public Date getTime() { return new Date(); }
-
-    public String getSource() { return this.source; }
-    public void setSource(String source) { this.source = source; }
-
-
-    public Double getAccuracy() { return accuracy; }
-    public void setAccuracy(final Double accuracy) { this.accuracy = accuracy; }
-
-    public TrustedTime(final Double accuracy) {
-        this.accuracy = accuracy;
+    if (this.nextUpdate != null) {
+      this.previousUpdate = this.nextUpdate;
     }
 
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.accuracy).append(";").append(this.stratum).append(";").
-            append(this.previousUpdate).append(";").append(this.nextUpdate).
-            append(";").append(this.sync).append(this.source);
-        return sb.toString();
-    }
+    this.nextUpdate = lnextUpdate;
+  }
+
+  /**
+   * @return sync
+   */
+  public boolean isSync() {
+    return this.sync;
+  }
+
+  /**
+   * @param aSync sync
+   */
+  public void setSync(final boolean aSync) {
+    this.sync = aSync;
+  }
+
+  /**
+   * @return time
+   */
+  public Date getTime() {
+    return new Date();
+  }
+
+  /**
+   * @return source
+   */
+  public String getSource() {
+    return this.source;
+  }
+
+  /**
+   * @param aSource source
+   */
+  public void setSource(final String aSource) {
+    this.source = aSource;
+  }
+
+  /**
+   * @return Accuracy
+   */
+  public Double getAccuracy() {
+    return accuracy;
+  }
+
+  /**
+   * @param anAccuracy Accuracy
+   */
+  public void setAccuracy(final Double anAccuracy) {
+    this.accuracy = anAccuracy;
+  }
+
+  /**
+   * @param anAccuracy accuracy
+   */
+  public TrustedTime(final Double anAccuracy) {
+    this.accuracy = anAccuracy;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(this.accuracy)
+        .append(";")
+        .append(this.stratum)
+        .append(";")
+        .append(this.previousUpdate)
+        .append(";")
+        .append(this.nextUpdate)
+        .append(";")
+        .append(this.sync)
+        .append(this.source);
+    return sb.toString();
+  }
 }

@@ -17,40 +17,45 @@ import java.security.Principal;
 
 /**
  * Represents any type of web user, can be public web or a servlet.
- * 
+ *
  * @version $Id: WebPrincipal.java 22811 2016-02-15 16:48:23Z samuellb $
  */
 public class WebPrincipal implements Principal, Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
+  /** Module. */
+  private final String moduleName;
+  /** Client IP. */
+  private final String clientIPAddress;
 
-    final String moduleName;
-    final String clientIPAddress;
-    
-    /**
-     * @param moduleName Arbitrary identifier of the page or module, e.g. "AutoEnrollServlet"
-     * @param clientIPAddress Remote IP address
-     */
-    public WebPrincipal(final String moduleName, final String clientIPAddress) {
-        this.clientIPAddress = clientIPAddress;
-        this.moduleName = moduleName;
-    }
-    
-    @Override
-    public String getName() {
-        return clientIPAddress;
-    }
+  /**
+   * @param aModuleName Arbitrary identifier of the page or module, e.g.
+   *     "AutoEnrollServlet"
+   * @param theClientIPAddress Remote IP address
+   */
+  public WebPrincipal(
+      final String aModuleName, final String theClientIPAddress) {
+    this.clientIPAddress = theClientIPAddress;
+    this.moduleName = aModuleName;
+  }
 
-    @Override
-    public String toString() {
-        return moduleName + ": " + clientIPAddress;
-    }
-    
-    public String getModuleName() {
-        return moduleName;
-    }
-    
-    public String getClientIPAddress() {
-        return clientIPAddress;
-    }
+  @Override
+  public String getName() {
+    return clientIPAddress;
+  }
+
+  @Override
+  public String toString() {
+    return moduleName + ": " + clientIPAddress;
+  }
+
+  /** @return module */
+  public String getModuleName() {
+    return moduleName;
+  }
+
+  /** @return IP address */
+  public String getClientIPAddress() {
+    return clientIPAddress;
+  }
 }

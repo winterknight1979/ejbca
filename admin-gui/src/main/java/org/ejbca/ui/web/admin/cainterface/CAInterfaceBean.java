@@ -218,7 +218,7 @@ public class CAInterfaceBean implements Serializable {
         for (final Certificate certificate : signsession.getCertificateChain(caid)) {
             RevokedInfoView revokedinfo = null;
             CertificateStatus revinfo = certificatesession.getStatus(CertTools.getIssuerDN(certificate), CertTools.getSerialNumber(certificate));
-            if (revinfo != null && revinfo.revocationReason != RevokedCertInfo.NOT_REVOKED) {
+            if (revinfo != null && revinfo.getRevocationReason() != RevokedCertInfo.NOT_REVOKED) {
                 revokedinfo = new RevokedInfoView(revinfo, CertTools.getSerialNumber(certificate));
             }
             ret.add(new CertificateView(certificate, revokedinfo));
@@ -1066,7 +1066,7 @@ public class CAInterfaceBean implements Serializable {
         if (!(policyid == null || policyid.trim().equals(""))) {
             final String[] str = policyid.split("\\s+");
             if (str.length > 1) {
-                policies.add(new CertificatePolicy(str[0], CertificatePolicy.id_qt_cps, str[1]));
+                policies.add(new CertificatePolicy(str[0], CertificatePolicy.ID_QT_CPS, str[1]));
             } else {
                 policies.add(new CertificatePolicy((policyid.trim()),null,null));
             }

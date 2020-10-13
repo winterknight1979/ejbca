@@ -14,25 +14,27 @@
 package org.cesecore.keys.validation;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 
 /**
- * An exception thrown when someone tries validate with input that is not applicable for a specific validator.
- * For example a wrong key algorithm (i.e. try to validate an ECC key with an RSA key validator).
+ * An exception thrown when someone tries validate with input that is not
+ * applicable for a specific validator. For example a wrong key algorithm (i.e.
+ * try to validate an ECC key with an RSA key validator).
  *
- * @version $Id: ValidatorNotApplicableException.java 26235 2017-08-07 14:23:04Z anatom $
+ * @version $Id: ValidatorNotApplicableException.java 26235 2017-08-07 14:23:04Z
+ *     anatom $
  */
-@ApplicationException(rollback=true)
+@ApplicationException(rollback = true)
 public class ValidatorNotApplicableException extends CesecoreException {
 
-    private static final long serialVersionUID = 3339929462315318612L;
+  private static final long serialVersionUID = 3339929462315318612L;
 
-    /**
-     * Creates a new instance with a detail message.
-     * @param message the detail message.
-     */
-    public ValidatorNotApplicableException(final String message) {
-        super(message);
-    }
+  /**
+   * Creates a new instance with a detail message.
+   *
+   * @param message the detail message.
+   */
+  public ValidatorNotApplicableException(final String message) {
+    super(message);
+  }
 }

@@ -16,35 +16,73 @@ package org.cesecore.authorization.user;
 import java.io.Serializable;
 
 /**
- * Interface for AccessUserAspectData.  
- * 
- * @version $Id: AccessUserAspect.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Interface for AccessUserAspectData.
  *
+ * @version $Id: AccessUserAspect.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface AccessUserAspect extends Serializable {
 
-    int getMatchWith();
+  /** @return match */
+  int getMatchWith();
 
-    void setMatchWith(Integer matchWith);
+  /**
+   * Set match.
+   *
+   * @param matchWith Match
+   */
+  void setMatchWith(Integer matchWith);
 
-    int getMatchType();
+  /** @return Type. */
+  int getMatchType();
 
-    void setMatchType(Integer matchType);
+  /**
+   * Set type.
+   *
+   * @param matchType Type
+   */
+  void setMatchType(Integer matchType);
 
-    void setMatchTypeAsValue(AccessMatchType matchType);
+  /**
+   * Set match as type.
+   *
+   * @param matchType type
+   */
+  void setMatchTypeAsValue(AccessMatchType matchType);
 
-    AccessMatchType getMatchTypeAsType();
+  /**
+   * Get match as type.
+   *
+   * @return type
+   */
+  AccessMatchType getMatchTypeAsType();
 
-    String getMatchValue();
+  /** @return match value */
+  String getMatchValue();
 
-    void setMatchValue(String matchValue);
+  /**
+   * Set match value.
+   *
+   * @param matchValue Value
+   */
+  void setMatchValue(String matchValue);
 
-    Integer getCaId();
+  /** @return CA ID */
+  Integer getCaId();
 
-    void setCaId(Integer caId);
+  /**
+   * Set CA ID.
+   *
+   * @param caId ID
+   */
+  void setCaId(Integer caId);
 
-    String getTokenType();
+  /** @return token type */
+  String getTokenType();
 
-    void setTokenType(String tokenType);
-   
+  /**
+   * Set token type.
+   *
+   * @param tokenType Type
+   */
+  void setTokenType(String tokenType);
 }

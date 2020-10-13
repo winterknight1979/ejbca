@@ -15,29 +15,41 @@ package org.cesecore.keys.token.p11.exception;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 
 /**
- * Thrown to signify that a slot was not found. Differs from {@link CryptoTokenOfflineException} by virtue of
- * the latter being thrown when a slot exists, but for some reason is unavailable.
- * 
- * @version $Id: PKCS11LibraryFileNotFoundException.java 26057 2017-06-22 08:08:34Z anatom $
+ * Thrown to signify that a slot was not found. Differs from {@link
+ * CryptoTokenOfflineException} by virtue of the latter being thrown when a slot
+ * exists, but for some reason is unavailable.
  *
+ * @version $Id: PKCS11LibraryFileNotFoundException.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 public class PKCS11LibraryFileNotFoundException extends Exception {
 
-    private static final long serialVersionUID = 471712760739840779L;
+  private static final long serialVersionUID = 471712760739840779L;
+ /** Default. */
+  public PKCS11LibraryFileNotFoundException() {
+    super();
+  }
 
-    public PKCS11LibraryFileNotFoundException() {
-        super();
-    }
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public PKCS11LibraryFileNotFoundException(
+          final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public PKCS11LibraryFileNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message Message
+   */
+  public PKCS11LibraryFileNotFoundException(final String message) {
+    super(message);
+  }
 
-    public PKCS11LibraryFileNotFoundException(String message) {
-        super(message);
-    }
-
-    public PKCS11LibraryFileNotFoundException(Throwable cause) {
-        super(cause);
-    }
+  /**
+   * @param cause Cause
+   */
+  public PKCS11LibraryFileNotFoundException(final Throwable cause) {
+    super(cause);
+  }
 }

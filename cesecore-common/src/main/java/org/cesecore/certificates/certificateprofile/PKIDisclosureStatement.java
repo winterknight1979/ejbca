@@ -13,76 +13,91 @@
 package org.cesecore.certificates.certificateprofile;
 
 import java.io.Serializable;
-
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Contains a single URI/language pair of a PKI disclosure statement. 
- * @version $Id: PKIDisclosureStatement.java 25887 2017-05-23 09:21:11Z henriks $
+ * Contains a single URI/language pair of a PKI disclosure statement.
+ *
+ * @version $Id: PKIDisclosureStatement.java 25887 2017-05-23 09:21:11Z henriks
+ *     $
  */
 public final class PKIDisclosureStatement implements Serializable, Cloneable {
-    
-    private static final long serialVersionUID = 1L;
-    
-    private String url;
-    private String language;
-    
-    public PKIDisclosureStatement() {};
-    
-    public PKIDisclosureStatement(final String url, final String language) {
-        this.url = url;
-        this.language = language;
-    }
 
-    /** @return String with PDS URL. Never null */
-    public String getUrl() {
-        return url;
-    }
+  private static final long serialVersionUID = 1L;
 
-    /** Sets the PDS URL (EN 319 412-05) 
-     * @param url URL*/
-    public void setUrl(final String url) {
-        this.url = url;
-    }
+  /** URL. */
+  private String url;
+  /** Language. */
+  private String language;
 
-    /** Shall be a two letter ISO 639-1 code, i.e. en, sv, fr  
-     * @return String with PDS Language or empty string (EN 319 412-05) 
-     */
-    public String getLanguage() {
-        return language;
-    }
+  /** Default constructor.*/
+  public PKIDisclosureStatement() { }
 
-    /** Sets String with PDS Language (EN 319 412-05) 
-     * Shall be a two letter ISO 639-1 code, i.e. en, sv, fr 
-     * @param language language
-     */
-    public void setLanguage(final String language) {
-        this.language = language;
+  /**
+   * @param aUrl URL
+   * @param aLanguage Language
+   */
+  public PKIDisclosureStatement(final String aUrl, final String aLanguage) {
+    this.url = aUrl;
+    this.language = aLanguage;
+  }
+
+  /** @return String with PDS URL. Never null */
+  public String getUrl() {
+    return url;
+  }
+
+  /**
+   * Sets the PDS URL (EN 319 412-05).
+   *
+   * @param aUrl URL
+   */
+  public void setUrl(final String aUrl) {
+    this.url = aUrl;
+  }
+
+  /**
+   * Shall be a two letter ISO 639-1 code, i.e. en, sv, fr
+   *
+   * @return String with PDS Language or empty string (EN 319 412-05)
+   */
+  public String getLanguage() {
+    return language;
+  }
+
+  /**
+   * Sets String with PDS Language (EN 319 412-05) Shall be a two letter ISO
+   * 639-1 code, i.e. en, sv, fr
+   *
+   * @param aLanguage language
+   */
+  public void setLanguage(final String aLanguage) {
+    this.language = aLanguage;
+  }
+
+  @Override
+  public boolean equals(final Object other) {
+    if (other instanceof PKIDisclosureStatement) {
+      final PKIDisclosureStatement o = (PKIDisclosureStatement) other;
+      return StringUtils.equals(url, o.getUrl())
+          && StringUtils.equals(language, o.getLanguage());
+    } else {
+      return false;
     }
-    
-    @Override
-    public boolean equals(final Object other) {
-        if (other instanceof PKIDisclosureStatement) {
-            final PKIDisclosureStatement o = (PKIDisclosureStatement) other;
-            return StringUtils.equals(url, o.getUrl()) && StringUtils.equals(language, o.getLanguage());
-        } else {
-            return false;
-        }
-    }
-    
-    @Override
-    public int hashCode() {
-        return url.hashCode() ^ language.hashCode();
-    }
-    
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return new PKIDisclosureStatement(url, language);
-    }
-    
-    @Override
-    public String toString() {
-        return "{" + language + "}" + url;
-    }
-    
+  }
+
+  @Override
+  public int hashCode() {
+    return url.hashCode() ^ language.hashCode();
+  }
+
+  @Override
+  protected Object clone() throws CloneNotSupportedException {
+    return new PKIDisclosureStatement(url, language);
+  }
+
+  @Override
+  public String toString() {
+    return "{" + language + "}" + url;
+  }
 }

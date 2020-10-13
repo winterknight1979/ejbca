@@ -17,204 +17,250 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.Random;
-
 import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 import org.cesecore.keys.util.KeyTools;
 
 /**
- * Represents a Certificate Transparency log
+ * Represents a Certificate Transparency log.
  *
  * @version $Id: CTLogInfo.java 27471 2017-12-07 15:13:58Z bastianf $
  */
 public final class CTLogInfo implements Serializable {
 
-    private static final Logger log = Logger.getLogger(CTLogInfo.class);
-    private static final long serialVersionUID = 1L;
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CTLogInfo.class);
+  private static final long serialVersionUID = 1L;
 
-    private final int logId;
-    private byte[] publicKeyBytes;
-    private String url; // base URL, without "add-chain" or "add-pre-chain"
-    private int timeout = 5000; // milliseconds
-    private String label;
-    @Deprecated
-    private boolean isMandatory;
-    private Integer expirationYearRequired;
+  /** ID. */
+  private final int logId;
+  /** PK. */
+  private byte[] publicKeyBytes;
+  /** URL. */
+  private String url; // base URL, without "add-chain" or "add-pre-chain"
+  /** Timeout. */
+  private int timeout = 5000; // milliseconds
+  /** Label. */
+  private String label;
+  /** Mandatory. */
+  @Deprecated private boolean isMandatory;
+  /** Expiry. */
+  private Integer expirationYearRequired;
 
-    private transient PublicKey publicKey;
+  /** PK. */
+  private transient PublicKey publicKey;
+  /** Random generator. */
+  private static final Random RANDOM = new Random();
 
-    private static final Random random = new Random();
+  /**
+   * Creates a CT log info object, but does not parse the public key yet (so it
+   * can be created from static blocks etc).
+   *
+   * @param aUrl Base URL to the log. The CT log library will automatically
+   *     append the strings "add-chain" or "add-pre-chain" depending on whether
+   *     EJBCA is submitting a pre-certificate or a regular certificate.
+   * @param aPublicKeyBytes The ASN1 encoded public key of the log.
+   * @param aLabel to place CT log under.
+   * @param aTimeout of SCT response in ms.
+   */
+  public CTLogInfo(
+      final String aUrl,
+      final byte[] aPublicKeyBytes,
+      final String aLabel,
+      final int aTimeout) {
+    if (!aUrl.endsWith("/")) {
+      LOG.error(
+          "CT Log URL must end with a slash. URL: "
+              + aUrl); // EJBCA 6.4 didn't enforce this due to a regression
+    }
+    if (!aUrl.endsWith("/ct/v1/")) {
+      LOG.warn("CT Log URL should end with /ct/v1/. URL: " + aUrl);
+    }
+    this.logId = RANDOM.nextInt();
+    this.url = aUrl;
+    if (aPublicKeyBytes == null) {
+      throw new IllegalArgumentException("publicKeyBytes is null");
+    }
+    this.publicKeyBytes = aPublicKeyBytes.clone();
+    if (aLabel != null && aLabel.isEmpty()) {
+      this.label = "Unlabeled";
+    } else {
+      this.label = aLabel;
+    }
+    this.timeout = aTimeout;
+  }
 
-    /**
-     * Creates a CT log info object, but does not parse the public key yet
-     * (so it can be created from static blocks etc.)
-     *
-     * @param url  Base URL to the log. The CT log library will automatically append
-     *        the strings "add-chain" or "add-pre-chain" depending on whether
-     *        EJBCA is submitting a pre-certificate or a regular certificate.
-     * @param publicKeyBytes  The ASN1 encoded public key of the log.
-     * @param label to place CT log under.
-     * @param timeout of SCT response in ms.
-     */
-    public CTLogInfo(final String url, final byte[] publicKeyBytes, final String label, final int timeout) {
-        if (!url.endsWith("/")) {
-            log.error("CT Log URL must end with a slash. URL: "+url); // EJBCA 6.4 didn't enforce this due to a regression
-        }
-        if (!url.endsWith("/ct/v1/")) {
-            log.warn("CT Log URL should end with /ct/v1/. URL: "+url);
-        }
-        this.logId = random.nextInt();
-        this.url = url;
-        if (publicKeyBytes == null) {
-            throw new IllegalArgumentException("publicKeyBytes is null");
-        }
-        this.publicKeyBytes = publicKeyBytes.clone();
-        if (label != null && label.isEmpty()) {
-            this.label = "Unlabeled";
-        } else {
-            this.label = label;
-        }
-        this.timeout = timeout;
+  private void ensureParsed() {
+    if (publicKey == null) {
+      publicKey = KeyTools.getPublicKeyFromBytes(publicKeyBytes);
+      if (publicKey == null) {
+        throw new IllegalStateException("Failed to parse key");
+      }
+    }
+  }
+
+  /** @return Internal Id consisting of the hashcode of the URL */
+  public int getLogId() {
+    return logId;
+  }
+
+  /**
+   * @return PK
+   */
+  public PublicKey getLogPublicKey() {
+    ensureParsed();
+    return publicKey;
+  }
+
+  /**
+   * @return PK
+   */
+  public byte[] getPublicKeyBytes() {
+    return publicKeyBytes;
+  }
+
+  /**
+   * @param aPublicKeyBytes PK
+   */
+  public void setLogPublicKey(final byte[] aPublicKeyBytes) {
+    this.publicKey = null;
+    this.publicKeyBytes = aPublicKeyBytes;
+  }
+
+  /** @return Log Key ID as specified by the RFC, in human-readable format */
+  public String getLogKeyIdString() {
+    try {
+      ensureParsed();
+      final MessageDigest md = MessageDigest.getInstance("SHA256");
+      final byte[] keyId = md.digest(publicKey.getEncoded());
+      return Base64.toBase64String(keyId);
+    } catch (NoSuchAlgorithmException e) {
+      // Should not happen, but not critical.
+      return "";
+    } catch (Exception e) {
+      return e.getLocalizedMessage();
+    }
+  }
+
+  /**
+   * @return URL
+   */
+  public String getUrl() {
+    return url;
+  }
+
+  /**
+   * @param aUrl URL
+   */
+  public void setUrl(final String aUrl) {
+    this.url = aUrl;
+  }
+
+  /**
+   * @return timeout
+   */
+  public int getTimeout() {
+    return timeout;
+  }
+
+  /**
+   * Determine whether this certificate transparency log belongs to the group of
+   * certificate transparency logs to which it is mandatory to publish.
+   *
+   * @return true if this is a mandatory log, or false otherwise
+   */
+  public boolean isMandatory() {
+    return isMandatory;
+  }
+
+  /**
+   * Sets the timeout in milliseconds when sending a request to the log server.
+   *
+   * @param aTimeout timeout
+   */
+  public void setTimeout(final int aTimeout) {
+    if (aTimeout < 0) {
+      throw new IllegalArgumentException("Timeout value is negative");
+    }
+    this.timeout = aTimeout;
+  }
+
+  /**
+   * Makes sure that a URL ends with /ct/v1/.
+   *
+   * @param urlToFix URL
+   * @return fixed URL
+   */
+  public static String fixUrl(final String urlToFix) {
+    String url = (urlToFix.endsWith("/") ? urlToFix : urlToFix + "/");
+    if (!url.endsWith("/ct/v1/")) {
+      if (!url.endsWith("/ct/")) {
+        url = url + "ct/v1/";
+      } else {
+        url = url + "v1/";
+      }
+    }
+    return url;
+  }
+
+  /**
+   * @return label
+   */
+  public String getLabel() {
+    return label == null ? "Unlabeled" : label;
+  }
+
+  /**
+   * @param aLabel label
+   */
+  public void setLabel(final String aLabel) {
+    this.label = aLabel;
+  }
+
+  /**
+   * Returns the expiration year which certificates published to this CT log
+   * must have in order to be accepted, or null if there is no such requirement.
+   * For example, if this method returns "2019" then you should only try to
+   * publish certificates to this CT log expiring in 2019, since all other
+   * certificates will be rejected.
+   *
+   * @return the expiration year required for all certificates being published
+   *     to this log or null if there is no such requirement
+   */
+  public Integer getExpirationYearRequired() {
+    return expirationYearRequired;
+  }
+
+  /**
+   * Returns the expiration year which certificates published to this CT log
+   * must have in order to be accepted, or null if there is no such requirement.
+   * See {@link #getExpirationYearRequired()}.
+   *
+   * @param aExpirationYearRequired the expiration year required for new
+   *     certificates being published to this CT log, or null if no such
+   *     requirement
+   */
+  public void setExpirationYearRequired(final Integer aExpirationYearRequired) {
+    this.expirationYearRequired = aExpirationYearRequired;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (o == null || o.getClass() != CTLogInfo.class) {
+      return false;
     }
 
-    private void ensureParsed() {
-        if (publicKey == null) {
-            publicKey = KeyTools.getPublicKeyFromBytes(publicKeyBytes);
-            if (publicKey == null) {
-                throw new IllegalStateException("Failed to parse key");
-            }
-        }
-    }
+    final CTLogInfo ctLogInfo = (CTLogInfo) o;
+    return logId == ctLogInfo.getLogId() && url.equals(ctLogInfo.getUrl());
+  }
 
-    /** @return Internal Id consisting of the hashcode of the URL */
-    public int getLogId() {
-        return logId;
-    }
+  @Override
+  public int hashCode() {
+    return logId + (url.hashCode() * 4711);
+  }
 
-    public PublicKey getLogPublicKey() {
-        ensureParsed();
-        return publicKey;
-    }
-
-    public byte[] getPublicKeyBytes() {
-        return publicKeyBytes;
-    }
-
-    public void setLogPublicKey(final byte[] publicKeyBytes) {
-        this.publicKey = null;
-        this.publicKeyBytes = publicKeyBytes;
-    }
-
-    /** @return Log Key ID as specified by the RFC, in human-readable format */
-    public String getLogKeyIdString() {
-        try {
-            ensureParsed();
-            final MessageDigest md = MessageDigest.getInstance("SHA256");
-            final byte[] keyId = md.digest(publicKey.getEncoded());
-            return Base64.toBase64String(keyId);
-        } catch (NoSuchAlgorithmException e) {
-            // Should not happen, but not critical.
-            return "";
-        } catch (Exception e) {
-            return e.getLocalizedMessage();
-        }
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(final String url) {
-        this.url = url;
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-
-    /**
-     * Determine whether this certificate transparency log belongs to the group of certificate
-     * transparency logs to which it is mandatory to publish.
-     * @return true if this is a mandatory log, or false otherwise
-     */
-    public boolean isMandatory() {
-        return isMandatory;
-    }
-
-    /** Sets the timeout in milliseconds when sending a request to the log server 
-     * @param timeout timeout*/
-    public void setTimeout(final int timeout) {
-        if (timeout < 0) {
-            throw new IllegalArgumentException("Timeout value is negative");
-        }
-        this.timeout = timeout;
-    }
-
-    /** Makes sure that a URL ends with /ct/v1/ 
-     * @param urlToFix URL
-     * @return fixed URL */
-    public static String fixUrl(final String urlToFix) {
-        String url = (urlToFix.endsWith("/") ? urlToFix : urlToFix + "/");
-        if (!url.endsWith("/ct/v1/")) {
-            if (!url.endsWith("/ct/")) {
-                url = url + "ct/v1/";
-            } else {
-                url = url + "v1/";
-            }
-        }
-        return url;
-    }
-
-    public String getLabel() {
-        return label == null ? "Unlabeled" : label;
-    }
-
-    public void setLabel(final String label) {
-        this.label = label;
-    }
-
-    /**
-     * Returns the expiration year which certificates published to this CT log must
-     * have in order to be accepted, or null if there is no such requirement. For
-     * example, if this method returns "2019" then you should only try to publish
-     * certificates to this CT log expiring in 2019, since all other certificates
-     * will be rejected.
-     * @return the expiration year required for all certificates being published to
-     * this log or null if there is no such requirement
-     */
-    public Integer getExpirationYearRequired() {
-        return expirationYearRequired;
-    }
-
-    /**
-     * Returns the expiration year which certificates published to this CT log must
-     * have in order to be accepted, or null if there is no such requirement. See
-     * {@link #getExpirationYearRequired()}.
-     * @param expirationYearRequired the expiration year required for new certificates
-     * being published to this CT log, or null if no such requirement
-     */
-    public void setExpirationYearRequired(final Integer expirationYearRequired) {
-        this.expirationYearRequired = expirationYearRequired;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || o.getClass() != CTLogInfo.class) {
-            return false;
-        }
-
-        final CTLogInfo ctLogInfo = (CTLogInfo) o;
-        return logId == ctLogInfo.getLogId() &&
-                url.equals(ctLogInfo.getUrl());
-    }
-
-    @Override
-    public int hashCode() {
-        return logId + (url.hashCode() * 4711);
-    }
-
-    @Override
-    public String toString() {
-        return getUrl();
-    }
+  @Override
+  public String toString() {
+    return getUrl();
+  }
 }

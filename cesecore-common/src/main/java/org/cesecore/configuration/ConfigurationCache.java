@@ -16,30 +16,53 @@ import java.util.HashMap;
 import java.util.Properties;
 
 /**
- * Marker interface for classes that want to be treated as contents of the Global Configuration Cache
- * 
- * @version $Id: ConfigurationCache.java 19988 2014-10-16 13:37:56Z mikekushner $
+ * Marker interface for classes that want to be treated as contents of the
+ * Global Configuration Cache.
  *
+ * @version $Id: ConfigurationCache.java 19988 2014-10-16 13:37:56Z mikekushner
+ *     $
  */
 public interface ConfigurationCache {
 
-    String getConfigId();
-    
-    void clearCache();
-    
-    void saveData();
-    
-    boolean needsUpdate();
-    
-    ConfigurationBase getConfiguration();
-    
-    @SuppressWarnings("rawtypes")
-    ConfigurationBase getConfiguration(final HashMap data);
-    
-    ConfigurationBase getNewConfiguration();
-    
-    void updateConfiguration(ConfigurationBase configuration);
-    
-    Properties getAllProperties();
-    
+    /**
+     * @return ID
+     */
+  String getConfigId();
+
+  /** Clear. */
+  void clearCache();
+
+  /** Save. */
+  void saveData();
+
+  /**
+   * @return bool */
+  boolean needsUpdate();
+
+  /**
+   * @return config
+   */
+  ConfigurationBase getConfiguration();
+
+  /**
+   * @param data data
+   * @return config
+   */
+  @SuppressWarnings("rawtypes")
+  ConfigurationBase getConfiguration(HashMap data);
+
+  /**
+   * @return config
+   */
+  ConfigurationBase getNewConfiguration();
+
+  /**
+   * @param configuration config
+   */
+  void updateConfiguration(ConfigurationBase configuration);
+
+  /**
+   * @return properties
+   */
+  Properties getAllProperties();
 }

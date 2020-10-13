@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate;
 
 import java.io.Serializable;
@@ -23,108 +23,229 @@ import java.util.Date;
  */
 public class CertificateInfo implements Serializable {
 
-	private static final long serialVersionUID = -1973602951994928833L;
-	
-	private String fingerprint;
-    private String cafingerprint;
-    private String serno;
-    private String issuerdn;
-    private String subjectdn;
-    private int status;
-    private int type;
-    private Date notBefore;
-    private Date expiredate;
-    private Date revocationdate;
-    private int revocationreason;
-    private String username;
-	private String tag;
-	private int certificateProfileId;
-    private Integer endEntityProfileId;
-    private Date updateTime;
-    private String subjectKeyId;
-    private String subjectAltName;
-    
-    public CertificateInfo(String fingerprint, String cafingerprint, String serno,  String issuerdn, String subjectdn, int status, int type, 
-            Long notBefore, long expiredate, long revocationdate, int revocationreason, String username, String tag, int certificateProfileId,
-            Integer endEntityProfileId, long updateTime, String subjectKeyId, String subjectAltName) {
-        this.fingerprint = fingerprint;
-        this.cafingerprint = cafingerprint;
-        this.serno = serno;
-        this.issuerdn = issuerdn;
-        this.subjectdn = subjectdn;
-        this.status = status;
-        this.type = type;
-        this.notBefore = notBefore==null ? null : new Date(notBefore);
-        this.expiredate = new Date(expiredate);
-        this.revocationdate = new Date(revocationdate);
-        this.revocationreason = revocationreason;
-        this.username = username;
-        this.tag = tag;
-        this.certificateProfileId = certificateProfileId;
-        this.endEntityProfileId = endEntityProfileId;
-        this.updateTime = new Date(updateTime);
-        this.subjectKeyId = subjectKeyId;
-        this.subjectAltName = subjectAltName;
-    }
-    
-    public String getFingerprint() {return fingerprint;}
-    public void setFingerprint(String fp) {this.fingerprint=fp;}
-    public String getCAFingerprint() {return cafingerprint;}
-    public BigInteger getSerialNumber() {return new BigInteger(serno);}
-    public String getSubjectDN() {return subjectdn;}
-    public String getIssuerDN() {return issuerdn;}
-    /**@return One of the CertificateConstants.CERT_ constants, for example CertificateConstants.CERT_ACTIVE 
-     */
-    public int getStatus() { return status; }
-    /** @param s One of the CertificateConstants.CERT_ constants, for example CertificateConstants.CERT_ACTIVE */
-    public void setStatus(int s) { this.status=s; }
-    public int getType() { return type; }
-    public Date getNotBefore() { return notBefore; }
-    public Date getExpireDate() { return expiredate; }
-    public Date getRevocationDate() { return revocationdate; }
-    public void setRevocationDate(Date d) { this.revocationdate=d; }
-    public int getRevocationReason() { return revocationreason; }
-    public String getTag() {
-		return tag;
-	}
+  private static final long serialVersionUID = -1973602951994928833L;
+  /** FP. */
+  private String fingerprint;
+  /** FP. */
+  private String cafingerprint;
+  /** Serial. */
+  private String serno;
+  /** DN. */
+  private String issuerdn;
+  /** DN. */
+  private String subjectdn;
+  /** Status. */
+  private int status;
+  /** Type. */
+  private int type;
+  /** Start. */
+  private Date notBefore;
+  /** Expiry. */
+  private Date expiredate;
+  /** Date. */
+  private Date revocationdate;
+  /** Reason. */
+  private int revocationreason;
+  /** Username. */
+  private String username;
+  /** Tag. */
+  private String tag;
+  /** Profile ID. */
+  private int certificateProfileId;
+  /** Profile ID. */
+  private Integer endEntityProfileId;
+  /** Updated. */
+  private Date updateTime;
+  /** ID. */
+  private String subjectKeyId;
+  /** Name. */
+  private String subjectAltName;
+  /**
+   * Constructor.
+   * @param aFingerprint FP
+   * @param aCafingerprint FP
+   * @param aSerno SN
+   * @param aIssuerdn DN
+   * @param aSubjectdn DN
+   * @param aStatus Status
+   * @param aType Type
+   * @param aNotBefore Start
+   * @param aExpiredate End
+   * @param aRevocationdate Revoke
+   * @param aRevocationreason Reason
+   * @param aUsername User
+   * @param aTag Tag
+   * @param aCertificateProfileId ID
+   * @param aEndEntityProfileId ID
+   * @param aUpdateTime Time
+   * @param aSubjectKeyId Key
+   * @param aSubjectAltName Name
+   */
+  public CertificateInfo(
+      final String aFingerprint,
+      final String aCafingerprint,
+      final String aSerno,
+      final String aIssuerdn,
+      final String aSubjectdn,
+      final int aStatus,
+      final int aType,
+      final Long aNotBefore,
+      final long aExpiredate,
+      final long aRevocationdate,
+      final int aRevocationreason,
+      final String aUsername,
+      final String aTag,
+      final int aCertificateProfileId,
+      final Integer aEndEntityProfileId,
+      final long aUpdateTime,
+      final String aSubjectKeyId,
+      final String aSubjectAltName) {
+    this.fingerprint = aFingerprint;
+    this.cafingerprint = aCafingerprint;
+    this.serno = aSerno;
+    this.issuerdn = aIssuerdn;
+    this.subjectdn = aSubjectdn;
+    this.status = aStatus;
+    this.type = aType;
+    this.notBefore = aNotBefore == null ? null : new Date(aNotBefore);
+    this.expiredate = new Date(aExpiredate);
+    this.revocationdate = new Date(aRevocationdate);
+    this.revocationreason = aRevocationreason;
+    this.username = aUsername;
+    this.tag = aTag;
+    this.certificateProfileId = aCertificateProfileId;
+    this.endEntityProfileId = aEndEntityProfileId;
+    this.updateTime = new Date(aUpdateTime);
+    this.subjectKeyId = aSubjectKeyId;
+    this.subjectAltName = aSubjectAltName;
+  }
 
-	public void setTag(String tag) {
-		this.tag = tag;
-	}
+  /** @return FP */
+  public String getFingerprint() {
+    return fingerprint;
+  }
 
-	public int getCertificateProfileId() {
-		return certificateProfileId;
-	}
+  /** @param fp FP */
+  public void setFingerprint(final String fp) {
+    this.fingerprint = fp;
+  }
 
-	public int getEndEntityProfileIdOrZero() {
-	    return endEntityProfileId==null ? 0 : endEntityProfileId;
-	}
+  /** @return FP */
+  public String getCAFingerprint() {
+    return cafingerprint;
+  }
 
-	public void setCertificateProfileId(int certificateProfileId) {
-		this.certificateProfileId = certificateProfileId;
-	}
+  /** @return serno */
+  public BigInteger getSerialNumber() {
+    return new BigInteger(serno);
+  }
 
-	public Date getUpdateTime() {
-		return updateTime;
-	}
+  /** @return DN */
+  public String getSubjectDN() {
+    return subjectdn;
+  }
 
-	public void setUpdateTime(Date updateTime) {
-		this.updateTime = updateTime;
-	}
+  /** @return DN */
+  public String getIssuerDN() {
+    return issuerdn;
+  }
+  /**
+   * @return One of the CertificateConstants.CERT_ constants, for example
+   *     CertificateConstants.CERT_ACTIVE
+   */
+  public int getStatus() {
+    return status;
+  }
+  /**
+   * @param s One of the CertificateConstants.CERT_ constants, for example
+   *     CertificateConstants.CERT_ACTIVE
+   */
+  public void setStatus(final int s) {
+    this.status = s;
+  }
 
-    public String getUsername() {
-		return username;
-	}
+  /** @return type */
+  public int getType() {
+    return type;
+  }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  /** @return date */
+  public Date getNotBefore() {
+    return notBefore;
+  }
 
-    public String getSubjectKeyId() {
-        return subjectKeyId;
-    }
-	
-    public String getSubjectAltName() {
-        return subjectAltName;
-    }
+  /** @return date */
+  public Date getExpireDate() {
+    return expiredate;
+  }
+
+  /** @return date */
+  public Date getRevocationDate() {
+    return revocationdate;
+  }
+
+  /** @param d date */
+  public void setRevocationDate(final Date d) {
+    this.revocationdate = d;
+  }
+
+  /** @return reason */
+  public int getRevocationReason() {
+    return revocationreason;
+  }
+
+  /** @return tag */
+  public String getTag() {
+    return tag;
+  }
+
+  /** @param aTag tag */
+  public void setTag(final String aTag) {
+    this.tag = aTag;
+  }
+
+  /** @return ID */
+  public int getCertificateProfileId() {
+    return certificateProfileId;
+  }
+
+  /** @return profile */
+  public int getEndEntityProfileIdOrZero() {
+    return endEntityProfileId == null ? 0 : endEntityProfileId;
+  }
+
+  /** @param aCertificateProfileId ID */
+  public void setCertificateProfileId(final int aCertificateProfileId) {
+    this.certificateProfileId = aCertificateProfileId;
+  }
+
+  /** @return time */
+  public Date getUpdateTime() {
+    return updateTime;
+  }
+
+  /** @param aUpdateTime time  */
+  public void setUpdateTime(final Date aUpdateTime) {
+    this.updateTime = aUpdateTime;
+  }
+
+  /** @return name */
+  public String getUsername() {
+    return username;
+  }
+
+  /** @param aUsername name  */
+  public void setUsername(final String aUsername) {
+    this.username = aUsername;
+  }
+
+  /** @return ID */
+  public String getSubjectKeyId() {
+    return subjectKeyId;
+  }
+
+  /** @return name */
+  public String getSubjectAltName() {
+    return subjectAltName;
+  }
 }

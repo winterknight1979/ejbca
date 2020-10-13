@@ -15,14 +15,16 @@ package org.cesecore.util.log;
 
 /**
  * Interface implemented by the client of the SaferDailyRollingFileAppender.
- * 
- * Since the appender is used from JBoss we can't just throw an Exception and
+ *
+ * <p>Since the appender is used from JBoss we can't just throw an Exception and
  * need this to communicate errors.
- * 
- * @version  $Id: SaferAppenderListener.java 17647 2013-09-20 14:02:02Z netmackan $
+ *
+ * @version $Id: SaferAppenderListener.java 17647 2013-09-20 14:02:02Z netmackan
+ *     $
  */
 public interface SaferAppenderListener {
-
-	public abstract void setCanlog(boolean pCanlog);
-
+  /**
+   * @param pCanlog Can Log.
+   */
+  void setCanlog(boolean pCanlog);
 }

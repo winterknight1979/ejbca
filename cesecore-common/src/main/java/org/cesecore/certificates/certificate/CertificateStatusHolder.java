@@ -16,33 +16,40 @@ import java.io.Serializable;
 import java.security.cert.Certificate;
 
 /**
- * Richer version of the standard CertificateStatus object which also contains the sought certificate, in order to avoid
- * extra database lookups when both are required. 
- * 
- * @version $Id: CertificateStatusHolder.java 20496 2014-12-22 06:41:16Z mikekushner $
+ * Richer version of the standard CertificateStatus object which also contains
+ * the sought certificate, in order to avoid extra database lookups when both
+ * are required.
  *
+ * @version $Id: CertificateStatusHolder.java 20496 2014-12-22 06:41:16Z
+ *     mikekushner $
  */
 public class CertificateStatusHolder implements Serializable {
 
-    private static final long serialVersionUID = -2881054831054645112L;
-    private final Certificate certificate;
-    private final CertificateStatus certificateStatus;
-    
-    public CertificateStatusHolder(Certificate certificate, CertificateStatus certificateStatus) {
-        this.certificate = certificate;
-        this.certificateStatus = certificateStatus;
-    }
+  private static final long serialVersionUID = -2881054831054645112L;
+  /** Certificate. */
+  private final Certificate certificate;
+  /** Status. */
+  private final CertificateStatus certificateStatus;
 
-    /**
-     * 
-     * @return the sought certificate. May be null if status was unknown.
-     */
-    public Certificate getCertificate() {
-        return certificate;
-    }
+  /** Constructor.
+   *
+   * @param cert Cert
+   * @param status Status
+   */
+  public CertificateStatusHolder(
+      final Certificate cert,
+      final CertificateStatus status) {
+    this.certificate = cert;
+    this.certificateStatus = status;
+  }
 
-    public CertificateStatus getCertificateStatus() {
-        return certificateStatus;
-    }
+  /** @return the sought certificate. May be null if status was unknown. */
+  public Certificate getCertificate() {
+    return certificate;
+  }
 
+  /** @return Status. */
+  public CertificateStatus getCertificateStatus() {
+    return certificateStatus;
+  }
 }

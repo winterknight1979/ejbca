@@ -13,7 +13,6 @@
 package org.cesecore.certificates.certificate.certextensions;
 
 import java.security.PublicKey;
-
 import org.cesecore.certificates.ca.CA;
 import org.cesecore.certificates.ca.internal.CertificateValidity;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
@@ -22,38 +21,45 @@ import org.ejbca.cvc.CVCDiscretionaryDataTemplate;
 
 /**
  * Additional interface for custom CV (Card Verifiable) Certificate extensions.
- * 
- * @version $Id: CustomCVCertificateExtension.java 27581 2017-12-19 08:40:07Z samuellb $
+ *
+ * @version $Id: CustomCVCertificateExtension.java 27581 2017-12-19 08:40:07Z
+ *     samuellb $
  */
-public interface CustomCVCertificateExtension extends CustomCertificateExtension {
+public interface CustomCVCertificateExtension
+    extends CustomCertificateExtension {
 
-    /**
-     * Constructs the Discretionary Data Template object for the certificate extension.
-     * @param userData End Entity information, or null in CSRs and link certificates.
-     * @param ca Issuing CA.
-     * @param certProfile Certificate profile.
-     * @param userPublicKey Public key of user.
-     * @param caPublicKey Public key of CA, or old public key in link certificates. Null in CSRs.
-     * @param validity Validity, or null in CSRs and link certificates.
-     * @param extensionLocation location
-     * @return The Discretionary Data Template object
-     * @throws CertificateExtensionException In case of encoding errors etc.
-     */
-    CVCDiscretionaryDataTemplate getValueCVC(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
-            PublicKey caPublicKey, CertificateValidity validity, CertificateExtensionLocation extensionLocation) throws CertificateExtensionException;
-    
-    /**
-     * @return true if the certificate is to be included in certificates.
-     */
-    boolean isIncludedInCertificates();
-    
-    /**
-     * @return true if the certificate is to be included in CSRs.
-     */
-    boolean isIncludedInCSR();
-    
-    /**
-     * @return true if the certificate is to be included in link certificates.
-     */
-    boolean isIncludedInLinkCertificates();
+  /**
+   * Constructs the Discretionary Data Template object for the certificate
+   * extension.
+   *
+   * @param userData End Entity information, or null in CSRs and link
+   *     certificates.
+   * @param ca Issuing CA.
+   * @param certProfile Certificate profile.
+   * @param userPublicKey Public key of user.
+   * @param caPublicKey Public key of CA, or old public key in link
+   *     certificates. Null in CSRs.
+   * @param validity Validity, or null in CSRs and link certificates.
+   * @param extensionLocation location
+   * @return The Discretionary Data Template object
+   * @throws CertificateExtensionException In case of encoding errors etc.
+   */
+  CVCDiscretionaryDataTemplate getValueCVC(
+      EndEntityInformation userData,
+      CA ca,
+      CertificateProfile certProfile,
+      PublicKey userPublicKey,
+      PublicKey caPublicKey,
+      CertificateValidity validity,
+      CertificateExtensionLocation extensionLocation)
+      throws CertificateExtensionException;
+
+  /** @return true if the certificate is to be included in certificates. */
+  boolean isIncludedInCertificates();
+
+  /** @return true if the certificate is to be included in CSRs. */
+  boolean isIncludedInCSR();
+
+  /** @return true if the certificate is to be included in link certificates. */
+  boolean isIncludedInLinkCertificates();
 }

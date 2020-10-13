@@ -16,41 +16,55 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @version $Id: AuditLogRules.java 25428 2017-03-09 14:45:59Z jeklund $
- *
- */
+/** @version $Id: AuditLogRules.java 25428 2017-03-09 14:45:59Z jeklund $ */
 public enum AuditLogRules {
-    BASE("/secureaudit"),
-    CONFIGURE(BASE.resource() + "/management/manage"),
-    EXPORT_LOGS(BASE.resource() + "/auditor/export"),
-    VIEW(BASE.resource() + "/auditor/select"),
-    VERIFY(BASE.resource() + "/auditor/verify"),
-    LOG(BASE.resource() + "/log"),
-    LOG_CUSTOM(BASE.resource() + "/log_custom_events");
+  /** Base. */
+  BASE("/secureaudit"),
+  /** Configure. */
+  CONFIGURE(BASE.resource() + "/management/manage"),
+  /** Export. */
+  EXPORT_LOGS(BASE.resource() + "/auditor/export"),
+  /** View. */
+  VIEW(BASE.resource() + "/auditor/select"),
+  /** Verify. */
+  VERIFY(BASE.resource() + "/auditor/verify"),
+  /** Log. */
+  LOG(BASE.resource() + "/log"),
+  /** Custom log. */
+  LOG_CUSTOM(BASE.resource() + "/log_custom_events");
 
-    private final String resource;
-    private static final Map<String,String> allResources = new HashMap<>();
-    
-    static {
-        for (AuditLogRules rule : AuditLogRules.values()) {
-            allResources.put(rule.resource(), rule.resource());
-        }
-    }
-    
-    private AuditLogRules(String resource) {
-        this.resource = resource;
-    }
+  /** Resource. */
+  private final String resource;
+  /** All resources. */
+  private static final Map<String, String> ALL_RESOURCES = new HashMap<>();
 
-    public String resource() {
-        return this.resource;
+  static {
+    for (AuditLogRules rule : AuditLogRules.values()) {
+      ALL_RESOURCES.put(rule.resource(), rule.resource());
     }
+  }
 
-    public String toString() {
-        return this.resource;
-    }
+  /**
+   * Constructor.
+   *
+   * @param aResource Resource
+   */
+  AuditLogRules(final String aResource) {
+    this.resource = aResource;
+  }
 
-    public static Map<String,String> getAllResources() {
-        return Collections.unmodifiableMap(allResources);
-    }
+  /** @return resource */
+  public String resource() {
+    return this.resource;
+  }
+
+  @Override
+  public String toString() {
+    return this.resource;
+  }
+
+  /** @return Map of all resources */
+  public static Map<String, String> getAllResources() {
+    return Collections.unmodifiableMap(ALL_RESOURCES);
+  }
 }

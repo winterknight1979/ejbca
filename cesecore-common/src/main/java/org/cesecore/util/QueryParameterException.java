@@ -13,28 +13,39 @@
 package org.cesecore.util;
 
 /**
- * Query Criteria Exception. Thrown on entity parameter mismatch. 
- * 
- * @version $Id: QueryParameterException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Query Criteria Exception. Thrown on entity parameter mismatch.
+ *
+ * @version $Id: QueryParameterException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class QueryParameterException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public QueryParameterException() {
-        super();
-    }
+  /** Default. */
+  public QueryParameterException() {
+    super();
+  }
 
-    public QueryParameterException(final String arg0, final Throwable arg1) {
-        super(arg0, arg1);
-    }
+  /**
+   * @param arg0 message
+   * @param arg1 cause
+   */
+  public QueryParameterException(final String arg0, final Throwable arg1) {
+    super(arg0, arg1);
+  }
 
-    public QueryParameterException(final String arg0) {
-        super(arg0);
-    }
+  /**
+   * @param arg0 message
+   */
+  public QueryParameterException(final String arg0) {
+    super(arg0);
+  }
 
-    public QueryParameterException(final Throwable arg0) {
-        super(arg0);
-    }
-
+  /**
+   * @param arg0 cause
+   */
+  public QueryParameterException(final Throwable arg0) {
+    super(arg0);
+  }
 }

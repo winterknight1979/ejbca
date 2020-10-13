@@ -13,19 +13,24 @@
 package org.cesecore.authentication.tokens;
 
 import java.util.Arrays;
-
 import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
 
 /**
- * Meta data definition and ServiceLoader marker for {@link org.cesecore.authentication.tokens.X509CertificateAuthenticationToken}.
- * 
- * @version $Id: X509CertificateAuthenticationTokenMetaData.java 25241 2017-02-10 02:10:43Z jeklund $
+ * Meta data definition and ServiceLoader marker for {@link
+ * org.cesecore.authentication.tokens.X509CertificateAuthenticationToken}.
+ *
+ * @version $Id: X509CertificateAuthenticationTokenMetaData.java 25241
+ *     2017-02-10 02:10:43Z jeklund $
  */
-public class X509CertificateAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
-
-    public static final String TOKEN_TYPE = "CertificateAuthenticationToken";
-
-    public X509CertificateAuthenticationTokenMetaData() {
-        super(TOKEN_TYPE, Arrays.asList(X500PrincipalAccessMatchValue.values()), true);
-    }
+public class X509CertificateAuthenticationTokenMetaData
+    extends AuthenticationTokenMetaDataBase {
+  /** Type. */
+  public static final String TOKEN_TYPE = "CertificateAuthenticationToken";
+  /** Constructor. */
+  public X509CertificateAuthenticationTokenMetaData() {
+    super(
+        TOKEN_TYPE,
+        Arrays.asList(X500PrincipalAccessMatchValue.values()),
+        true);
+  }
 }

@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-
 import org.apache.log4j.Logger;
 
 /**
@@ -29,229 +28,296 @@ import org.apache.log4j.Logger;
  */
 public abstract class AccessRulesHelper {
 
-    private static final Logger log = Logger.getLogger(AccessRulesHelper.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AccessRulesHelper.class);
 
-    /** @param accessRules Rules
-     * @param resources list of resources
-     * @return true if the provided map of access rules allows access to all the given resources */
-    public static boolean hasAccessToResources(final HashMap<String, Boolean> accessRules, final String...resources) {
-        if (resources!=null) {
-            for (final String resource : resources) {
-                if (!AccessRulesHelper.hasAccessToResource(accessRules, resource)) {
-                    return false;
-                }
-            }
+  /**
+   * @param accessRules Rules
+   * @param resources list of resources
+   * @return true if the provided map of access rules allows access to all the
+   *     given resources
+   */
+  public static boolean hasAccessToResources(
+      final HashMap<String, Boolean> accessRules, final String... resources) {
+    if (resources != null) {
+      for (final String resource : resources) {
+        if (!AccessRulesHelper.hasAccessToResource(accessRules, resource)) {
+          return false;
         }
-        return true;
+      }
     }
+    return true;
+  }
 
-    /** @param accessRules rules
-     * @param resource resource
-     * @return true if the provided map of access rules allows access to the given resource */
-    public static boolean hasAccessToResource(final HashMap<String, Boolean> accessRules, final String resource) {
-        if (resource==null || resource.charAt(0)!='/') {
-            return false;
-        }
-        // Normalize from "/a/b/c" to "/a/b/c/"
-        final String resourceWithTrailingSlash = resource.endsWith("/") ? resource : resource + "/";
-        int lastSlashIndex = resourceWithTrailingSlash.length()+1;
-        while ((lastSlashIndex = resourceWithTrailingSlash.lastIndexOf('/', lastSlashIndex-1))!=-1) {
-            final String subString = resourceWithTrailingSlash.substring(0, lastSlashIndex);
-            Boolean state = accessRules.get(subString);
-            if (state==null) {
-                // Check if the non-normalized form is present
-                state = accessRules.get(subString + "/");
-            }
-            if (state!=null) {
-            	if (log.isTraceEnabled()) {
-            	    log.trace("hasAccessToResource: "+resource+", "+state.booleanValue());
-            	}
-                return state.booleanValue();
-            }
-        }
-        if (log.isTraceEnabled()) {
-            log.trace("hasAccessToResource: "+resource+", "+false);
-        }
-        return false;
+  /**
+   * @param accessRules rules
+   * @param resource resource
+   * @return true if the provided map of access rules allows access to the given
+   *     resource
+   */
+  public static boolean hasAccessToResource(
+      final HashMap<String, Boolean> accessRules, final String resource) {
+    if (resource == null || resource.charAt(0) != '/') {
+      return false;
     }
-
-    /** Normalize access rules tree (make sure rules always end with a '/') 
-     * @param accessRules rules */
-    public static void normalizeResources(final HashMap<String, Boolean> accessRules) {
-        // For each rule, check if there are higher level rules (e.g. shorter path) with the same access state
-        for (final String resource : new ArrayList<>(accessRules.keySet())) {
-            if (!resource.endsWith("/")) {
-                final String resourceWithTrailingSlash = resource + "/";
-                final Boolean value = accessRules.remove(resource);
-                accessRules.put(resourceWithTrailingSlash, value);
-            }
+    // Normalize from "/a/b/c" to "/a/b/c/"
+    final String resourceWithTrailingSlash =
+        resource.endsWith("/") ? resource : resource + "/";
+    int lastSlashIndex = resourceWithTrailingSlash.length() + 1;
+    while ((lastSlashIndex =
+            resourceWithTrailingSlash.lastIndexOf('/', lastSlashIndex - 1))
+        != -1) {
+      final String subString =
+          resourceWithTrailingSlash.substring(0, lastSlashIndex);
+      Boolean state = accessRules.get(subString);
+      if (state == null) {
+        // Check if the non-normalized form is present
+        state = accessRules.get(subString + "/");
+      }
+      if (state != null) {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
+              "hasAccessToResource: " + resource + ", " + state.booleanValue());
         }
+        return state.booleanValue();
+      }
     }
-
-    /** Normalize access rules (make sure rules always end with a '/') 
-     * @param resource rules
-     * @return normalized string */
-    public static String normalizeResource(final String resource) {
-        if (!resource.endsWith("/")) {
-            return resource + "/";
-        }
-        return resource;
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("hasAccessToResource: " + resource + ", " + false);
     }
+    return false;
+  }
 
-    /** Remove redundant rules. Assumes parameter is in normalized form. 
-     * @param accessRules rules */
-    public static void minimizeAccessRules(final HashMap<String, Boolean> accessRules) {
-        // For each rule, check if there are higher level rules (e.g. shorter path) with the same access state
-        for (final String resourceWithTrailingSlash : new ArrayList<>(accessRules.keySet())) {
-            final Boolean currentState = accessRules.get(resourceWithTrailingSlash);
-            if (currentState==null) {
-                // Already removed from map
-                continue;
-            }
-            int lastSlashIndex = resourceWithTrailingSlash.length()+1;
-            while ((lastSlashIndex = resourceWithTrailingSlash.lastIndexOf('/', lastSlashIndex-1))!=-1) {
-                if (lastSlashIndex==resourceWithTrailingSlash.length()-1) {
-                    continue;
-                }
-                final String subString = resourceWithTrailingSlash.substring(0, lastSlashIndex+1);
-                final Boolean state = accessRules.get(subString);
-                if (state!=null) {
-                    if (state.booleanValue()==currentState.booleanValue()) {
-                        // A short path already provides this rule
-                        accessRules.remove(resourceWithTrailingSlash);
-                    } else {
-                        // The rule is needed, since it reverts a short paths state
-                    }
-                    break;
-                }
-            }
-        }
-        // Remove all top level deny rules (if nothing is explicitly permitted, we don't need to deny it)
-        for (final String resourceWithTrailingSlash : new ArrayList<>(accessRules.keySet())) {
-            final Boolean currentState = accessRules.get(resourceWithTrailingSlash);
-            if (currentState!=null && !currentState.booleanValue()) {
-                boolean needed = false;
-                int lastSlashIndex = resourceWithTrailingSlash.length()+1;
-                while ((lastSlashIndex = resourceWithTrailingSlash.lastIndexOf('/', lastSlashIndex-1))!=-1) {
-                    if (lastSlashIndex==resourceWithTrailingSlash.length()-1) {
-                        continue;
-                    }
-                    final String subString = resourceWithTrailingSlash.substring(0, lastSlashIndex+1);
-                    if (accessRules.get(subString)!=null) {
-                        needed = true;
-                        break;
-                    }
-                }
-                if (!needed) {
-                    accessRules.remove(resourceWithTrailingSlash);
-                }
-            }
-        }
+  /**
+   * Normalize access rules tree (make sure rules always end with a '/').
+   *
+   * @param accessRules rules
+   */
+  public static void normalizeResources(
+      final HashMap<String, Boolean> accessRules) {
+    // For each rule, check if there are higher level rules (e.g. shorter path)
+    // with the same access state
+    for (final String resource : new ArrayList<>(accessRules.keySet())) {
+      if (!resource.endsWith("/")) {
+        final String resourceWithTrailingSlash = resource + "/";
+        final Boolean value = accessRules.remove(resource);
+        accessRules.put(resourceWithTrailingSlash, value);
+      }
     }
+  }
 
-    /** @param accessRules1 First set of rules
-     * @param accessRules2 Second set of rules
-     * @return the rules for all resources granted by either sets of normalized accessRules. (The union of the sets.) */
-    public static HashMap<String, Boolean> getAccessRulesUnion(final HashMap<String, Boolean> accessRules1, final HashMap<String, Boolean> accessRules2) {
-        final HashMap<String, Boolean> accessRules = new HashMap<>();
-        /*
-         * Simple example of algorithm:
-         *
-         * /a/   allow
-         * /a/b/ deny    (remove this deny, since it is granted by other role)
-         * /b/   deny    (keep since it is not granted by other role)
-         *
-         * /a/   allow
-         * /a/c/ deny    (remove this deny, since it is granted by other role)
-         * /c/d  deny    (keep since it is not granted by other role)
-         * →
-         * /a/   allow
-         * /b/   deny
-         * /c/d  deny
-         */
-        // Keep allow rules from accessRules1 and deny rules from accessRules1 that are not granted by accessRules2
-        for (final Entry<String, Boolean> entry : accessRules1.entrySet()) {
-            if (entry.getValue().booleanValue() || !hasAccessToResource(accessRules2, entry.getKey())) {
-                accessRules.put(entry.getKey(), entry.getValue());
-            }
-        }
-        // Keep allow rules from accessRules1 and deny rules from accessRules1 that are not granted by accessRules2
-        for (final Entry<String, Boolean> entry : accessRules2.entrySet()) {
-            if (entry.getValue().booleanValue() || !hasAccessToResource(accessRules1, entry.getKey())) {
-                accessRules.put(entry.getKey(), entry.getValue());
-            }
-        }
-        minimizeAccessRules(accessRules);
-        return accessRules;
+  /**
+   * Normalize access rules (make sure rules always end with a '/').
+   *
+   * @param resource rules
+   * @return normalized string
+   */
+  public static String normalizeResource(final String resource) {
+    if (!resource.endsWith("/")) {
+      return resource + "/";
     }
+    return resource;
+  }
 
-    /** @param accessRules1 First set of rules
-     * @param accessRules2 Second set of rules
-     * @return the rules for all resources granted by both sets of normalized accessRules. (The intersection of the sets.) */
-    public static HashMap<String, Boolean> getAccessRulesIntersection(final HashMap<String, Boolean> accessRules1, final HashMap<String, Boolean> accessRules2) {
-        final HashMap<String, Boolean> accessRules = new HashMap<>();
-        /*
-         * Simple example of algorithm:
-         *
-         * /a/   allow
-         * /a/b/ deny
-         * /b/   deny
-         * /c/d/ allow
-         *
-         * /a/   allow
-         * /a/c/ deny
-         * /c/d/ deny
-         * →
-         * /a/   allow
-         * /a/b/ deny
-         * /a/c/ deny
-         * /b/   deny
-         * /c/d/ deny
-         */
-        // Keep deny rules from accessRules1 and allow rules from accessRules1 and that are also granted by accessRules2
-        for (final Entry<String, Boolean> entry : accessRules1.entrySet()) {
-            if (!entry.getValue().booleanValue() || hasAccessToResource(accessRules2, entry.getKey())) {
-                accessRules.put(entry.getKey(), entry.getValue());
-            }
+  /**
+   * Remove redundant rules. Assumes parameter is in normalized form.
+   *
+   * @param accessRules rules
+   */
+  public static void minimizeAccessRules(
+      final HashMap<String, Boolean> accessRules) {
+    // For each rule, check if there are higher level rules (e.g. shorter path)
+    // with the same access state
+    for (final String resourceWithTrailingSlash
+        : new ArrayList<>(accessRules.keySet())) {
+      final Boolean currentState = accessRules.get(resourceWithTrailingSlash);
+      if (currentState == null) {
+        // Already removed from map
+        continue;
+      }
+      int lastSlashIndex = resourceWithTrailingSlash.length() + 1;
+      while ((lastSlashIndex =
+              resourceWithTrailingSlash.lastIndexOf('/', lastSlashIndex - 1))
+          != -1) {
+        if (lastSlashIndex == resourceWithTrailingSlash.length() - 1) {
+          continue;
         }
-        // Keep deny rules from accessRules2 and allow rules from accessRules2 and that are also granted by accessRules1
-        for (final Entry<String, Boolean> entry : accessRules2.entrySet()) {
-            if (!entry.getValue().booleanValue()) {
-                accessRules.put(entry.getKey(), entry.getValue());
-            } else if (hasAccessToResource(accessRules1, entry.getKey())) {
-                final Boolean currentValue = accessRules.get(entry.getKey());
-                if (currentValue==null || currentValue.booleanValue()) {
-                    // Only overwrite empty or allow rules
-                    accessRules.put(entry.getKey(), entry.getValue());
-                }
-            }
+        final String subString =
+            resourceWithTrailingSlash.substring(0, lastSlashIndex + 1);
+        final Boolean state = accessRules.get(subString);
+        if (state != null) {
+          if (state.booleanValue() == currentState.booleanValue()) {
+            // A short path already provides this rule
+            accessRules.remove(resourceWithTrailingSlash);
+          } else {
+            // The rule is needed, since it reverts a short paths state
+          }
+          break;
         }
-        minimizeAccessRules(accessRules);
-        return accessRules;
+      }
     }
-
-    /** Sort the provided access rules. (Useful for more readable persistence format.) 
-     * @param accessRules  rules */
-    public static void sortAccessRules(final LinkedHashMap<String, Boolean> accessRules) {
-        final List<Entry<String, Boolean>> sortEntryList = getAsListSortedByKey(accessRules);
-        accessRules.clear();
-        for (final Entry<String, Boolean> entry : sortEntryList) {
-            accessRules.put(entry.getKey(), entry.getValue());
+    // Remove all top level deny rules (if nothing is explicitly permitted, we
+    // don't need to deny it)
+    for (final String resourceWithTrailingSlash
+        : new ArrayList<>(accessRules.keySet())) {
+      final Boolean currentState = accessRules.get(resourceWithTrailingSlash);
+      if (currentState != null && !currentState.booleanValue()) {
+        boolean needed = false;
+        int lastSlashIndex = resourceWithTrailingSlash.length() + 1;
+        while ((lastSlashIndex =
+                resourceWithTrailingSlash.lastIndexOf('/', lastSlashIndex - 1))
+            != -1) {
+          if (lastSlashIndex == resourceWithTrailingSlash.length() - 1) {
+            continue;
+          }
+          final String subString =
+              resourceWithTrailingSlash.substring(0, lastSlashIndex + 1);
+          if (accessRules.get(subString) != null) {
+            needed = true;
+            break;
+          }
         }
+        if (!needed) {
+          accessRules.remove(resourceWithTrailingSlash);
+        }
+      }
     }
+  }
 
-    /** @param accessRulesMap Rules
-     * @param <T1>  Type of key
-     * @param <T2> Type of value
-     * @return the map sorted by keys */
-    public static <T1, T2> List<Entry<T1, T2>> getAsListSortedByKey(final HashMap<T1, T2> accessRulesMap) {
-        final List<Entry<T1, T2>> accessRulesList = new ArrayList<>(accessRulesMap.entrySet());
-        Collections.sort(accessRulesList, new Comparator<Entry<T1, T2>>() {
-            @Override
-            public int compare(final Entry<T1, T2> entry1, final Entry<T1, T2> entry2) {
-                return String.valueOf(entry1.getKey()).compareTo(String.valueOf(entry2.getKey()));
-            }
+  /**
+   * @param accessRules1 First set of rules
+   * @param accessRules2 Second set of rules
+   * @return the rules for all resources granted by either sets of normalized
+   *     accessRules. (The union of the sets.)
+   */
+  public static HashMap<String, Boolean> getAccessRulesUnion(
+      final HashMap<String, Boolean> accessRules1,
+      final HashMap<String, Boolean> accessRules2) {
+    final HashMap<String, Boolean> accessRules = new HashMap<>();
+    /*
+     * Simple example of algorithm:
+     *
+     * /a/   allow
+     * /a/b/ deny    (remove this deny, since it is granted by other role)
+     * /b/   deny    (keep since it is not granted by other role)
+     *
+     * /a/   allow
+     * /a/c/ deny    (remove this deny, since it is granted by other role)
+     * /c/d  deny    (keep since it is not granted by other role)
+     * →
+     * /a/   allow
+     * /b/   deny
+     * /c/d  deny
+     */
+    // Keep allow rules from accessRules1 and deny rules from accessRules1 that
+    // are not granted by accessRules2
+    for (final Entry<String, Boolean> entry : accessRules1.entrySet()) {
+      if (entry.getValue().booleanValue()
+          || !hasAccessToResource(accessRules2, entry.getKey())) {
+        accessRules.put(entry.getKey(), entry.getValue());
+      }
+    }
+    // Keep allow rules from accessRules1 and deny rules from accessRules1 that
+    // are not granted by accessRules2
+    for (final Entry<String, Boolean> entry : accessRules2.entrySet()) {
+      if (entry.getValue().booleanValue()
+          || !hasAccessToResource(accessRules1, entry.getKey())) {
+        accessRules.put(entry.getKey(), entry.getValue());
+      }
+    }
+    minimizeAccessRules(accessRules);
+    return accessRules;
+  }
+
+  /**
+   * @param accessRules1 First set of rules
+   * @param accessRules2 Second set of rules
+   * @return the rules for all resources granted by both sets of normalized
+   *     accessRules. (The intersection of the sets.)
+   */
+  public static HashMap<String, Boolean> getAccessRulesIntersection(
+      final HashMap<String, Boolean> accessRules1,
+      final HashMap<String, Boolean> accessRules2) {
+    final HashMap<String, Boolean> accessRules = new HashMap<>();
+    /*
+     * Simple example of algorithm:
+     *
+     * /a/   allow
+     * /a/b/ deny
+     * /b/   deny
+     * /c/d/ allow
+     *
+     * /a/   allow
+     * /a/c/ deny
+     * /c/d/ deny
+     * →
+     * /a/   allow
+     * /a/b/ deny
+     * /a/c/ deny
+     * /b/   deny
+     * /c/d/ deny
+     */
+    // Keep deny rules from accessRules1 and allow rules from accessRules1 and
+    // that are also granted by accessRules2
+    for (final Entry<String, Boolean> entry : accessRules1.entrySet()) {
+      if (!entry.getValue().booleanValue()
+          || hasAccessToResource(accessRules2, entry.getKey())) {
+        accessRules.put(entry.getKey(), entry.getValue());
+      }
+    }
+    // Keep deny rules from accessRules2 and allow rules from accessRules2 and
+    // that are also granted by accessRules1
+    for (final Entry<String, Boolean> entry : accessRules2.entrySet()) {
+      if (!entry.getValue().booleanValue()) {
+        accessRules.put(entry.getKey(), entry.getValue());
+      } else if (hasAccessToResource(accessRules1, entry.getKey())) {
+        final Boolean currentValue = accessRules.get(entry.getKey());
+        if (currentValue == null || currentValue.booleanValue()) {
+          // Only overwrite empty or allow rules
+          accessRules.put(entry.getKey(), entry.getValue());
+        }
+      }
+    }
+    minimizeAccessRules(accessRules);
+    return accessRules;
+  }
+
+  /**
+   * Sort the provided access rules. (Useful for more readable persistence
+   * format.)
+   *
+   * @param accessRules rules
+   */
+  public static void sortAccessRules(
+      final LinkedHashMap<String, Boolean> accessRules) {
+    final List<Entry<String, Boolean>> sortEntryList =
+        getAsListSortedByKey(accessRules);
+    accessRules.clear();
+    for (final Entry<String, Boolean> entry : sortEntryList) {
+      accessRules.put(entry.getKey(), entry.getValue());
+    }
+  }
+
+  /**
+   * @param accessRulesMap Rules
+   * @param <T1> Type of key
+   * @param <T2> Type of value
+   * @return the map sorted by keys
+   */
+  public static <T1, T2> List<Entry<T1, T2>> getAsListSortedByKey(
+      final HashMap<T1, T2> accessRulesMap) {
+    final List<Entry<T1, T2>> accessRulesList =
+        new ArrayList<>(accessRulesMap.entrySet());
+    Collections.sort(
+        accessRulesList,
+        new Comparator<Entry<T1, T2>>() {
+          @Override
+          public int compare(
+              final Entry<T1, T2> entry1, final Entry<T1, T2> entry2) {
+            return String.valueOf(entry1.getKey())
+                .compareTo(String.valueOf(entry2.getKey()));
+          }
         });
-        return accessRulesList;
-    }
+    return accessRulesList;
+  }
 }

@@ -13,29 +13,41 @@
 package org.cesecore.keys.token;
 
 /**
- * Thrown when trying to create a crypto token with a specific ID that is already in use.
- * 
- * @version $Id: CryptoTokenIdInUseException.java 19902 2014-09-30 14:32:24Z anatom $
+ * Thrown when trying to create a crypto token with a specific ID that is
+ * already in use.
  *
+ * @version $Id: CryptoTokenIdInUseException.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 public class CryptoTokenIdInUseException extends Exception {
 
-    private static final long serialVersionUID = -7489643048484029833L;
+  private static final long serialVersionUID = -7489643048484029833L;
 
-    public CryptoTokenIdInUseException() {
-        super();
-    }
+  /** Defaullt. */
+  public CryptoTokenIdInUseException() {
+    super();
+  }
 
-    public CryptoTokenIdInUseException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public CryptoTokenIdInUseException(
+          final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public CryptoTokenIdInUseException(String message) {
-        super(message);
-    }
+  /**
+   * @param message message
+   */
+  public CryptoTokenIdInUseException(final String message) {
+    super(message);
+  }
 
-    public CryptoTokenIdInUseException(Throwable cause) {
-        super(cause);
-    }
-
+  /**
+   * @param cause cause
+   */
+  public CryptoTokenIdInUseException(final Throwable cause) {
+    super(cause);
+  }
 }

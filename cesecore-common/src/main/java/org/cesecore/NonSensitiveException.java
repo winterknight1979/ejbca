@@ -18,12 +18,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
  * @version $Id: NonSensitiveException.java 24055 2016-07-29 08:36:33Z marko $
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface NonSensitiveException {
-
-}
+public @interface NonSensitiveException { }

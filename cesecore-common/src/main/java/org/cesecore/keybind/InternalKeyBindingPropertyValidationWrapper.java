@@ -20,45 +20,71 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class wraps the result of an internal key binding validation. It contains a defensive copy of the properties map
- * allowing values entered as strings to be recast as their proper values, and also contains lists of invalid values for
- * diagnostic purposes. 
- * 
- * @version $Id: InternalKeyBindingPropertyValidationWrapper.java 19902 2014-09-30 14:32:24Z anatom $
+ * This class wraps the result of an internal key binding validation. It
+ * contains a defensive copy of the properties map allowing values entered as
+ * strings to be recast as their proper values, and also contains lists of
+ * invalid values for diagnostic purposes.
  *
+ * @version $Id: InternalKeyBindingPropertyValidationWrapper.java 19902
+ *     2014-09-30 14:32:24Z anatom $
  */
 public class InternalKeyBindingPropertyValidationWrapper {
+    /** Invalid. */
+  private Map<String, Class<?>> invalidValues = new HashMap<String, Class<?>>();
+  /** Unknown. */
+  private List<String> unknownProperties = new ArrayList<String>();
+  /** Props. */
+  private Map<String, Serializable> propertiesCopy =
+      new LinkedHashMap<String, Serializable>();
 
-    private Map<String, Class<?>> invalidValues = new HashMap<String, Class<?>>();
-    private List<String> unknownProperties = new ArrayList<String>();
-    private Map<String, Serializable> propertiesCopy = new LinkedHashMap<String, Serializable>();
+  /**
+   * @return bool
+   */
+  public boolean arePropertiesValid() {
+    return invalidValues.isEmpty() && unknownProperties.isEmpty();
+  }
 
-    public boolean arePropertiesValid() {
-        return invalidValues.isEmpty() && unknownProperties.isEmpty();
-    }
+  /**
+   * @return properties
+   */
+  public Map<String, Class<?>> getInvalidValues() {
+    return invalidValues;
+  }
 
-    public Map<String, Class<?>> getInvalidValues() {
-        return invalidValues;
-    }
+  /**
+   * @return properties
+   */
+  public List<String> getUnknownProperties() {
+    return unknownProperties;
+  }
 
-    public List<String> getUnknownProperties() {
-        return unknownProperties;
-    }
+  /**
+   * @return properties
+   */
+  public Map<String, Serializable> getPropertiesCopy() {
+    return propertiesCopy;
+  }
 
-    public Map<String, Serializable> getPropertiesCopy() {
-        return propertiesCopy;
-    }
+  /**
+   * @param value value
+   * @param expected class
+   */
+  public void addInvalidValue(final String value, final Class<?> expected) {
+    invalidValues.put(value, expected);
+  }
 
-    public void addInvalidValue(String value, Class<?> expected) {
-        invalidValues.put(value, expected);
-    }
+  /**
+   * @param value value
+   */
+  public void addUnknownProperty(final String value) {
+    unknownProperties.add(value);
+  }
 
-    public void addUnknownProperty(String value) {
-        unknownProperties.add(value);
-    }
-
-    public void addProperty(String key, Serializable value) {
-        propertiesCopy.put(key, value);
-    }
-
+  /**
+   * @param key key
+   * @param value value
+   */
+  public void addProperty(final String key, final Serializable value) {
+    propertiesCopy.put(key, value);
+  }
 }

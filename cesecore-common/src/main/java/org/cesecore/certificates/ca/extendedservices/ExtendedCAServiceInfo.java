@@ -15,45 +15,53 @@ package org.cesecore.certificates.ca.extendedservices;
 import java.io.Serializable;
 
 /**
- * Should be inherited by all ExtendedCAServiceInfo Value objects. These classes are used to retrieve general information about the service and also
- * used to send parameters to the service when creating it.
- * 
+ * Should be inherited by all ExtendedCAServiceInfo Value objects. These classes
+ * are used to retrieve general information about the service and also used to
+ * send parameters to the service when creating it.
+ *
  * @version $Id: ExtendedCAServiceInfo.java 21900 2015-09-17 19:22:21Z anatom $
  */
 public abstract class ExtendedCAServiceInfo implements Serializable {
 
-    private static final long serialVersionUID = 9064707908058917449L;
+  private static final long serialVersionUID = 9064707908058917449L;
 
-    /**
-     * Constants indicating the status of the service.
-     */
-    public static final int STATUS_INACTIVE = 1;
-    public static final int STATUS_ACTIVE = 2;
+  /** Constants indicating the status of the service. */
+  public static final int STATUS_INACTIVE = 1;
+  /** Active. */
+  public static final int STATUS_ACTIVE = 2;
+  /** Status. */
+  private int status = STATUS_INACTIVE;
+  /** class. */
+  public static final String IMPLEMENTATIONCLASS = "IMPLCLASS";
 
-    private int status = STATUS_INACTIVE;
+  /**
+   * Constructor.
+   * @param aStatus status
+   */
+  public ExtendedCAServiceInfo(final int aStatus) {
+    this.status = aStatus;
+  }
 
-    public static final String IMPLEMENTATIONCLASS = "IMPLCLASS";
+  /** @return status */
+  public int getStatus() {
+    return this.status;
+  }
 
-    public ExtendedCAServiceInfo(int status) {
-        this.status = status;
-    }
+  /** @param aStatus status */
+  public void setStatus(final int aStatus) {
+    this.status = aStatus;
+  }
 
-    public int getStatus() {
-        return this.status;
-    }
+  /**
+   * @return a unique type identifier, such as
+   *     ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE etc
+   */
+  public abstract int getType();
 
-    public void setStatus(final int status) {
-        this.status = status;
-    }
-
-    /** @return a unique type identifier, such as ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE etc */
-    public abstract int getType();
-
-    /**
-     * The extended CA service implementation will be created using reflection.
-     * 
-     * @return a class name implementing the extended CA service
-     */
-    public abstract String getImplClass();
-
+  /**
+   * The extended CA service implementation will be created using reflection.
+   *
+   * @return a class name implementing the extended CA service
+   */
+  public abstract String getImplClass();
 }

@@ -109,7 +109,7 @@ public class UnRevokeEndEntityCommand extends BaseRaCommand {
                     Certificate cert = certWrapper.getCertificate();
                     BigInteger serialNumber = CertTools.getSerialNumber(cert);
                     String issuerDN = CertTools.getIssuerDN(cert);
-                    if (EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).getStatus(issuerDN, serialNumber).revocationReason == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
+                    if (EjbRemoteHelper.INSTANCE.getRemoteSession(CertificateStoreSessionRemote.class).getStatus(issuerDN, serialNumber).getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {
                         foundCertificateOnHold = true;
                         try {
                             endEntityManagementSession.revokeCert(getAuthenticationToken(), serialNumber, issuerDN.toString(),

@@ -13,86 +13,97 @@
 package org.cesecore.util;
 
 import java.util.List;
-
 import org.cesecore.CesecoreException;
 
 /**
- * The external process exception is the base exception to handle (platform dependent) external process calls ({@link ExternalProcessTools}. 
- * 
- * @version $Id: ExternalProcessException.java 27706 2018-01-02 13:50:59Z andresjakobs $
+ * The external process exception is the base exception to handle (platform
+ * dependent) external process calls ({@link ExternalProcessTools}.
+ *
+ * @version $Id: ExternalProcessException.java 27706 2018-01-02 13:50:59Z
+ *     andresjakobs $
  */
 public class ExternalProcessException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private List<String> out;
-    
-    /**
-     * Default constructor.
-     */
-    public ExternalProcessException() {
-        super();
-    }
+  /** List. */
+  private List<String> out;
 
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     * @param cause the cause
-     */
-    public ExternalProcessException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
+  /** Default constructor. */
+  public ExternalProcessException() {
+    super();
+  }
 
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     * @param cause the cause
-     * @param out the list.
-     */
-    public ExternalProcessException(final String message, final Throwable cause, final List<String> out) {
-        super(message, cause);
-        this.out = out;
-    }
-    
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     */
-    public ExternalProcessException(final String message) {
-        super(message);
-    }
-    
-    /**
-     * Parameterized constructor.
-     * @param message the message.
-     * @param out the list.
-     */
-    public ExternalProcessException(final String message, final List<String> out) {
-        super(message);
-        this.out = out;
-    }
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   * @param cause the cause
+   */
+  public ExternalProcessException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    /**
-     * Parameterized constructor.
-     * @param cause the cause.
-     */
-    public ExternalProcessException(final Exception cause) {
-        super(cause);
-    }
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   * @param cause the cause
+   * @param anOut the list.
+   */
+  public ExternalProcessException(
+      final String message, final Throwable cause, final List<String> anOut) {
+    super(message, cause);
+    this.out = anOut;
+  }
 
-    /**
-     * Gets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}), STDOUT and ERROUT.
-     * @return the list.
-     */
-    public List<String> getOut() {
-        return out;
-    }
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   */
+  public ExternalProcessException(final String message) {
+    super(message);
+  }
 
-    /**
-     * Sets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}), STDOUT and ERROUT.
-     * @param out the list.
-     */
-    public void setOut(List<String> out) {
-        this.out = out;
-    }
+  /**
+   * Parameterized constructor.
+   *
+   * @param message the message.
+   * @param anOut the list.
+   */
+  public ExternalProcessException(
+      final String message, final List<String> anOut) {
+    super(message);
+    this.out = anOut;
+  }
+
+  /**
+   * Parameterized constructor.
+   *
+   * @param cause the cause.
+   */
+  public ExternalProcessException(final Exception cause) {
+    super(cause);
+  }
+
+  /**
+   * Gets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}),
+   * STDOUT and ERROUT.
+   *
+   * @return the list.
+   */
+  public List<String> getOut() {
+    return out;
+  }
+
+  /**
+   * Sets the list of exit code ({@link ExternalProcessTools#EXIT_CODE_PREFIX}),
+   * STDOUT and ERROUT.
+   *
+   * @param anOut the list.
+   */
+  public void setOut(final List<String> anOut) {
+    this.out = anOut;
+  }
 }

@@ -10,83 +10,79 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
-/**
- * @version $Id: ResponseStatus.java 27539 2017-12-14 08:38:56Z samuellb $
- */
+
 package org.cesecore.certificates.certificate.request;
 
 import java.io.Serializable;
 
 /**
- * Encapsulates the possible values for the status of a certificate response. Original response codes from the SCEP protocol.
+ * Encapsulates the possible values for the status of a certificate response.
+ * Original response codes from the SCEP protocol.
  *
  * @version $Id: ResponseStatus.java 27539 2017-12-14 08:38:56Z samuellb $
  */
 public final class ResponseStatus implements Serializable {
 
-    private static final long serialVersionUID = -1424581065308042345L;
+  private static final long serialVersionUID = -1424581065308042345L;
 
-    /**
-     * Request granted
-     */
-    public static final ResponseStatus SUCCESS = new ResponseStatus(0);
+  /** Request granted. */
+  public static final ResponseStatus SUCCESS = new ResponseStatus(0);
 
-    /**
-     * Request granted with mods. Indicates the requester got something like what you asked for.
-     * The requester is responsible for ascertaining the differences.
-     */
-    public static final ResponseStatus GRANTED_WITH_MODS = new ResponseStatus(1);
-    
-    /**
-     * Request rejected
-     */
-    public static final ResponseStatus FAILURE = new ResponseStatus(2);
+  /**
+   * Request granted with mods. Indicates the requester got something like what
+   * you asked for. The requester is responsible for ascertaining the
+   * differences.
+   */
+  public static final ResponseStatus GRANTED_WITH_MODS = new ResponseStatus(1);
 
-    /**
-     * Request pending for approval
-     */
-    public static final ResponseStatus PENDING = new ResponseStatus(3);
+  /** Request rejected. */
+  public static final ResponseStatus FAILURE = new ResponseStatus(2);
 
-    /**
-     * The value actually encoded into the response message as a pkiStatus attribute
-     */
-    private final int value;
+  /** Request pending for approval.*/
+  public static final ResponseStatus PENDING = new ResponseStatus(3);
 
-    private ResponseStatus(final int value) {
-        this.value = value;
-    }
+  /**
+   * The value actually encoded into the response message as a pkiStatus
+   * attribute.
+   */
+  private final int value;
 
-    /**
-     * Gets the value embedded in the response message as a pkiStatus attribute
-     * @return  the value to use
-     */
-    public String getStringValue() {
-        return Integer.toString(value);
-    }
+  private ResponseStatus(final int aValue) {
+    this.value = aValue;
+  }
 
-    public int getValue() {
-    	return value;
-    }
+  /**
+   * Gets the value embedded in the response message as a pkiStatus attribute.
+   *
+   * @return the value to use
+   */
+  public String getStringValue() {
+    return Integer.toString(value);
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-    	boolean ret = false;
-        if (this == o) {
-        	ret = true;
-        } else {
-            if (o instanceof ResponseStatus) {
-                final ResponseStatus status = (ResponseStatus) o;
-                if (value == status.getValue()) {
-                	ret = true;
-                }
-            }      	
+  /** @return value */
+  public int getValue() {
+    return value;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    boolean ret = false;
+    if (this == o) {
+      ret = true;
+    } else {
+      if (o instanceof ResponseStatus) {
+        final ResponseStatus status = (ResponseStatus) o;
+        if (value == status.getValue()) {
+          ret = true;
         }
-        return ret;
+      }
     }
+    return ret;
+  }
 
-    @Override
-    public int hashCode() {
-        return value;
-    }
+  @Override
+  public int hashCode() {
+    return value;
+  }
 }

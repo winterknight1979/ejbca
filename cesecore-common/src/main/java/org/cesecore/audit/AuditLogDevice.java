@@ -13,37 +13,41 @@
 package org.cesecore.audit;
 
 import java.util.Map;
-
 import org.cesecore.audit.log.AuditLogResetException;
 
 /**
  * Interface for Secure Audit Log device that can be logged to or read from.
- * 
+ *
  * @version $Id: AuditLogDevice.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface AuditLogDevice extends Auditable, AuditLogger {
 
-	/** Setter for the ejbs that the log devices can invoke.. 
-	 * @param ejbs EJB's*/
-	void setEjbs(Map<Class<?>, ?> ejbs);
-	
-	/** @return true if this device can respond to queries. */
-	boolean isSupportingQueries();
-	
-    /**
-     * Prepares the secure audit log mechanism for reset.
-     * This method will block till all audit log processes are completed. 
-     * Should be used with caution because once called audit log will not be operational. 
-     * Any attempt to log will result in an exception.
-     * @throws AuditLogResetException If reset fails
-     */
-    void prepareReset() throws AuditLogResetException;
+  /**
+   * Setter for the ejbs that the log devices can invoke..
+   *
+   * @param ejbs EJB's
+   */
+  void setEjbs(Map<Class<?>, ?> ejbs);
 
-    /**
-     * Resets all security audit events logger internal state.
-     * Once this method finishes the audit log will be available again.
-     * This method should be used with caution.
-     * @throws AuditLogResetException If reset fails 
-     */
-    void reset() throws AuditLogResetException;
+  /** @return true if this device can respond to queries. */
+  boolean isSupportingQueries();
+
+  /**
+   * Prepares the secure audit log mechanism for reset. This method will block
+   * till all audit log processes are completed. Should be used with caution
+   * because once called audit log will not be operational. Any attempt to log
+   * will result in an exception.
+   *
+   * @throws AuditLogResetException If reset fails
+   */
+  void prepareReset() throws AuditLogResetException;
+
+  /**
+   * Resets all security audit events logger internal state. Once this method
+   * finishes the audit log will be available again. This method should be used
+   * with caution.
+   *
+   * @throws AuditLogResetException If reset fails
+   */
+  void reset() throws AuditLogResetException;
 }

@@ -16,27 +16,46 @@ import javax.ejb.ApplicationException;
 
 /**
  * Error during export of secure audit log events.
- * 
- * @version $Id: AuditLogExporterException.java 17625 2013-09-20 07:12:06Z netmackan $
+ *
+ * @version $Id: AuditLogExporterException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
-@ApplicationException(rollback=true)
+@ApplicationException(rollback = true)
 public class AuditLogExporterException extends Exception {
 
-    private static final long serialVersionUID = -4260121156919588354L;
-   
-    public AuditLogExporterException() {
-        super();
-    }
+  private static final long serialVersionUID = -4260121156919588354L;
 
-    public AuditLogExporterException(final String message) {
-        super(message);
-    }
+  /** Create exception. */
+  public AuditLogExporterException() {
+    super();
+  }
 
-    public AuditLogExporterException(final String message, final Throwable throwable) {
-        super(message, throwable);
-    }
+  /**
+   * Create exception with message.
+   *
+   * @param message Message
+   */
+  public AuditLogExporterException(final String message) {
+    super(message);
+  }
 
-    public AuditLogExporterException(final Throwable throwable) {
-        super(throwable);
-    }
+  /**
+   * Create exception with message and cause.
+   *
+   * @param message Message
+   * @param throwable Cause
+   */
+  public AuditLogExporterException(
+      final String message, final Throwable throwable) {
+    super(message, throwable);
+  }
+
+  /**
+   * Create exception with cause.
+   *
+   * @param throwable Cause.
+   */
+  public AuditLogExporterException(final Throwable throwable) {
+    super(throwable);
+  }
 }

@@ -16,141 +16,168 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-
 import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.authorization.user.AccessUserAspect;
 import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
- * An authentication token that always matches the provided AccessUserAspectData if the AuthenticationToken was created in the same JVM as it is
- * verified.
- * 
- * Example usage: AuthenticationToken authenticationToken = new AlwaysAllowLocalAuthenticationToken("Internal function abc");
- * 
- * @version $Id: AlwaysAllowLocalAuthenticationToken.java 27631 2017-12-21 14:12:37Z anatom $
+ * An authentication token that always matches the provided AccessUserAspectData
+ * if the AuthenticationToken was created in the same JVM as it is verified.
+ *
+ * <p>Example usage: AuthenticationToken authenticationToken = new
+ * AlwaysAllowLocalAuthenticationToken("Internal function abc");
+ *
+ * @version $Id: AlwaysAllowLocalAuthenticationToken.java 27631 2017-12-21
+ *     14:12:37Z anatom $
  */
-public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationToken {
+public class AlwaysAllowLocalAuthenticationToken
+    extends NestableAuthenticationToken {
 
-    private static final long serialVersionUID = -3942437717641924829L;
+  private static final long serialVersionUID = -3942437717641924829L;
+  /** MetaData. */
+  public static final AlwaysAllowLocalAuthenticationTokenMetaData META_DATA =
+      new AlwaysAllowLocalAuthenticationTokenMetaData();
 
-    public static final AlwaysAllowLocalAuthenticationTokenMetaData metaData = new AlwaysAllowLocalAuthenticationTokenMetaData();
-    
-    public AlwaysAllowLocalAuthenticationToken(final Principal principal) {
-        // This can be written nicer like:
-        // super(new HashSet<Principal>(Arrays.asList(principal)), null);
-        // but we need to keep this form for backwards compatibility reasons to de-serialize ApprovalRequests. See ECA-6442
-        // This form create an anonymous internal class, AlwaysAllowLocalAuthenticationToken$1.class
-        super(new HashSet<Principal>() {
-            private static final long serialVersionUID = 3125729459998373943L;
-            {
-                add(principal);
-            }
-        }, null);
+  /**
+   * Construct using {@link Principal}.
+   *
+   * @param principal Principal
+   */
+  public AlwaysAllowLocalAuthenticationToken(final Principal principal) {
+    // This can be written nicer like:
+    // super(new HashSet<Principal>(Arrays.asList(principal)), null);
+    // but we need to keep this form for backwards compatibility reasons
+    // to de-serialize ApprovalRequests. See ECA-6442
+    // This form create an anonymous internal class,
+    // AlwaysAllowLocalAuthenticationToken$1.class
+    super(
+        new HashSet<Principal>() {
+          private static final long serialVersionUID = 3125729459998373943L;
+
+          {
+            add(principal);
+          }
+        },
+        null);
+  }
+
+  /**
+   * Construct by user name.
+   *
+   * @param username Name
+   */
+  public AlwaysAllowLocalAuthenticationToken(final String username) {
+    super(
+        new HashSet<Principal>(Arrays.asList(new UsernamePrincipal(username))),
+        null);
+  }
+
+  @Override
+  public boolean matches(final AccessUserAspect accessUser) {
+    return super.isCreatedInThisJvm();
+  }
+
+  @Override
+  public int getPreferredMatchKey() {
+    return AuthenticationToken.NO_PREFERRED_MATCH_KEY;
+    // not applicable to this type of authentication token
+  }
+
+  @Override
+  public String getPreferredMatchValue() {
+    return null;
+  }
+
+  @Override
+  public boolean equals(final Object authenticationToken) {
+    if (this == authenticationToken) {
+      return true;
     }
+    if (authenticationToken == null) {
+      return false;
+    }
+    return (getClass() == authenticationToken.getClass());
+  }
 
-    public AlwaysAllowLocalAuthenticationToken(final String username) {
-        super(new HashSet<Principal>(Arrays.asList(new UsernamePrincipal(username))), null);
+  @Override
+  public int hashCode() {
+    return getMetaData().getTokenType().hashCode();
+  }
+
+  @Override
+  public boolean matchTokenType(final String tokenType) {
+    return true;
+  }
+
+  @Override
+  public AccessMatchValue getMatchValueFromDatabaseValue(
+      final Integer databaseValue) {
+    // Special legacy handling for unclear reasons..?
+    return getMetaData().getAccessMatchValues().get(0);
+  }
+
+  @Override
+  protected String generateUniqueId() {
+    return generateUniqueId(super.isCreatedInThisJvm())
+        + ";"
+        + super.generateUniqueId();
+  }
+
+  @Override
+  public AlwaysAllowLocalAuthenticationTokenMetaData getMetaData() {
+    return META_DATA;
+  }
+
+  /**
+   * Do not use since EJBCA 6.8. Kept for backwards compatibility reasons to
+   * de-serialize ApprovalRequests. See ECA-6442
+   */
+  @SuppressWarnings("unused")
+  @Deprecated
+  private enum InternalMatchValue implements AccessMatchValue {
+    /** Instance. */
+    INSTANCE(0),
+    /** Default. */
+    DEFAULT(Integer.MAX_VALUE);
+
+    /** Type. */
+    private static final String TOKEN_TYPE = "AlwaysAllowAuthenticationToken";
+
+    /** Value. */
+    private final int numericValue;
+
+    InternalMatchValue(final int aNumericValue) {
+      this.numericValue = aNumericValue;
     }
 
     @Override
-    public boolean matches(AccessUserAspect accessUser) {
-       return super.isCreatedInThisJvm();  
-    }
-    
-    @Override
-    public int getPreferredMatchKey() {
-        return AuthenticationToken.NO_PREFERRED_MATCH_KEY; // not applicable to this type of authentication token
-    }
-    
-    @Override
-    public String getPreferredMatchValue() {
-        return null;
-    }
-    
-    @Override
-    public boolean equals(Object authenticationToken) {
-        if (this == authenticationToken) {
-            return true;
-        }
-        if (authenticationToken == null) {
-            return false;
-        }
-        if (getClass() != authenticationToken.getClass()) {
-            return false;
-        } else {
-            return true;
-        }
+    public int getNumericValue() {
+      return numericValue;
     }
 
     @Override
-    public int hashCode() {
-        return getMetaData().getTokenType().hashCode();
+    public String getTokenType() {
+      return TOKEN_TYPE;
     }
 
     @Override
-    public boolean matchTokenType(String tokenType) {  
-        return true;
+    public boolean isIssuedByCa() {
+      return false;
     }
 
     @Override
-    public AccessMatchValue getMatchValueFromDatabaseValue(Integer databaseValue) {
-        // Special legacy handling for unclear reasons..?
-        return getMetaData().getAccessMatchValues().get(0);
-    }
-    
-    @Override
-    protected String generateUniqueId() {
-        return generateUniqueId(super.isCreatedInThisJvm()) + ";" + super.generateUniqueId();
+    public boolean isDefaultValue() {
+      return numericValue == DEFAULT.numericValue;
     }
 
     @Override
-    public AlwaysAllowLocalAuthenticationTokenMetaData getMetaData() {
-        return metaData;
-    }
-    
-    /** Do not use since EJBCA 6.8. Kept for backwards compatibility reasons to de-serialize ApprovalRequests. See ECA-6442 */
-    @SuppressWarnings("unused")
-	@Deprecated 
-    private static enum InternalMatchValue implements AccessMatchValue {
-        INSTANCE(0), DEFAULT(Integer.MAX_VALUE);
-
-        private static final String TOKEN_TYPE = "AlwaysAllowAuthenticationToken";
-        
-        private final int numericValue;
-        
-        private InternalMatchValue(final int numericValue) {
-            this.numericValue = numericValue;
-        }
-        
-        @Override
-        public int getNumericValue() {         
-            return numericValue;
-        }
-
-        @Override
-        public String getTokenType() {           
-            return TOKEN_TYPE;
-        }
-
-        @Override
-        public boolean isIssuedByCa() {
-            return false;
-        }
-
-        @Override
-        public boolean isDefaultValue() {
-            return numericValue == DEFAULT.numericValue;
-        }
-
-        @Override
-        public List<AccessMatchType> getAvailableAccessMatchTypes() {
-            return null;
-        }
-
-        @Override
-        public String normalizeMatchValue(String value) {
-            return null;
-        }
+    public List<AccessMatchType> getAvailableAccessMatchTypes() {
+      return null;
     }
 
+    @Override
+    public String normalizeMatchValue(final String value) {
+      return null;
+    }
+  }
 }

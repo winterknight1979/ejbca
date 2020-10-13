@@ -13,32 +13,47 @@
 package org.cesecore.util.query.clauses;
 
 import org.cesecore.util.query.Elem;
+
 /**
  * Query ORDER BY element.
- * 
+ *
  * @version $Id: Order.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class Order implements Elem {
-    private static final long serialVersionUID = 4277517808022497240L;
+  private static final long serialVersionUID = 4277517808022497240L;
 
-    public enum Value {
-        ASC, DESC
-    }
+  public enum Value {
+      /** Ascending. */
+    ASC,
+    /** Descending. */
+    DESC
+  }
 
-    private final String name;
-    private final Value order;
+  /** Name. */
+  private final String name;
+  /** Order. */
+  private final Value order;
 
-    public Order(final String name, final Value order) {
-        this.name = name;
-        this.order = order;
-    }
+  /**
+   * @param aName Name
+   * @param anOrder Order
+   */
+  public Order(final String aName, final Value anOrder) {
+    this.name = aName;
+    this.order = anOrder;
+  }
 
-    public String getName() {
-        return name;
-    }
+  /**
+   * @return Name
+   */
+  public String getName() {
+    return name;
+  }
 
-    public Value getOrder() {
-        return order;
-    }
-
+  /**
+   * @return Order
+   */
+  public Value getOrder() {
+    return order;
+  }
 }

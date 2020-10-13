@@ -23,77 +23,84 @@ import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Properties;
 
-/** This class is used only for testing.
- * 
+/**
+ * This class is used only for testing.
+ *
  * @version $Id: MockCryptoToken.java 22132 2015-11-02 13:52:46Z mikekushner $
  */
 public class MockCryptoToken extends BaseCryptoToken {
 
-    private static final long serialVersionUID = -6136504057204777472L;
-    
-    private int id;
-   
+  private static final long serialVersionUID = -6136504057204777472L;
 
-    @Override
-    public void init(Properties properties, byte[] data, int id) throws Exception {
-        this.id = id;
-        // Do nothing
-    }
+  /** ID. */
+  private int id;
 
-    @Override
-    public int getId() {
-        return this.id;
-    }
-    
-    @Override
-    public Properties getProperties(){
-        return new Properties();
-    }
-   
-    @Override
-    public PrivateKey getPrivateKey(String alias){
-      return null;        
-    }
+  @Override
+  public void init(
+          final Properties properties, final byte[] data, final int anid)
+      throws Exception {
+    this.id = anid;
+    // Do nothing
+  }
 
-    @Override
-    public PublicKey getPublicKey(String alias){    
-      return null;        
-    }
+  @Override
+  public int getId() {
+    return this.id;
+  }
 
-    @Override
-    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {     
-    }
+  @Override
+  public Properties getProperties() {
+    return new Properties();
+  }
 
-    @Override
-    public void generateKeyPair( final String keySpec, final String alias) throws InvalidAlgorithmParameterException {
-    }
-    
-    @Override
-    public void generateKeyPair( final AlgorithmParameterSpec spec, final String alias) throws InvalidAlgorithmParameterException, CertificateException, IOException, CryptoTokenOfflineException {
-    }
+  @Override
+  public PrivateKey getPrivateKey(final String alias) {
+    return null;
+  }
 
-    @Override
-    public void generateKey(final String algorithm, final int keysize, final String alias) throws NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException, CryptoTokenOfflineException {
-    }
+  @Override
+  public PublicKey getPublicKey(final String alias) {
+    return null;
+  }
 
-    @Override
-    public void activate(char[] authenticationcode) {
-        // Do Nothing       
-    }
+  @Override
+  public void deleteEntry(final String alias)
+      throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+          IOException { }
 
-    @Override
-    public void deactivate() {
-       // Do Nothing
-    }
+  @Override
+  public void generateKeyPair(final String keySpec, final String alias)
+      throws InvalidAlgorithmParameterException { }
 
-    @Override
-    public byte[] getTokenData() {
-        return null;
-    }
+  @Override
+  public void generateKeyPair(
+      final AlgorithmParameterSpec spec, final String alias)
+      throws InvalidAlgorithmParameterException, CertificateException,
+          IOException, CryptoTokenOfflineException { }
 
-    @Override
-    public boolean permitExtractablePrivateKeyForTest() {
-        return doPermitExtractablePrivateKey();
-    }
+  @Override
+  public void generateKey(
+      final String algorithm, final int keysize, final String alias)
+      throws NoSuchAlgorithmException, NoSuchProviderException,
+          KeyStoreException, CryptoTokenOfflineException { }
 
+  @Override
+  public void activate(final char[] authenticationcode) {
+    // Do Nothing
+  }
+
+  @Override
+  public void deactivate() {
+    // Do Nothing
+  }
+
+  @Override
+  public byte[] getTokenData() {
+    return null;
+  }
+
+  @Override
+  public boolean permitExtractablePrivateKeyForTest() {
+    return doPermitExtractablePrivateKey();
+  }
 }

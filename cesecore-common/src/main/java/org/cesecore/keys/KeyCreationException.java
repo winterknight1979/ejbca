@@ -13,28 +13,38 @@
 package org.cesecore.keys;
 
 /**
- * This exception is thrown when an error is encountered when trying to create a key.
- * 
- * @version $Id: KeyCreationException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * This exception is thrown when an error is encountered when trying to create a
+ * key.
+ *
+ * @version $Id: KeyCreationException.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 public class KeyCreationException extends RuntimeException {
 
-    private static final long serialVersionUID = 6589133117806842102L;
+  private static final long serialVersionUID = 6589133117806842102L;
 
-    public KeyCreationException() {
+  /** default. */
+  public KeyCreationException() { }
 
-    }
+  /**
+   * @param arg0 Message
+   */
+  public KeyCreationException(final String arg0) {
+    super(arg0);
+  }
 
-    public KeyCreationException(String arg0) {
-        super(arg0);
-    }
+  /**
+   * @param arg0 cause
+   */
+  public KeyCreationException(final Throwable arg0) {
+    super(arg0);
+  }
 
-    public KeyCreationException(Throwable arg0) {
-        super(arg0);
-    }
-
-    public KeyCreationException(String arg0, Throwable arg1) {
-        super(arg0, arg1);
-    }
-
+  /**
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
+  public KeyCreationException(final String arg0, final Throwable arg1) {
+    super(arg0, arg1);
+  }
 }

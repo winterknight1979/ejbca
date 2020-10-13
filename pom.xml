@@ -30,6 +30,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 	<modules>
 		<!-- Shared resource bundle -->
 
+		<module>build-config</module>
 		<module>shared-resources</module>
 
 		<!-- CeSeCore JARs -->
@@ -699,6 +700,26 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<goalPrefix>spotbugs</goalPrefix>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.1.1</version>
+				<dependencies>
+				    <dependency>
+				        <groupId>goldeneyes.ejbca</groupId>
+				        <artifactId>build-config</artifactId>
+				        <version>1.0</version>
+				    </dependency>
+				</dependencies>
+				<configuration>
+					<suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
+					<suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+					<configLocation>checkstyle.xml</configLocation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<linkXRef>true</linkXRef>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -779,6 +800,13 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.1.1</version>
+				<configuration>
+					<suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
+					<suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+					<configLocation>checkstyle.xml</configLocation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<linkXRef>true</linkXRef>
+				</configuration>
 				<reportSets>
 					<reportSet>
 						<reports>

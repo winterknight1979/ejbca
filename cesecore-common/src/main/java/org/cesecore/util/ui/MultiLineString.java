@@ -15,29 +15,41 @@ package org.cesecore.util.ui;
 import java.io.Serializable;
 
 /**
- * Representation of a multi-line String (text area) for use with DynamicUiProperty.
- * 
- * Since the type of DynamicUiProperty determines how it should be rendered (for example in this
- * case a HTML input of type "textarea"), this class is needed as a distinction from a regular
- * String (that is assumed to be a single line).
- * 
+ * Representation of a multi-line String (text area) for use with
+ * DynamicUiProperty.
+ *
+ * <p>Since the type of DynamicUiProperty determines how it should be rendered
+ * (for example in this case a HTML input of type "textarea"), this class is
+ * needed as a distinction from a regular String (that is assumed to be a single
+ * line).
+ *
  * @version $Id: MultiLineString.java 23803 2016-07-06 15:40:37Z jeklund $
  */
 public class MultiLineString implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private String value;
+  /** Value. */
+  private String value;
 
-    public MultiLineString(final String value) {
-        this.value = value;
-    }
+  /**
+   * @param aValue Value
+   */
+  public MultiLineString(final String aValue) {
+    this.value = aValue;
+  }
 
-    public String getValue() {
-        return value;
-    }
+  /**
+   * @return Value
+   */
+  public String getValue() {
+    return value;
+  }
 
-    public void setValue(final String value) {
-        this.value = value;
-    }
+  /**
+   * @param aValue Value
+   */
+  public void setValue(final String aValue) {
+    this.value = aValue;
+  }
 }

@@ -15,22 +15,26 @@
 
 package org.cesecore.authentication.tokens;
 //
-//import java.util.Arrays;
+// import java.util.Arrays;
 //
-//import org.cesecore.authorization.user.matchvalues.ApiKeyAccessMatchValue;
+// import org.cesecore.authorization.user.matchvalues.ApiKeyAccessMatchValue;
 //
 //
-///**
-// * Meta data definition and ServiceLoader marker for {@link org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken}.
-// * 
-// * @version $Id: ApiKeyAuthenticationTokenMetaData.java 29044 2018-05-29 07:20:54Z henriks $
+/// **
+// * Meta data definition and ServiceLoader marker for
+//   {@link org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken}.
+// *
+// * @version $Id: ApiKeyAuthenticationTokenMetaData.java
+//            29044 2018-05-29 07:20:54Z henriks $
 // *
 // */
-//public class ApiKeyAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
+// public class ApiKeyAuthenticationTokenMetaData
+//        extends AuthenticationTokenMetaDataBase {
 //
 //    public static final String TOKEN_TYPE = "ApiKeyAuthenticationToken";
-//    
+//
 //    public ApiKeyAuthenticationTokenMetaData() {
-//        super(TOKEN_TYPE, Arrays.asList(ApiKeyAccessMatchValue.values()), true);
+//        super(TOKEN_TYPE, Arrays.asList(ApiKeyAccessMatchValue.values()),
+//                true);
 //    }
-//}
+// }

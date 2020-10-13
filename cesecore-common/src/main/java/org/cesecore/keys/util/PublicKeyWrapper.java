@@ -19,48 +19,52 @@ import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * Wrapper class for serializing PublicKey objects. 
- * 
- * @version $Id: PublicKeyWrapper.java 22566 2016-01-13 08:49:18Z mikekushner $
+ * Wrapper class for serializing PublicKey objects.
  *
+ * @version $Id: PublicKeyWrapper.java 22566 2016-01-13 08:49:18Z mikekushner $
  */
 public class PublicKeyWrapper implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    final byte[] encodedKey;
-    final String algorithm;
-    transient PublicKey publicKey;
+  /** Encoded. */
+  private final byte[] encodedKey;
+  /** Alg. */
+  private final String algorithm;
+  /** Key. */
+  private transient PublicKey publicKey;
 
-    public PublicKeyWrapper(final PublicKey publicKey) {
-        this.encodedKey = publicKey.getEncoded();
-        this.algorithm = publicKey.getAlgorithm();
+  /**
+   * @param aPublicKey Key
+   */
+  public PublicKeyWrapper(final PublicKey aPublicKey) {
+    this.encodedKey = aPublicKey.getEncoded();
+    this.algorithm = aPublicKey.getAlgorithm();
+  }
+
+  /** @return the decoded PublicKey object wrapped in this class. */
+  public PublicKey getPublicKey() {
+    if (publicKey == null) {
+      try {
+        KeyFactory keyFactory =
+            KeyFactory.getInstance(
+                algorithm, BouncyCastleProvider.PROVIDER_NAME);
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);
+        publicKey = keyFactory.generatePublic(keySpec);
+      } catch (NoSuchProviderException e) {
+        throw new IllegalStateException(
+            "BouncyCastle was not a known provider.", e);
+      } catch (NoSuchAlgorithmException e) {
+        throw new IllegalStateException(
+            "Algorithm " + algorithm + " was not known at deserialisation", e);
+      } catch (InvalidKeySpecException e) {
+        throw new IllegalStateException(
+            "The incorrect key specification was implemented.", e);
+      }
     }
-
-    /**
-     * 
-     * @return the decoded PublicKey object wrapped in this class.
-     * 
-     */
-    public PublicKey getPublicKey() {
-        if (publicKey == null) {
-            try {
-                KeyFactory keyFactory = KeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);
-                X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);
-                publicKey = keyFactory.generatePublic(keySpec);
-            } catch (NoSuchProviderException e) {
-                throw new IllegalStateException("BouncyCastle was not a known provider.", e);
-            } catch (NoSuchAlgorithmException e) {
-                throw new IllegalStateException("Algorithm " + algorithm + " was not known at deserialisation", e);
-            } catch (InvalidKeySpecException e) {
-                throw new IllegalStateException("The incorrect key specification was implemented.", e);
-            }
-        }
-        return publicKey;
-    }
-
+    return publicKey;
+  }
 }

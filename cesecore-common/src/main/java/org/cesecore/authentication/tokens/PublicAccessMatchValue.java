@@ -14,7 +14,6 @@ package org.cesecore.authentication.tokens;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
@@ -22,43 +21,52 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
  * @version $Id: PublicAccessMatchValue.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public enum PublicAccessMatchValue implements AccessMatchValue {
-    TRANSPORT_ANY(0),
-    TRANSPORT_PLAIN(1),
-    TRANSPORT_CONFIDENTIAL(2);
+  /** Any transport. */
+  TRANSPORT_ANY(0),
+  /** Plain transport. */
+  TRANSPORT_PLAIN(1),
+  /** Encrypted transport. */
+  TRANSPORT_CONFIDENTIAL(2);
 
-    private int numericValue;
+  /** Value. */
+  private int numericValue;
 
-    private PublicAccessMatchValue(int numericValue) {
-        this.numericValue = numericValue;
-    }
+  /**
+   * Set value.
+   *
+   * @param aNumericValue Value
+   */
+  PublicAccessMatchValue(final int aNumericValue) {
+    this.numericValue = aNumericValue;
+  }
 
-    @Override
-    public int getNumericValue() {
-        return numericValue;
-    }
+  @Override
+  public int getNumericValue() {
+    return numericValue;
+  }
 
-    @Override
-    public boolean isDefaultValue() {
-        return numericValue == TRANSPORT_ANY.numericValue;
-    }
+  @Override
+  public boolean isDefaultValue() {
+    return numericValue == TRANSPORT_ANY.numericValue;
+  }
 
-    @Override
-    public String getTokenType() {
-        return PublicAccessAuthenticationTokenMetaData.TOKEN_TYPE;
-    }
+  @Override
+  public String getTokenType() {
+    return PublicAccessAuthenticationTokenMetaData.TOKEN_TYPE;
+  }
 
-    @Override
-    public boolean isIssuedByCa() {
-        return false;
-    }
+  @Override
+  public boolean isIssuedByCa() {
+    return false;
+  }
 
-    @Override
-    public List<AccessMatchType> getAvailableAccessMatchTypes() {
-        return Arrays.asList();
-    }
-    
-    @Override
-    public String normalizeMatchValue(final String value) {
-        return null; // does not have a value
-    }
+  @Override
+  public List<AccessMatchType> getAvailableAccessMatchTypes() {
+    return Arrays.asList();
+  }
+
+  @Override
+  public String normalizeMatchValue(final String value) {
+    return null; // does not have a value
+  }
 }

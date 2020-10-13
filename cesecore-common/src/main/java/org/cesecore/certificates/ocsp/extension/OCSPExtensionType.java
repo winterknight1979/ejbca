@@ -14,29 +14,27 @@
 package org.cesecore.certificates.ocsp.extension;
 
 /**
- * Context in which the {@link OCSPExtension} may be used
- * 
+ * Context in which the {@link OCSPExtension} may be used.
+ *
  * @version $Id: OCSPExtensionType.java 28882 2018-05-08 18:19:23Z anatom $
  */
 public enum OCSPExtensionType {
 
-    /**
-     * A Request Extension may be added to the TBSRequest.
-     */
-    REQUEST,
+  /** A Request Extension may be added to the TBSRequest. */
+  REQUEST,
 
-    /**
-     * A SingleRequest Extension may be added to a Request in the TBSRequest.requestList.
-     */
-    SINGLE_REQUEST,
+  /**
+   * A SingleRequest Extension may be added to a Request in the
+   * TBSRequest.requestList.
+   */
+  SINGLE_REQUEST,
 
-    /**
-     * A Response Extension may be added to the ResponseData.
-     */
-    RESPONSE,
+  /** A Response Extension may be added to the ResponseData. */
+  RESPONSE,
 
-    /**
-     * A SingleResponse Extension may be added to a SingleResponse in the ResponseData.responses.
-     */
-    SINGLE_RESPONSE
+  /**
+   * A SingleResponse Extension may be added to a SingleResponse in the
+   * ResponseData.responses.
+   */
+  SINGLE_RESPONSE
 }

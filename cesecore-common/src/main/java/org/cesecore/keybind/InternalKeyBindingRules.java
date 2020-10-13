@@ -18,45 +18,70 @@ import java.util.Map;
 
 /**
  * Authorization Rules for InternalKeyBindings.
- * 
- * @version $Id: InternalKeyBindingRules.java 19902 2014-09-30 14:32:24Z anatom $
+ *
+ * @version $Id: InternalKeyBindingRules.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 public enum InternalKeyBindingRules {
-    BASE("/internalkeybinding", ""),
-    DELETE(BASE.resource() + "/delete", "DELETE"),
-    MODIFY(BASE.resource() + "/modify", "MODIFY"),
-    VIEW(BASE.resource() + "/view", "VIEW");
+    /** Base. */
+  BASE("/internalkeybinding", ""),
+  /** Delete. */
+  DELETE(BASE.resource() + "/delete", "DELETE"),
+  /** Modify. */
+  MODIFY(BASE.resource() + "/modify", "MODIFY"),
+  /** View. */
+  VIEW(BASE.resource() + "/view", "VIEW");
 
-    private static final Map<String, InternalKeyBindingRules> reverseResourceLookup;
-    
-    static {
-        reverseResourceLookup = new HashMap<String, InternalKeyBindingRules>();
-        for(InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {
-            reverseResourceLookup.put(rule.resource(), rule);
-        }
-    }
-    
-    private final String resource;
-    private final String reference;
-    
-    private InternalKeyBindingRules(String resource, String reference) {
-        this.resource = resource;
-        this.reference = reference;
-    }
+    /** Reverse lookup table. */
+  private static final Map<String, InternalKeyBindingRules>
+      REV_RESOURCE_LOOKUP;
 
-    public String resource() {
-        return this.resource;
+  static {
+    REV_RESOURCE_LOOKUP = new HashMap<String, InternalKeyBindingRules>();
+    for (InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {
+      REV_RESOURCE_LOOKUP.put(rule.resource(), rule);
     }
+  }
 
-    public String toString() {
-        return this.resource;
-    }
-    
-    public String getReference() {
-        return reference;
-    }
-    
-    public static InternalKeyBindingRules getFromResource(String resource) {
-        return reverseResourceLookup.get(resource);
-    }
+  /** Resource. */
+  private final String resource;
+  /** Ref. */
+  private final String reference;
+
+  /**
+   * @param aResource resource
+   * @param aReference ref
+   */
+  InternalKeyBindingRules(
+          final String aResource, final String aReference) {
+    this.resource = aResource;
+    this.reference = aReference;
+  }
+
+  /**
+   * @return resource
+   */
+  public String resource() {
+    return this.resource;
+  }
+
+  @Override
+  public String toString() {
+    return this.resource;
+  }
+
+  /**
+   * @return ref
+   */
+  public String getReference() {
+    return reference;
+  }
+
+  /**
+   * @param resource resource
+   * @return rules
+   */
+  public static InternalKeyBindingRules getFromResource(final String resource) {
+    return REV_RESOURCE_LOOKUP.get(resource);
+  }
 }

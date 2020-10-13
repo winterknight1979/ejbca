@@ -16,27 +16,33 @@ import java.io.Serializable;
 import java.security.Principal;
 
 /**
- * The representation of a user name.  
- * 
+ * The representation of a user name.
+ *
  * @version $Id: UsernamePrincipal.java 18305 2013-12-16 13:59:56Z anatom $
  */
 public class UsernamePrincipal implements Principal, Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	final String username;
-	
-	public UsernamePrincipal(final String username) {
-		this.username = username;
-	}
-	
-	@Override
-	public String getName() {
-		return username;
-	}
+  /** User. */
+  private final String username;
 
-	@Override
-	public String toString() {
-		return username;
-	}
+  /**
+   * Constructor.
+   *
+   * @param aUsername User
+   */
+  public UsernamePrincipal(final String aUsername) {
+    this.username = aUsername;
+  }
+
+  @Override
+  public String getName() {
+    return username;
+  }
+
+  @Override
+  public String toString() {
+    return username;
+  }
 }

@@ -496,7 +496,7 @@ public class CertDistServlet extends HttpServlet {
                     } else {
                         pout.println("<h1>REVOKED</h1>");
                         pout.println("Certificate with issuer '"+HTMLTools.htmlescape(dn)+"' and serial number '"+HTMLTools.htmlescape(serno)+"' is revoked.");
-                        pout.println("RevocationDate is '"+revinfo.revocationDate+"' and reason '"+revinfo.revocationReason+"'.");
+                        pout.println("RevocationDate is '"+revinfo.getRevocationDate()+"' and reason '"+revinfo.getRevocationReason()+"'.");
                     }
                 } else {
                     pout.println("<h1>CERTIFICATE DOES NOT EXIST</h1>");

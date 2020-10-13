@@ -9,37 +9,44 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca.extendedservices;
 
-/** Error processing the extended CA Service request
- * 
- * @version $Id: ExtendedCAServiceRequestException.java 17625 2013-09-20 07:12:06Z netmackan $
+/**
+ * Error processing the extended CA Service request.
+ *
+ * @version $Id: ExtendedCAServiceRequestException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class ExtendedCAServiceRequestException extends java.lang.Exception {
-    
-    private static final long serialVersionUID = -7017580940361778607L;
 
-    /**
-     * Creates a new instance of <code>ExtendedCAServiceRequestException</code> without detail message.
-     */
-    public ExtendedCAServiceRequestException() {
-        super();
-    }
-        
-    /**
-     * Constructs an instance of <code>ExtendedCAServiceRequestException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public ExtendedCAServiceRequestException(String msg) {
-        super(msg);
-    }
+  private static final long serialVersionUID = -7017580940361778607L;
 
-    /**
-     * Constructs an instance of <code>ExtendedCAServiceRequestException</code> with the specified cause.
-     * @param e the detail message.
-     */
-    public ExtendedCAServiceRequestException(Exception e) {
-        super(e);
-    }
+  /**
+   * Creates a new instance of <code>ExtendedCAServiceRequestException</code>
+   * without detail message.
+   */
+  public ExtendedCAServiceRequestException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>ExtendedCAServiceRequestException</code>
+   * with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ExtendedCAServiceRequestException(final String msg) {
+    super(msg);
+  }
+
+  /**
+   * Constructs an instance of <code>ExtendedCAServiceRequestException</code>
+   * with the specified cause.
+   *
+   * @param e the detail message.
+   */
+  public ExtendedCAServiceRequestException(final Exception e) {
+    super(e);
+  }
 }

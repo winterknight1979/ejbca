@@ -60,9 +60,9 @@ public class LdapNameStyle extends BCStyle {
         DefaultStringStringLookUp = new Hashtable<String, String>();
         
         // Copy from CeSecore
-        DefaultSymbols.putAll(CeSecoreNameStyle.DefaultSymbols);
-        DefaultLookUp.putAll(CeSecoreNameStyle.DefaultLookUp);
-        DefaultStringStringLookUp.putAll(CeSecoreNameStyle.DefaultStringStringLookUp);
+        DefaultSymbols.putAll(CeSecoreNameStyle.DEFAULT_SYMBOLS);
+        DefaultLookUp.putAll(CeSecoreNameStyle.DEFAULT_LOOKUP);
+        DefaultStringStringLookUp.putAll(CeSecoreNameStyle.DEFAULT_STRING_STRING_LOKUP);
         
         // Apply differences in LDAP
         DefaultSymbols.put(SN, "serialNumber");

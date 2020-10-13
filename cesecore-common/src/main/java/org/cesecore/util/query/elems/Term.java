@@ -15,32 +15,51 @@ package org.cesecore.util.query.elems;
 import org.cesecore.util.query.Elem;
 
 /**
- * Query term. Each term is composed as followed: [name] [operator] [value] 
- * 
+ * Query term. Each term is composed as followed: [name] [operator] [value]
+ *
  * @version $Id: Term.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public final class Term implements Elem {
 
-    private static final long serialVersionUID = 3569353821030638847L;
-    private final String name;
-    private final Object value;
-    private final RelationalOperator operator;
+  private static final long serialVersionUID = 3569353821030638847L;
+  /** Name. */
+  private final String name;
+  /** Value. */
+  private final Object value;
+  /** Op. */
+  private final RelationalOperator operator;
 
-    public Term(final RelationalOperator operator, final String name, final Object value) {
-        this.name = name;
-        this.value = value;
-        this.operator = operator;
-    }
+  /**
+   * @param anOperator Op
+   * @param aName Name
+   * @param aValue Value
+   */
+  public Term(
+      final RelationalOperator anOperator,
+      final String aName,
+      final Object aValue) {
+    this.name = aName;
+    this.value = aValue;
+    this.operator = anOperator;
+  }
 
-    public String getName() {
-        return name;
-    }
 
-    public Object getValue() {
-        return value;
-    }
+  /**
+   * @return name
+   */
+  public String getName() {
+    return name;
+  }
 
-    public RelationalOperator getOperator() {
-        return operator;
-    }
+  /** @return Value. */
+  public Object getValue() {
+    return value;
+  }
+
+  /**
+   * @return Operator.
+   */
+  public RelationalOperator getOperator() {
+    return operator;
+  }
 }

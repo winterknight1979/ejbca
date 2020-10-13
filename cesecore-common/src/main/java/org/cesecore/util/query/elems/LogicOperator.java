@@ -11,9 +11,10 @@
  *                                                                       *
  *************************************************************************/
 package org.cesecore.util.query.elems;
-/**
- * @version $Id: LogicOperator.java 17625 2013-09-20 07:12:06Z netmackan $
- */
+/** @version $Id: LogicOperator.java 17625 2013-09-20 07:12:06Z netmackan $ */
 public enum LogicOperator {
-    AND, OR
+    /** AND. */
+  AND,
+  /** OR. */
+  OR
 }

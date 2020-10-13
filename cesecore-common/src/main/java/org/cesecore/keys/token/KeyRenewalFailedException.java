@@ -14,30 +14,38 @@ package org.cesecore.keys.token;
 
 /**
  * Thrown any time the key renewal process fails.
- * 
- * @version $Id: KeyRenewalFailedException.java 19902 2014-09-30 14:32:24Z anatom $
  *
+ * @version $Id: KeyRenewalFailedException.java 19902 2014-09-30 14:32:24Z
+ *     anatom $
  */
 public class KeyRenewalFailedException extends Exception {
 
-    private static final long serialVersionUID = -7743705042076215320L;
-    
-    public KeyRenewalFailedException() {
-        super();
-    }
+  private static final long serialVersionUID = -7743705042076215320L;
 
-    public KeyRenewalFailedException(String arg0, Throwable arg1) {
-        super(arg0, arg1);
-    }
+  /** Default. */
+  public KeyRenewalFailedException() {
+    super();
+  }
 
-    public KeyRenewalFailedException(String arg0) {
-        super(arg0);
-    }
+  /**
+   * @param arg0 message
+   * @param arg1 cause
+   */
+  public KeyRenewalFailedException(final String arg0, final Throwable arg1) {
+    super(arg0, arg1);
+  }
 
-    public KeyRenewalFailedException(Throwable arg0) {
-        super(arg0);
-    }
+  /**
+   * @param arg0 message
+   */
+  public KeyRenewalFailedException(final String arg0) {
+    super(arg0);
+  }
 
-
-
+  /**
+   * @param arg0 cause
+   */
+  public KeyRenewalFailedException(final Throwable arg0) {
+    super(arg0);
+  }
 }

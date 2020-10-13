@@ -40,474 +40,659 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.certificateprofile.CertificatePolicy;
 import org.cesecore.certificates.certificateprofile.PKIDisclosureStatement;
 import org.junit.Test;
 
 /**
- * 
  * @version $Id: SecureXMLDecoderTest.java 34163 2020-01-02 15:00:17Z samuellb $
  */
 public class SecureXMLDecoderTest {
 
-    private static final Logger log = Logger.getLogger(SecureXMLDecoderTest.class);
-    
-    @Test
-    public void testElementaryTypes() throws IOException {
-        log.trace(">testElementaryTypes");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\"></java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<null/>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<char>A</char>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<char>&amp;</char>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<int>-12345</int>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<float>-12.34</float>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<string>hello</string>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<boolean>true</boolean>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<object class=\"java.util.ArrayList\">\n</object>\n</java>");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<object class=\"java.util.ArrayList\">\n" +
-                    "<void method=\"add\">\n<int>123</int>\n</void>\n" +
-                    "<void method=\"add\">\n<int>456</int>\n</void>\n" +
-                    "</object>\n</java>");
-        log.trace("<testElementaryTypes");
-    }
-    
-    /**
-     * Test deserialization of Lists and Maps.
-     * @throws IOException fail
-     */
-    @Test
-    public void testBasicCollections() throws IOException {
-        log.trace(">testBasicCollections");
-        // Empty list
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<object class=\"java.util.ArrayList\">\n</object>\n</java>");
-        // List of two integers
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<object class=\"java.util.ArrayList\">\n" +
-                    "<void method=\"add\">\n<int>123</int>\n</void>\n" +
-                    "<void method=\"add\">\n<int>456</int>\n</void>\n" +
-                    "</object>\n</java>");
-        // Map from int to string
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<object class=\"java.util.LinkedHashMap\">\n" +
-                "<void method=\"put\">\n<int>-1</int>\n<string>A</string>\n</void>\n" +
-                "<void method=\"put\">\n<int>10</int>\n<string>B</string>\n</void>\n" +
-                "</object>\n<object class=\"java.util.LinkedHashSet\">\n" +
-                "<void method=\"add\">\n<int>-1</int>\n</void>\n" +
-                "<void method=\"add\">\n<int>3</int>\n</void>\n" +
-                "</object>\n</java>");
-        log.trace("<testBasicCollections");
-    }
-    
-    @Test
-    public void testMultipleObjects() throws IOException {
-        log.trace(">testMultipleObjects");
-        decodeCompare("<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<int>-12345</int>\n<string>ABC</string>\n</java>");
-        log.trace(">testMultipleObjects");
-    }
-    
-    private static enum MockEnum {
-        FOO;
-    }
-    
-    /**
-     * Tests encoding and decoding an enum 
-     * @throws IOException fail
-     */
-    @Test
-    public void testEnum() throws IOException {        
-        final Map<Object,Object> root = new LinkedHashMap<>();
-        root.put("testEnum", MockEnum.FOO);
-        // Encode
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final XMLEncoder encoder = new XMLEncoder(baos);
-        encoder.writeObject(root);
-        encoder.close();      
-        // Try to decode it and compare
-        decodeCompare(baos.toByteArray());
-    }
-    
-    /**
-     * Encodes a complex value with the standard XMLEncoder and tries to decode it again.
-     * @throws IOException fail
-     */
-    @Test
-    public void testComplexEncodeDecode() throws IOException {
-        log.trace(">testComplexEncodeDecode");
-        
-        final Map<Object,Object> root = new LinkedHashMap<>();
-        root.put("testfloat", 12.3);
-        root.put("testnull", null);
-        root.put("testutf8string", "Test ÅÄÖ \u4f60\u597d");
-        root.put("teststrangechars", "\0001\0002fooString");
-        root.put("testchar1", '<');
-        root.put("testchar2", '\\');
-        root.put("testchar3", 'å');
-        root.put("testbool", false);
-        root.put("testemptyset", Collections.EMPTY_SET);
-        root.put("testemptylist", Collections.emptyList());
-        root.put("testClass", SecureXMLDecoder.class);
-        final List<Object> unmodifiable = new ArrayList<>();
-        unmodifiable.add('A');
-        unmodifiable.add('B');
-        root.put("testemptylist", Collections.unmodifiableList(unmodifiable));
-        root.put("testbiginteger", new BigInteger("123456789123456789"));
-        root.put("testbyte", Byte.valueOf((byte)123));
-        root.put("testshort", Short.valueOf((short)12345));
-        final Set<Object> set = new HashSet<>();
-        set.add("Test");
-        set.add(12345);
-        set.add(new ArrayList<String>());
-        root.put("testhashset", set);
-        root.put("testbytearray", new byte[] { -128, 0, 123, 45, 67, 89, 127 });
-        root.put("teststringarray", new String[] { "Hello", "World" });
-        final Map<Object,Object> map = new LinkedHashMap<>();
-        map.put(123, "ABC");
-        root.put("testmaparray", new Map[] { map });
-        root.put("testbooleanarray", new boolean[] { true, false, true });
-        root.put("testnestedarray", new byte[][] { new byte[] { 1, 2 }, new byte[] { 3, 4 } });
-        final Map<String, Integer> treeMap = new TreeMap<>(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
+    /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(SecureXMLDecoderTest.class);
+  /**
+   * Test.
+   * @throws IOException fail
+   */
+  @Test
+  public void testElementaryTypes() throws IOException {
+    LOG.trace(">testElementaryTypes");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\"></java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<null/>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<char>A</char>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<char>&amp;</char>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<int>-12345</int>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<float>-12.34</float>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<string>hello</string>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<boolean>true</boolean>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<object class=\"java.util.ArrayList\">\n"
+            + "</object>\n"
+            + "</java>");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<object class=\"java.util.ArrayList\">\n"
+            + "<void method=\"add\">\n"
+            + "<int>123</int>\n"
+            + "</void>\n"
+            + "<void method=\"add\">\n"
+            + "<int>456</int>\n"
+            + "</void>\n"
+            + "</object>\n"
+            + "</java>");
+    LOG.trace("<testElementaryTypes");
+  }
+
+  /**
+   * Test deserialization of Lists and Maps.
+   *
+   * @throws IOException fail
+   */
+  @Test
+  public void testBasicCollections() throws IOException {
+    LOG.trace(">testBasicCollections");
+    // Empty list
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<object class=\"java.util.ArrayList\">\n"
+            + "</object>\n"
+            + "</java>");
+    // List of two integers
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<object class=\"java.util.ArrayList\">\n"
+            + "<void method=\"add\">\n"
+            + "<int>123</int>\n"
+            + "</void>\n"
+            + "<void method=\"add\">\n"
+            + "<int>456</int>\n"
+            + "</void>\n"
+            + "</object>\n"
+            + "</java>");
+    // Map from int to string
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<object class=\"java.util.LinkedHashMap\">\n"
+            + "<void method=\"put\">\n"
+            + "<int>-1</int>\n"
+            + "<string>A</string>\n"
+            + "</void>\n"
+            + "<void method=\"put\">\n"
+            + "<int>10</int>\n"
+            + "<string>B</string>\n"
+            + "</void>\n"
+            + "</object>\n"
+            + "<object class=\"java.util.LinkedHashSet\">\n"
+            + "<void method=\"add\">\n"
+            + "<int>-1</int>\n"
+            + "</void>\n"
+            + "<void method=\"add\">\n"
+            + "<int>3</int>\n"
+            + "</void>\n"
+            + "</object>\n"
+            + "</java>");
+    LOG.trace("<testBasicCollections");
+  }
+  /**
+   * Test.
+   * @throws IOException fail
+   */
+  @Test
+  public void testMultipleObjects() throws IOException {
+    LOG.trace(">testMultipleObjects");
+    decodeCompare(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<int>-12345</int>\n"
+            + "<string>ABC</string>\n"
+            + "</java>");
+    LOG.trace(">testMultipleObjects");
+  }
+
+  private enum MockEnum {
+          /** singleton. */
+      FOO;
+  }
+
+  /**
+   * Tests encoding and decoding an enum.
+   *
+   * @throws IOException fail
+   */
+  @Test
+  public void testEnum() throws IOException {
+    final Map<Object, Object> root = new LinkedHashMap<>();
+    root.put("testEnum", MockEnum.FOO);
+    // Encode
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    final XMLEncoder encoder = new XMLEncoder(baos);
+    encoder.writeObject(root);
+    encoder.close();
+    // Try to decode it and compare
+    decodeCompare(baos.toByteArray());
+  }
+
+  /**
+   * Encodes a complex value with the standard XMLEncoder and tries to decode it
+   * again.
+   *
+   * @throws IOException fail
+   */
+  @Test
+  public void testComplexEncodeDecode() throws IOException {
+    LOG.trace(">testComplexEncodeDecode");
+
+    final Map<Object, Object> root = new LinkedHashMap<>();
+    root.put("testfloat", 12.3);
+    root.put("testnull", null);
+    root.put("testutf8string", "Test ÅÄÖ \u4f60\u597d");
+    root.put("teststrangechars", "\0001\0002fooString");
+    root.put("testchar1", '<');
+    root.put("testchar2", '\\');
+    root.put("testchar3", 'å');
+    root.put("testbool", false);
+    root.put("testemptyset", Collections.EMPTY_SET);
+    root.put("testemptylist", Collections.emptyList());
+    root.put("testClass", SecureXMLDecoder.class);
+    final List<Object> unmodifiable = new ArrayList<>();
+    unmodifiable.add('A');
+    unmodifiable.add('B');
+    root.put("testemptylist", Collections.unmodifiableList(unmodifiable));
+    root.put("testbiginteger", new BigInteger("123456789123456789"));
+    root.put("testbyte", Byte.valueOf((byte) 123));
+    root.put("testshort", Short.valueOf((short) 12345));
+    final Set<Object> set = new HashSet<>();
+    set.add("Test");
+    set.add(12345);
+    set.add(new ArrayList<String>());
+    root.put("testhashset", set);
+    root.put("testbytearray", new byte[] {-128, 0, 123, 45, 67, 89, 127});
+    root.put("teststringarray", new String[] {"Hello", "World"});
+    final Map<Object, Object> map = new LinkedHashMap<>();
+    map.put(123, "ABC");
+    root.put("testmaparray", new Map[] {map});
+    root.put("testbooleanarray", new boolean[] {true, false, true});
+    root.put(
+        "testnestedarray", new byte[][] {new byte[] {1, 2}, new byte[] {3, 4}});
+    final Map<String, Integer> treeMap =
+        new TreeMap<>(
+            new Comparator<String>() {
+              @Override
+              public int compare(final String o1, final String o2) {
                 return o1.hashCode() - o2.hashCode();
-            }
-        });
-        root.put("testdate", new Date(1457949109000L));
-        root.put("testproperties0", new Properties());
-        final Properties props1 = new Properties();
-        props1.put("test.something", "value");
-        root.put("testproperties1", props1);
-        final Properties propsDefaults = new Properties();
-        propsDefaults.put("test.something1", "default1");
-        propsDefaults.put("test.something2", "default2");
-        final Properties props2 = new Properties(propsDefaults);
-        props2.put("test.something1", "override");
-        root.put("testproperties2", props2);
-        treeMap.put("aaa", 1);
-        treeMap.put("bbb", 2);
-        treeMap.put("ccc", 3);
-        treeMap.put("ddd", 4);
-        treeMap.put("eee", 5);
-        root.put("testtreemap", treeMap);
-        
-        final List<Object> list = new ArrayList<>(2);
-        final Map<String,Long> nested = new HashMap<>();
-        nested.put("testlong", Long.valueOf(Long.MAX_VALUE));
-        list.add(nested);
-        root.put("testlist", list);
-        
-        final Map<Object,Object> propmap = new HashMap<>();
-        root.put("b64getmap", new Base64GetHashMap(propmap));
-        root.put("b64putmap", new Base64PutHashMap(propmap));
-        
-        root.put("certpolicy", new CertificatePolicy("1.2.3.4", "Finders keepers!", "http://example.com/policy"));
-        
-        // Base64PutHashMap
-        
-        // Encode
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final XMLEncoder encoder = new XMLEncoder(baos);
-        encoder.writeObject(root);
-        encoder.close();
-        
-        // Try to decode it and compare
-        decodeCompare(baos.toByteArray());
-        
-        log.trace("<testComplexEncodeDecode");
-    }
-    
-    private static final class MockObject {
-        private Integer integerValue;
-        private int intValue;
-        private boolean booleanValue;
-        public Integer getIntegerValue() { return integerValue; }
-        public void setIntegerValue(final Integer integerValue) { this.integerValue = integerValue; }
-        public int getIntValue() { return intValue; }
-        public void setIntValue(int intValue) { this.intValue = intValue; }
-        public boolean getBooleanValue() { return booleanValue; }
-        public void setBooleanValue(boolean booleanValue) { this.booleanValue = booleanValue; }
+              }
+            });
+    root.put("testdate", new Date(1457949109000L));
+    root.put("testproperties0", new Properties());
+    final Properties props1 = new Properties();
+    props1.put("test.something", "value");
+    root.put("testproperties1", props1);
+    final Properties propsDefaults = new Properties();
+    propsDefaults.put("test.something1", "default1");
+    propsDefaults.put("test.something2", "default2");
+    final Properties props2 = new Properties(propsDefaults);
+    props2.put("test.something1", "override");
+    root.put("testproperties2", props2);
+    treeMap.put("aaa", 1);
+    treeMap.put("bbb", 2);
+    treeMap.put("ccc", 3);
+    treeMap.put("ddd", 4);
+    treeMap.put("eee", 5);
+    root.put("testtreemap", treeMap);
+
+    final List<Object> list = new ArrayList<>(2);
+    final Map<String, Long> nested = new HashMap<>();
+    nested.put("testlong", Long.valueOf(Long.MAX_VALUE));
+    list.add(nested);
+    root.put("testlist", list);
+
+    final Map<Object, Object> propmap = new HashMap<>();
+    root.put("b64getmap", new Base64GetHashMap(propmap));
+    root.put("b64putmap", new Base64PutHashMap(propmap));
+
+    root.put(
+        "certpolicy",
+        new CertificatePolicy(
+            "1.2.3.4", "Finders keepers!", "http://example.com/policy"));
+
+    // Base64PutHashMap
+
+    // Encode
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    final XMLEncoder encoder = new XMLEncoder(baos);
+    encoder.writeObject(root);
+    encoder.close();
+
+    // Try to decode it and compare
+    decodeCompare(baos.toByteArray());
+
+    LOG.trace("<testComplexEncodeDecode");
+  }
+
+  private static final class MockObject {
+      /** Int as class. */
+    private Integer integerValue;
+    /** Int. */
+    private int intValue;
+    /** bool. */
+    private boolean booleanValue;
+
+    public Integer getIntegerValue() {
+      return integerValue;
     }
 
-    /** Tests properties with primitive types 
-     * @throws IOException fail */
-    @Test
-    public void testPrimitiveTypeProperty() throws IOException {
-        log.trace(">testPrimitiveTypeProperty");
-        // Given
-        final MockObject obj = new MockObject();
-        obj.setIntegerValue(123);
-        obj.setIntValue(456);
-        obj.setBooleanValue(true);
-        // When
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final XMLEncoder encoder = new XMLEncoder(baos)) {
-            encoder.writeObject(obj);
-        }
-        decodeCompare(baos.toByteArray());
-        log.trace("<testPrimitiveTypeProperty");
-    }
-    
-    /** Tests property with null value 
-     * @throws IOException fail */
-    @Test
-    public void testNullProperty() throws IOException {
-        log.trace(">testNullProperty");
-        // Given
-        final CertificatePolicy certPolicy = new CertificatePolicy("2.999.123", null, null);
-        // When
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final XMLEncoder encoder = new XMLEncoder(baos)) {
-            encoder.writeObject(certPolicy);
-        }
-        decodeCompare(baos.toByteArray());
-        log.trace("<testNullProperty");
+    public void setIntegerValue(final Integer anIntegerValue) {
+      this.integerValue = anIntegerValue;
     }
 
-    /** Tests decoding of an empty object 
-     * @throws IOException fail */
-    @Test
-    public void testEmptyObject() throws IOException {
-        log.trace(">testEmptyObject");
-        // Given
-        final CertificatePolicy certPolicy = new CertificatePolicy(null, null, null);
-        // When
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final XMLEncoder encoder = new XMLEncoder(baos)) {
-            encoder.writeObject(certPolicy);
-        }
-        decodeCompare(baos.toByteArray());
-        log.trace("<testEmptyObject");
+    public int getIntValue() {
+      return intValue;
     }
 
-    /** Tests properties with referenced object 
-     * @throws IOException fail */
-    @Test
-    public void testReferencedObject() throws IOException {
-        log.trace(">testReferencedObject");
-        // Given
-        final PKIDisclosureStatement obj = new PKIDisclosureStatement("http://example.com", "sv");
-        final Map<String,Object> map = new LinkedHashMap<>();
-        map.put("A", obj);
-        map.put("B", obj);
-        // When
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final XMLEncoder encoder = new XMLEncoder(baos)) {
-            encoder.writeObject(map);
-        }
-        if (log.isTraceEnabled()) {
-            log.trace("Encoded:\n" + baos.toString("UTF-8"));
-        }
-        final Map<?,?> decodedMap;
-        try (SecureXMLDecoder securedec = new SecureXMLDecoder(new ByteArrayInputStream(baos.toByteArray()))) {
-            decodedMap = (Map<?,?>) securedec.readObject();
-        }
-        // Then
-        assertNotNull("Decoded map was null.", decodedMap);
-        assertEquals("Object was not equal after decoding.", obj, decodedMap.get("A"));
-        assertSame("Reference was not same.", decodedMap.get("A"), decodedMap.get("B"));
-        log.trace("<testReferencedObject");
+    public void setIntValue(final int anIntValue) {
+      this.intValue = anIntValue;
     }
 
-    @Test
-    public void testNotAllowedType() {
-        log.trace(">testNotAllowedType");
-        
-        // Encode
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final XMLEncoder encoder = new XMLEncoder(baos);
-        encoder.writeObject(new Random()); // java.util.Random is serializable, but isn't whitelisted
-        encoder.close();
-        
-        decodeBad(baos.toByteArray());
-        
-        log.trace("<testNotAllowedType");
-    }
-    
-    @Test
-    public void testDecodeUnknownClass() {
-        final Map<Object,Object> root = new LinkedHashMap<>();
-
-        root.put("testClass", Object.class);
-        
-        // Encode
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final XMLEncoder encoder = new XMLEncoder(baos);
-        encoder.writeObject(root);
-        encoder.close();
-        
-        // Try to decode it and compare
-        try {
-            decodeCompare(baos.toByteArray());
-            fail("Test should have failed when decoding an unauthorized class.");
-        } catch (IOException e) {
-            
-        }
-
-    }
-    
-    @Test
-    public void testNotAllowedMethod() {
-        log.trace(">testNotAllowedMethod");
-        
-        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\" class=\"java.beans.XMLDecoder\">\n<object class=\"java.util.ArrayList\">\n" +
-                "<void method=\"add\">\n<int>123</int>\n</void>\n" +
-                "<void method=\"remove\">\n<int>0</int>\n</void>\n" +
-                "</object>\n</java>";
-        decodeBad(xml.getBytes());
-        
-        log.trace("<testNotAllowedMethod");
-    }
-    
-    private void decodeBad(final byte[] xml) {
-        if (log.isTraceEnabled()) {
-            log.trace(">decodeBad(" + new String(xml) + ")");
-        }
-        
-        try (XMLDecoder xmldec = new XMLDecoder(new ByteArrayInputStream(xml))) {
-            xmldec.readObject();
-            // Should succeed (XMLDecoder is insecure)
-        }
-        
-        try (SecureXMLDecoder securedec = new SecureXMLDecoder(new ByteArrayInputStream(xml))) {
-            securedec.readObject();
-            fail("Should not accept arbitrary classes/methods");
-        } catch (IOException e) {
-            // NOPMD: Expected
-        }
-        
-        log.trace("<decodeBad");
-    }
-    
-    /**
-     * Decodes an XML string with both the standard XMLDecoder and with SecureXMLDecoder, and compares the resulting objects.
-     * @param xml fail
-     * @throws IOException fail
-     */
-    private void decodeCompare(final String xml) throws IOException {
-        decodeCompare(xml.getBytes());
-    }
-    
-    private void decodeCompare(final byte[] xml) throws IOException {
-        if (log.isTraceEnabled()) {
-            log.trace(">decodeCompare(" + new String(xml) + ")");
-        }
-        
-        final List<Object> expectedObjs = new ArrayList<>();
-        final List<Object> actualObjs = new ArrayList<>();
-        
-        try (XMLDecoder xmldec = new XMLDecoder(new ByteArrayInputStream(xml))) {
-            int i = 1;
-            while (true) {
-                log.debug("Reading object " + (i++) + " from the standard JDK XMLDecoder");
-                expectedObjs.add(xmldec.readObject());
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // NOPMD: Expected, happens when we reach the end
-        }
-        
-        try (SecureXMLDecoder securedec = new SecureXMLDecoder(new ByteArrayInputStream(xml))) {
-            int i = 1;
-            while (true) {
-                log.debug("Reading object " + (i++) + " from SecureXMLDecoder");
-                actualObjs.add(securedec.readObject());
-            }
-        } catch (EOFException e) {
-            // NOPMD: Expected, happens when we reach the end
-        }
-        
-        // Compare the results
-        assertEquals("Number of objects decoded from XML differ.", expectedObjs.size(), actualObjs.size());
-        
-        final int count = expectedObjs.size();
-        log.debug("Comparing " + count + " objects");
-        for (int i = 0; i < count; i++) {
-            final Object expected = expectedObjs.get(i);
-            final Object actual = actualObjs.get(i);
-            compareObjects(expected, actual);
-        }
-        
-        log.trace("<decodeCompare");
+    public boolean getBooleanValue() {
+      return booleanValue;
     }
 
-    private void compareObjects(final Object expected, final Object actual) {
-        if (log.isTraceEnabled()) {
-            log.trace(">compareObjects(" + expected + ", " + actual + ")");
-        }
-        
-        if (expected == null) {
-            assertNull("Deserialized value should have been null", actual);
-            return;
-        }
-        
-        assertNotNull("Deserialized value should NOT be null", actual);
-        
-        assertEquals("Class of deserialized value differs.", expected.getClass(), actual.getClass());
-        
-        if (expected instanceof List) {
-            final List<?> expectedList = (List<?>)expected;
-            final List<?> actualList = (List<?>)actual;
-            assertEquals("Number of elements in lists differ.", expectedList.size(), actualList.size());
-            
-            final Iterator<?> expectedIter = expectedList.iterator();
-            final Iterator<?> actualIter = actualList.iterator();
-            while (expectedIter.hasNext()) {
-                final Object expectedElem = expectedIter.next();
-                final Object actualElem = actualIter.next();
-                compareObjects(expectedElem, actualElem);
-            }
-        } else if (expected instanceof LinkedHashMap || expected instanceof TreeMap) {
-            final Map<?,?> expectedMap = (Map<?,?>)expected;
-            final Map<?,?> actualMap = (Map<?,?>)actual;
-            assertEquals("Number of elements in maps differ.", expectedMap.size(), actualMap.size());
-            
-            // For LinkedHashMaps we expect the entries to come in the same order
-            final Iterator<?> expectedIter = expectedMap.entrySet().iterator();
-            final Iterator<?> actualIter = expectedMap.entrySet().iterator();
-            while (expectedIter.hasNext()) {
-                final Map.Entry<?,?> expectedEntry = (Map.Entry<?,?>)expectedIter.next();
-                final Map.Entry<?,?> actualEntry = (Map.Entry<?,?>)actualIter.next();
-                compareObjects(expectedEntry.getKey(), actualEntry.getKey());
-                compareObjects(expectedEntry.getValue(), actualEntry.getValue());
-            }
-        } else if (expected instanceof Map) {
-            final Map<?,?> expectedMap = (Map<?,?>)expected;
-            final Map<?,?> actualMap = (Map<?,?>)actual;
-            assertEquals("Number of elements in maps differ.", expectedMap.size(), actualMap.size());
-            
-            for (Object key : expectedMap.keySet()) {
-                final Object expectedValue = expectedMap.get(key);
-                final Object actualValue = actualMap.get(key);
-                compareObjects(expectedValue, actualValue);
-            }
-        } else if (expected.getClass().isArray()) {
-            // Note: The array could be of a primitive type so we can't cast it to Object[]
-            final int expectedLength = Array.getLength(expected);
-            assertEquals("Number of array elements differ.", expectedLength, Array.getLength(actual));
-            
-            for (int i = 0; i < expectedLength; i++) {
-                final Object expectedElem = Array.get(expected, i);
-                final Object actualElem = Array.get(actual, i);
-                compareObjects(expectedElem, actualElem);
-            }
-        } else if (expected instanceof CertificatePolicy) {
-            final CertificatePolicy expectedCertPolicy = (CertificatePolicy) expected;
-            final CertificatePolicy actualCertPolicy = (CertificatePolicy) actual;
-            assertEquals("Deserialized CertificatePolicy object differ", expectedCertPolicy, actualCertPolicy);
-        } else if (expected instanceof MockObject) {
-            final MockObject expectedMock = (MockObject) expected;
-            final MockObject actualMock = (MockObject) actual;
-            assertEquals("Deserialized Integer properties differ", expectedMock.getIntegerValue(), actualMock.getIntegerValue());
-            assertEquals("Deserialized int properties differ", expectedMock.getIntValue(), actualMock.getIntValue());
-            assertEquals("Deserialized boolean properties differ", expectedMock.getBooleanValue(), actualMock.getBooleanValue());
-        } else {
-            assertEquals("Deserialized values differ.", expected, actual);
-        }
-        
-        if (log.isTraceEnabled()) {
-            log.trace("<compareObjects(" + expected + ", " + actual + ")");
-        }
+    public void setBooleanValue(final boolean aBooleanValue) {
+      this.booleanValue = aBooleanValue;
     }
-    
-    
-    
+  }
+
+  /**
+   * Tests properties with primitive types.
+   *
+   * @throws IOException fail
+   */
+  @Test
+  public void testPrimitiveTypeProperty() throws IOException {
+    LOG.trace(">testPrimitiveTypeProperty");
+    // Given
+    final MockObject obj = new MockObject();
+    obj.setIntegerValue(123);
+    obj.setIntValue(456);
+    obj.setBooleanValue(true);
+    // When
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
+      encoder.writeObject(obj);
+    }
+    decodeCompare(baos.toByteArray());
+    LOG.trace("<testPrimitiveTypeProperty");
+  }
+
+  /**
+   * Tests property with null value.
+   *
+   * @throws IOException fail
+   */
+  @Test
+  public void testNullProperty() throws IOException {
+    LOG.trace(">testNullProperty");
+    // Given
+    final CertificatePolicy certPolicy =
+        new CertificatePolicy("2.999.123", null, null);
+    // When
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
+      encoder.writeObject(certPolicy);
+    }
+    decodeCompare(baos.toByteArray());
+    LOG.trace("<testNullProperty");
+  }
+
+  /**
+   * Tests decoding of an empty object.
+   *
+   * @throws IOException fail
+   */
+  @Test
+  public void testEmptyObject() throws IOException {
+    LOG.trace(">testEmptyObject");
+    // Given
+    final CertificatePolicy certPolicy =
+        new CertificatePolicy(null, null, null);
+    // When
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
+      encoder.writeObject(certPolicy);
+    }
+    decodeCompare(baos.toByteArray());
+    LOG.trace("<testEmptyObject");
+  }
+
+  /**
+   * Tests properties with referenced object.
+   *
+   * @throws IOException fail
+   */
+  @Test
+  public void testReferencedObject() throws IOException {
+    LOG.trace(">testReferencedObject");
+    // Given
+    final PKIDisclosureStatement obj =
+        new PKIDisclosureStatement("http://example.com", "sv");
+    final Map<String, Object> map = new LinkedHashMap<>();
+    map.put("A", obj);
+    map.put("B", obj);
+    // When
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
+      encoder.writeObject(map);
+    }
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Encoded:\n" + baos.toString("UTF-8"));
+    }
+    final Map<?, ?> decodedMap;
+    try (SecureXMLDecoder securedec =
+        new SecureXMLDecoder(new ByteArrayInputStream(baos.toByteArray()))) {
+      decodedMap = (Map<?, ?>) securedec.readObject();
+    }
+    // Then
+    assertNotNull("Decoded map was null.", decodedMap);
+    assertEquals(
+        "Object was not equal after decoding.", obj, decodedMap.get("A"));
+    assertSame(
+        "Reference was not same.", decodedMap.get("A"), decodedMap.get("B"));
+    LOG.trace("<testReferencedObject");
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testNotAllowedType() {
+    LOG.trace(">testNotAllowedType");
+
+    // Encode
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    final XMLEncoder encoder = new XMLEncoder(baos);
+    encoder.writeObject(
+        new Random()); // java.util.Random is serializable, but isn't
+    // whitelisted
+    encoder.close();
+
+    decodeBad(baos.toByteArray());
+
+    LOG.trace("<testNotAllowedType");
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testDecodeUnknownClass() {
+    final Map<Object, Object> root = new LinkedHashMap<>();
+
+    root.put("testClass", Object.class);
+
+    // Encode
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    final XMLEncoder encoder = new XMLEncoder(baos);
+    encoder.writeObject(root);
+    encoder.close();
+
+    // Try to decode it and compare
+    try {
+      decodeCompare(baos.toByteArray());
+      fail("Test should have failed when decoding an unauthorized class.");
+    } catch (IOException e) {
+
+    }
+  }
+  /**
+   * Test.
+   */
+  @Test
+  public void testNotAllowedMethod() {
+    LOG.trace(">testNotAllowedMethod");
+
+    final String xml =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
+            + " class=\"java.beans.XMLDecoder\">\n"
+            + "<object class=\"java.util.ArrayList\">\n"
+            + "<void method=\"add\">\n"
+            + "<int>123</int>\n"
+            + "</void>\n"
+            + "<void method=\"remove\">\n"
+            + "<int>0</int>\n"
+            + "</void>\n"
+            + "</object>\n"
+            + "</java>";
+    decodeBad(xml.getBytes());
+
+    LOG.trace("<testNotAllowedMethod");
+  }
+
+  private void decodeBad(final byte[] xml) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">decodeBad(" + new String(xml) + ")");
+    }
+
+    try (XMLDecoder xmldec = new XMLDecoder(new ByteArrayInputStream(xml))) {
+      xmldec.readObject();
+      // Should succeed (XMLDecoder is insecure)
+    }
+
+    try (SecureXMLDecoder securedec =
+        new SecureXMLDecoder(new ByteArrayInputStream(xml))) {
+      securedec.readObject();
+      fail("Should not accept arbitrary classes/methods");
+    } catch (IOException e) {
+      // NOPMD: Expected
+    }
+
+    LOG.trace("<decodeBad");
+  }
+
+  /**
+   * Decodes an XML string with both the standard XMLDecoder and with
+   * SecureXMLDecoder, and compares the resulting objects.
+   *
+   * @param xml fail
+   * @throws IOException fail
+   */
+  private void decodeCompare(final String xml) throws IOException {
+    decodeCompare(xml.getBytes());
+  }
+
+  private void decodeCompare(final byte[] xml) throws IOException {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">decodeCompare(" + new String(xml) + ")");
+    }
+
+    final List<Object> expectedObjs = new ArrayList<>();
+    final List<Object> actualObjs = new ArrayList<>();
+
+    try (XMLDecoder xmldec = new XMLDecoder(new ByteArrayInputStream(xml))) {
+      int i = 1;
+      while (true) {
+        LOG.debug(
+            "Reading object " + (i++) + " from the standard JDK XMLDecoder");
+        expectedObjs.add(xmldec.readObject());
+      }
+    } catch (ArrayIndexOutOfBoundsException e) {
+      // NOPMD: Expected, happens when we reach the end
+    }
+
+    try (SecureXMLDecoder securedec =
+        new SecureXMLDecoder(new ByteArrayInputStream(xml))) {
+      int i = 1;
+      while (true) {
+        LOG.debug("Reading object " + (i++) + " from SecureXMLDecoder");
+        actualObjs.add(securedec.readObject());
+      }
+    } catch (EOFException e) {
+      // NOPMD: Expected, happens when we reach the end
+    }
+
+    // Compare the results
+    assertEquals(
+        "Number of objects decoded from XML differ.",
+        expectedObjs.size(),
+        actualObjs.size());
+
+    final int count = expectedObjs.size();
+    LOG.debug("Comparing " + count + " objects");
+    for (int i = 0; i < count; i++) {
+      final Object expected = expectedObjs.get(i);
+      final Object actual = actualObjs.get(i);
+      compareObjects(expected, actual);
+    }
+
+    LOG.trace("<decodeCompare");
+  }
+
+  private void compareObjects(final Object expected, final Object actual) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">compareObjects(" + expected + ", " + actual + ")");
+    }
+
+    if (expected == null) {
+      assertNull("Deserialized value should have been null", actual);
+      return;
+    }
+
+    assertNotNull("Deserialized value should NOT be null", actual);
+
+    assertEquals(
+        "Class of deserialized value differs.",
+        expected.getClass(),
+        actual.getClass());
+
+    if (expected instanceof List) {
+      final List<?> expectedList = (List<?>) expected;
+      final List<?> actualList = (List<?>) actual;
+      assertEquals(
+          "Number of elements in lists differ.",
+          expectedList.size(),
+          actualList.size());
+
+      final Iterator<?> expectedIter = expectedList.iterator();
+      final Iterator<?> actualIter = actualList.iterator();
+      while (expectedIter.hasNext()) {
+        final Object expectedElem = expectedIter.next();
+        final Object actualElem = actualIter.next();
+        compareObjects(expectedElem, actualElem);
+      }
+    } else if (expected instanceof LinkedHashMap
+        || expected instanceof TreeMap) {
+      final Map<?, ?> expectedMap = (Map<?, ?>) expected;
+      final Map<?, ?> actualMap = (Map<?, ?>) actual;
+      assertEquals(
+          "Number of elements in maps differ.",
+          expectedMap.size(),
+          actualMap.size());
+
+      // For LinkedHashMaps we expect the entries to come in the same order
+      final Iterator<?> expectedIter = expectedMap.entrySet().iterator();
+      final Iterator<?> actualIter = expectedMap.entrySet().iterator();
+      while (expectedIter.hasNext()) {
+        final Map.Entry<?, ?> expectedEntry =
+            (Map.Entry<?, ?>) expectedIter.next();
+        final Map.Entry<?, ?> actualEntry = (Map.Entry<?, ?>) actualIter.next();
+        compareObjects(expectedEntry.getKey(), actualEntry.getKey());
+        compareObjects(expectedEntry.getValue(), actualEntry.getValue());
+      }
+    } else if (expected instanceof Map) {
+      final Map<?, ?> expectedMap = (Map<?, ?>) expected;
+      final Map<?, ?> actualMap = (Map<?, ?>) actual;
+      assertEquals(
+          "Number of elements in maps differ.",
+          expectedMap.size(),
+          actualMap.size());
+
+      for (Object key : expectedMap.keySet()) {
+        final Object expectedValue = expectedMap.get(key);
+        final Object actualValue = actualMap.get(key);
+        compareObjects(expectedValue, actualValue);
+      }
+    } else if (expected.getClass().isArray()) {
+      // Note: The array could be of a primitive type so we can't cast it to
+      // Object[]
+      final int expectedLength = Array.getLength(expected);
+      assertEquals(
+          "Number of array elements differ.",
+          expectedLength,
+          Array.getLength(actual));
+
+      for (int i = 0; i < expectedLength; i++) {
+        final Object expectedElem = Array.get(expected, i);
+        final Object actualElem = Array.get(actual, i);
+        compareObjects(expectedElem, actualElem);
+      }
+    } else if (expected instanceof CertificatePolicy) {
+      final CertificatePolicy expectedCertPolicy = (CertificatePolicy) expected;
+      final CertificatePolicy actualCertPolicy = (CertificatePolicy) actual;
+      assertEquals(
+          "Deserialized CertificatePolicy object differ",
+          expectedCertPolicy,
+          actualCertPolicy);
+    } else if (expected instanceof MockObject) {
+      final MockObject expectedMock = (MockObject) expected;
+      final MockObject actualMock = (MockObject) actual;
+      assertEquals(
+          "Deserialized Integer properties differ",
+          expectedMock.getIntegerValue(),
+          actualMock.getIntegerValue());
+      assertEquals(
+          "Deserialized int properties differ",
+          expectedMock.getIntValue(),
+          actualMock.getIntValue());
+      assertEquals(
+          "Deserialized boolean properties differ",
+          expectedMock.getBooleanValue(),
+          actualMock.getBooleanValue());
+    } else {
+      assertEquals("Deserialized values differ.", expected, actual);
+    }
+
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<compareObjects(" + expected + ", " + actual + ")");
+    }
+  }
 }

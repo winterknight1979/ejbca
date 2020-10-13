@@ -13,19 +13,32 @@
 package org.cesecore.authentication.tokens;
 
 /**
- * Represents a public web user. Compare to PublicAccessPrincipal which serves the same purpose, but is used in the RA
- * 
+ * Represents a public web user. Compare to PublicAccessPrincipal which serves
+ * the same purpose, but is used in the RA
+ *
  * @version $Id: PublicWebPrincipal.java 24865 2016-12-07 17:40:59Z samuellb $
  */
 public class PublicWebPrincipal extends WebPrincipal {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public PublicWebPrincipal(final String clientIPAddress) {
-        this("Public Web", clientIPAddress);
-    }
-    
-    public PublicWebPrincipal(final String moduleName, final String clientIPAddress) {
-        super(moduleName, clientIPAddress);
-    }
+  /**
+   * Constructor.
+   *
+   * @param clientIPAddress IP of client
+   */
+  public PublicWebPrincipal(final String clientIPAddress) {
+    this("Public Web", clientIPAddress);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param moduleName Name of module
+   * @param clientIPAddress IP of client
+   */
+  public PublicWebPrincipal(
+      final String moduleName, final String clientIPAddress) {
+    super(moduleName, clientIPAddress);
+  }
 }

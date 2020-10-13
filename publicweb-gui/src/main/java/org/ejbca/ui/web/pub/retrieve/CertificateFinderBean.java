@@ -168,8 +168,8 @@ public class CertificateFinderBean {
 				result.setRevocationDate(null);
 				result.setUserCertificate(null);
 			} else {
-				result.setReason(info.revocationReason);
-				result.setRevocationDate(info.revocationDate);
+				result.setReason(info.getRevocationReason());
+				result.setRevocationDate(info.getRevocationDate());
 				result.setUserCertificate(serialBignum);
 			}
         } catch (NumberFormatException e) {

@@ -15,53 +15,67 @@ package org.cesecore.audit.audit;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 
 /**
- * This class represents the audit log validation report. 
- * It's generated during validation.
+ * This class represents the audit log validation report. It's generated during
+ * validation.
  *
- * @version $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
-public class AuditLogValidationReport implements Serializable{
+public class AuditLogValidationReport implements Serializable {
 
-    private static final Logger log = Logger.getLogger(AuditLogValidationReport.class);
-    private static final long serialVersionUID = 1L;
-    
-    private final List<AuditLogReportElem> errors;
-    private final List<AuditLogReportElem> warns;
-    
-    public AuditLogValidationReport() {
-        this.errors = new ArrayList<AuditLogReportElem>();
-        this.warns = new ArrayList<AuditLogReportElem>();
-    }
+  /** Logger. */
+  private static final Logger LOG =
+      Logger.getLogger(AuditLogValidationReport.class);
 
-    /** @return list of errors in this report. */
-    public List<AuditLogReportElem> errors() {
-        return errors;
-    }
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Add a new error to the report list
-     * @param error The error to be added.
-     */
-    public void error(final AuditLogReportElem error) {
-    	log.warn(String.format("ERROR: auditlog sequence: %d -> %d. Reason: %s", error.getFirst(), error.getSecond(), error.getReasons()));
-        this.errors.add(error);
-    }
+  /** Errors. */
+  private final List<AuditLogReportElem> errors;
+  /** Warnings. */
+  private final List<AuditLogReportElem> warns;
 
-    /** @return a list of warnings in this report. */
-    public List<AuditLogReportElem> warnings() {
-        return this.warns;
-    }
+  /** Constructor. */
+  public AuditLogValidationReport() {
+    this.errors = new ArrayList<AuditLogReportElem>();
+    this.warns = new ArrayList<AuditLogReportElem>();
+  }
 
-    /**
-     * Add a new warning to the report.
-     * @param warning The warning.
-     */
-    public void warn(final AuditLogReportElem warning){
-    	log.info(String.format("WARN: auditlog sequence: %d -> %d. Reason: %s", warning.getFirst(), warning.getSecond(), warning.getReasons()));
-        this.warns.add(warning);
-    }
+  /** @return list of errors in this report. */
+  public List<AuditLogReportElem> errors() {
+    return errors;
+  }
+
+  /**
+   * Add a new error to the report list.
+   *
+   * @param error The error to be added.
+   */
+  public void error(final AuditLogReportElem error) {
+    LOG.warn(
+        String.format(
+            "ERROR: auditlog sequence: %d -> %d. Reason: %s",
+            error.getFirst(), error.getSecond(), error.getReasons()));
+    this.errors.add(error);
+  }
+
+  /** @return a list of warnings in this report. */
+  public List<AuditLogReportElem> warnings() {
+    return this.warns;
+  }
+
+  /**
+   * Add a new warning to the report.
+   *
+   * @param warning The warning.
+   */
+  public void warn(final AuditLogReportElem warning) {
+    LOG.info(
+        String.format(
+            "WARN: auditlog sequence: %d -> %d. Reason: %s",
+            warning.getFirst(), warning.getSecond(), warning.getReasons()));
+    this.warns.add(warning);
+  }
 }

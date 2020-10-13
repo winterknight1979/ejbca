@@ -20,67 +20,80 @@ import java.security.cert.CRLException;
 import java.security.cert.X509CRLEntry;
 import java.util.Date;
 import java.util.Set;
-
 import org.bouncycastle.asn1.x509.Extension;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 import org.junit.Test;
 
 /**
  * Test of CrlExtensions utility class.
- * 
+ *
  * @version $Id: CrlExtensionsTest.java 31834 2019-03-13 21:57:50Z jeklund $
  */
 public class CrlExtensionsTest {
 
-    /** Test extraction of revocation reason code when an CRL Entry has extensions like "Invalidity Date", but no X509v3 CRL Reason Code. */
-    @Test
-    public void testCrlEntryExtensionsButNoReasonCode() {
-        final X509CRLEntry crlEntry = new X509CRLEntry() {
-            @Override
-            public boolean hasExtensions() {
-                return true;
+  /**
+   * Test extraction of revocation reason code when an CRL Entry has extensions
+   * like "Invalidity Date", but no X509v3 CRL Reason Code.
+   */
+  @Test
+  public void testCrlEntryExtensionsButNoReasonCode() {
+    final X509CRLEntry crlEntry =
+        new X509CRLEntry() {
+          @Override
+          public boolean hasExtensions() {
+            return true;
+          }
+
+          @Override
+          public byte[] getExtensionValue(final String oid) {
+            if (Extension.reasonCode.getId().equals(oid)) {
+              return null;
+            } else {
+              throw new UnsupportedOperationException();
             }
-            @Override
-            public byte[] getExtensionValue(String oid) {
-                if (Extension.reasonCode.getId().equals(oid)) {
-                    return null;
-                } else {
-                    throw new UnsupportedOperationException();
-                }
-            }
-            @Override
-            public Set<String> getCriticalExtensionOIDs() {
-                throw new UnsupportedOperationException();
-            }
-            @Override
-            public Set<String> getNonCriticalExtensionOIDs() {
-                throw new UnsupportedOperationException();
-            }
-            @Override
-            public boolean hasUnsupportedCriticalExtension() {
-                throw new UnsupportedOperationException();
-            }
-            @Override
-            public byte[] getEncoded() throws CRLException {
-                throw new UnsupportedOperationException();
-            }
-            @Override
-            public Date getRevocationDate() {
-                throw new UnsupportedOperationException();
-            }
-            @Override
-            public BigInteger getSerialNumber() {
-                throw new UnsupportedOperationException();
-            }
-            @Override
-            public String toString() {
-                throw new UnsupportedOperationException();
-            }
+          }
+
+          @Override
+          public Set<String> getCriticalExtensionOIDs() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public Set<String> getNonCriticalExtensionOIDs() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public boolean hasUnsupportedCriticalExtension() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public byte[] getEncoded() throws CRLException {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public Date getRevocationDate() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public BigInteger getSerialNumber() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public String toString() {
+            throw new UnsupportedOperationException();
+          }
         };
-        try {
-            assertEquals(RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED, CrlExtensions.extractReasonCode(crlEntry));
-        } catch (UnsupportedOperationException e) {
-            fail("Test is no longer valid and needs to be updated.");
-        }
+    try {
+      assertEquals(
+          RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED,
+          CrlExtensions.extractReasonCode(crlEntry));
+    } catch (UnsupportedOperationException e) {
+      fail("Test is no longer valid and needs to be updated.");
     }
+  }
 }

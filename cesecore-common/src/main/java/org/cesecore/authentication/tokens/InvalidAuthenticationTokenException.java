@@ -14,28 +14,43 @@ package org.cesecore.authentication.tokens;
 
 /**
  * Thrown when an invalid AuthenticationToken is encountered.
- * 
- * @version $Id: InvalidAuthenticationTokenException.java 17625 2013-09-20 07:12:06Z netmackan $
  *
+ * @version $Id: InvalidAuthenticationTokenException.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 public class InvalidAuthenticationTokenException extends RuntimeException {
 
-    private static final long serialVersionUID = -8887523864100620342L;
+  private static final long serialVersionUID = -8887523864100620342L;
 
-    public InvalidAuthenticationTokenException() {
+  /** Empty exception. */
+  public InvalidAuthenticationTokenException() { }
 
-    }
+  /**
+   * Exception with message.
+   *
+   * @param message Message
+   */
+  public InvalidAuthenticationTokenException(final String message) {
+    super(message);
+  }
 
-    public InvalidAuthenticationTokenException(String message) {
-        super(message);
-    }
+  /**
+   * Exception with cause.
+   *
+   * @param e Cause
+   */
+  public InvalidAuthenticationTokenException(final Throwable e) {
+    super(e);
+  }
 
-    public InvalidAuthenticationTokenException(Throwable e) {
-        super(e);
-    }
-
-    public InvalidAuthenticationTokenException(String message, Throwable e) {
-        super(message, e);
-    }
-
+  /**
+   * Exception with message and cause.
+   *
+   * @param message Message
+   * @param e Cause
+   */
+  public InvalidAuthenticationTokenException(
+      final String message, final Throwable e) {
+    super(message, e);
+  }
 }

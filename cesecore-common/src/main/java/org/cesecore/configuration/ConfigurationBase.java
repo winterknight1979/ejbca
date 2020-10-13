@@ -16,25 +16,23 @@ package org.cesecore.configuration;
 import org.cesecore.internal.UpgradeableDataHashMap;
 
 /**
- * 
  * @version $Id: ConfigurationBase.java 19986 2014-10-16 13:07:54Z mikekushner $
- *
  */
-
 public abstract class ConfigurationBase extends UpgradeableDataHashMap {
 
-    private static final long serialVersionUID = 4886872276324915327L;
+  private static final long serialVersionUID = 4886872276324915327L;
 
-    public static final float LATEST_VERSION = 3f;
-        
-    @Override
-    public float getLatestVersion() {
-        return LATEST_VERSION;
-    }
+  /** API version. */
+  public static final float LATEST_VERSION = 3f;
 
-    @Override
-    public abstract void upgrade();
-    
-    public abstract String getConfigurationId();
+  @Override
+  public float getLatestVersion() {
+    return LATEST_VERSION;
+  }
 
+  @Override
+  public abstract void upgrade();
+
+  /** @return ID. */
+  public abstract String getConfigurationId();
 }
