@@ -28,11 +28,13 @@ import org.junit.Test;
  * @version $Id: SoftCATokenTest.java 22853 2016-02-23 17:58:40Z jeklund $
  */
 public class SoftCATokenTest extends CATokenTestBase {
-
+/** Constructor. */
   public SoftCATokenTest() {
     CryptoProviderTools.installBCProvider();
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCATokenRSA() throws Exception {
     CryptoToken cryptoToken = createSoftToken(false);
@@ -41,7 +43,9 @@ public class SoftCATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCATokenDSA() throws Exception {
     CryptoToken cryptoToken = createSoftToken(true);
@@ -50,7 +54,9 @@ public class SoftCATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("dsatest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCATokenECC() throws Exception {
     CryptoToken cryptoToken = createSoftToken(true);
@@ -59,7 +65,9 @@ public class SoftCATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("ecctest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testActivateDeactivate() throws Exception {
     CryptoToken cryptoToken = createSoftToken(true);
@@ -68,7 +76,9 @@ public class SoftCATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testDefaultPwd() throws Exception {
     // false parameter means we should enable default password
@@ -100,7 +110,9 @@ public class SoftCATokenTest extends CATokenTestBase {
                 CATokenConstants.CAKEYPURPOSE_CERTSIGN)),
         null);
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testSaveAndLoad() throws Exception {
     CryptoToken cryptoToken = createSoftToken(false);
@@ -109,7 +121,9 @@ public class SoftCATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testDefaultEjbcaSoftTokenProperties() throws Exception {
     CryptoToken cryptoToken = createSoftToken(false);
@@ -121,7 +135,9 @@ public class SoftCATokenTest extends CATokenTestBase {
         CryptoToken.STATUS_ACTIVE,
         cryptoToken.getTokenStatus());
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testTokenStatusDifferentAliases() throws Exception {
     final CryptoToken cryptoToken = createSoftToken(true);
@@ -161,7 +177,9 @@ public class SoftCATokenTest extends CATokenTestBase {
     assertEquals(
         CryptoToken.STATUS_ACTIVE, catoken.getTokenStatus(true, cryptoToken));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testTokenStatusCommonAliases() throws Exception {
     final CryptoToken cryptoToken = createSoftToken(false);
@@ -231,6 +249,9 @@ public class SoftCATokenTest extends CATokenTestBase {
     return caTokenProperties;
   }
 
+  /**
+   * @return "BC"
+   */
   String getProvider() {
     return "BC";
   }

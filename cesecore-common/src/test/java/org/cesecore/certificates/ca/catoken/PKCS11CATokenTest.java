@@ -30,18 +30,21 @@ import org.junit.Test;
  * @version $Id: PKCS11CATokenTest.java 26871 2017-10-23 11:11:43Z bastianf $
  */
 public class PKCS11CATokenTest extends CATokenTestBase {
-
+  /** Constrictor. */
   public PKCS11CATokenTest() {
     CryptoProviderTools.installBCProvider();
   }
 
+  /** Setup. */
   @Before
   public void checkPkcs11DriverAvailable() {
     // Skip test if no PKCS11 driver is installed
     assumeTrue(PKCS11TestUtils.getHSMLibrary() != null);
     assumeTrue(PKCS11TestUtils.getHSMProvider() != null);
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCATokenRSA() throws Exception {
     CryptoToken cryptoToken = createPKCS11Token(false);
@@ -50,7 +53,9 @@ public class PKCS11CATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCATokenECCprime() throws Exception {
     CryptoToken cryptoToken = createPKCS11Token(true);
@@ -60,7 +65,9 @@ public class PKCS11CATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("ecctest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testCATokenECCsecp() throws Exception {
     CryptoToken cryptoToken = createPKCS11Token(true);
@@ -69,7 +76,9 @@ public class PKCS11CATokenTest extends CATokenTestBase {
         cryptoToken,
         getCaTokenProperties("ecctest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testActivateDeactivate() throws Exception {
     CryptoToken cryptoToken = createPKCS11Token(true);
@@ -79,6 +88,9 @@ public class PKCS11CATokenTest extends CATokenTestBase {
         getCaTokenProperties("rsatest" + CAToken.DEFAULT_KEYSEQUENCE));
   }
 
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void testSaveAndLoad() throws Exception {
     CryptoToken cryptoToken = createPKCS11Token(true);

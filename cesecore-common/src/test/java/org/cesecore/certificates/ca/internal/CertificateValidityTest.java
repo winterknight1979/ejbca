@@ -51,31 +51,45 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests calculation of certificate validity dates
+ * Tests calculation of certificate validity dates.
  *
  * @version $Id: CertificateValidityTest.java 26780 2017-10-10 09:37:56Z
  *     mikekushner $
  */
 public class CertificateValidityTest {
 
-  /** Class logger */
+  /** Class logger. */
   private static final Logger LOG =
       Logger.getLogger(CertificateValidityTest.class);
 
+  /** Date. */
   private Date configToolLateExpireDate =
       CertificateValidity.getToolLateExpireDate();
+  /** Key. */
   private KeyPair keyPair;
+  /** Date. */
   private Date caFrom;
+  /** Date. */
   private Date caTo;
+  /** Date. */
   private Date shortLivingCaFrom;
+  /** Date. */
   private Date shortLivingCaTo;
+  /** Date. */
   private Date now;
+  /** Date. */
   private Date absolulteTestDate;
+  /** Date. */
   private Date tooLateExpireTestDate;
+  /** Date. */
   private String relativeTimeString;
+  /** cert. */
   private X509Certificate caCertificate;
+  /** cert. */
   private X509Certificate shortLivingCaCertificate;
-
+  /**
+   * @throws Exception fail
+   */
   @Before
   public void setUp() throws Exception {
     CryptoProviderTools.installBCProviderIfNotAvailable();
@@ -153,7 +167,9 @@ public class CertificateValidityTest {
         new Date(now.getTime() + SimpleTime.parseMillies(relativeTimeString))
             .before(caTo));
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void test04TestAbsoluteValidityWithSecondsPrecision()
       throws Exception {
@@ -382,7 +398,9 @@ public class CertificateValidityTest {
     }
     LOG.trace("<test04TestAbsoluteValidityWithSecondsPrecision");
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void test04TestTimeNestingWithSecondsPrecision() throws Exception {
     LOG.trace(">test04TestTimeNestingWithSecondsPrecision");
@@ -436,6 +454,8 @@ public class CertificateValidityTest {
     LOG.trace("<test04TestTimeNestingWithSecondsPrecision");
   }
 
+  /**
+ * @throws Exception fail  */
   @Test
   public void test05TestRelativeValidityWithSecondsPrecision()
       throws Exception {
@@ -552,12 +572,16 @@ public class CertificateValidityTest {
         equals(validity.getNotAfter(), notAfter));
     LOG.trace("<test05TestRealtiveValidityWithSecondsPrecision");
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void test01TestCertificateValidity() throws Exception {
     testBaseTestCertificateValidity("50d");
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void test02TestCertificateValidity() throws Exception {
     final Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
@@ -566,7 +590,19 @@ public class CertificateValidityTest {
         ValidityDate.formatAsISO8601(
             cal.getTime(), ValidityDate.TIMEZONE_SERVER));
   }
-
+  /**
+   * @throws InvalidAlgorithmParameterException fail
+ * @throws InvalidKeyException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws SignatureException fail
+ * @throws IllegalStateException fail
+ * @throws NoSuchProviderException fail
+ * @throws OperatorCreationException fail
+ * @throws CertificateException fail
+ * @throws IOException fail
+ * @throws CAOfflineException fail
+ * @throws ParseException fail
+   */
   @Test
   public void test03TestCheckPrivateKeyUsagePeriod()
       throws InvalidAlgorithmParameterException, InvalidKeyException,
@@ -796,18 +832,22 @@ public class CertificateValidityTest {
     CertificateValidity.checkPrivateKeyUsagePeriod(cert);
   }
 
+  /**
+   * @param encodedValidity validitu
+   * @throws Exception fail
+   */
   private void testBaseTestCertificateValidity(final String encodedValidity)
       throws Exception {
-    final Date caFrom = new Date();
-    caFrom.setTime(caFrom.getTime() - 20L * (24L * 60L * 60L * 1000L));
-    final Date caTo = new Date();
-    caTo.setTime(caTo.getTime() + 100L * (24L * 60L * 60L * 1000L));
+    final Date lcaFrom = new Date();
+    lcaFrom.setTime(lcaFrom.getTime() - 20L * (24L * 60L * 60L * 1000L));
+    final Date lcaTo = new Date();
+    lcaTo.setTime(lcaTo.getTime() + 100L * (24L * 60L * 60L * 1000L));
 
     X509Certificate cacert =
         CertTools.genSelfCertForPurpose(
             "CN=dummy2",
-            caFrom,
-            caTo,
+            lcaFrom,
+            lcaTo,
             null,
             keyPair.getPrivate(),
             keyPair.getPublic(),
@@ -836,12 +876,12 @@ public class CertificateValidityTest {
         new CertificateValidity(subject, cp, null, null, cacert, false, false);
     Date notBefore = cv.getNotBefore();
     Date notAfter = cv.getNotAfter();
-    Date now = new Date();
+    Date lnow = new Date();
     Calendar cal1 = Calendar.getInstance();
     cal1.add(Calendar.DAY_OF_MONTH, 49);
     Calendar cal2 = Calendar.getInstance();
     cal2.add(Calendar.DAY_OF_MONTH, 51);
-    assertTrue(notBefore.before(now));
+    assertTrue(notBefore.before(lnow));
     assertTrue(notAfter.after(cal1.getTime()));
     assertTrue(notAfter.before(cal2.getTime()));
 
@@ -861,7 +901,7 @@ public class CertificateValidityTest {
             false);
     notBefore = cv.getNotBefore();
     notAfter = cv.getNotAfter();
-    assertTrue(notBefore.before(now));
+    assertTrue(notBefore.before(lnow));
     assertTrue(notAfter.after(cal1.getTime()));
     assertTrue(notAfter.before(cal2.getTime()));
 
@@ -883,7 +923,7 @@ public class CertificateValidityTest {
             false);
     notBefore = cv.getNotBefore();
     notAfter = cv.getNotAfter();
-    assertTrue(notBefore.before(now));
+    assertTrue(notBefore.before(lnow));
     assertTrue(notAfter.after(cal1.getTime()));
     assertTrue(notAfter.before(cal2.getTime()));
 
@@ -900,7 +940,7 @@ public class CertificateValidityTest {
             true);
     notBefore = cv.getNotBefore();
     notAfter = cv.getNotAfter();
-    assertTrue(notBefore.before(now));
+    assertTrue(notBefore.before(lnow));
     // Not after is the requested
     assertEquals(notAfter, requestNotAfter.getTime());
     cv =
@@ -914,7 +954,7 @@ public class CertificateValidityTest {
             false);
     notBefore = cv.getNotBefore();
     notAfter = cv.getNotAfter();
-    assertTrue(notBefore.before(now));
+    assertTrue(notBefore.before(lnow));
     // Not after is not requested anymore
     assertFalse(notAfter.equals(requestNotAfter.getTime()));
 
@@ -1152,7 +1192,7 @@ public class CertificateValidityTest {
    * @param encodedValidity valid
    * @return bool
    */
-  private final boolean isRelativeTime(final String encodedValidity) {
+  private boolean isRelativeTime(final String encodedValidity) {
     try {
       ValidityDate.parseAsIso8601(encodedValidity);
       return false;
@@ -1169,7 +1209,7 @@ public class CertificateValidityTest {
    * @param rightSide date
    * @return bool
    */
-  private final boolean equals(final Date leftSide, final Date rightSide) {
+  private  boolean equals(final Date leftSide, final Date rightSide) {
     return leftSide.getTime() / 1000 == rightSide.getTime() / 1000;
   }
 
@@ -1180,7 +1220,7 @@ public class CertificateValidityTest {
    * @param profile profile
    * @param weekday date
    */
-  private final void setExpirationRestrictionForWeekdays(
+  private  void setExpirationRestrictionForWeekdays(
       final CertificateProfile profile, final int weekday) {
     for (int i = 1; i <= 7; i++) {
       profile.setExpirationRestrictionWeekday(i, weekday == i);

@@ -25,6 +25,10 @@ import org.junit.Test;
  */
 public class CATokenParseTest {
 
+    /** Test parsing.
+     *
+     * @throws Exception fail
+     */
   @Test
   public void testParseProperties() throws Exception {
     assertTrue(CAToken.getPropertiesFromString(null).isEmpty());

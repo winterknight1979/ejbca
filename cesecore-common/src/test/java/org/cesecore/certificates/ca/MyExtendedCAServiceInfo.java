@@ -22,8 +22,14 @@ public class MyExtendedCAServiceInfo extends ExtendedCAServiceInfo {
 
   private static final long serialVersionUID = 1L;
 
-  public static final int type = 4711;
+  /**
+   * Type.
+   */
+  public static final int TYPE = 4711;
 
+  /**
+   * @param status status
+   */
   public MyExtendedCAServiceInfo(final int status) {
     super(status);
   }
@@ -35,6 +41,6 @@ public class MyExtendedCAServiceInfo extends ExtendedCAServiceInfo {
 
   @Override
   public int getType() {
-    return MyExtendedCAServiceInfo.type;
+    return MyExtendedCAServiceInfo.TYPE;
   }
 }

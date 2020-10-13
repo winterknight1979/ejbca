@@ -22,12 +22,14 @@ import java.util.Properties;
 import org.junit.Test;
 
 /**
- * Tests key strings used for crypto tokens
+ * Tests key strings used for crypto tokens.
  *
  * @version $Id: PurposeMappingTest.java 12583 2011-09-15 08:46:19Z anatom $
  */
 public class PurposeMappingTest {
-
+    /**
+       * @throws Exception fail
+       */
   @Test
   public void test01KeyStringsEmpty() throws Exception {
     PurposeMapping ks = new PurposeMapping(null);
@@ -73,7 +75,9 @@ public class PurposeMappingTest {
     alias = ks.getAlias(4711);
     assertNull(alias);
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void test02KeyStringsSomeEmpty() throws Exception {
     Properties prop = new Properties();
@@ -125,7 +129,9 @@ public class PurposeMappingTest {
     alias = ks.getAlias(4711);
     assertNull(alias);
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void test03KeyStringsAll() throws Exception {
     Properties prop = new Properties();
@@ -195,7 +201,9 @@ public class PurposeMappingTest {
     alias = ks.getAlias(4711);
     assertNull(alias);
   }
-
+  /**
+   * @throws Exception fail
+   */
   @Test
   public void test04PreviousAndNextSignKey() throws Exception {
     Properties prop = new Properties();

@@ -58,4 +58,6 @@
 	<suppress checks="MethodLengthCheck" files="PKIXCertRevocationStatusChecker.java" lines="447"/>
 	<suppress checks="MethodLengthCheck" files="SecureXMLDecoder.java" lines="222"/>
 	<suppress checks="MagicNumberCheck" files="StringTools.java" lines="685,720,970,978"/>	<!--  array-indices.  -->
+	<suppress checks="MethodLengthCheck" files="CATokenTestBase.java" lines="528,74"/>
+	<suppress checks="MethodLengthCheck" files="CertificateValidityTest.java" lines="173,606,839"/>
  </suppressions>

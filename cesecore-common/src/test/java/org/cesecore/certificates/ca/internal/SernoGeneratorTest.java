@@ -35,7 +35,8 @@ import org.junit.Test;
  * @version $Id: SernoGeneratorTest.java 31969 2019-03-25 11:08:22Z samuellb $
  */
 public class SernoGeneratorTest {
-  private static final Logger log = Logger.getLogger(SernoGeneratorTest.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(SernoGeneratorTest.class);
 
   /**
    * Test min and max values for different serial number sizes.
@@ -116,7 +117,7 @@ public class SernoGeneratorTest {
     assertEquals("SHA1PRNG", algo);
     BigDecimal time = BigDecimal.valueOf(end - start);
     BigDecimal div = time.divide(BigDecimal.valueOf(500000));
-    log.info(
+    LOG.info(
         "Creating "
             + noRounds * 1000
             + " 8 octet serNos with "
@@ -130,7 +131,7 @@ public class SernoGeneratorTest {
 
   /**
    * Using only 32 bit serial numbers will produce collisions about 1-5 times
-   * for 100.000 serial numbers
+   * for 100.000 serial numbers.
    *
    * @throws Exception fail
    */
@@ -146,7 +147,7 @@ public class SernoGeneratorTest {
     assertEquals("SHA1PRNG", algo);
     BigDecimal time = BigDecimal.valueOf(end - start);
     BigDecimal div = time.divide(BigDecimal.valueOf(500000));
-    log.info(
+    LOG.info(
         "Creating "
             + noRounds * 1000
             + " 4 octet serNos with "
@@ -177,7 +178,7 @@ public class SernoGeneratorTest {
     assertEquals("SHA1PRNG", algo);
     BigDecimal time = BigDecimal.valueOf(end - start);
     BigDecimal div = time.divide(BigDecimal.valueOf(500000));
-    log.info(
+    LOG.info(
         "Creating "
             + noRounds * 1000
             + " 8 octet serNos with "
@@ -219,7 +220,7 @@ public class SernoGeneratorTest {
       } catch (NoSuchMethodException nsme) {
         // Yep, this JDK didn't have SecureRandom.getInstanceStrong(), so let it
         // pass
-        log.debug(
+        LOG.debug(
             "Trying to get SecureRandom.getInstanceStrong() on JDK < 8"
                 + " resulted in an IllegalStateException, as expected");
         assumeTrue("Test is only relevant on Java 8.", false);
@@ -245,7 +246,7 @@ public class SernoGeneratorTest {
     assertEquals("NativePRNG", algo);
     BigDecimal time = BigDecimal.valueOf(end - start);
     BigDecimal div = time.divide(BigDecimal.valueOf(500000));
-    log.info(
+    LOG.info(
         "Creating "
             + noRounds * 1000
             + " 8 octet serNos with "
@@ -309,8 +310,13 @@ public class SernoGeneratorTest {
     //        log.info("Number of duplicates: "+duplicates);
   }
 
-  public static Throwable threadException = null;
+  /** except. */
+  private static Throwable threadException = null;
 
+
+/**
+ * @throws Exception fail
+ */
   @Test
   public void testMultiThreadedSernoGeneration() throws Exception {
     Thread no1 =
@@ -344,22 +350,22 @@ public class SernoGeneratorTest {
     no5.setUncaughtExceptionHandler(handler);
     long start = new Date().getTime();
     no1.start();
-    log.info("Started no1");
+    LOG.info("Started no1");
     no2.start();
-    log.info("Started no2");
+    LOG.info("Started no2");
     no3.start();
-    log.info("Started no3");
+    LOG.info("Started no3");
     no4.start();
-    log.info("Started no4");
+    LOG.info("Started no4");
     no5.start();
-    log.info("Started no5");
+    LOG.info("Started no5");
     no1.join();
     no2.join();
     no3.join();
     no4.join();
     no5.join();
     long end = new Date().getTime();
-    log.info("Time consumed: " + (end - start));
+    LOG.info("Time consumed: " + (end - start));
     if (threadException != null) {
       throw new IllegalStateException(threadException);
     }
@@ -367,10 +373,11 @@ public class SernoGeneratorTest {
 
   private static class SernoTester
       implements Runnable { // NOPMD, this is not a JEE app, only a test
+      /** Siz.*/
     private final int noOctets;
 
-    public SernoTester(final int noOctets) {
-      this.noOctets = noOctets;
+    SernoTester(final int anoOctets) {
+      this.noOctets = anoOctets;
     }
 
     public void run() {
@@ -385,7 +392,7 @@ public class SernoGeneratorTest {
               noOctets + 2,
               asn1.getEncoded().length);
         } catch (IOException e) {
-          log.error("IOEsception encoding ASN.1: ", e);
+          LOG.error("IOEsception encoding ASN.1: ", e);
           fail("IOEsception encoding ASN.1: " + e.getMessage());
         }
       }
@@ -395,7 +402,8 @@ public class SernoGeneratorTest {
   private static class CacheExceptionHandler
       implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(
-        final Thread t, final Throwable e) { // NOPMD, this is not a JEE app, only a test
+        final Thread t, final Throwable e) {
+        // NOPMD, this is not a JEE app, only a test
       SernoGeneratorTest.threadException = e;
     }
   }
