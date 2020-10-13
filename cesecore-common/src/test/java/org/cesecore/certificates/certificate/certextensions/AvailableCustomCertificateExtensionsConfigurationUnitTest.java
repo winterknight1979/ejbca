@@ -33,11 +33,12 @@ import org.junit.Test;
  */
 public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
 
-  private static final Logger log =
+    /**logger. */
+  private static final Logger LOG =
       Logger.getLogger(
           AvailableCustomCertificateExtensionsConfigurationUnitTest.class);
 
-  /** Encoded DEROctetString with 2 byte value: AB CD */
+  /** Encoded DEROctetString with 2 byte value: AB CD. */
   private static final byte[] EXPECTED_ENCODED_VALUE = {
     0x04, 0x02, (byte) 0xAB, (byte) 0xCD
   };
@@ -50,7 +51,7 @@ public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
    */
   @Test
   public void testUpgradeParsing() throws Exception {
-    log.trace(">testUpgradeParsing");
+    LOG.trace(">testUpgradeParsing");
     final Properties oldFileProperties = new Properties();
     oldFileProperties.put("id123.oid", " 2.999.123 ");
     oldFileProperties.put(
@@ -70,7 +71,7 @@ public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
     CertificateExtension upgraded =
         AvailableCustomCertificateExtensionsConfiguration
             .getCertificateExtensionFromFile(123, oldFileProperties);
-    log.debug("Properties after upgrade: " + upgraded.getProperties());
+    LOG.debug("Properties after upgrade: " + upgraded.getProperties());
     assertEquals("2.999.123", upgraded.getOID());
     assertEquals("My Extension", upgraded.getDisplayName());
     assertTrue(
@@ -93,6 +94,6 @@ public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
             null);
     assertArrayEquals(
         "Wrong encoded value.", EXPECTED_ENCODED_VALUE, valueEncoded);
-    log.trace("<testUpgradeParsing");
+    LOG.trace("<testUpgradeParsing");
   }
 }

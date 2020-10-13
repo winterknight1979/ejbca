@@ -54,20 +54,28 @@ import org.junit.Test;
  * @version $Id: AlgorithmToolsTest.java 27827 2018-01-10 14:07:47Z bastianf $
  */
 public class AlgorithmToolsTest {
-  private static final Logger log = Logger.getLogger(AlgorithmToolsTest.class);
-
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AlgorithmToolsTest.class);
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Before
   public void setUp() throws Exception {
     CryptoProviderTools.installBCProvider();
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetKeyAlgorithm() {
     assertNull(
         "null if no match",
         AlgorithmTools.getKeyAlgorithm(new MockNotSupportedPublicKey()));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetSignatureAlgorithms() {
     final List<String> algs =
@@ -75,29 +83,31 @@ public class AlgorithmToolsTest {
     assertNotNull("should not return null", algs);
     assertEquals("no supported algs", 0, algs.size());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetKeyAlgorithmFromSigAlg() {
 
     // Test that key algorithm is RSA for all of its signature algorithms
-    for (final String s :
-        AlgorithmTools.getSignatureAlgorithms(new MockRSAPublicKey())) {
+    for (final String s
+        : AlgorithmTools.getSignatureAlgorithms(new MockRSAPublicKey())) {
       assertEquals(
           AlgorithmTools.getKeyAlgorithm(new MockRSAPublicKey()),
           AlgorithmTools.getKeyAlgorithmFromSigAlg(s));
     }
 
     // Test that key algorithm is DSA for all of its signature algorithms
-    for (final String s :
-        AlgorithmTools.getSignatureAlgorithms(new MockDSAPublicKey())) {
+    for (final String s
+        : AlgorithmTools.getSignatureAlgorithms(new MockDSAPublicKey())) {
       assertEquals(
           AlgorithmTools.getKeyAlgorithm(new MockDSAPublicKey()),
           AlgorithmTools.getKeyAlgorithmFromSigAlg(s));
     }
 
     // Test that key algorithm is ECDSA for all of its signature algorithms
-    for (final String s :
-        AlgorithmTools.getSignatureAlgorithms(new MockECDSAPublicKey())) {
+    for (final String s
+        : AlgorithmTools.getSignatureAlgorithms(new MockECDSAPublicKey())) {
       assertEquals(
           AlgorithmTools.getKeyAlgorithm(new MockECDSAPublicKey()),
           AlgorithmTools.getKeyAlgorithmFromSigAlg(s));
@@ -108,7 +118,10 @@ public class AlgorithmToolsTest {
         "should return a default value",
         AlgorithmTools.getKeyAlgorithmFromSigAlg("_NonExistingAlg"));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testGetKeySpecification() throws Exception {
     assertNull(
@@ -136,7 +149,10 @@ public class AlgorithmToolsTest {
     pair = KeyTools.genKeys("1024", "DSA");
     assertEquals("1024", AlgorithmTools.getKeySpecification(pair.getPublic()));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testGetKeySpecificationGOST3410() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
@@ -149,7 +165,10 @@ public class AlgorithmToolsTest {
     KeyPair keys = keygen.generateKeyPair();
     assertEquals(keyspec, AlgorithmTools.getKeySpecification(keys.getPublic()));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testGetKeySpecificationDSTU4145() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
@@ -161,7 +180,8 @@ public class AlgorithmToolsTest {
     KeyPair keys = keygen.generateKeyPair();
     assertEquals(keyspec, AlgorithmTools.getKeySpecification(keys.getPublic()));
   }
-
+  /**
+   * Test. */
   @Test
   public void testGetEncSigAlgFromSigAlg() {
     assertEquals(
@@ -246,7 +266,9 @@ public class AlgorithmToolsTest {
             AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA));
     assertEquals("Foobar", AlgorithmTools.getEncSigAlgFromSigAlg("Foobar"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testIsCompatibleSigAlg() {
     assertTrue(
@@ -438,7 +460,9 @@ public class AlgorithmToolsTest {
             new MockDSAPublicKey(),
             AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testIsCompatibleSigAlgGOST3410() {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
@@ -495,7 +519,9 @@ public class AlgorithmToolsTest {
             new MockGOST3410PublicKey(),
             AlgorithmConstants.SIGALG_GOST3411_WITH_DSTU4145));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testIsCompatibleSigAlgDSTU4145() {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
@@ -552,7 +578,10 @@ public class AlgorithmToolsTest {
             new MockDSTU4145PublicKey(),
             AlgorithmConstants.SIGALG_SHA3_512_WITH_ECDSA));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCertSignatureAlgorithmAsString() throws Exception {
     // X.509
@@ -620,7 +649,7 @@ public class AlgorithmToolsTest {
             keyPair.getPublic(),
             "SHA256WithRSAAndMGF1",
             true);
-    Certificate sha3_256_rsa =
+    Certificate sha3B256Rsa =
         CertTools.genSelfCert(
             "CN=TEST",
             10L,
@@ -629,7 +658,7 @@ public class AlgorithmToolsTest {
             keyPair.getPublic(),
             AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA,
             true);
-    Certificate sha3_384_rsa =
+    Certificate sha3B384Rsa =
         CertTools.genSelfCert(
             "CN=TEST",
             10L,
@@ -638,7 +667,7 @@ public class AlgorithmToolsTest {
             keyPair.getPublic(),
             AlgorithmConstants.SIGALG_SHA3_384_WITH_RSA,
             true);
-    Certificate sha3_512_rsa =
+    Certificate sha3B512Rsa =
         CertTools.genSelfCert(
             "CN=TEST",
             10L,
@@ -673,13 +702,13 @@ public class AlgorithmToolsTest {
         AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha256rsamgf));
     assertEquals(
         "SHA3-256WITHRSA",
-        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3_256_rsa));
+        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3B256Rsa));
     assertEquals(
         "SHA3-384WITHRSA",
-        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3_384_rsa));
+        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3B384Rsa));
     assertEquals(
         "SHA3-512WITHRSA",
-        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3_512_rsa));
+        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3B512Rsa));
 
     assertEquals("SHA1WithRSA", AlgorithmTools.getSignatureAlgorithm(sha1rsa));
     assertEquals("MD5WithRSA", AlgorithmTools.getSignatureAlgorithm(md5rsa));
@@ -697,10 +726,10 @@ public class AlgorithmToolsTest {
         AlgorithmTools.getSignatureAlgorithm(sha256rsamgf));
     assertEquals(
         AlgorithmConstants.SIGALG_SHA3_256_WITH_RSA,
-        AlgorithmTools.getSignatureAlgorithm(sha3_256_rsa));
+        AlgorithmTools.getSignatureAlgorithm(sha3B256Rsa));
     assertEquals(
         AlgorithmConstants.SIGALG_SHA3_512_WITH_RSA,
-        AlgorithmTools.getSignatureAlgorithm(sha3_512_rsa));
+        AlgorithmTools.getSignatureAlgorithm(sha3B512Rsa));
 
     // CVC + RSA
     CAReferenceField caRef = new CAReferenceField("SE", "CAREF001", "00000");
@@ -829,7 +858,7 @@ public class AlgorithmToolsTest {
             keyPair.getPublic(),
             "SHA512WithECDSA",
             true);
-    Certificate sha3_256_ecc =
+    Certificate sha3B256Ecc =
         CertTools.genSelfCert(
             "CN=TEST",
             10L,
@@ -838,7 +867,7 @@ public class AlgorithmToolsTest {
             keyPair.getPublic(),
             AlgorithmConstants.SIGALG_SHA3_256_WITH_ECDSA,
             true);
-    Certificate sha3_384_ecc =
+    Certificate sha3B384Ecc =
         CertTools.genSelfCert(
             "CN=TEST",
             10L,
@@ -847,7 +876,7 @@ public class AlgorithmToolsTest {
             keyPair.getPublic(),
             AlgorithmConstants.SIGALG_SHA3_384_WITH_ECDSA,
             true);
-    Certificate sha3_512_ecc =
+    Certificate sha3B512Ecc =
         CertTools.genSelfCert(
             "CN=TEST",
             10L,
@@ -872,13 +901,13 @@ public class AlgorithmToolsTest {
         AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha512ecc));
     assertEquals(
         "SHA3-256WITHECDSA",
-        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3_256_ecc));
+        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3B256Ecc));
     assertEquals(
         "SHA3-384WITHECDSA",
-        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3_384_ecc));
+        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3B384Ecc));
     assertEquals(
         "SHA3-512WITHECDSA",
-        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3_512_ecc));
+        AlgorithmTools.getCertSignatureAlgorithmNameAsString(sha3B512Ecc));
 
     assertEquals(
         "SHA1withECDSA", AlgorithmTools.getSignatureAlgorithm(sha1ecc));
@@ -892,13 +921,13 @@ public class AlgorithmToolsTest {
         "SHA512withECDSA", AlgorithmTools.getSignatureAlgorithm(sha512ecc));
     assertEquals(
         "SHA3-256withECDSA",
-        AlgorithmTools.getSignatureAlgorithm(sha3_256_ecc));
+        AlgorithmTools.getSignatureAlgorithm(sha3B256Ecc));
     assertEquals(
         "SHA3-384withECDSA",
-        AlgorithmTools.getSignatureAlgorithm(sha3_384_ecc));
+        AlgorithmTools.getSignatureAlgorithm(sha3B384Ecc));
     assertEquals(
         "SHA3-512withECDSA",
-        AlgorithmTools.getSignatureAlgorithm(sha3_512_ecc));
+        AlgorithmTools.getSignatureAlgorithm(sha3B512Ecc));
 
     // CVC + ECC
     CardVerifiableCertificate cvsha1ecc =
@@ -945,7 +974,10 @@ public class AlgorithmToolsTest {
     assertEquals(
         "SHA256withECDSA", AlgorithmTools.getSignatureAlgorithm(cvsha256ecc));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCertSignatureAlgorithmAsStringGOST3410() throws Exception {
     assumeTrue(AlgorithmTools.isGost3410Enabled());
@@ -970,7 +1002,10 @@ public class AlgorithmToolsTest {
         "GOST3411withECGOST3410",
         AlgorithmTools.getSignatureAlgorithm(gost3411withgost3410));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCertSignatureAlgorithmAsStringDSTU4145() throws Exception {
     assumeTrue(AlgorithmTools.isDstu4145Enabled());
@@ -995,7 +1030,9 @@ public class AlgorithmToolsTest {
         "GOST3411withDSTU4145",
         AlgorithmTools.getSignatureAlgorithm(gost3411withgost3410));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetWellKnownCurveOids() {
     // Extracted from debugger
@@ -1045,7 +1082,7 @@ public class AlgorithmToolsTest {
           "Could not retrieve OID for curve " + wellKnownCurveName,
           AlgorithmTools.getEcKeySpecOidFromBcName(wellKnownCurveName),
           wellKnownCurveName);
-      log.info(
+      LOG.info(
           "Successfully retrieved EC curve OID: "
               + AlgorithmTools.getEcKeySpecOidFromBcName(wellKnownCurveName));
     }

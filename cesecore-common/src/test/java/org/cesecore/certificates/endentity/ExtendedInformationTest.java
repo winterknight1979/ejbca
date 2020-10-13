@@ -33,8 +33,8 @@ import org.junit.Test;
  */
 public class ExtendedInformationTest {
 
-  /** A test P10 encoded as a single line of Base64 */
-  public static final String pkcs10 =
+  /** A test P10 encoded as a single line of Base64. */
+  public static final String PKCS10 =
       "MIIBkzCB/QIBADBUMQswCQYDVQQGEwJzZTETMBEGA1UECBMKU29tZS1TdGF0ZTEh"
           + "MB8GA1UEChMYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMQ0wCwYDVQQDEwRURVNU"
           + "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC6zGAfzcf8+ECqvI6r2z22fI9h"
@@ -44,30 +44,30 @@ public class ExtendedInformationTest {
           + "vYQ0OOLYuNZcV2uj56FVP4jjaxed6SNC3XNrsJcqoBIUT14OTGvo+kt/Du3X5src"
           + "sLtaUfVr74y1FhDq55fqAY5+k0IpJVYGlOVsAAcx5O2jUKbxZHBSQnyVBLKczITY"
           + "PfoNI8s9NXa/fIfqp56llOPzDy3OcHc=";
-
+  /** Test. */
   @Test
   public void testExtendedInformationCSR() {
     // Test basic function, latest version->latest version
     ExtendedInformation ei = new ExtendedInformation();
     ei.setCertificateRequest(
-        Base64.decode(pkcs10.getBytes(StandardCharsets.UTF_8)));
+        Base64.decode(PKCS10.getBytes(StandardCharsets.UTF_8)));
     assertEquals(
-        pkcs10,
+        PKCS10,
         new String(
             Base64.encode(ei.getCertificateRequest()), StandardCharsets.UTF_8));
     // Test by hardcoding in the base64 encoded data as string, to ensure we can
     // read such data
     // (even if the current implementation changed)
     ExtendedInformation ei2 = new ExtendedInformation();
-    ei2.setMapData("CERTIFICATE_REQUEST", pkcs10);
+    ei2.setMapData("CERTIFICATE_REQUEST", PKCS10);
     assertEquals(
-        pkcs10,
+        PKCS10,
         new String(
             Base64.encode(ei2.getCertificateRequest()),
             StandardCharsets.UTF_8));
     // Test null
     ExtendedInformation ei3 = new ExtendedInformation();
-    ei3.setMapData("FOO", pkcs10);
+    ei3.setMapData("FOO", PKCS10);
     assertNull(ei3.getCertificateRequest());
     // Test by hardcoding in the binary encoded data, to ensure we can read such
     // data
@@ -77,15 +77,15 @@ public class ExtendedInformationTest {
     map.put(UpgradeableDataHashMap.VERSION, Float.valueOf(4));
     map.put(
         "CERTIFICATE_REQUEST",
-        Base64.decode(pkcs10.getBytes(StandardCharsets.UTF_8)));
+        Base64.decode(PKCS10.getBytes(StandardCharsets.UTF_8)));
     ei4.setData(map);
     assertEquals(
-        pkcs10,
+        PKCS10,
         new String(
             Base64.encode(ei4.getCertificateRequest()),
             StandardCharsets.UTF_8));
   }
-
+  /** Test. */
   @Test
   public void testSetGetCopyFields() {
     final Integer approvalRequestId = 1;
@@ -208,7 +208,7 @@ public class ExtendedInformationTest {
         subjectDirectoryAttributes,
         extendedInformation2.getSubjectDirectoryAttributes());
   }
-
+  /** Test. */
   @Test
   public void testIntegerFieldsAsStrings() {
     final ExtendedInformation extendedInformation = new ExtendedInformation();

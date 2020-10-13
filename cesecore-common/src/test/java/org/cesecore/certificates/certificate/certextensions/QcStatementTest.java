@@ -37,8 +37,12 @@ import org.junit.Test;
 
 /** @version $Id: QcStatementTest.java 26380 2017-08-21 22:41:48Z anatom $ */
 public class QcStatementTest {
+    /** Logger. */
   private static Logger log = Logger.getLogger(QcStatementTest.class);
-
+  /**
+   * @throws CertificateExtensionException fail
+ * @throws IOException Fail
+   */
   @Test
   public void testQcStatement()
       throws CertificateExtensionException, IOException {

@@ -22,7 +22,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
 import org.junit.Test;
 
 /**
- * Test the functionality of the CertificateExtensionManager
+ * Test the functionality of the CertificateExtensionManager.
  *
  * <p>Based on EJBCA version: CertificateExtensionManagerTest.java 10397
  * 2010-11-08 14:18:57Z anatom
@@ -31,7 +31,9 @@ import org.junit.Test;
  *     aveen4711 $
  */
 public class CertificateExtensionFactoryTest {
-
+     /**
+       * @throws Exception Fail
+       */
   @Test
   public void test02StandardCertificateExtensions() throws Exception {
 

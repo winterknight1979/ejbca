@@ -51,7 +51,7 @@ import org.junit.Test;
  *     $
  */
 public class CertificateProfileTest {
-
+     /** Test. */
   @Test
   public void test01DefaultValues() {
     final CertificateProfile prof =
@@ -167,7 +167,7 @@ public class CertificateProfileTest {
     assertEquals(0, app.size());
     assertTrue(prof.isApplicableToAnyCA());
   }
-
+  /** Test. */
   @Test
   public void test02ChangeValues() {
     final CertificateProfile prof =
@@ -232,7 +232,7 @@ public class CertificateProfileTest {
       assertNotNull(entry.getKey() + " is empty", entry.getValue());
     }
   }
-
+  /** Test. */
   @Test
   public void test03FixedProfiles() {
     assertTrue(
@@ -361,7 +361,8 @@ public class CertificateProfileTest {
     assertFalse(prof.getKeyUsage(CertificateConstants.DIGITALSIGNATURE));
     assertFalse(prof.getKeyUsage(CertificateConstants.KEYENCIPHERMENT));
   }
-
+  /** Test.
+   * @throws Exception fail*/
   @Test
   public void test04createSubjectDNSubSet() throws Exception {
     CertificateProfile profile =
@@ -396,7 +397,8 @@ public class CertificateProfileTest {
         "createSubjectDNSubSet doesn't work" + outdn2 + " != " + expecteddn2,
         expecteddn2.equalsIgnoreCase(outdn2));
   }
-
+  /** Test.
+   * @throws Exception fail*/
   @Test
   public void test05createSubjectAltNameSubSet() throws Exception {
     CertificateProfile profile =
@@ -432,7 +434,8 @@ public class CertificateProfileTest {
             + expectedaltname2,
         expectedaltname2.equalsIgnoreCase(outaltname2));
   }
-
+  /** Test.
+   * @throws Exception fail*/
   @Test
   public void test06CertificateExtensions() throws Exception {
     CertificateProfile profile =
@@ -494,7 +497,8 @@ public class CertificateProfileTest {
     assertTrue(l.contains(Extension.subjectDirectoryAttributes.getId()));
     assertTrue(l.contains(CertTools.OID_MSTEMPLATE));
   } // test09CertificateExtensions
-
+  /** Test.
+   * @throws Exception fail*/
   @Test
   public void test08Clone() throws Exception {
     CertificateProfile profile =
@@ -527,7 +531,7 @@ public class CertificateProfileTest {
     assertEquals(clonemap2.size(), clonemap.size() - 1);
     assertEquals(clonemap2.size(), profmap.size() - 1);
   }
-
+  /** Test. */
   @Test
   public void test09ManyValues() {
     CertificateProfile profile =
@@ -648,7 +652,8 @@ public class CertificateProfileTest {
     profile.setQCEtsiType("1.2.3.4");
     assertEquals("1.2.3.4", profile.getQCEtsiType());
   }
-
+  /** Test.
+   * @throws Exception fail*/
   @Test
   public void test10CertificateProfileValues() throws Exception {
     CertificateProfile ep =
@@ -695,7 +700,8 @@ public class CertificateProfileTest {
         AlgorithmConstants.SIGALG_SHA256_WITH_ECDSA,
         cp.getSignatureAlgorithm());
   }
-
+  /** Test.
+ * @throws Exception fail*/
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Test
   public void test11CertificatePolicyClassUpgrade() throws Exception {
@@ -741,7 +747,7 @@ public class CertificateProfileTest {
     assertNull(pol.getQualifier());
     assertEquals("foo", pol.getQualifierId());
   }
-
+  /** Test. */
   @SuppressWarnings({"unchecked", "deprecation"})
   @Test
   public void testCertificateProfileUpgradeDefaults() {
@@ -777,7 +783,7 @@ public class CertificateProfileTest {
         "Old property should have been removed after profile modification",
         res.containsKey(CertificateProfile.QCETSIPDSURL));
   }
-
+ /** Test. */
   @SuppressWarnings({"unchecked", "deprecation"})
   @Test
   public void testCertificateProfileUpgradeNonDefaults() {
@@ -824,6 +830,9 @@ public class CertificateProfileTest {
         CertificateProfile.MAXIMUMAVAILABLEBITLENGTH, Integer.valueOf(1024));
   }
 
+  /**
+   * @throws InvalidAlgorithmParameterException fail
+   */
   @Test
   public void testInvalidKeySpecs() throws InvalidAlgorithmParameterException {
     // Install BC for key generation (if needed)
@@ -834,10 +843,10 @@ public class CertificateProfileTest {
         "Unexpected key size of key pair used in this test.",
         512,
         KeyTools.getKeyLength(keyPairRsa.getPublic()));
-    final String USED_EC_CURVE_NAME = "prime256v1";
+    final String usedEcCurveName = "prime256v1";
     final KeyPair keyPairEc =
         KeyTools.genKeys(
-            USED_EC_CURVE_NAME, AlgorithmConstants.KEYALGORITHM_ECDSA);
+            usedEcCurveName, AlgorithmConstants.KEYALGORITHM_ECDSA);
     assertEquals(
         "Unexpected key size of key pair used in this test.",
         256,
@@ -928,7 +937,7 @@ public class CertificateProfileTest {
           AlgorithmConstants.KEYALGORITHM_ECDSA,
           AlgorithmConstants.KEYALGORITHM_RSA
         },
-        new String[] {CertificateProfile.ANY_EC_CURVE, USED_EC_CURVE_NAME},
+        new String[] {CertificateProfile.ANY_EC_CURVE, usedEcCurveName},
         new int[] {256, 1024});
     // Test happy path. EC 256 bit "prime256v1" key. ECDSA (bit restricted +
     // "secp256k1"), 256,1024 allowed by certificate profile.
@@ -936,7 +945,7 @@ public class CertificateProfileTest {
         true,
         keyPairEc.getPublic(),
         new String[] {AlgorithmConstants.KEYALGORITHM_ECDSA},
-        new String[] {CertificateProfile.ANY_EC_CURVE, USED_EC_CURVE_NAME},
+        new String[] {CertificateProfile.ANY_EC_CURVE, usedEcCurveName},
         new int[] {256, 1024});
     // Test happy path. EC 256 bit "prime256v1" key. ECDSA (bit restricted +
     // "secp256k1"), RSA 256,1024 allowed by certificate profile.
@@ -969,7 +978,7 @@ public class CertificateProfileTest {
           AlgorithmConstants.KEYALGORITHM_ECDSA,
           AlgorithmConstants.KEYALGORITHM_RSA
         },
-        new String[] {CertificateProfile.ANY_EC_CURVE, USED_EC_CURVE_NAME},
+        new String[] {CertificateProfile.ANY_EC_CURVE, usedEcCurveName},
         new int[] {512, 1024});
     // Test expected failure. EC 256 bit "prime256v1" key. ECDSA ("secp256k1"),
     // RSA 256,1024 allowed by certificate profile.
@@ -1020,6 +1029,7 @@ public class CertificateProfileTest {
     }
   }
 
+  /** Test. */
   @Test
   public void testIsKeyTypeAllowed() {
     final CertificateProfile certificateProfile =

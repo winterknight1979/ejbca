@@ -24,8 +24,11 @@ import org.junit.Test;
 /** @version $Id: ValidityDateTest.java 24602 2016-10-31 13:26:34Z anatom $ */
 public class ValidityDateTest {
 
+    /** Logger. */
   private static final Logger LOG = Logger.getLogger(ValidityDateTest.class);
+  /** Config. */
   private static final String RELATIVE = "relative";
+  /** Config. */
   private static final String ABSOLUTE = "absolute";
 
   /**
@@ -53,36 +56,40 @@ public class ValidityDateTest {
             ValidityDate.formatAsISO8601(zero, ValidityDate.TIMEZONE_SERVER)));
     LOG.trace("<testParseFormat");
   }
-
+  /**
+   * Test.
+   */
   @Test
   @Deprecated
   public void testEncodeRelativeBeforePostUpdateOfVersion661() {
     LOG.trace(">testEncodeRelativeBeforePostUpdateOfVersion661");
-    final long ERROR_CODE = -1;
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "0", ERROR_CODE);
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "0d", ERROR_CODE);
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "-1d", ERROR_CODE);
+    final long errorCode = -1;
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "0", errorCode);
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "0d", errorCode);
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "-1d", errorCode);
     encodeBeforePostUpdateOfVersion661(RELATIVE, "1d", 1);
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "1d1h1m", ERROR_CODE);
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "0y0m1d", ERROR_CODE);
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "1d1h1m", errorCode);
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "0y0m1d", errorCode);
     encodeBeforePostUpdateOfVersion661(RELATIVE, "0y0mo1d", 1);
     encodeBeforePostUpdateOfVersion661(RELATIVE, "1d0y0mo", 1);
     encodeBeforePostUpdateOfVersion661(RELATIVE, "+0y-0mo+1d", 1);
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "ii +0y-0mo+1d", ERROR_CODE);
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "+0y-ii0mo+1d", ERROR_CODE);
-    encodeBeforePostUpdateOfVersion661(RELATIVE, "+0y-0mo+1d ii", ERROR_CODE);
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "ii +0y-0mo+1d", errorCode);
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "+0y-ii0mo+1d", errorCode);
+    encodeBeforePostUpdateOfVersion661(RELATIVE, "+0y-0mo+1d ii", errorCode);
     LOG.trace("<testEncodeRelativeBeforePostUpdateOfVersion661");
   }
-
+  /**
+   * Test.
+   */
   @Test
   @Deprecated
   public void testEncodeAbsoluteBeforePostUpdateOfVersion661() {
     LOG.trace(">testEncodeAbsoluteBeforePostUpdateOfVersion661");
-    final long ERROR_CODE = -1;
+    final long errorCode = -1;
     encodeBeforePostUpdateOfVersion661(
-        ABSOLUTE, "yyyy-MM-dd HH:mm:ssZZ", ERROR_CODE);
+        ABSOLUTE, "yyyy-MM-dd HH:mm:ssZZ", errorCode);
     encodeBeforePostUpdateOfVersion661(
-        ABSOLUTE, "2011-05-09T16:58:00+00:00", ERROR_CODE);
+        ABSOLUTE, "2011-05-09T16:58:00+00:00", errorCode);
     encodeBeforePostUpdateOfVersion661(
         ABSOLUTE, "2011-05-09 16:58:00+00:00", 1304960280000L);
     LOG.trace("<testEncodeAbsoluteBeforePostUpdateOfVersion661");
@@ -96,7 +103,10 @@ public class ValidityDateTest {
         result,
         ValidityDate.encodeBeforeVersion661(subject));
   }
-
+  /**
+   * Test.
+   * @throws ParseException fail
+   */
   @Test
   @Deprecated
   public void testGetStringBeforeVersion661() throws ParseException {
@@ -133,7 +143,9 @@ public class ValidityDateTest {
         ValidityDate.parseAsIso8601(
             ValidityDate.getStringBeforeVersion661(subject)));
   }
-
+  /**
+   * Test.
+   */
   @Test
   @Deprecated
   public void testGetDateBeforeVersion661() {
@@ -170,7 +182,9 @@ public class ValidityDateTest {
         result,
         ValidityDate.getDateBeforeVersion661(subjectLEncoded, subjectFromDate));
   }
-
+  /**
+   * Test.
+   */
   @Test
   @Deprecated
   public void testGetEncodeBeforeVersion661() {
@@ -196,6 +210,10 @@ public class ValidityDateTest {
     LOG.trace("<testGetEncodeBeforeVersion661");
   }
 
+  /**
+   * Test.
+   * @throws ParseException fail
+   */
   @Test
   @Deprecated
   public void testEncodeGetBeforeVersion661() throws ParseException {
@@ -241,7 +259,7 @@ public class ValidityDateTest {
 
   /**
    * Test the Date the feature was designed for
-   * (http://en.wikipedia.org/wiki/Year_2038_problem)
+   * (http://en.wikipedia.org/wiki/Year_2038_problem).
    */
   @Test
   public void testParseCaLatestValidDateTime() {

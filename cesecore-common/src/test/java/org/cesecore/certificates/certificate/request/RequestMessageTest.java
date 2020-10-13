@@ -45,14 +45,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Testing various aspects of request messages
+ * Testing various aspects of request messages.
  *
  * @version $Id: RequestMessageTest.java 28288 2018-02-15 08:17:42Z anatom $
  */
 public class RequestMessageTest {
-
+/** keys. */
   private static KeyPair keyPair;
-
+/**
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException fail
+ * @throws InvalidAlgorithmParameterException fail
+ */
   @BeforeClass
   public static void beforeClass()
       throws NoSuchAlgorithmException, NoSuchProviderException,
@@ -61,6 +65,14 @@ public class RequestMessageTest {
     keyPair = KeyTools.genKeys("512", null, "RSA");
   }
 
+  /**
+   * @throws InvalidKeyException fail
+   * @throws NoSuchAlgorithmException fail
+   * @throws NoSuchProviderException fail
+   * @throws SignatureException fail
+   * @throws IOException fail
+   * @throws OperatorCreationException fail
+   */
   @Test
   public void test01Pkcs10RequestMessage()
       throws InvalidKeyException, NoSuchAlgorithmException,
@@ -311,7 +323,7 @@ public class RequestMessageTest {
     assertEquals("Test", username);
   }
 
-  /** a P10 with a PKCS#9 challengePassword encoded as UTF8String */
+  /** a P10 with a PKCS#9 challengePassword encoded as UTF8String. */
   private static byte[] p10utf8StringPwd =
       Base64.decode(
           ("MIIBITCBzAIBADBHMQswCQYDVQQGEwJTRTETMBEGA1UECAwKU29tZS1TdGF0ZTER"
@@ -323,7 +335,7 @@ public class RequestMessageTest {
            + "UaIHwek=")
               .getBytes());
 
-  /** a P10 with a PKCS#9 challengePassword encoded as IA5String */
+  /** a P10 with a PKCS#9 challengePassword encoded as IA5String. */
   private static byte[] p10ia5StringPwd =
       Base64.decode(
           ("MIICyzCCAbMCAQAwVzELMAkGA1UEBhMCTkwxDTALBgNVBAoTBEJDSUUxIzAhBgNV"
@@ -343,7 +355,7 @@ public class RequestMessageTest {
            + "hS/tGtoRHV11z1MkHasunu0Y4bICWILislBKY224Tiq0LTWjujnHr6/6ewoPU7M=")
               .getBytes());
 
-  /** a P10 with a PKCS#9 challengePassword encoded as PrintableString */
+  /** a P10 with a PKCS#9 challengePassword encoded as PrintableString.*/
   private static byte[] p10printableStringPwd =
       Base64.decode(
           ("MIICyzCCAbMCAQAwVzELMAkGA1UEBhMCTkwxDTALBgNVBAoTBEJDSUUxIzAhBgNV"
@@ -362,7 +374,9 @@ public class RequestMessageTest {
            + "IE+kadoVCZKqUjpQWYfThNF8w+Blh//eq2Ai3VcQseHV3epxU7iBzmTfGXs5Kjjz"
            + "4Bdl+Nj8V5PRlEf8hjm7VldLczABKfnJM6aVMQ/L8YueRCnNzMNdcgBbfrfGXCU=")
               .getBytes());
-
+  /**
+   * Test.
+   */
   @Test
   public void testOpenSSLChallengepassword() {
     PKCS10RequestMessage msg1 = new PKCS10RequestMessage(p10utf8StringPwd);
@@ -440,7 +454,9 @@ public class RequestMessageTest {
             null);
     return basicpkcs10;
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testSNRepresentation() {
     SimpleRequestMessage req =

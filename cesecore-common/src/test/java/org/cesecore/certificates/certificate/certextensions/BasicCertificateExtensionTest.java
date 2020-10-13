@@ -54,12 +54,16 @@ import org.junit.Test;
  *     aminkh $
  */
 public class BasicCertificateExtensionTest {
+    /** Logger. */
   private static Logger log =
       Logger.getLogger(BasicCertificateExtensionTest.class);
 
-  private static final InternalResources intres =
+  /** Resource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test01NullBasicExtension() throws Exception {
     Properties props = new Properties();
@@ -75,7 +79,9 @@ public class BasicCertificateExtensionTest {
     assertTrue(baseExt.getId() == 1);
     assertFalse(baseExt.isCriticalFlag());
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test02IntegerBasicExtension() throws Exception {
     Properties props = new Properties();
@@ -108,13 +114,15 @@ public class BasicCertificateExtensionTest {
     } catch (CertificateExtensionException e) {
       exceptionThrown = true;
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.illegalvalue", "123SA4", 1, "1.2.3"),
           e.getMessage());
     }
     assertTrue(exceptionThrown);
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test03BitStringBasicExtension() throws Exception {
     Properties props = new Properties();
@@ -167,12 +175,14 @@ public class BasicCertificateExtensionTest {
       assertTrue("Should throw", false);
     } catch (CertificateExtensionException e) {
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.illegalvalue", "qqqq", 1, "1.2.3"),
           e.getMessage());
     }
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test04BooleanBasicExtension() throws Exception {
     Properties props = new Properties();
@@ -216,13 +226,15 @@ public class BasicCertificateExtensionTest {
     } catch (CertificateExtensionException e) {
       exceptionThrown = true;
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.illegalvalue", "1sdf", 1, "1.2.3"),
           e.getMessage());
     }
     assertTrue(exceptionThrown);
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test05OctetBasicExtension() throws Exception {
     Properties props = new Properties();
@@ -252,13 +264,15 @@ public class BasicCertificateExtensionTest {
     } catch (CertificateExtensionException e) {
       exceptionThrown = true;
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.illegalvalue", "123SA4", 1, "1.2.3"),
           e.getMessage());
     }
     assertTrue(exceptionThrown);
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test06PritableStringExtension() throws Exception {
     Properties props = new Properties();
@@ -291,7 +305,7 @@ public class BasicCertificateExtensionTest {
     } catch (CertificateExtensionException e) {
       exceptionThrown = true;
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               "This is a non  printable string åäöüè",
               1,
@@ -300,7 +314,7 @@ public class BasicCertificateExtensionTest {
       // Verify with unicode encoded as well to ensure file encodings were not
       // just messed up
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.illegalvalue",
               "This is a non  printable string \u00E5\u00E4\u00F6\u00FC\u00E8",
               1,
@@ -309,7 +323,9 @@ public class BasicCertificateExtensionTest {
     }
     assertTrue(exceptionThrown);
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test07UTF8StringExtension() throws Exception {
     Properties props = new Properties();
@@ -328,7 +344,9 @@ public class BasicCertificateExtensionTest {
             .getString()
             .equals("This is a utf8 åäöüè string"));
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test08WrongEncoding() throws Exception {
     Properties props = new Properties();
@@ -342,7 +360,7 @@ public class BasicCertificateExtensionTest {
       assertTrue("Should throw", false);
     } catch (CertificateExtensionException e) {
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.incorrectenc", "DERUTF8sdfTRING", 1),
           e.getMessage());
     }
@@ -360,7 +378,9 @@ public class BasicCertificateExtensionTest {
       // NOPMD
     }
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test09OidExtension() throws Exception {
     Properties props = new Properties();
@@ -391,7 +411,9 @@ public class BasicCertificateExtensionTest {
       // NOPMD
     }
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test10SequencedExtension() throws Exception {
     Properties props = new Properties();
@@ -422,7 +444,9 @@ public class BasicCertificateExtensionTest {
       assertEquals(str, "foo" + i++);
     }
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test11IA5StringExtension() throws Exception {
     Properties props = new Properties();
@@ -453,7 +477,9 @@ public class BasicCertificateExtensionTest {
     }
     assertTrue(exceptionThrown);
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test12DERObjectExtension() throws Exception {
     Properties props = new Properties();
@@ -515,7 +541,7 @@ public class BasicCertificateExtensionTest {
       fail("Should have failed as no value was specified in EI.");
     } catch (CertificateExtensionException ex) {
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.incorrectvalue", 1, "1.2.3"),
           ex.getMessage());
     }
@@ -808,6 +834,9 @@ public class BasicCertificateExtensionTest {
     assertEquals("value", "eeff0000", new String(Hex.encode(value)));
   }
 
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void test20CertExtensionEncoding() throws Exception {
     Properties props = new Properties();
@@ -870,7 +899,7 @@ public class BasicCertificateExtensionTest {
       fail("Should have fail as no dynamic value specified");
     } catch (CertificateExtensionException ex) {
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.incorrectvalue", 1, "1.2.3"),
           ex.getMessage());
     }
@@ -900,7 +929,7 @@ public class BasicCertificateExtensionTest {
       fail("Should have fail as no value specified");
     } catch (CertificateExtensionException ex) {
       assertEquals(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "certext.basic.incorrectvalue", 1, "1.2.3"),
           ex.getMessage());
     }
@@ -932,7 +961,7 @@ public class BasicCertificateExtensionTest {
       fail("Should have fail as both raw and nvalues specified");
     } catch (CertificateExtensionException ex) {
       assertEquals(
-          intres.getLocalizedMessage("certext.certextmissconfigured", 1),
+          INTRES.getLocalizedMessage("certext.certextmissconfigured", 1),
           ex.getMessage());
     }
   }

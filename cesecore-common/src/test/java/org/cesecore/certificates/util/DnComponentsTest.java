@@ -29,7 +29,10 @@ import org.junit.Test;
  * @version $Id: DnComponentsTest.java 27045 2017-11-07 10:48:46Z samuellb $
  */
 public class DnComponentsTest {
-
+     /**
+       * Test.
+       * @throws Exception fail
+       */
   @Test
   public void test01CheckObjects() throws Exception {
     String[] s = DnComponents.getDnObjects(true);
@@ -127,7 +130,9 @@ public class DnComponentsTest {
         31, (int) DnComponents.getDnIdFromDirAttr("COUNTRYOFRESIDENCE"));
     assertEquals(null, DnComponents.getDnIdFromDirAttr("nonexistent123"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testEnterpriseProperties() {
     assumeTrue(DnComponents.enterpriseMappingsExist());
@@ -141,7 +146,9 @@ public class DnComponentsTest {
         "ORGANIZATIONIDENTIFIER=",
         DnComponents.getDnExtractorFieldFromDnId(106));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void test02() {
     String dn =

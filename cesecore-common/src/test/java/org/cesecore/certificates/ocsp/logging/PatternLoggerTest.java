@@ -20,13 +20,14 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
- * Test the PatternLogger
+ * Test the PatternLogger.
  *
  * @version $Id: PatternLoggerTest.java 17428 2013-08-14 10:50:16Z anatom $
  */
 public class PatternLoggerTest {
 
-  private static final Logger log = Logger.getLogger(PatternLoggerTest.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(PatternLoggerTest.class);
 
   /**
    * Try out some interpolation with focus on different date formats.
@@ -36,32 +37,32 @@ public class PatternLoggerTest {
   @SuppressWarnings("el-syntax")
   @Test
   public void testPatternLoggerDateFormats() throws Exception {
-    log.trace(">testPatternLogger");
-    final String LOG_PATTERN =
+    LOG.trace(">testPatternLogger");
+    final String logPattern =
         "${VAR1};\"${VAR2}\";${"
             + PatternLogger.LOG_TIME
             + "};${"
             + PatternLogger.LOG_ID
             + "};${VAR3}";
     testPatternLoggerInternal(
-        LOG_PATTERN,
+        logPattern,
         "yyyy-MM-dd:HH:mm:ss:z",
         "GMT",
         "^content1;\"content2\";\\d{4}-\\d{2}-\\d{2}:\\d{2}:\\d{2}:"
         + "\\d{2}:GMT;0;content3$");
     testPatternLoggerInternal(
-        LOG_PATTERN,
+        logPattern,
         "yyyy-MM-dd HH:mm:ssZ",
         "CET",
         "^content1;\"content2\";\\d{4}-\\d{2}-\\d{2}"
             + " \\d{2}:\\d{2}:\\d{2}\\+0\\d00;0;content3$");
     testPatternLoggerInternal(
-        LOG_PATTERN,
+        logPattern,
         "yyyy-MM-dd'T'HH:mm:ssZ",
         "CET",
         "^content1;\"content2\";\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:"
         + "\\d{2}\\+0\\d00;0;content3$");
-    log.trace("<testPatternLogger");
+    LOG.trace("<testPatternLogger");
   }
 
   /**
@@ -80,7 +81,7 @@ public class PatternLoggerTest {
       final String timeZone,
       final String expected)
       throws Exception {
-    log.trace(">testPatternLoggerInternal");
+    LOG.trace(">testPatternLoggerInternal");
     final PatternLogger patternLogger =
         new TestPatternLogger("\\$\\{(.+?)\\}", pattern, dateFormat, timeZone);
 
@@ -92,11 +93,11 @@ public class PatternLoggerTest {
         PatternLogger.class.getDeclaredMethod("interpolate", new Class[0]);
     m.setAccessible(true);
     final String result = (String) m.invoke(patternLogger);
-    log.debug("result: " + result);
+    LOG.debug("result: " + result);
     assertTrue(
         "Result of interpolation operation did not match expected result.",
         result.matches(expected));
-    log.trace("<testPatternLoggerInternal");
+    LOG.trace("<testPatternLoggerInternal");
   }
 
   private class TestPatternLogger extends PatternLogger {

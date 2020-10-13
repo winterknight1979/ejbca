@@ -26,7 +26,8 @@ import org.junit.Test;
 
 /** @version $Id: DNFieldsUtilTest.java 25580 2017-03-22 14:30:19Z anatom $ */
 public class DNFieldsUtilTest {
-  private static final String trickyValue1 =
+      /** Config. */
+  private static final String TRICKY_VALUE_1 =
       " 10/2=5; 2 backs and a comma\\\\\\\\\\, 8/2=4 2 backs\\\\\\\\"; // last
   // comma
   // is end
@@ -39,130 +40,158 @@ public class DNFieldsUtilTest {
   // (4) of
   // \
   // before
-  private static final String trickyValue2 = "\\,"; // a single comma
-  private static final String trickyValue3 =
+  /** Config. */
+  private static final String TRICKY_VALUE_2 = "\\,"; // a single comma
+  /** Config. */
+  private static final String TRICKY_VALUE_3 =
       "\\\\\\\\\\\\\\,"; // 3 backs and a comma
-  private static final String trickyValue4 = "\\\\\\\\\\\\"; // 3 backs
-  private static final String trickyValue5 =
+  /** Config. */
+  private static final String TRICKY_VALUE_4 = "\\\\\\\\\\\\"; // 3 backs
+  /** Config. */
+  private static final String TRICKY_VALUE_5 =
       "\\,\\\\\\\\\\\\\\,"; // comma 3 backs comma
-  private static final String trickyValue6 = "\\,\\\\\\\\\\\\"; // comma 3 backs
-  private static final String trickyValue7 = "\\,\\,\\,\\,\\,\\,"; // 6 commas
-  private static final String trickyValue8 =
+  /** Config. */
+  private static final String TRICKY_VALUE_6 = "\\,\\\\\\\\\\\\";
+  /** Config. */
+  // comma 3 backs
+  private static final String TRICKY_VALUE_7 = "\\,\\,\\,\\,\\,\\,"; // 6 commas
+  /** Config. */
+  private static final String TRICKY_VALUE_8 =
       "\\\\\\,\\,\\,\\\\\\,\\,\\,\\\\"; // 1 back, 3 commas, 1 back, 3 commas, 1
   // back
-  private static final String key1 = "key1=";
-  private static final String key2 = "key2=";
-  private static final String c = ",";
-  private static final String cKey1 = c + key1;
-  private static final String cKey2 = c + key2;
-  private static final String empty1 = key1 + c;
-  private static final String empty2 = key2 + c;
-  private static final String originalDN =
-      key2
-          + trickyValue4
-          + c
-          + empty1
-          + empty2
-          + empty1
-          + empty1
-          + key1
-          + trickyValue1
-          + c
-          + empty1
-          + key2
-          + trickyValue5
-          + c
-          + empty1
-          + empty2
-          + key1
-          + trickyValue2
-          + cKey2
-          + trickyValue6
-          + c
-          + empty1
-          + key2
-          + trickyValue7
-          + cKey1
-          + trickyValue3
-          + c
-          + empty1
-          + empty2
-          + empty1
-          + key2
-          + trickyValue8
-          + c
-          + empty1
-          + empty2
-          + empty2
-          + empty1
-          + empty1
-          + empty2
-          + empty1
-          + key2;
+  /** Config. */
+  private static final String KEY_1 = "key1=";
+  /** Config. */
+  private static final String KEY_2 = "key2=";
+  /** Config. */
+  private static final String C = ",";
+  /** Config. */
+  private static final String C_KEY_1 = C + KEY_1;
+  /** Config. */
+  private static final String C_KEY_2 = C + KEY_2;
+  /** Config. */
+  private static final String EMPTY_1 = KEY_1 + C;
+  /** Config. */
+  private static final String EMPTY_2 = KEY_2 + C;
+  /** Config. */
+  private static final String ORIGINAL_DN =
+      KEY_2
+          + TRICKY_VALUE_4
+          + C
+          + EMPTY_1
+          + EMPTY_2
+          + EMPTY_1
+          + EMPTY_1
+          + KEY_1
+          + TRICKY_VALUE_1
+          + C
+          + EMPTY_1
+          + KEY_2
+          + TRICKY_VALUE_5
+          + C
+          + EMPTY_1
+          + EMPTY_2
+          + KEY_1
+          + TRICKY_VALUE_2
+          + C_KEY_2
+          + TRICKY_VALUE_6
+          + C
+          + EMPTY_1
+          + KEY_2
+          + TRICKY_VALUE_7
+          + C_KEY_1
+          + TRICKY_VALUE_3
+          + C
+          + EMPTY_1
+          + EMPTY_2
+          + EMPTY_1
+          + KEY_2
+          + TRICKY_VALUE_8
+          + C
+          + EMPTY_1
+          + EMPTY_2
+          + EMPTY_2
+          + EMPTY_1
+          + EMPTY_1
+          + EMPTY_2
+          + EMPTY_1
+          + KEY_2;
   // Note that originalDN ends with an escaped comma, so this line should end
   // with a comma as a character
-  private static final String trailingSpacesRemovedDN =
-      key2
-          + trickyValue4
-          + c
-          + empty1
-          + empty2
-          + empty1
-          + empty1
-          + key1
-          + trickyValue1
-          + c
-          + empty1
-          + key2
-          + trickyValue5
-          + c
-          + empty1
-          + empty2
-          + key1
-          + trickyValue2
-          + cKey2
-          + trickyValue6
-          + c
-          + empty1
-          + key2
-          + trickyValue7
-          + cKey1
-          + trickyValue3
-          + c
-          + empty2
-          + key2
-          + trickyValue8
-          + c;
-  private static final String allSpacesRemovedDN =
-      key2
-          + trickyValue4
-          + cKey1
-          + trickyValue1
-          + cKey2
-          + trickyValue5
-          + cKey1
-          + trickyValue2
-          + cKey2
-          + trickyValue6
-          + cKey2
-          + trickyValue7
-          + cKey1
-          + trickyValue3
-          + cKey2
-          + trickyValue8
-          + c;
-  private static final String defaultEmptyBefore =
+  /** Config. */
+  private static final String TRAILING_SPACES_REMOVED_DN =
+      KEY_2
+          + TRICKY_VALUE_4
+          + C
+          + EMPTY_1
+          + EMPTY_2
+          + EMPTY_1
+          + EMPTY_1
+          + KEY_1
+          + TRICKY_VALUE_1
+          + C
+          + EMPTY_1
+          + KEY_2
+          + TRICKY_VALUE_5
+          + C
+          + EMPTY_1
+          + EMPTY_2
+          + KEY_1
+          + TRICKY_VALUE_2
+          + C_KEY_2
+          + TRICKY_VALUE_6
+          + C
+          + EMPTY_1
+          + KEY_2
+          + TRICKY_VALUE_7
+          + C_KEY_1
+          + TRICKY_VALUE_3
+          + C
+          + EMPTY_2
+          + KEY_2
+          + TRICKY_VALUE_8
+          + C;
+  /** Config. */
+  private static final String ALL_SPACES_REMOVED_DN =
+      KEY_2
+          + TRICKY_VALUE_4
+          + C_KEY_1
+          + TRICKY_VALUE_1
+          + C_KEY_2
+          + TRICKY_VALUE_5
+          + C_KEY_1
+          + TRICKY_VALUE_2
+          + C_KEY_2
+          + TRICKY_VALUE_6
+          + C_KEY_2
+          + TRICKY_VALUE_7
+          + C_KEY_1
+          + TRICKY_VALUE_3
+          + C_KEY_2
+          + TRICKY_VALUE_8
+          + C;
+  /** Config. */
+  private static final String DEFAULT_EMPTY_BEFORE =
       "UNSTRUCTUREDNAME=, DN=, POSTALADDRESS=, NAME=, UID=, OU=,"
           + " 1.3.6.1.4.1.18838.1.1=, 1.3.6.1.4.1.4710.1.3.2=, ST=,"
           + " UNSTRUCTUREDADDRESS=, BUSINESSCATEGORY=, STREET=, CN=test1,"
           + " POSTALCODE=, O=, PSEUDONYM=, DC=, SURNAME=, C=, INITIALS=, SN=,"
           + " L=, GIVENNAME=, TELEPHONENUMBER=, T=, DC=";
-  private static final String defaultEmptyAfter = "CN=test1";
-  private static final String simpleBeforeAfter = "CN=userName,O=linagora";
-  private static final String simple2Before = "CN=userName,O=, O=linagora, O=";
-  private static final String simple2AfterA = "CN=userName,O=linagora";
-  private static final String simple2AfterT = "CN=userName,O=, O=linagora";
-
+  /** Config. */
+  private static final String DEFAULT_EMPTY_AFTER = "CN=test1";
+  /** Config. */
+  private static final String SIMPLE_BEFORE_AFTER = "CN=userName,O=linagora";
+  /** Config. */
+  private static final String SIMPLE_2_BEFORE =
+          "CN=userName,O=, O=linagora, O=";
+  /** Config. */
+  private static final String SIMPLE_2A_AFTER_A = "CN=userName,O=linagora";
+  /** Config. */
+  private static final String SIMPLE_2A_AFTER_T = "CN=userName,O=, O=linagora";
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testDnStringToMap() throws Exception {
     // Test empty string -> empty map.
@@ -192,7 +221,9 @@ public class DNFieldsUtilTest {
     assertEquals(
         "The DN map must contain all attributes and values.", map, dnMap);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testDnEqualsWithOtherSerialNumber() {
     // Test empty DN strings.
@@ -223,46 +254,61 @@ public class DNFieldsUtilTest {
             DNFieldsUtil.dnStringToMap(string1),
             DNFieldsUtil.dnStringToMap(string1)));
   }
-
+  /**
+   * Test.
+ * @throws Exception  fail
+   */
   @Test
   public void testRemoveAllEmpties() throws Exception {
-    assertEquals(allSpacesRemovedDN, removeEmpties(originalDN, false));
-    assertEquals(defaultEmptyAfter, removeEmpties(defaultEmptyBefore, false));
-    assertEquals(simpleBeforeAfter, removeEmpties(simpleBeforeAfter, false));
-    assertEquals(simple2AfterA, removeEmpties(simple2Before, false));
+    assertEquals(ALL_SPACES_REMOVED_DN, removeEmpties(ORIGINAL_DN, false));
+    assertEquals(DEFAULT_EMPTY_AFTER,
+            removeEmpties(DEFAULT_EMPTY_BEFORE, false));
+    assertEquals(SIMPLE_BEFORE_AFTER,
+            removeEmpties(SIMPLE_BEFORE_AFTER, false));
+    assertEquals(SIMPLE_2A_AFTER_A, removeEmpties(SIMPLE_2_BEFORE, false));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testRemoveTrailingEmpties() {
-    assertEquals(trailingSpacesRemovedDN, removeEmpties(originalDN, true));
-    assertEquals(defaultEmptyAfter, removeEmpties(defaultEmptyBefore, true));
-    assertEquals(simpleBeforeAfter, removeEmpties(simpleBeforeAfter, true));
-    assertEquals(simple2AfterT, removeEmpties(simple2Before, true));
+    assertEquals(TRAILING_SPACES_REMOVED_DN, removeEmpties(ORIGINAL_DN, true));
+    assertEquals(DEFAULT_EMPTY_AFTER,
+            removeEmpties(DEFAULT_EMPTY_BEFORE, true));
+    assertEquals(SIMPLE_BEFORE_AFTER,
+            removeEmpties(SIMPLE_BEFORE_AFTER, true));
+    assertEquals(SIMPLE_2A_AFTER_T, removeEmpties(SIMPLE_2_BEFORE, true));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testRemoveSingleEmpty() {
     assertEquals("", DNFieldsUtil.removeAllEmpties("CN="));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testRemoveSingleEscapedComma() {
     assertEquals("CN=\\,", DNFieldsUtil.removeAllEmpties("CN=\\,"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testRemoveTrailingEmptiesError() {
-    final String BAD_DN_STRING = "ddddddd=, sdfdf, sdfsdf=44";
-    final String FAIL_MESSAGE = "Behavioral change in DNFieldsUtil.";
+    final String badDnString = "ddddddd=, sdfdf, sdfsdf=44";
+    final String failMessage = "Behavioral change in DNFieldsUtil.";
     try {
-      removeEmpties(BAD_DN_STRING, true);
-      fail(FAIL_MESSAGE);
+      removeEmpties(badDnString, true);
+      fail(failMessage);
     } catch (Exception e) {
       // What we expect if something goes wrong
     }
     try {
-      removeEmpties(BAD_DN_STRING, false);
-      fail(FAIL_MESSAGE);
+      removeEmpties(badDnString, false);
+      fail(failMessage);
     } catch (Exception e) {
       // What we expect if something goes wrong
     }

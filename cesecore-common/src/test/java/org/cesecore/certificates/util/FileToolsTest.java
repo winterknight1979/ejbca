@@ -31,8 +31,14 @@ import org.junit.Test;
  * @version $Id: FileToolsTest.java 22649 2016-01-26 10:36:07Z samuellb $
  */
 public class FileToolsTest {
+    /** Logger. */
   private static Logger log = Logger.getLogger(FileToolsTest.class);
 
+  /**
+   * Test.
+   * @throws IOException fail
+   * @throws StreamSizeLimitExceededException fail
+   */
   @Test
   public void testStreamCopyWithLimit()
       throws IOException, StreamSizeLimitExceededException {

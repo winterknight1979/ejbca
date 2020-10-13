@@ -26,7 +26,10 @@ import org.junit.Test;
  * @version $Id: DnFieldExtractorTest.java 30524 2018-11-16 07:57:17Z anatom $
  */
 public class DnFieldExtractorTest {
-
+     /**
+       * Test.
+       * @throws Exception fail
+       */
   @Test
   public void test01CheckDnFields() throws Exception {
     final String comp = DnComponents.getDnExtractorFieldFromDnId(34);
@@ -238,7 +241,10 @@ public class DnFieldExtractorTest {
     num = extractor.getNumberOfFields(DNFieldExtractor.DATEOFBIRTH);
     assertEquals(0, num);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test02CheckDnFieldWithCommas() throws Exception {
     String dn = "cn=Hello\\, World!,dc=example,dc=com";
@@ -253,7 +259,10 @@ public class DnFieldExtractorTest {
     boolean other = extractor.existsOther();
     assertFalse(other);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test02CheckComplexDnFieldWithCommas() throws Exception {
     // special characters like < can cause problems

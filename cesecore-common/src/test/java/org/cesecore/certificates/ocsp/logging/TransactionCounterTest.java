@@ -21,7 +21,9 @@ import org.junit.Test;
  *     mikekushner $
  */
 public class TransactionCounterTest {
-
+     /**
+       * Test.
+       */
   @Test
   public void testTransactionCounter() {
     assertEquals(0, TransactionCounter.INSTANCE.getTransactionNumber());

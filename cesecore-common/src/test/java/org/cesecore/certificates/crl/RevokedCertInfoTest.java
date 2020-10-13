@@ -26,19 +26,23 @@ import org.junit.Test;
  * @version $Id: RevokedCertInfoTest.java 34193 2020-01-07 15:18:15Z samuellb $
  */
 public class RevokedCertInfoTest {
-
+  /** Test. */
   private static final RevokedCertInfo REVINFO_1_NOTREVOKED =
       revCertInfo("2017-01-15", RevocationReasons.NOT_REVOKED);
+  /** Test. */
   private static final RevokedCertInfo REVINFO_2_ONHOLD =
       revCertInfo("2017-01-31", RevocationReasons.CERTIFICATEHOLD);
+  /** Test. */
   private static final RevokedCertInfo REVINFO_3_UNSPECIFIED =
       revCertInfo("2017-02-20", RevocationReasons.UNSPECIFIED);
+  /** Test. */
   private static final RevokedCertInfo REVINFO_4_UNSPECIFIED =
       revCertInfo("2017-03-31", RevocationReasons.UNSPECIFIED);
+  /** Test. */
   private static final RevokedCertInfo REVINFO_5_REMOVEFROMCRL =
       revCertInfo("2017-05-31", RevocationReasons.REMOVEFROMCRL);
 
-  private static final RevokedCertInfo revCertInfo(
+  private static RevokedCertInfo revCertInfo(
       final String revocationDate, final RevocationReasons reason) {
     return new RevokedCertInfo(
         new byte[] {1, 2, 3, 4},
@@ -48,7 +52,7 @@ public class RevokedCertInfoTest {
         date("2017-12-31"));
   }
 
-  private static final long date(final String ymd) {
+  private static long date(final String ymd) {
     try {
       return ValidityDate.parseAsIso8601(ymd).getTime();
     } catch (ParseException e) {
@@ -64,7 +68,7 @@ public class RevokedCertInfoTest {
         message, expected.getRevocationDate(), actual.getRevocationDate());
     assertEquals(message, expected.getReason(), actual.getReason());
   }
-
+  /** Test. */
   @Test
   public void mergeEmpty() {
     final CompressedCollection<RevokedCertInfo> a =
@@ -77,7 +81,7 @@ public class RevokedCertInfoTest {
         a,
         RevokedCertInfo.mergeByDateAndStatus(a, b, 0));
   }
-
+  /** Test. */
   @Test
   public void mergeWithDuplicates() {
     final CompressedCollection<RevokedCertInfo> a =
@@ -95,7 +99,7 @@ public class RevokedCertInfoTest {
         REVINFO_4_UNSPECIFIED,
         res.iterator().next());
   }
-
+  /** Test. */
   @Test
   public void mergeWithDuplicates2() {
     final CompressedCollection<RevokedCertInfo> a =
@@ -113,7 +117,7 @@ public class RevokedCertInfoTest {
         REVINFO_4_UNSPECIFIED,
         res.iterator().next());
   }
-
+  /** Test. */
   @Test
   public void mergeWithDuplicates3() {
     final CompressedCollection<RevokedCertInfo> a =
@@ -133,6 +137,7 @@ public class RevokedCertInfoTest {
         res.iterator().next());
   }
 
+  /** Test. */
   @Test
   public void mergeWithDuplicates4() {
     final CompressedCollection<RevokedCertInfo> a =
@@ -149,7 +154,7 @@ public class RevokedCertInfoTest {
         REVINFO_3_UNSPECIFIED,
         res.iterator().next());
   }
-
+  /** Test. */
   @Test
   public void mergeWithRemoveFromCrl1() {
     final CompressedCollection<RevokedCertInfo> a =

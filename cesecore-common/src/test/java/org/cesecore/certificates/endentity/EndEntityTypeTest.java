@@ -12,7 +12,9 @@
  *************************************************************************/
 package org.cesecore.certificates.endentity;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -23,7 +25,7 @@ import org.junit.Test;
  * @version $Id: EndEntityTypeTest.java 22121 2015-10-29 13:49:30Z mikekushner $
  */
 public class EndEntityTypeTest {
-
+     /** Test. */
   @Test
   public void testIsTypeBasic() {
     // Basic test.
@@ -32,7 +34,7 @@ public class EndEntityTypeTest {
     assertFalse(basicType.isType(EndEntityTypes.ENDUSER));
     assertFalse(basicType.isType(EndEntityTypes.INVALID));
   }
-
+  /** Test. */
   @Test
   public void testIsTypeComplex() {
     // Complex test
@@ -41,7 +43,7 @@ public class EndEntityTypeTest {
     assertFalse(complexType.isType(EndEntityTypes.ENDUSER));
     assertFalse(complexType.isType(EndEntityTypes.ADMINISTRATOR));
   }
-
+  /** Test. */
   @Test
   public void testAddToType() {
     EndEntityType type = new EndEntityType();
@@ -59,7 +61,7 @@ public class EndEntityTypeTest {
         (type.getHexValue() & EndEntityTypes.ADMINISTRATOR.hexValue())
             == EndEntityTypes.ADMINISTRATOR.hexValue());
   }
-
+  /** Test. l*/
   @Test
   public void testContains() {
     EndEntityType type = new EndEntityType(EndEntityTypes.INVALID);
@@ -73,7 +75,7 @@ public class EndEntityTypeTest {
     // "contained".
     assertTrue(type.contains(EndEntityTypes.INVALID));
   }
-
+  /** Test. */
   @Test
   public void testRemoveType() {
     EndEntityType type =

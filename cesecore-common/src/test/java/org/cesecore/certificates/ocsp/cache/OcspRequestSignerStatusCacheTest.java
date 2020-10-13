@@ -33,8 +33,10 @@ import org.junit.Test;
  */
 public class OcspRequestSignerStatusCacheTest {
 
+    /** config. */
   private String defaultConfigurationValue = null;
 
+  /** Setup. */
   @Before
   public void before() {
     OcspRequestSignerStatusCache.INSTANCE.flush();
@@ -42,14 +44,16 @@ public class OcspRequestSignerStatusCacheTest {
         ConfigurationHolder.getString(
             OcspConfiguration.REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME);
   }
-
+ /** Teardown. */
   @After
   public void after() {
     ConfigurationHolder.updateConfiguration(
         OcspConfiguration.REQUEST_SIGNING_CERT_REVOCATION_CACHE_TIME,
         defaultConfigurationValue);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testLookupKeyGeneration() {
     final String key1 =
@@ -72,7 +76,10 @@ public class OcspRequestSignerStatusCacheTest {
         "Different input should not have generated the same key.",
         key1.equals(key4));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCacheDisabled() throws Exception {
     ConfigurationHolder.updateConfiguration(
@@ -99,7 +106,10 @@ public class OcspRequestSignerStatusCacheTest {
         "Cache entry should have been expired.",
         OcspRequestSignerStatusCache.INSTANCE.getCachedCertificateStatus(key1));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCacheExpired() throws Exception {
     ConfigurationHolder.updateConfiguration(
@@ -130,6 +140,10 @@ public class OcspRequestSignerStatusCacheTest {
         CertificateStatus.NOT_AVAILABLE);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCacheEnabled() throws Exception {
     ConfigurationHolder.updateConfiguration(

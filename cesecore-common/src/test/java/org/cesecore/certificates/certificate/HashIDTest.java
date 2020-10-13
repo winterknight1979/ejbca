@@ -24,17 +24,20 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Unit tests for the HashID class
+ * Unit tests for the HashID class.
  *
  * @version $Id: HashIDTest.java 22129 2015-11-02 10:08:41Z mikekushner $
  */
 public class HashIDTest {
 
+    /** Setup. */
   @BeforeClass
   public static void beforeClass() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
   }
-
+  /**
+   * @throws Exception Fail
+   */
   @Test
   public void testSubjectDn() throws Exception {
     KeyPair keys = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
