@@ -50,12 +50,16 @@ import org.junit.Test;
  */
 public class SecureXMLDecoderTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SecureXMLDecoderTest.class);
-
+  /**
+   * Test.
+   * @throws IOException fail
+   */
   @Test
   public void testElementaryTypes() throws IOException {
-    log.trace(">testElementaryTypes");
+    LOG.trace(">testElementaryTypes");
     decodeCompare(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
             + " class=\"java.beans.XMLDecoder\"></java>");
@@ -116,7 +120,7 @@ public class SecureXMLDecoderTest {
             + "</void>\n"
             + "</object>\n"
             + "</java>");
-    log.trace("<testElementaryTypes");
+    LOG.trace("<testElementaryTypes");
   }
 
   /**
@@ -126,7 +130,7 @@ public class SecureXMLDecoderTest {
    */
   @Test
   public void testBasicCollections() throws IOException {
-    log.trace(">testBasicCollections");
+    LOG.trace(">testBasicCollections");
     // Empty list
     decodeCompare(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
@@ -170,27 +174,31 @@ public class SecureXMLDecoderTest {
             + "</void>\n"
             + "</object>\n"
             + "</java>");
-    log.trace("<testBasicCollections");
+    LOG.trace("<testBasicCollections");
   }
-
+  /**
+   * Test.
+   * @throws IOException fail
+   */
   @Test
   public void testMultipleObjects() throws IOException {
-    log.trace(">testMultipleObjects");
+    LOG.trace(">testMultipleObjects");
     decodeCompare(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
             + " class=\"java.beans.XMLDecoder\">\n"
             + "<int>-12345</int>\n"
             + "<string>ABC</string>\n"
             + "</java>");
-    log.trace(">testMultipleObjects");
+    LOG.trace(">testMultipleObjects");
   }
 
-  private static enum MockEnum {
-    FOO;
+  private enum MockEnum {
+          /** singleton. */
+      FOO;
   }
 
   /**
-   * Tests encoding and decoding an enum
+   * Tests encoding and decoding an enum.
    *
    * @throws IOException fail
    */
@@ -215,7 +223,7 @@ public class SecureXMLDecoderTest {
    */
   @Test
   public void testComplexEncodeDecode() throws IOException {
-    log.trace(">testComplexEncodeDecode");
+    LOG.trace(">testComplexEncodeDecode");
 
     final Map<Object, Object> root = new LinkedHashMap<>();
     root.put("testfloat", 12.3);
@@ -301,47 +309,50 @@ public class SecureXMLDecoderTest {
     // Try to decode it and compare
     decodeCompare(baos.toByteArray());
 
-    log.trace("<testComplexEncodeDecode");
+    LOG.trace("<testComplexEncodeDecode");
   }
 
   private static final class MockObject {
+      /** Int as class. */
     private Integer integerValue;
+    /** Int. */
     private int intValue;
+    /** bool. */
     private boolean booleanValue;
 
     public Integer getIntegerValue() {
       return integerValue;
     }
 
-    public void setIntegerValue(final Integer integerValue) {
-      this.integerValue = integerValue;
+    public void setIntegerValue(final Integer anIntegerValue) {
+      this.integerValue = anIntegerValue;
     }
 
     public int getIntValue() {
       return intValue;
     }
 
-    public void setIntValue(final int intValue) {
-      this.intValue = intValue;
+    public void setIntValue(final int anIntValue) {
+      this.intValue = anIntValue;
     }
 
     public boolean getBooleanValue() {
       return booleanValue;
     }
 
-    public void setBooleanValue(final boolean booleanValue) {
-      this.booleanValue = booleanValue;
+    public void setBooleanValue(final boolean aBooleanValue) {
+      this.booleanValue = aBooleanValue;
     }
   }
 
   /**
-   * Tests properties with primitive types
+   * Tests properties with primitive types.
    *
    * @throws IOException fail
    */
   @Test
   public void testPrimitiveTypeProperty() throws IOException {
-    log.trace(">testPrimitiveTypeProperty");
+    LOG.trace(">testPrimitiveTypeProperty");
     // Given
     final MockObject obj = new MockObject();
     obj.setIntegerValue(123);
@@ -349,61 +360,61 @@ public class SecureXMLDecoderTest {
     obj.setBooleanValue(true);
     // When
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos)) {
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
       encoder.writeObject(obj);
     }
     decodeCompare(baos.toByteArray());
-    log.trace("<testPrimitiveTypeProperty");
+    LOG.trace("<testPrimitiveTypeProperty");
   }
 
   /**
-   * Tests property with null value
+   * Tests property with null value.
    *
    * @throws IOException fail
    */
   @Test
   public void testNullProperty() throws IOException {
-    log.trace(">testNullProperty");
+    LOG.trace(">testNullProperty");
     // Given
     final CertificatePolicy certPolicy =
         new CertificatePolicy("2.999.123", null, null);
     // When
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos)) {
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
       encoder.writeObject(certPolicy);
     }
     decodeCompare(baos.toByteArray());
-    log.trace("<testNullProperty");
+    LOG.trace("<testNullProperty");
   }
 
   /**
-   * Tests decoding of an empty object
+   * Tests decoding of an empty object.
    *
    * @throws IOException fail
    */
   @Test
   public void testEmptyObject() throws IOException {
-    log.trace(">testEmptyObject");
+    LOG.trace(">testEmptyObject");
     // Given
     final CertificatePolicy certPolicy =
         new CertificatePolicy(null, null, null);
     // When
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos)) {
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
       encoder.writeObject(certPolicy);
     }
     decodeCompare(baos.toByteArray());
-    log.trace("<testEmptyObject");
+    LOG.trace("<testEmptyObject");
   }
 
   /**
-   * Tests properties with referenced object
+   * Tests properties with referenced object.
    *
    * @throws IOException fail
    */
   @Test
   public void testReferencedObject() throws IOException {
-    log.trace(">testReferencedObject");
+    LOG.trace(">testReferencedObject");
     // Given
     final PKIDisclosureStatement obj =
         new PKIDisclosureStatement("http://example.com", "sv");
@@ -412,11 +423,11 @@ public class SecureXMLDecoderTest {
     map.put("B", obj);
     // When
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos)) {
+    try (XMLEncoder encoder = new XMLEncoder(baos)) {
       encoder.writeObject(map);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("Encoded:\n" + baos.toString("UTF-8"));
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Encoded:\n" + baos.toString("UTF-8"));
     }
     final Map<?, ?> decodedMap;
     try (SecureXMLDecoder securedec =
@@ -429,12 +440,14 @@ public class SecureXMLDecoderTest {
         "Object was not equal after decoding.", obj, decodedMap.get("A"));
     assertSame(
         "Reference was not same.", decodedMap.get("A"), decodedMap.get("B"));
-    log.trace("<testReferencedObject");
+    LOG.trace("<testReferencedObject");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testNotAllowedType() {
-    log.trace(">testNotAllowedType");
+    LOG.trace(">testNotAllowedType");
 
     // Encode
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -446,9 +459,11 @@ public class SecureXMLDecoderTest {
 
     decodeBad(baos.toByteArray());
 
-    log.trace("<testNotAllowedType");
+    LOG.trace("<testNotAllowedType");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testDecodeUnknownClass() {
     final Map<Object, Object> root = new LinkedHashMap<>();
@@ -469,10 +484,12 @@ public class SecureXMLDecoderTest {
 
     }
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testNotAllowedMethod() {
-    log.trace(">testNotAllowedMethod");
+    LOG.trace(">testNotAllowedMethod");
 
     final String xml =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><java version=\"1.6.0.0\""
@@ -488,12 +505,12 @@ public class SecureXMLDecoderTest {
             + "</java>";
     decodeBad(xml.getBytes());
 
-    log.trace("<testNotAllowedMethod");
+    LOG.trace("<testNotAllowedMethod");
   }
 
   private void decodeBad(final byte[] xml) {
-    if (log.isTraceEnabled()) {
-      log.trace(">decodeBad(" + new String(xml) + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">decodeBad(" + new String(xml) + ")");
     }
 
     try (XMLDecoder xmldec = new XMLDecoder(new ByteArrayInputStream(xml))) {
@@ -509,7 +526,7 @@ public class SecureXMLDecoderTest {
       // NOPMD: Expected
     }
 
-    log.trace("<decodeBad");
+    LOG.trace("<decodeBad");
   }
 
   /**
@@ -524,8 +541,8 @@ public class SecureXMLDecoderTest {
   }
 
   private void decodeCompare(final byte[] xml) throws IOException {
-    if (log.isTraceEnabled()) {
-      log.trace(">decodeCompare(" + new String(xml) + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">decodeCompare(" + new String(xml) + ")");
     }
 
     final List<Object> expectedObjs = new ArrayList<>();
@@ -534,7 +551,7 @@ public class SecureXMLDecoderTest {
     try (XMLDecoder xmldec = new XMLDecoder(new ByteArrayInputStream(xml))) {
       int i = 1;
       while (true) {
-        log.debug(
+        LOG.debug(
             "Reading object " + (i++) + " from the standard JDK XMLDecoder");
         expectedObjs.add(xmldec.readObject());
       }
@@ -546,7 +563,7 @@ public class SecureXMLDecoderTest {
         new SecureXMLDecoder(new ByteArrayInputStream(xml))) {
       int i = 1;
       while (true) {
-        log.debug("Reading object " + (i++) + " from SecureXMLDecoder");
+        LOG.debug("Reading object " + (i++) + " from SecureXMLDecoder");
         actualObjs.add(securedec.readObject());
       }
     } catch (EOFException e) {
@@ -560,19 +577,19 @@ public class SecureXMLDecoderTest {
         actualObjs.size());
 
     final int count = expectedObjs.size();
-    log.debug("Comparing " + count + " objects");
+    LOG.debug("Comparing " + count + " objects");
     for (int i = 0; i < count; i++) {
       final Object expected = expectedObjs.get(i);
       final Object actual = actualObjs.get(i);
       compareObjects(expected, actual);
     }
 
-    log.trace("<decodeCompare");
+    LOG.trace("<decodeCompare");
   }
 
   private void compareObjects(final Object expected, final Object actual) {
-    if (log.isTraceEnabled()) {
-      log.trace(">compareObjects(" + expected + ", " + actual + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">compareObjects(" + expected + ", " + actual + ")");
     }
 
     if (expected == null) {
@@ -674,8 +691,8 @@ public class SecureXMLDecoderTest {
       assertEquals("Deserialized values differ.", expected, actual);
     }
 
-    if (log.isTraceEnabled()) {
-      log.trace("<compareObjects(" + expected + ", " + actual + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<compareObjects(" + expected + ", " + actual + ")");
     }
   }
 }

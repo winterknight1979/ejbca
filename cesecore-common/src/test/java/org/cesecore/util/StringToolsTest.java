@@ -41,10 +41,11 @@ import org.junit.Test;
  * @version $Id: StringToolsTest.java 30976 2019-01-03 14:47:14Z samuellb $
  */
 public class StringToolsTest {
+    /** Logger. */
   private static Logger log = Logger.getLogger(StringToolsTest.class);
 
   /**
-   * tests stripping whitespace
+   * tests stripping whitespace.
    *
    * @throws Exception error
    */
@@ -55,7 +56,10 @@ public class StringToolsTest {
     assertEquals("foobarquux", StringTools.stripWhitespace(test));
     log.trace(">test01StripWhitespace()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test02IpStringToOctets() throws Exception {
     log.trace(">test02IpStringToOctets()");
@@ -66,7 +70,10 @@ public class StringToolsTest {
     }
     log.trace(">test02IpStringToOctets()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test03Strip() throws Exception {
     log.trace(">test03Strip()");
@@ -78,7 +85,10 @@ public class StringToolsTest {
     assertEquals("String not stripped correctly!", stripped, "foo/bar:far/");
     log.trace("<test03Strip()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test04Strip() throws Exception {
     log.trace(">test04Strip()");
@@ -126,6 +136,7 @@ public class StringToolsTest {
     log.trace("<test04Strip()");
   }
 
+  /** key. */
   static final String FORBIDDEN_CHARS_KEY = "forbidden.characters";
 
   private static void forbiddenTest(
@@ -144,7 +155,10 @@ public class StringToolsTest {
     }
     assertEquals("String not stripped correctly!", output, stripped);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test05Strip() throws Exception {
     log.trace(">test05Strip()");
@@ -171,7 +185,10 @@ public class StringToolsTest {
     }
     log.trace("<test05Strip()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testBase64() throws Exception {
     String s1 = "C=SE, O=abc, CN=def";
@@ -184,7 +201,10 @@ public class StringToolsTest {
     s2 = StringTools.getBase64String(b1);
     assertEquals(s2, s1);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testObfuscate() throws Exception {
     String obf = StringTools.obfuscate("foo123");
@@ -202,7 +222,10 @@ public class StringToolsTest {
     assertNull(StringTools.deobfuscateIf(null));
     assertNull(StringTools.obfuscate(null));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testPbe() throws Exception {
     CryptoProviderTools.installBCProvider();
@@ -214,7 +237,10 @@ public class StringToolsTest {
                 .toCharArray());
     assertEquals("foo123", dec);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testKeySequence() throws Exception {
     String oldSeq = "00001";
@@ -261,6 +287,10 @@ public class StringToolsTest {
             oldSeq));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testIpStringToOctets() throws Exception {
     String ipv4 = "192.168.4.45";
@@ -284,7 +314,9 @@ public class StringToolsTest {
     assertNotNull(oct);
     assertEquals(0, oct.length);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testIsValidSanDnsName() {
     assertTrue(StringTools.isValidSanDnsName("a.b.cc"));
@@ -340,7 +372,10 @@ public class StringToolsTest {
         StringTools.isValidSanDnsName(
       "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.com"));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testHasSqlStripChars() throws Exception {
     String str = "select * from Table";
@@ -373,12 +408,14 @@ public class StringToolsTest {
     str = "foo\\";
     assertFalse(StringTools.hasSqlStripChars(str).isEmpty());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testParseCertData() {
     String certdata =
         "0000AAAA : DN : \"CN=foo,O=foo,C=SE\" : SubjectDN : \"CN=foo2,C=SE\"";
-    String res[] = StringTools.parseCertData(certdata);
+    String[] res = StringTools.parseCertData(certdata);
     assertNotNull(res);
     assertEquals(
         "Failed to find the administrator certificate serialnumber",
@@ -453,7 +490,10 @@ public class StringToolsTest {
         + "ORGANIZATIONIDENTIFIER=OrgIdent,C=SE",
         res[1]);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testSplitURIs() throws Exception {
     assertEquals(
@@ -497,7 +537,9 @@ public class StringToolsTest {
         Arrays.asList("aa;a", "bb;;;b", "cc"),
         StringTools.splitURIs("\"aa;a\";\"bb;;;b\";\"cc")); // No ending quote
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testB64() {
     assertNull(StringTools.getBase64String(null));
@@ -545,7 +587,9 @@ public class StringToolsTest {
         StringTools.getBase64String(
             StringTools.putBase64String("åäöüè", false)));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStripXss() {
     final String str = "foo<tag>tag</tag>!";
@@ -560,7 +604,9 @@ public class StringToolsTest {
         "foo/tag/tag//tag//",
         ret);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testCleanXForwardedFor() {
     assertEquals(
@@ -582,7 +628,18 @@ public class StringToolsTest {
         StringTools.getCleanXForwardedFor(
             "<script>alert(\"alert!\");</stript>"));
   }
-
+  /**
+   * Test.
+ * @throws InvalidKeyException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException  fail
+ * @throws NoSuchPaddingException  fail
+ * @throws InvalidAlgorithmParameterException fail
+ * @throws IllegalBlockSizeException fail
+ * @throws BadPaddingException fail
+ * @throws UnsupportedEncodingException fail
+ * @throws InvalidKeySpecException fail
+   */
   @Test
   public void testPasswordEncryptionAndObfuscation()
       throws InvalidKeyException, NoSuchAlgorithmException,
@@ -592,7 +649,7 @@ public class StringToolsTest {
           InvalidKeySpecException {
     // First test with legacy encryption, using default pwd
     ConfigurationHolder.backupConfiguration();
-    {
+
       String obf = StringTools.obfuscate("foo123");
       String deobf = StringTools.deobfuscate(obf);
       assertEquals(
@@ -642,18 +699,18 @@ public class StringToolsTest {
           "Encrypted/decrypted password does not match",
           "customEncryptionKey",
           pwd);
-    }
+
     // Second test with new encryption
     ConfigurationHolder.updateConfiguration(
         "password.encryption.key", "1POTQK7ofSGTPsOOXwIo2Z0jfXsADtXx");
-    {
-      String obf = StringTools.obfuscate("foo123");
-      String deobf = StringTools.deobfuscate(obf);
+
+      obf = StringTools.obfuscate("foo123");
+      deobf = StringTools.deobfuscate(obf);
       assertEquals(
           "Obfuscated/De-obfuscated password does not match", "foo123", deobf);
 
       // Using an encrypted string from older version of EJBCA, using BC 1.52
-      String pwd =
+      pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               "6bc841b2745e2c95e042a68b4777b34c",
               ConfigurationHolder.getDefaultValue("password.encryption.key")
@@ -674,7 +731,7 @@ public class StringToolsTest {
         // NOPMD: we expected failure
       }
 
-      String pbe = StringTools.pbeEncryptStringWithSha256Aes192("foo123");
+      pbe = StringTools.pbeEncryptStringWithSha256Aes192("foo123");
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               pbe,
@@ -721,19 +778,19 @@ public class StringToolsTest {
           "Encrypted/decrypted password (from 6.8.0) does not match",
           "foo123",
           pwd);
-    }
+
 
     // Third test with a different count
     ConfigurationHolder.updateConfiguration(
         "password.encryption.count", "100000");
-    {
-      String obf = StringTools.obfuscate("foo123");
-      String deobf = StringTools.deobfuscate(obf);
+
+      obf = StringTools.obfuscate("foo123");
+      deobf = StringTools.deobfuscate(obf);
       assertEquals(
           "Obfuscated/De-obfuscated password does not match", "foo123", deobf);
 
       // Using an encrypted string from older version of EJBCA, using BC 1.52
-      String pwd =
+      pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
               "6bc841b2745e2c95e042a68b4777b34c",
               ConfigurationHolder.getDefaultValue("password.encryption.key")
@@ -742,7 +799,7 @@ public class StringToolsTest {
       assertEquals(
           "Encrypted/decrypted password does not match", "foo123", pwd);
 
-      String pbe = StringTools.pbeEncryptStringWithSha256Aes192("foo123");
+      pbe = StringTools.pbeEncryptStringWithSha256Aes192("foo123");
       log.info(pbe);
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
@@ -799,7 +856,7 @@ public class StringToolsTest {
               + " not match",
           "foo123",
           pwd);
-    }
+
 
     assertEquals(
         "Encryption version should be none",
@@ -808,7 +865,9 @@ public class StringToolsTest {
 
     ConfigurationHolder.restoreConfiguration();
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testIsAlphaOrAsciiPrintable() {
     assertTrue(StringTools.isAlphaOrAsciiPrintable("foobar123"));
@@ -820,7 +879,9 @@ public class StringToolsTest {
     assertFalse(StringTools.isAlphaOrAsciiPrintable("foobar123\0"));
     assertFalse(StringTools.isAlphaOrAsciiPrintable("foobar123\n"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testIsLesserThan() {
     assertFalse(StringTools.isLesserThan("6.0.1", "6.0.1"));
@@ -844,7 +905,9 @@ public class StringToolsTest {
     assertTrue(StringTools.isLesserThan("6.0", "6.0.1"));
     assertTrue(StringTools.isLesserThan("6.13.0.14", "6.14.0"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void normalizeNewLines() {
     assertEquals(
@@ -875,7 +938,9 @@ public class StringToolsTest {
         StringEscapeUtils.escapeJava(
             StringTools.normalizeNewlines(" \n A \r\n B \r C")));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void normalizeSystemLineSeparator() {
     // Separate test to catch system dependent problems
@@ -884,7 +949,9 @@ public class StringToolsTest {
         "A\nB",
         StringTools.normalizeNewlines("A" + System.lineSeparator() + "B"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void splitByNewLines() {
     assertNotNull(StringTools.splitByNewlines(""));

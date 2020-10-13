@@ -23,12 +23,15 @@ import java.util.HashMap;
 import org.junit.Test;
 
 /**
- * Tests Base64 HashMap XML encoding and decoding
+ * Tests Base64 HashMap XML encoding and decoding.
  *
  * @version $Id: HashMapTest.java 34163 2020-01-02 15:00:17Z samuellb $
  */
 public class HashMapTest {
-
+    /**
+       * Test.
+       * @throws Exception fail
+       */
   @SuppressWarnings("rawtypes")
   @Test
   public void testHashMapNormal() throws Exception {
@@ -55,7 +58,10 @@ public class HashMapTest {
     assertEquals(((String) b.get("foo1")), "fooString");
     assertEquals(((Integer) b.get("foo2")).intValue(), 2);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @SuppressWarnings("rawtypes")
   @Test
   public void testHashMapStrangeChars() throws Exception {
@@ -116,7 +122,10 @@ public class HashMapTest {
     }
     return Integer.parseInt(version);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @SuppressWarnings("rawtypes")
   @Test
   public void testHashMapStrangeCharsSafe() throws Exception {
@@ -154,7 +163,10 @@ public class HashMapTest {
       assertTrue(false);
     }
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @SuppressWarnings("rawtypes")
   @Test
   public void testHashMapNormalCharsSafe() throws Exception {

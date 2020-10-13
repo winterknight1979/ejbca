@@ -65,4 +65,9 @@
 	<suppress checks="MethodLengthCheck" files="CertificateProfileTest.java" lines="836"/>
 	<suppress checks="MethodLengthCheck" files="AlgorithmToolsTest.java" lines="272,585"/>
 	<suppress checks="ParameterNumberCheck" files="ValidatorTestUtil.java" lines="51"/>
+	<suppress checks="MethodLengthCheck" files="CertToolsTest.java" lines="1041,2823,3089"/>
+	<suppress checks="LocalFinalVariableNameCheck" files="CertToolsTest.java" lines="2081-2084"/>
+	<suppress checks="ParameterNumberCheck" files="SimpleTimeTest.java" lines="165"/>
+	<suppress checks="MethodLengthCheck" files="StringToolsTest.java" lines="643"/>
+	<suppress checks="MethodLengthCheck" files="TimeUnitFormatTest.java" lines="86"/>
  </suppressions>

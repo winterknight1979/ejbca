@@ -38,13 +38,18 @@ import org.junit.Test;
  * @version $Id: RFC4683ToolsTest.java 25221 2017-02-08 14:24:59Z anatom $
  */
 public class RFC4683ToolsTest {
-
+    /**
+       * Test.
+       * @throws Exception fail
+       */
   @BeforeClass
   public static void beforeClass() throws Exception {
     // Install BouncyCastle provider
     CryptoProviderTools.installBCProvider();
   }
-
+  /**
+   * Test.
+   */
   @Test
   @SuppressWarnings("unchecked")
   public void testGetAllowedHashAlgorithms() {
@@ -52,7 +57,9 @@ public class RFC4683ToolsTest {
         RFC4683Tools.getAllowedHashAlgorithms(),
         new ArrayList<ASN1ObjectIdentifier>(TSPAlgorithms.ALLOWED));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetAllowedHashAlgorithmOidStrings() {
     final List<ASN1ObjectIdentifier> identifiers =
@@ -63,7 +70,11 @@ public class RFC4683ToolsTest {
     }
     assertEquals(RFC4683Tools.getAllowedHashAlgorithmOidStrings(), oids);
   }
-
+  /**
+   * Test.
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException fail
+   */
   @Test
   public void testGenerateSimForInternalSanFormat()
       throws NoSuchAlgorithmException, NoSuchProviderException {
@@ -107,7 +118,9 @@ public class RFC4683ToolsTest {
             + " DNSNAME=localhost";
     assertEquals(RFC4683Tools.generateSimForInternalSanFormat(san), san);
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGenerateInternalSimString() {
     // 1. Use different illegal SIM parameters.
@@ -182,7 +195,7 @@ public class RFC4683ToolsTest {
         "The sensitve identification information must not be null or empty");
   }
 
-  private final void assertIAEForGenerateInternalSimString(
+  private void assertIAEForGenerateInternalSimString(
       final String[] parameters, final String message) {
     try {
       RFC4683Tools.generateInternalSimString(
@@ -194,7 +207,12 @@ public class RFC4683ToolsTest {
       assertTrue(e.getMessage().startsWith(message));
     }
   }
-
+  /**
+   * Test.
+ * @throws NoSuchAlgorithmException fail
+ * @throws NoSuchProviderException fail
+ * @throws IOException fail
+   */
   @Test
   public void testAsn1ReadWrite()
       throws NoSuchAlgorithmException, NoSuchProviderException, IOException {

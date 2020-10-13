@@ -25,7 +25,10 @@ import org.junit.Test;
  * @version $Id: GUIDGeneratorTest.java 22133 2015-11-02 14:20:32Z mikekushner $
  */
 public class GUIDGeneratorTest {
-
+    /**
+       * Test.
+       * @throws Exception fail
+       */
   @Test
   public void testGenerateGUIDs() throws Exception {
     HashMap<String, String> map = new HashMap<String, String>(500000);

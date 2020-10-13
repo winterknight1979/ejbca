@@ -33,15 +33,17 @@ import org.junit.Test;
  *     samuellb $
  */
 public class CompressedCollectionTest {
-
-  private static final Logger log =
+ /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CompressedCollectionTest.class);
-
+  /**
+   * Test.
+   */
   @Test
   public void testCompression() {
-    log.trace(">testCompression");
+    LOG.trace(">testCompression");
     logMemUnreliably();
-    log.trace("Adding plenty of (identical) RevokedCertInfos...");
+    LOG.trace("Adding plenty of (identical) RevokedCertInfos...");
     Collection<RevokedCertInfo> compressedCollection =
         new CompressedCollection<>(RevokedCertInfo.class);
     for (int i = 0; i < 100000; i++) {
@@ -54,40 +56,44 @@ public class CompressedCollectionTest {
               System.currentTimeMillis()));
     }
     logMemUnreliably();
-    log.trace("Iterating once..");
+    LOG.trace("Iterating once..");
     // Test that .iterator is used in for each and not .toArray
     for (@SuppressWarnings("unused")
     final RevokedCertInfo x : compressedCollection) {
       // log.info("  " + x.toString());
     }
     logMemUnreliably();
-    log.trace("Iterating twice..");
+    LOG.trace("Iterating twice..");
     for (@SuppressWarnings("unused")
     final RevokedCertInfo x : compressedCollection) {
       // log.info("  " + x.toString());
     }
     logMemUnreliably();
-    log.trace("Cleaning up...");
+    LOG.trace("Cleaning up...");
     compressedCollection.clear();
     compressedCollection
         .clear(); // Make sure that we can call clear multiple times
     compressedCollection = null;
     logMemUnreliably();
-    log.trace("<testCompression");
+    LOG.trace("<testCompression");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testEmpty() {
-    log.trace(">testEmpty");
+    LOG.trace(">testEmpty");
     Collection<RevokedCertInfo> compressedCollection =
         new CompressedCollection<>(RevokedCertInfo.class);
     for (final RevokedCertInfo x : compressedCollection) {
-      log.info("  " + x.toString());
+      LOG.info("  " + x.toString());
     }
     compressedCollection.clear();
-    log.trace("<testEmpty");
+    LOG.trace("<testEmpty");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testNoAddAfterClose() {
     final CompressedCollection<Integer> compressedCollection =
@@ -107,7 +113,7 @@ public class CompressedCollectionTest {
       compressedCollection.add(Integer.valueOf(5));
       fail("CompressedCollection should not allow add after closeForWrite().");
     } catch (IllegalStateException e) {
-      log.debug(e.getMessage());
+      LOG.debug(e.getMessage());
     }
     assertEquals(
         "Nothing more should have been added after closeForWrite().",
@@ -143,6 +149,6 @@ public class CompressedCollectionTest {
     // allocated by the JVM
     final long currentFreeMemory =
         maxAllocation - currentlyAllocation + freeAllocated;
-    log.info("freeMemory: " + currentFreeMemory);
+    LOG.info("freeMemory: " + currentFreeMemory);
   }
 }

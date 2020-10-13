@@ -128,7 +128,7 @@ public class SimpleTimeTest {
   }
 
   /**
-   * Tests the constructor that takes an argument of type long
+   * Tests the constructor that takes an argument of type long.
    *
    * @throws Exception fail
    */

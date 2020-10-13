@@ -19,13 +19,16 @@ import java.math.BigInteger;
 import org.junit.Test;
 
 /**
- * Tests value extraction in jdbc utility class
+ * Tests value extraction in jdbc utility class.
  *
  * @version $Id: ValueExtractorTest.java 22133 2015-11-02 14:20:32Z mikekushner
  *     $
  */
 public class ValueExtractorTest {
-
+      /**
+       * Test.
+       * @throws Exception fail
+       */
   @Test
   public void testValueExtractorSimple() throws Exception {
     Integer integer = Integer.valueOf(1);
@@ -39,6 +42,10 @@ public class ValueExtractorTest {
     assertEquals(3, ValueExtractor.extractLongValue(bd));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testValueExtractorArray() throws Exception {
     Integer intval = Integer.valueOf(1);

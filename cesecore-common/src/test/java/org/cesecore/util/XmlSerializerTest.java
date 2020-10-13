@@ -26,40 +26,48 @@ import org.junit.Test;
  * @version $Id: XmlSerializerTest.java 25722 2017-04-20 13:27:16Z samuellb $
  */
 public class XmlSerializerTest {
-
-  private static final Logger log = Logger.getLogger(XmlSerializerTest.class);
-
+/** Logger. */
+  private static final Logger LOG = Logger.getLogger(XmlSerializerTest.class);
+  /**
+   * Test.
+   */
   @Test
   public void serializeSimpleObject() {
-    log.trace(">serializeSimpleObject");
-    final String VALUE = "testValue";
-    assertEquals(VALUE, encDecAsXml(VALUE, true, false));
-    log.trace("<serializeSimpleObject");
+    LOG.trace(">serializeSimpleObject");
+    final String value = "testValue";
+    assertEquals(value, encDecAsXml(value, true, false));
+    LOG.trace("<serializeSimpleObject");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void serializeSpecialChars() {
-    log.trace(">serializeSpecialChars");
-    final String VALUE = "ĞİŞğışÅÄÖåäö";
-    assertEquals(VALUE, encDecAsXml(VALUE, true, true));
-    log.trace("<serializeSpecialChars");
+    LOG.trace(">serializeSpecialChars");
+    final String value = "ĞİŞğışÅÄÖåäö";
+    assertEquals(value, encDecAsXml(value, true, true));
+    LOG.trace("<serializeSpecialChars");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void serializeSpecialCharsWithoutBase64() {
-    log.trace(">serializeSpecialChars");
-    final String VALUE = "ĞİŞğışÅÄÖåäö";
-    final String encodedDecoded = (String) encDecAsXml(VALUE, false, false);
-    assertEquals(VALUE, encodedDecoded);
-    log.trace("<serializeSpecialChars");
+    LOG.trace(">serializeSpecialChars");
+    final String value = "ĞİŞğışÅÄÖåäö";
+    final String encodedDecoded = (String) encDecAsXml(value, false, false);
+    assertEquals(value, encodedDecoded);
+    LOG.trace("<serializeSpecialChars");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void serializeSpecialXmlChars() {
-    log.trace(">serializeSpecialXmlChars");
-    final String VALUE = "</string>";
-    assertEquals(VALUE, encDecAsXml(VALUE, true, false));
-    log.trace("<serializeSpecialXmlChars");
+    LOG.trace(">serializeSpecialXmlChars");
+    final String value = "</string>";
+    assertEquals(value, encDecAsXml(value, true, false));
+    LOG.trace("<serializeSpecialXmlChars");
   }
 
   /**
@@ -72,14 +80,14 @@ public class XmlSerializerTest {
    */
   private Object encDecAsXml(
       final String value, final boolean useBase64, final boolean expectBase64) {
-    final String KEY = "SomeKey";
+    final String key = "SomeKey";
     final Map<String, Object> inputMap = new LinkedHashMap<>();
-    inputMap.put(KEY, value);
+    inputMap.put(key, value);
     final String encoded =
         useBase64
             ? XmlSerializer.encode(inputMap)
             : XmlSerializer.encodeWithoutBase64(inputMap);
-    log.debug(encoded);
+    LOG.debug(encoded);
     if (expectBase64) {
       assertTrue(
           "Special characters should be B64: encoded",
@@ -90,6 +98,6 @@ public class XmlSerializerTest {
               + " modified.",
           encoded.contains(value));
     }
-    return XmlSerializer.decode(encoded).get(KEY);
+    return XmlSerializer.decode(encoded).get(key);
   }
 }

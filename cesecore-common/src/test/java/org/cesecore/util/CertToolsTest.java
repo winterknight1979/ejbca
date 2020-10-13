@@ -104,7 +104,9 @@ import org.junit.Test;
  * @version $Id: CertToolsTest.java 30002 2018-10-04 11:06:08Z henriks $
  */
 public class CertToolsTest {
+    /** Logger. */
   private static Logger log = Logger.getLogger(CertToolsTest.class);
+  /** CERT. */
   private static byte[] testcert =
       Base64.decode(
           ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
@@ -125,7 +127,7 @@ public class CertToolsTest {
            + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ"
                + "QUOBOvc=")
               .getBytes());
-
+  /** CERT. */
   private static byte[] guidcert =
       Base64.decode(
           ("MIIC+zCCAmSgAwIBAgIIBW0F4eGmH0YwDQYJKoZIhvcNAQEFBQAwMTERMA8GA1UE"
@@ -145,7 +147,7 @@ public class CertToolsTest {
            + "gSkt3hvNwG4kLBmmwe9YLdS83dgNImMWL/DgID/47aENlBNai14CvtMceokik4IN"
            + "sacc7x/Vp3xezHLuBMcf3E3VSo4FwqcUYFmu7Obke3ebmB08nC6gnQHkzjNsmQw=")
               .getBytes());
-
+  /** CERT. */
   private static byte[] altNameCert =
       Base64.decode(
           ("MIIDDzCCAfegAwIBAgIIPiL0klmu1uIwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
@@ -166,12 +168,44 @@ public class CertToolsTest {
            + "YmKglnd5BIUBPO9LOryyHlSRTID5z0UgDlrTAaNYuN8QOYF+DZEQxm4bSXTDooGX"
            + "rHjSjn/7Urb31CXWAxq0Zhk3fg==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] altNameCertWithDirectoryName =
       Base64.decode(
-          ("MIIFkjCCBPugAwIBAgIIBzGqGNsLMqwwDQYJKoZIhvcNAQEFBQAwWTEYMBYGA1UEAwwPU1VCX0NBX1dJTkRPV1MzMQ8wDQYDVQQLEwZQS0lHVkExHzAdBgNVBAoTFkdlbmVyYWxpdGF0IFZhbGVuY2lhbmExCzAJBgNVBAYTAkVTMB4XDTA2MDQyMTA5NDQ0OVoXDTA4MDQyMDA5NTQ0OVowcTEbMBkGCgmSJomT8ixkAQETC3Rlc3REaXJOYW1lMRQwEgYDVQQDEwt0ZXN0RGlyTmFtZTEOMAwGA1UECxMFbG9nb24xHzAdBgNVBAoTFkdlbmVyYWxpdGF0IFZhbGVuY2lhbmExCzAJBgNVBAYTAkVTMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCDLxMhz40RxCm21HoCBNa9x1UyPmhVkPdtt2V7dixgjOYz+ffKeebjn/jSd4nfXgd7fxpzezB8t673F2OtC3ENl1zek5Msj2KoinVu8vvZ78KMRq/H1rDFguhjSL0o19Cpob0qQFB/ukPZMNoKBNnMVnR1C4juB1eJVXWmHyJxIwIDAQABo4IDSTCCA0UwDAYDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCBaAwMwYDVR0lBCwwKgYIKwYBBQUHAwIGCCsGAQUFBwMEBggrBgEFBQcDBwYKKwYBBAGCNxQCAjAdBgNVHQ4EFgQUZz4hrh3dr6VWvEbAPe8pg7szNi4wHwYDVR0jBBgwFoAUTuOaap9UBpQ8dqwOufYoOQucfUowXAYDVR0RBFUwU6QhMB8xHTAbBgNVBAMMFHRlc3REaXJOYW1lfGRpcnxuYW1loC4GCisGAQQBgjcUAgOgIAwedGVzdERpck5hbWVAamFtYWRvci5wa2kuZ3ZhLmVzMIIBtgYDVR0gBIIBrTCCAakwggGlBgsrBgEEAb9VAwoBADCCAZQwggFeBggrBgEFBQcCAjCCAVAeggFMAEMAZQByAHQAaQBmAGkAYwBhAGQAbwAgAHIAZQBjAG8AbgBvAGMAaQBkAG8AIABkAGUAIABFAG4AdABpAGQAYQBkACAAZQB4AHAAZQBkAGkAZABvACAAcABvAHIAIABsAGEAIABBAHUAdABvAHIAaQBkAGEAZAAgAGQAZQAgAEMAZQByAHQAaQBmAGkAYwBhAGMAaQDzAG4AIABkAGUAIABsAGEAIABDAG8AbQB1AG4AaQB0AGEAdAAgAFYAYQBsAGUAbgBjAGkAYQBuAGEAIAAoAFAAbAAuACAATQBhAG4AaQBzAGUAcwAgADEALgAgAEMASQBGACAAUwA0ADYAMQAxADAAMAAxAEEAKQAuACAAQwBQAFMAIAB5ACAAQwBQACAAZQBuACAAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAGEAYwBjAHYALgBlAHMwMAYIKwYBBQUHAgEWJGh0dHA6Ly93d3cuYWNjdi5lcy9sZWdpc2xhY2lvbl9jLmh0bTBDBgNVHR8EPDA6MDigNqA0hjJodHRwOi8vemFyYXRob3MuamFtYWRvci5ndmEuZXMvU1VCX0NBX1dJTkRPV1MzLmNybDBTBggrBgEFBQcBAQRHMEUwQwYIKwYBBQUHMAGGN2h0dHA6Ly91bGlrLnBraS5ndmEuZXM6ODA4MC9lamJjYS9wdWJsaWN3ZWIvc3RhdHVzL29jc3AwDQYJKoZIhvcNAQEFBQADgYEASofgaj06BOE847RTEgVba52lmPWADgeWxKHZAk1t9LdNzuFJ8B/SC3gi0rsAA/lQGSd4WzPbkmJKkVZ6Q9ybpqg4AJRaIZBkoQw1KNXPYAcgt5XLeIhUACdKIPhfPQr+vQtaC1wi5xV8EBCLpLmpzN9bpZdze/724UB4Y94KhII=")
+          ("MIIFkjCCBPugAwIBAgIIBzGqGNsLMqwwDQYJKoZIhvcNAQEFBQAwWTEYMBYGA1UEAw"
+              + "wPU1VCX0NBX1dJTkRPV1MzMQ8wDQYDVQQLEwZQS0lHVkExHzAdBgNVBAoTF"
+              + "kdlbmVyYWxpdGF0IFZhbGVuY2lhbmExCzAJBgNVBAYTAkVTMB4XDTA2MDQy"
+              + "MTA5NDQ0OVoXDTA4MDQyMDA5NTQ0OVowcTEbMBkGCgmSJomT8ixkAQETC3Rl"
+              + "c3REaXJOYW1lMRQwEgYDVQQDEwt0ZXN0RGlyTmFtZTEOMAwGA1UECxMFbG9"
+              + "nb24xHzAdBgNVBAoTFkdlbmVyYWxpdGF0IFZhbGVuY2lhbmExCzAJBgNVBA"
+              + "YTAkVTMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCDLxMhz40RxCm21"
+              + "HoCBNa9x1UyPmhVkPdtt2V7dixgjOYz+ffKeebjn/jSd4nfXgd7fxpzezB8"
+              + "t673F2OtC3ENl1zek5Msj2KoinVu8vvZ78KMRq/H1rDFguhjSL0o19Cpob0"
+              + "qQFB/ukPZMNoKBNnMVnR1C4juB1eJVXWmHyJxIwIDAQABo4IDSTCCA0UwDA"
+              + "YDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCBaAwMwYDVR0lBCwwKgYIKwYBB"
+              + "QUHAwIGCCsGAQUFBwMEBggrBgEFBQcDBwYKKwYBBAGCNxQCAjAdBgNVHQ4E"
+              + "FgQUZz4hrh3dr6VWvEbAPe8pg7szNi4wHwYDVR0jBBgwFoAUTuOaap9UBpQ"
+              + "8dqwOufYoOQucfUowXAYDVR0RBFUwU6QhMB8xHTAbBgNVBAMMFHRlc3REaX"
+              + "JOYW1lfGRpcnxuYW1loC4GCisGAQQBgjcUAgOgIAwedGVzdERpck5hbWVAa"
+              + "mFtYWRvci5wa2kuZ3ZhLmVzMIIBtgYDVR0gBIIBrTCCAakwggGlBgsrBgEE"
+              + "Ab9VAwoBADCCAZQwggFeBggrBgEFBQcCAjCCAVAeggFMAEMAZQByAHQAaQB"
+              + "mAGkAYwBhAGQAbwAgAHIAZQBjAG8AbgBvAGMAaQBkAG8AIABkAGUAIABFAG"
+              + "4AdABpAGQAYQBkACAAZQB4AHAAZQBkAGkAZABvACAAcABvAHIAIABsAGEAI"
+              + "ABBAHUAdABvAHIAaQBkAGEAZAAgAGQAZQAgAEMAZQByAHQAaQBmAGkAYwBh"
+              + "AGMAaQDzAG4AIABkAGUAIABsAGEAIABDAG8AbQB1AG4AaQB0AGEAdAAgAFY"
+              + "AYQBsAGUAbgBjAGkAYQBuAGEAIAAoAFAAbAAuACAATQBhAG4AaQBzAGUAcw"
+              + "AgADEALgAgAEMASQBGACAAUwA0ADYAMQAxADAAMAAxAEEAKQAuACAAQwBQA"
+              + "FMAIAB5ACAAQwBQACAAZQBuACAAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAGEA"
+              + "YwBjAHYALgBlAHMwMAYIKwYBBQUHAgEWJGh0dHA6Ly93d3cuYWNjdi5lcy9"
+              + "sZWdpc2xhY2lvbl9jLmh0bTBDBgNVHR8EPDA6MDigNqA0hjJodHRwOi8vem"
+              + "FyYXRob3MuamFtYWRvci5ndmEuZXMvU1VCX0NBX1dJTkRPV1MzLmNybDBTB"
+              + "ggrBgEFBQcBAQRHMEUwQwYIKwYBBQUHMAGGN2h0dHA6Ly91bGlrLnBraS5n"
+              + "dmEuZXM6ODA4MC9lamJjYS9wdWJsaWN3ZWIvc3RhdHVzL29jc3AwDQYJKoZ"
+              + "IhvcNAQEFBQADgYEASofgaj06BOE847RTEgVba52lmPWADgeWxKHZAk1t9L"
+              + "dNzuFJ8B/SC3gi0rsAA/lQGSd4WzPbkmJKkVZ6Q9ybpqg4AJRaIZBkoQw1"
+              + "KNXPYAcgt5XLeIhUACdKIPhfPQr+vQtaC1wi5xV8EBCLpLmpzN9bpZdze/"
+                  + "724UB4Y94KhII=")
               .getBytes());
-
+  /** CERT. */
   private static byte[] altNameCertWithXmppAddr =
       Base64.decode(
           ("MIIFRTCCBC2gAwIBAgIQH4vuCeSeadpH3oWlr9q7wTANBgkqhkiG9w0BAQsFADA1"
@@ -204,7 +238,7 @@ public class CertToolsTest {
            + "wb6l8y54W4iC90DG7u6XJKY/k6Ei6lLi1EJP+w0A9HtZyNUVKqotNc+1E8yXv17N"
                + "Rw0pP1f3jhdJ")
               .getBytes());
-
+  /** CERT. */
   private static byte[] altNameCertWithSpecialCharacters =
       Base64.decode(
           ("MIIElDCCA3ygAwIBAgIIPQiMRNUtIDwwDQYJKoZIhvcNAQELBQAwNzEVMBMGA1UE"
@@ -234,7 +268,7 @@ public class CertToolsTest {
                + "DAJPWF9uCqBxkH/fhnJTs64qn0zVB8zs")
               .getBytes());
 
-  /** The reference certificate from RFC3739 */
+  /** The reference certificate from RFC3739. */
   private static byte[] qcRefCert =
       Base64.decode(
           ("MIIDEDCCAnmgAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADBIMQswCQYDVQQGEwJE"
@@ -255,7 +289,7 @@ public class CertToolsTest {
            + "z+VWPnhZK1uw+ay1KRXw8rw2mR8hQ2Ug6QZHYdky2HH3H/69rWSPp888G8CW8RLU"
            + "uIKzn+GhapCuGoC4qWdlGLWqfpc=")
               .getBytes());
-
+  /** CERT. */
   private static byte[] qcPrimeCert =
       Base64.decode(
           ("MIIDMDCCAhigAwIBAgIIUDIxBvlO2qcwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
@@ -277,7 +311,7 @@ public class CertToolsTest {
            + "oviMCQmzMLY2Ifcw+CsOyQZx7nxwafZ7BAzm6vIvSeiIe3VlskRGzYDM66NJJNNo"
            + "C2HsPA==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] aiaCert =
       Base64.decode(
           ("MIIDYDCCAkigAwIBAgIIFlJveCmyW4owDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
@@ -300,7 +334,7 @@ public class CertToolsTest {
            + "MoHGmOJkaIcFRXfneXrId1/k7b1QdOagGjvLkgw3pi/7k6vOJn+DrudNMFmsNpVY"
            + "fkrayw==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] subjDirAttrCert =
       Base64.decode(
           ("MIIGmTCCBYGgAwIBAgIQGMYCpWmOBXXOL2ODrM8FHzANBgkqhkiG9w0BAQUFADBx"
@@ -340,7 +374,7 @@ public class CertToolsTest {
            + "fmpHZ346zprcafcjQmAiKfzPSljruvGDIVI3WN7S7WOMrx6MDq54626cZzQl9GFT"
            + "D1gNo3fjOFhK33DY1Q==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] subjDirAttrCert2 =
       Base64.decode(
           ("MIIEsjCCA5qgAwIBAgIIFsYK/Jx7XEEwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
@@ -370,7 +404,7 @@ public class CertToolsTest {
            + "s7KRRCYjga/Z52XytwwDBLFM9CPZJfyKxZTV9I9i6e0xSn2xEW8NRplY1HOKa/2B"
            + "VzvWW9G5")
               .getBytes());
-
+  /** CERT. */
   private static byte[] krb5principalcert =
       Base64.decode(
           ("MIIDIzCCAgugAwIBAgIIdSCEXyq32cIwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
@@ -391,7 +425,7 @@ public class CertToolsTest {
            + "+a1UI5lIKun3C6NWCSZrE5fFuoax7D+Ofw1Bdxkhvk7DUlHVPdmxb/0hpx8aO64D"
            + "J626d8c1b25g9hSYslbo2geP2ohV40WW/R1ZjwX6Pd/ip5KuSSzv")
               .getBytes());
-
+  /** CERT. */
   private static byte[] certPoliciesCert =
       Base64.decode(
           ("MIIEvTCCA6WgAwIBAgIIL0ff1huXgEkwDQYJKoZIhvcNAQELBQAwNTEWMBQGA1UE"
@@ -423,7 +457,7 @@ public class CertToolsTest {
               .getBytes());
 
   /**
-   * Certificate with two subject alternative names:
+   * Certificate with two subject alternative names:.
    *
    * <pre>
    *            SEQUENCE {
@@ -476,7 +510,7 @@ public class CertToolsTest {
            + "fOX1lzhtH1LUCzXPLPYTk6aJ08zsMZxbBe2cHXQibpcwvo3NyaTPlhsZL63e22Ru"
            + "KoAwF60lmxnqTzGP8w0HNHvm+Ybj1Qor3lQ=")
               .getBytes());
-
+  /** CERT. */
   private static byte[] p10ReqWithAltNames =
       Base64.decode(
           ("MIICtDCCAZwCAQAwNDELMAkGA1UEBhMCU0UxDDAKBgNVBAoTA1JQUzEXMBUGA1UE"
@@ -495,7 +529,7 @@ public class CertToolsTest {
            + "snKPO0WbwXFyFTSWoKRH5rHrpD6lybn7c0uPkaQzrLoIRMld4osqeaImfZuJztZy"
            + "C0elzlLYWFbX6zHEqvsUAZy/8Khgyw5Q")
               .getBytes());
-
+  /** CERT. */
   private static byte[] p10ReqWithAltNames2 =
       Base64.decode(
           ("MIIBMzCB3gIBADAzMREwDwYDVQQDDAhzY2VwdGVzdDERMA8GA1UECgwIUHJpbWVL"
@@ -506,7 +540,7 @@ public class CertToolsTest {
            + "AQUFAANBADUO2tpAkxaeB/2zY9wsfcwE5hGvcuA0oJwXlcMq1wm32MJFV1G9JJQI"
            + "Exz4OC1eT1LH/6i5SU8Op3VOKVLpTTo=")
               .getBytes());
-
+  /** CERT. */
   private static byte[] cvccert =
       Base64.decode(
           ("fyGCAWF/ToHZXykBAEIKU0VSUFMxMDExMH9JgZUGCgQAfwAHAgICAQGBgYEAk4Aq"
@@ -518,7 +552,7 @@ public class CertToolsTest {
            + "j5xuY2Pvktz3Dq4ogjkgqAJqqIvG+M9KXh9XAv2m2wjmsueKbXUJ8TpJR87k4o97"
            + "buZXbuStDOb5FibhxyVgWIxuCn8quQ==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] cvcreqrenew =
       Base64.decode(
           ("Z4IBtn8hggFmf06CASZfKQEAQg5TRUlTQlBPT0wwMDAwNn9Jgf0GCgQAfwAHAgIC"
@@ -532,7 +566,7 @@ public class CertToolsTest {
            + "NzhSmH1c7YJhbLTRzwuSozUd9hlBHKEIfFqSUE9/FrbWXEtR+rHRYKAGu/nw8PAH"
            + "oM+HPMzMVVLDVg==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] cvcreq =
       Base64.decode(
           ("fyGCAWZ/ToIBJl8pAQBCDlNFSVNCUE9PTDAwMDA1f0mB/QYKBAB/AAcCAgICAoEc"
@@ -544,7 +578,7 @@ public class CertToolsTest {
            + "IA5TRUlTQlBPT0wwMDAwNV83OEnwL+XYDhXqK/0fBuZ6lZV0HncoZyn3oo8MmaUL"
            + "2mNzpezLAoZMux0l5aYperrSDsuHw0zrf0yo")
               .getBytes());
-
+  /** CERT. */
   private static byte[] cvccertchainroot =
       Base64.decode(
           ("fyGCAmx/ToIBYl8pAQBCDlNFSFNNQ1ZDQTAwMDAxf0mCARUGCgQAfwAHAgICAQKB"
@@ -562,7 +596,7 @@ public class CertToolsTest {
            + "8z8Hpvx1QcB2maOVn6IFAyq/X71p9Zb626YLhjaFO6v80SYnlefVu5Uir5n/HzpW"
            + "kg==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] cvccertchainsub =
       Base64.decode(
           ("fyGCAeV/ToHcXykBAEIOU0VIU01DVkNBMDAwMDF/SYGUBgoEAH8ABwICAgECgYGA"
@@ -577,7 +611,7 @@ public class CertToolsTest {
            + "DWq7GeCFr6wCMg2jPuK9Kqvl06tqylVy4ravVHv58WvAxWFgyuezdRbyV7YAfVF3"
            + "tlcVDXa3R+mfYg==")
               .getBytes());
-
+  /** CERT. */
   private static byte[] x509certchainsubsub =
       Base64.decode(
           ("MIICAzCCAWygAwIBAgIINrHHHchdmfMwDQYJKoZIhvcNAQEFBQAwEDEOMAwGA1UE"
@@ -592,7 +626,7 @@ public class CertToolsTest {
            + "K0bvAY/1qbgEjkn+Sc32PP/3dmHX5EUKliAodguAu8vK/Rp7kefdUQHnJHwRUMF5"
            + "9YJDdGtDZx+WLBihYhnTzGVzuP6Qaff3aNyY69O+rwSDm06Au8Zc")
               .getBytes());
-
+  /** CERT. */
   private static byte[] x509certchainsub =
       Base64.decode(
           ("MIICATCCAWqgAwIBAgIIRzc+cItydm0wDQYJKoZIhvcNAQEFBQAwETEPMA0GA1UE"
@@ -608,6 +642,7 @@ public class CertToolsTest {
            + "U0RmY/62tBLr758ZzRGKKoX7znxsXZ5/bouT6g+IxmNuM2EiyA==")
               .getBytes());
 
+  /** CERT. */
   private static byte[] x509certchainroot =
       Base64.decode(
           ("MIICAjCCAWugAwIBAgIIPXgH6TfNMlYwDQYJKoZIhvcNAQEFBQAwETEPMA0GA1UE"
@@ -623,6 +658,7 @@ public class CertToolsTest {
            + "m+VsfwOl8/INVAySpBf3Uk2rUYhvdUqhCOcE67d0tYdJAqiIDvc=")
               .getBytes());
 
+  /** PEM. **/
   private static byte[] pemcert =
       ("-----BEGIN CERTIFICATE-----\n"
        + "MIIDUzCCAjugAwIBAgIIMK64QB5XErowDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE\n"
@@ -646,8 +682,7 @@ public class CertToolsTest {
            + "-----END CERTIFICATE-----")
           .getBytes();
 
-  /** Cert with CDP with URI */
-  /*
+  /** Cert with CDP with URI.
    * Cert with CDP with URI. <pre> Certificate: Data: Version: 3 (0x2) Serial
    * Number: 52:32:6f:be:9d:3c:4d:d7 Signature Algorithm:
    * sha1WithRSAEncryption Issuer: CN=DemoSubCA11, O=Demo Organization 10, C=SE
@@ -704,8 +739,7 @@ public class CertToolsTest {
           + "KTaZ5OyLsQ=="
           + "\n-----END CERTIFICATE-----";
 
-  /** Cert with CDP without URI. */
-  /*
+  /** Cert with CDP without URI.
    * Cert with CDP without URI. <pre> Certificate: Data: Version: 3 (0x2)
    * Serial Number: 1042070824 (0x3e1cbd28) Signature Algorithm:
    * sha1WithRSAEncryption Issuer: C=US, O=Adobe Systems Incorporated,
@@ -794,6 +828,7 @@ public class CertToolsTest {
           + "pkiw176SaU2k9ilXxXgRGNyHUcoTsmKdTysyvTGlwfpSqwWIyA=="
           + "\n-----END CERTIFICATE-----";
 
+  /** CRL. */
   private static byte[] testcrl =
       Base64.decode(
           ("MIHGMHICAQEwDQYJKoZIhvcNAQELBQAwDzENMAsGA1UEAwwEVEVTVBcNMTEwMTMx"
@@ -803,6 +838,7 @@ public class CertToolsTest {
            + "TQlMX0Bmoz9/")
               .getBytes());
 
+  /** CRL. */
   private static byte[] testdeltacrl =
       Base64.decode(
           ("MIHWMIGBAgEBMA0GCSqGSIb3DQEBCwUAMA8xDTALBgNVBAMMBFRFU1QXDTExMDEz"
@@ -812,7 +848,10 @@ public class CertToolsTest {
            + "z70nU3g2tIfiEX4IKNFyzFvn5m6e8m0JQQ==")
               .getBytes());
 
-  static byte[] chainRootCA =
+  /**
+   * CA.
+   */
+  private static byte[] chainRootCA =
       Base64.decode(
           ("MIIFIzCCAwugAwIBAgIIDZIKPU4lBGQwDQYJKoZIhvcNAQELBQAwHzEQMA4GA1UE"
            + "AwwHM0dQUENBMjELMAkGA1UEBhMCU0UwHhcNMTcwNjE0MjIyODU0WhcNMzcwNjA5"
@@ -844,7 +883,8 @@ public class CertToolsTest {
            + "ubcUqhe3yYmNuweQi5vXRKznjnRTL7s=")
               .getBytes());
 
-  static byte[] chainSubCA =
+  /** CA. */
+  private static byte[] chainSubCA =
       Base64.decode(
           ("MIIEJjCCAg6gAwIBAgIIHpPgIA6dEIcwDQYJKoZIhvcNAQELBQAwHzEQMA4GA1UE"
            + "AwwHM0dQUENBMjELMAkGA1UEBhMCU0UwHhcNMTcwNjE0MjIyOTMxWhcNMzYwNjA5"
@@ -871,7 +911,8 @@ public class CertToolsTest {
            + "O/i54l/6VggwBg==")
               .getBytes());
 
-  static byte[] chainUser =
+  /** Chain. */
+  private static byte[] chainUser =
       Base64.decode(
           ("MIIDWjCCAkKgAwIBAgIIMWDq/ezmwr4wDQYJKoZIhvcNAQELBQAwIjETMBEGA1UE"
            + "AwwKM0dQUFNVQkNBMjELMAkGA1UEBhMCU0UwHhcNMTcwNjE2MTE0OTE5WhcNMzIw"
@@ -893,6 +934,10 @@ public class CertToolsTest {
            + "ecSvxm0H1m1PvttZNdEJTDB63Iug5FwvoBbn3RUphhpaawBYFzmK7XHfEAchJw==")
               .getBytes());
 
+  /**
+   * Setup.
+   * @throws Exception fail
+   */
   @Before
   public void setUp() throws Exception {
     CryptoProviderTools.installBCProvider();
@@ -989,6 +1034,10 @@ public class CertToolsTest {
     log.trace("<test01GetPartFromDN()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test02StringToBCDNString() throws Exception {
     log.trace(">test02StringToBCDNString()");
@@ -1090,7 +1139,8 @@ public class CertToolsTest {
             + " O=CN, O=C, C=CN";
     assertEquals(
         CertTools.stringToBCDNString(dn24),
-        "TelephoneNumber=08555-666,PostalAddress=Stockholm,BusinessCategory=Surf"
+        "TelephoneNumber=08555-666,PostalAddress=Stockholm,"
+        + "BusinessCategory=Surf"
             + " boards,PostalCode=11122,CN=foo,CN=bar,O=CN,O=C,C=CN");
 
     // This isn't a legal SubjectDN. Since legacy BC did not support
@@ -1105,10 +1155,10 @@ public class CertToolsTest {
     assertEquals(
         "CN=test123456,O=\\\"foo\\+b\\+ar\\, C\\=SE\\\"",
         CertTools.stringToBCDNString(dn27));
-    String dn27_1 = "CN=test123456, O=\\\"foo+b\\+ar\\, C=SE\\";
+    String dn271 = "CN=test123456, O=\\\"foo+b\\+ar\\, C=SE\\";
     assertEquals(
         "CN=test123456,O=\\\"foo\\+b\\+ar\\, C\\=SE\\\\",
-        CertTools.stringToBCDNString(dn27_1));
+        CertTools.stringToBCDNString(dn271));
 
     String dn28 =
         "jurisdictionCountry=SE,jurisdictionState=Stockholm,SURNAME=Json,=fff,"
@@ -1164,6 +1214,10 @@ public class CertToolsTest {
         CertTools.stringToBCDNString(dn35));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test03AltNames() throws Exception {
     log.trace(">test03AltNames()");
@@ -1270,6 +1324,10 @@ public class CertToolsTest {
     log.trace("<test03AltNames()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test04DNComponents() throws Exception {
     log.trace(">test04DNComponents()");
@@ -1310,7 +1368,8 @@ public class CertToolsTest {
     log.debug("bcdn1: " + bcdn1);
     // 3.3.3.3 is not a valid OID so it should be silently dropped
     assertEquals(
-        "CN=CommonName,SN=SerialNumber,GIVENNAME=GivenName,INITIALS=Initials,SURNAME=SurName,"
+        "CN=CommonName,SN=SerialNumber,GIVENNAME=GivenName,"
+        + "INITIALS=Initials,SURNAME=SurName,"
             + "OU=OrgUnit,O=Org,C=SE,2.2.2.2=2222Oid,1.1.1.1=1111Oid",
         bcdn1);
 
@@ -1332,7 +1391,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests string coding/decoding international (swedish characters)
+   * Tests string coding/decoding international (swedish characters).
    *
    * @throws Exception if error...
    */
@@ -1351,7 +1410,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests some of the other methods of CertTools
+   * Tests some of the other methods of CertTools.
    *
    * @throws Exception if error...
    */
@@ -1398,7 +1457,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests the handling of DC components
+   * Tests the handling of DC components.
    *
    * @throws Exception if error...
    */
@@ -1422,7 +1481,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests the handling of unstructuredName/Address
+   * Tests the handling of unstructuredName/Address.
    *
    * @throws Exception if error...
    */
@@ -1445,7 +1504,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests the reversing of a DN
+   * Tests the reversing of a DN.
    *
    * @throws Exception if error...
    */
@@ -1551,7 +1610,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests the handling of DC components
+   * Tests the handling of DC components.
    *
    * @throws Exception if error...
    */
@@ -1587,7 +1646,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests the insertCNPostfix function
+   * Tests the insertCNPostfix function.
    *
    * @throws Exception if error...
    */
@@ -1695,6 +1754,10 @@ public class CertToolsTest {
     log.trace("<test12GetPartsFromDN()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test13GetSubjectAltNameString() throws Exception {
     log.trace(">test13GetSubjectAltNameString()");
@@ -1762,6 +1825,10 @@ public class CertToolsTest {
     log.trace("<test13GetSubjectAltNameString()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test14QCStatement() throws Exception {
     Certificate cert =
@@ -1793,6 +1860,10 @@ public class CertToolsTest {
     assertEquals("50000 SEK", limit);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test15AiaOcspUri() throws Exception {
     Certificate cert =
@@ -1803,6 +1874,10 @@ public class CertToolsTest {
         CertTools.getAuthorityInformationAccessOcspUrl(cert));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test16GetSubjectAltNameStringWithDirectoryName()
       throws Exception {
@@ -1880,6 +1955,10 @@ public class CertToolsTest {
     log.trace("<test16GetSubjectAltNameStringWithDirectoryName()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test17SubjectDirectoryAttributes() throws Exception {
     log.trace(">test17SubjectDirectoryAttributes()");
@@ -1896,6 +1975,10 @@ public class CertToolsTest {
     log.trace("<test17SubjectDirectoryAttributes()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test18DNSpaceTrimming() throws Exception {
     log.trace(">test18DNSpaceTrimming()");
@@ -1919,9 +2002,13 @@ public class CertToolsTest {
     log.trace("<test18DNSpaceTrimming()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test19getAltNameStringFromExtension() throws Exception {
-    {
+
       PKCS10CertificationRequest p10 =
           new JcaPKCS10CertificationRequest(p10ReqWithAltNames);
       Attribute attribute =
@@ -1941,28 +2028,31 @@ public class CertToolsTest {
             altNames);
       }
       assertTrue(found);
-    }
-    {
-      PKCS10CertificationRequest p10 =
+
+      p10 =
           new JcaPKCS10CertificationRequest(p10ReqWithAltNames2);
       // The set of attributes contains a sequence of with type oid
       // PKCSObjectIdentifiers.pkcs_9_at_extensionRequest
-      Attribute attribute =
+      attribute =
           p10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest)[
               0];
-      boolean found = false;
-      DERSet s = (DERSet) attribute.getAttrValues();
-      Extensions exts = Extensions.getInstance(s.getObjectAt(0));
-      Extension ext = exts.getExtension(Extension.subjectAlternativeName);
+      found = false;
+      s = (DERSet) attribute.getAttrValues();
+      exts = Extensions.getInstance(s.getObjectAt(0));
+      ext = exts.getExtension(Extension.subjectAlternativeName);
       if (ext != null) {
         found = true;
         String altNames = CertTools.getAltNameStringFromExtension(ext);
         assertEquals("dNSName=foo.bar.com, iPAddress=10.0.0.1", altNames);
       }
       assertTrue(found);
-    }
+
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test20cvcCert() throws Exception {
     Certificate cert =
@@ -2079,6 +2169,10 @@ public class CertToolsTest {
     assertFalse(CertTools.isCA(cvsha1));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test21GenSelfCert() throws Exception {
     KeyPair kp = KeyTools.genKeys("1024", "RSA");
@@ -2115,6 +2209,10 @@ public class CertToolsTest {
     assertEquals(128, sign.length);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test22CreateCertChain() throws Exception {
     // Test creating a certificate chain for CVC CAs
@@ -2161,6 +2259,10 @@ public class CertToolsTest {
     assertEquals("CN=RootCA", CertTools.getSubjectDN(certroot));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test23GenSelfCertDSA() throws Exception {
     KeyPair kp = KeyTools.genKeys("1024", "DSA");
@@ -2186,6 +2288,10 @@ public class CertToolsTest {
     assertEquals("CN=foo1", issuerdn);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test24GetCrlDistributionPoint() throws Exception {
     log.trace(">test24GetCrlDistributionPoint()");
@@ -2218,6 +2324,10 @@ public class CertToolsTest {
     log.trace("<test24GetCrlDistributionPoint()");
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test25AiaCaIssuerUri() throws Exception {
     // Only 1 CA Issuer in static aiaCert: "http://localhost:8080/caIssuer"!
@@ -2228,6 +2338,10 @@ public class CertToolsTest {
         CertTools.getAuthorityInformationAccessCAIssuerUris(cert).get(0));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testKrb5PrincipalName() throws Exception {
     String altName = "krb5principal=foo/bar@P.SE, upn=upn@u.com";
@@ -2256,6 +2370,10 @@ public class CertToolsTest {
     assertEquals("krb5principal=foo/bar@P.COM", s);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testIdOnSIM() throws Exception {
     String otherName =
@@ -2277,6 +2395,10 @@ public class CertToolsTest {
         ret);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testPseudonymAndName() throws Exception {
     String dn1 =
@@ -2291,6 +2413,10 @@ public class CertToolsTest {
         bcdn1);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testEscapedCharacters() throws Exception {
     final String input = "O=\\<fff\\>\\\",CN=oid,SN=12345,NAME=name,C=se";
@@ -2301,6 +2427,10 @@ public class CertToolsTest {
         dn);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testSerialNumberFromString() throws Exception {
     // Test numerical format
@@ -2336,6 +2466,10 @@ public class CertToolsTest {
     assertEquals(serno.toString(16), str);
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testReadPEMCertificate() throws Exception {
     X509Certificate cert =
@@ -2345,6 +2479,9 @@ public class CertToolsTest {
         "CN=AdminCA1,O=EJBCA Sample,C=SE", cert.getSubjectDN().toString());
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testNullInput() {
     assertNull(CertTools.stringToBcX500Name(null));
@@ -2374,6 +2511,10 @@ public class CertToolsTest {
     }
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCertCollectionFromArray() throws Exception {
     Certificate[] certarray = new Certificate[3];
@@ -2395,6 +2536,10 @@ public class CertToolsTest {
     assertTrue(str.contains("BEGIN CERTIFICATE"));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCheckValidity() throws Exception {
     // NotBefore: Wed Sep 24 08:48:04 CEST 2003 (1064386084000)
@@ -2420,6 +2565,10 @@ public class CertToolsTest {
     }
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testFingerprint() throws Exception {
     Certificate cert =
@@ -2435,6 +2584,10 @@ public class CertToolsTest {
         new String(Hex.encode(CertTools.generateMD5Fingerprint(testcert))));
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCRLs() throws Exception {
     X509CRL crl = CertTools.getCRLfromByteArray(testcrl);
@@ -2471,7 +2624,11 @@ public class CertToolsTest {
     return result;
   }
 
-  @Test
+  /**
+   * Test.
+   * @throws Exception fail
+   */
+ @Test
   public void testGetPermanentIdentifierStringFromSequence() throws Exception {
     assertEquals(
         "abc123/1.2.3.4",
@@ -2507,7 +2664,10 @@ public class CertToolsTest {
         CertTools.getPermanentIdentifierStringFromSequence(
             permanentIdentifier("ident with \\/ slash", null)));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testGetPermanentIdentifierValues() throws Exception {
     assertEquals(
@@ -2530,7 +2690,10 @@ public class CertToolsTest {
         "[null, null]",
         Arrays.toString(CertTools.getPermanentIdentifierValues("")));
   }
-
+ /**
+  * Test.
+  * @throws Exception fail
+  */
   @Test
   public void testGetGeneralNamesFromAltName4permanentIdentifier()
       throws Exception {
@@ -2565,7 +2728,10 @@ public class CertToolsTest {
             + " permanentIdentifier=def321/1.2.5, upn=upn@example.com]",
         Arrays.toString(result));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testGetGeneralNamesFromAltName5DirectoryName() throws Exception {
     // One directoryName
@@ -2592,7 +2758,9 @@ public class CertToolsTest {
     assertEquals(
         "[directoryName=CN=اتمنى لك يوما طيبا]", Arrays.toString(result));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStringToBcX500WithIncompleteLoneValue() {
     // Legal as a name even if it won't be legal as a DN
@@ -2600,28 +2768,36 @@ public class CertToolsTest {
     assertNotNull(result);
     assertEquals("O=", result.toString());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStringToBcX500WithTrailingComma() {
     X500Name result = CertTools.stringToBcX500Name("CN=,");
     assertNotNull(result);
     assertEquals("CN=\\,", result.toString());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStringToBcX500WithIncompleteValue() {
     X500Name result = CertTools.stringToBcX500Name("CN=,O=foo");
     assertNotNull(result);
     assertEquals("CN=,O=foo", result.toString());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStringToBcX500WithValueAndTrailingComma() {
     X500Name result = CertTools.stringToBcX500Name("CN=f,");
     assertNotNull(result);
     assertEquals("CN=f\\,", result.toString());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStringToBcX500WithEmpty() {
     // Legacy behavior
@@ -2629,7 +2805,9 @@ public class CertToolsTest {
     assertNotNull(result);
     assertEquals("", result.toString());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStringToBcX500WithEscapedComma() {
     try {
@@ -2639,7 +2817,9 @@ public class CertToolsTest {
       fail("Exception " + e.getClass() + " should not been thrown.");
     }
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testStringToBcX500WithDefinedEVOrder() {
     try {
@@ -2680,7 +2860,8 @@ public class CertToolsTest {
       final String dn =
           "JurisdictionCountry=NL,JurisdictionState=State,"
           + "JurisdictionLocality=Åmål,BusinessCategory=Private"
-              + " Organization,CN=evssltest6.test.lan,SN=1234567890,OU=XY,O=MyOrg"
+              + " Organization,CN=evssltest6.test.lan,"
+              + "SN=1234567890,OU=XY,O=MyOrg"
               + " B.V.,L=Åmål,ST=Norrland,C=SE";
       X500Name name =
           CertTools.stringToBcX500Name(dn, nameStyle, false, order1);
@@ -2734,7 +2915,8 @@ public class CertToolsTest {
           "CN=evssltest6.test.lan,OU=XY,O=MyOrg"
               + " B.V.,L=Åmål,ST=Norrland,C=SE,SN=1234567890,"
               + "BusinessCategory=Private"
-              + " Organization,JurisdictionLocality=Åmål,JurisdictionState=State"
+              + " Organization,JurisdictionLocality=Åmål,"
+              + "JurisdictionState=State"
               + ",JurisdictionCountry=NL";
       assertEquals(
           "Name order should be as defined in order string array",
@@ -2852,7 +3034,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests encoding DN attributes as UTF-8 or printable string
+   * Tests encoding DN attributes as UTF-8 or printable string.
    *
    * @throws Exception fail
    */
@@ -2894,12 +3076,12 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests the following methods:
+   * Tests the following methods:.
    *
    * <ul>
    *   <li>{@link CertTools#checkNameConstraints}
    *   <li>{@link NameConstraint#parseNameConstraintsList}
-   *   <li>{@link NameConstraint#toGeneralSubtrees}
+   *   <li>{@link NameConstraint#toGeneralSubtrees}.
    * </ul>
    *
    * @throws Exception fail
@@ -3072,7 +3254,10 @@ public class CertToolsTest {
                 InetAddress.getByName("2001:DB8::").getAddress())),
         "Disallowed SAN (IPv6 address) was accepted");
   }
-
+  /**
+   * Test.
+   * @throws CertificateParsingException fail
+   */
   @Test
   public void testCertificateWithEmptyOU() throws CertificateParsingException {
     byte[] customerCertificate =
@@ -3128,7 +3313,10 @@ public class CertToolsTest {
             + " Konijnenberg B.V.,L=Den Ham,ST=Overijssel,C=NL",
         dn);
   }
-
+  /**
+   * Test.
+   * @throws CertificateParsingException fail
+   */
   @Test
   public void testCertificateWithHashInSN() throws CertificateParsingException {
     byte[] customerCertificate =
@@ -3185,7 +3373,7 @@ public class CertToolsTest {
   }
 
   /**
-   * Tests preventing heap overflow during getCertsFromPEM()
+   * Tests preventing heap overflow during getCertsFromPEM().
    *
    * @throws Exception fail
    */
@@ -3232,7 +3420,7 @@ public class CertToolsTest {
 
   /**
    * Tests preventing heap overflow during getCertsFromByteArray for
-   * X509Certificate.class
+   * X509Certificate.class.
    *
    * @throws Exception fail
    */
@@ -3283,7 +3471,7 @@ public class CertToolsTest {
 
   /**
    * Test CertTools methods for reading CertificatePolicy information from a
-   * certificate
+   * certificate.
    *
    * @throws CertificateParsingException fail
    * @throws IOException fail
@@ -3400,7 +3588,11 @@ public class CertToolsTest {
     str = DERIA5String.getInstance(pqi.getQualifier());
     assertEquals("https://ejbca.org/CPS", str.getString());
   }
-
+  /**
+   * Test.
+ * @throws CertificateParsingException Fail
+ * @throws CertPathValidatorException  Fail
+   */
   @Test
   public void testOrderCertChain()
       throws CertificateParsingException, CertPathValidatorException {
@@ -3497,7 +3689,9 @@ public class CertToolsTest {
         CertTools.getSubjectDN(sub),
         CertTools.getSubjectDN(list.get(1)));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testEscapeFieldValue() {
     assertEquals(null, CertTools.escapeFieldValue(null));
@@ -3511,7 +3705,9 @@ public class CertToolsTest {
     assertEquals("CN=abc\\\"def", CertTools.escapeFieldValue("CN=abc\"def"));
     assertEquals("CN=abc\\>def", CertTools.escapeFieldValue("CN=abc>def"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testUnescapeFieldValue() {
     assertEquals(null, CertTools.unescapeFieldValue(null));
@@ -3530,7 +3726,9 @@ public class CertToolsTest {
     assertEquals(
         "\\>\"abc ", CertTools.unescapeFieldValue("\\\\\\>\\\"abc\\ "));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetOidFromString() {
     assertEquals("1.2.3.4", CertTools.getOidFromString("1.2.3.4.value"));
@@ -3539,7 +3737,9 @@ public class CertToolsTest {
         "1.12.123.1234", CertTools.getOidFromString("1.12.123.1234.value3"));
     assertEquals("1.2.3.4", CertTools.getOidFromString("1.2.3.4.foobar"));
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetOidWildcardPattern() {
     // Base cases

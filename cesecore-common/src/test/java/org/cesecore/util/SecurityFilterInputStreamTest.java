@@ -25,18 +25,19 @@ import org.junit.Test;
 
 /**
  * Tests SecurityFilterInputStream class that can be used to prevent java
- * heap-overflow during reading from input stream
+ * heap-overflow during reading from input stream.
  *
  * @version $Id: SecurityFilterInputStreamTest.java 26057 2017-06-22 08:08:34Z
  *     anatom $
  */
 public class SecurityFilterInputStreamTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SecurityFilterInputStreamTest.class);
 
   /**
-   * Prepares output stream with exploit string
+   * Prepares output stream with exploit string.
    *
    * @param outputStream stream where exploit String objects will be write into
    * @param payloadSize payloadSize of string that is going to be generated; use
@@ -76,13 +77,14 @@ public class SecurityFilterInputStreamTest {
   }
 
   /**
-   * Test preventing exploit by checking its size with SecurityFilterInputStream
+   * Test preventing exploit by checking its size with
+   * SecurityFilterInputStream.
    *
    * @throws Exception fail
    */
   @Test
   public void testPreventingTheStringBuilderExploit() throws Exception {
-    log.trace(">testPreventingTheStringBuilderExploit");
+    LOG.trace(">testPreventingTheStringBuilderExploit");
     ObjectInputStream objectInputStream = null;
     ByteArrayOutputStream byteArrayOutputStream = null;
     try {
@@ -118,18 +120,18 @@ public class SecurityFilterInputStreamTest {
         objectInputStream.close();
       }
     }
-    log.trace("<testPreventingTheStringBuilderExploit");
+    LOG.trace("<testPreventingTheStringBuilderExploit");
   }
 
   /**
    * Test if good input stream (size &lt; SecurityFilterInputStream.maxBytes)
-   * can be filtered
+   * can be filtered.
    *
    * @throws Exception fail
    */
   @Test
   public void testAcceptedSizeInputStream() throws Exception {
-    log.trace(">testAcceptedSizeInputStream");
+    LOG.trace(">testAcceptedSizeInputStream");
     ObjectInputStream objectInputStream = null;
     ByteArrayOutputStream byteArrayOutputStream = null;
     try {
@@ -156,6 +158,6 @@ public class SecurityFilterInputStreamTest {
         objectInputStream.close();
       }
     }
-    log.trace("<testAcceptedSizeInputStream");
+    LOG.trace("<testAcceptedSizeInputStream");
   }
 }

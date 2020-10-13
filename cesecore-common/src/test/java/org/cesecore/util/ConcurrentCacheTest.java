@@ -28,20 +28,27 @@ import org.junit.Test;
  */
 public final class ConcurrentCacheTest {
 
-  private static final Logger log = Logger.getLogger(ConcurrentCacheTest.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ConcurrentCacheTest.class);
 
   // Internal IDs for threads
+  /** Config. */
   private static final int THREAD_ONE = 101;
+  /** Config. */
   private static final int THREAD_TWO = 102;
+  /** Config. */
   private static final int THREAD_RANDOM = 200;
-
+  /** Config. */
   private static final int CONCURRENT_OPEN_TIMEOUT = 2000;
-
+  /** Config. */
   private static final int NUM_RANDOM_THREADS = 100;
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testSingleThreaded() throws Exception {
-    log.trace(">testSingleThreaded");
+    LOG.trace(">testSingleThreaded");
     final ConcurrentCache<String, Integer> cache = new ConcurrentCache<>();
     ConcurrentCache<String, Integer>.Entry entry;
 
@@ -93,12 +100,15 @@ public final class ConcurrentCacheTest {
     } catch (IllegalStateException e) { // NOPMD
     }
     entry.close();
-    log.trace("<testSingleThreaded");
+    LOG.trace("<testSingleThreaded");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testDisabled() throws Exception {
-    log.trace(">testDisabled");
+    LOG.trace(">testDisabled");
     final ConcurrentCache<String, Integer> cache = new ConcurrentCache<>();
     cache.setEnabled(false);
     ConcurrentCache<String, Integer>.Entry entry;
@@ -127,12 +137,15 @@ public final class ConcurrentCacheTest {
       // This should have been a no-op
       cache.checkNumberOfEntries(0, 0);
     }
-    log.trace("<testDisabled");
+    LOG.trace("<testDisabled");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testMultiThreaded() throws Exception {
-    log.trace(">testMultiThreaded");
+    LOG.trace(">testMultiThreaded");
     final ConcurrentCache<String, Integer> cache = new ConcurrentCache<>();
 
     final Thread thread1 =
@@ -146,12 +159,15 @@ public final class ConcurrentCacheTest {
     thread1.join();
     thread2.join();
 
-    log.trace("<testMultiThreaded");
+    LOG.trace("<testMultiThreaded");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testExpiryBehavior() throws Exception {
-    log.trace(">testExpiryBehavior");
+    LOG.trace(">testExpiryBehavior");
     final ConcurrentCache<String, Integer> cache = new ConcurrentCache<>();
     cache.setCleanupInterval(60000L); // don't run cleanup during test
 
@@ -203,12 +219,15 @@ public final class ConcurrentCacheTest {
         entry4.getValue());
     entry4.close();
 
-    log.trace("<testExpiryBehavior");
+    LOG.trace("<testExpiryBehavior");
   }
-
+  /**
+  * Test.
+  * @throws InterruptedException fail
+  */
   @Test(timeout = 6000)
   public void testRandomMultiThreaded() throws InterruptedException {
-    log.trace(">testRandomMultiThreaded");
+    LOG.trace(">testRandomMultiThreaded");
     // This tests outputs as LOT of debug/trace messages. JUnit even runs out of
     // heap space if those are enabled.
     Logger.getRootLogger().setLevel(Level.INFO);
@@ -225,22 +244,22 @@ public final class ConcurrentCacheTest {
         threads[i] = new Thread(runners[i], "CacheTestThread" + i);
       }
       try {
-        log.info("Now starting the threads");
+        LOG.info("Now starting the threads");
         for (int i = 0; i < threads.length; i++) {
           threads[i].start();
         }
 
-        log.info("All threads started");
+        LOG.info("All threads started");
         Thread.sleep(2000);
       } finally {
-        log.info("Asking threads to stop");
+        LOG.info("Asking threads to stop");
         for (int i = 0; i < threads.length; i++) {
           runners[i].shouldExit = true;
         }
 
-        log.info("Waiting for join of first thread (1 sec timeout)");
+        LOG.info("Waiting for join of first thread (1 sec timeout)");
         threads[0].join(1000);
-        log.info("Waiting for other threads");
+        LOG.info("Waiting for other threads");
         Thread.sleep(100);
         for (int i = 1; i < threads.length; i++) {
           threads[i].join(1);
@@ -264,19 +283,25 @@ public final class ConcurrentCacheTest {
       // so we hard-code Level.TRACE here.
       Logger.getRootLogger().setLevel(Level.TRACE);
       Logger.getLogger(ConcurrentCache.class).setLevel(Level.TRACE);
-      log.trace("<testRandomMultiThreaded");
+      LOG.trace("<testRandomMultiThreaded");
     }
   }
 
+  /** config. */
   private static final int MAXENTRIES = 1000000;
+  /** config. */
   private static final int OVERSHOOT =
       MAXENTRIES + (MAXENTRIES / 2) + 1; // overshoot by 50%
+  /** config. */
   private static final int MIN_ENTRIES_AFTER_CLEANUP =
       MAXENTRIES - (MAXENTRIES / 4); // 75% of maxentries
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testMaxEntries() throws Exception {
-    log.trace(">testMaxEntries");
+    LOG.trace(">testMaxEntries");
     final ConcurrentCache<String, Integer> cache = new ConcurrentCache<>();
     cache.setMaxEntries(MAXENTRIES);
     cache.setCleanupInterval(100);
@@ -285,7 +310,7 @@ public final class ConcurrentCacheTest {
     try {
       Logger.getLogger(ConcurrentCache.class).setLevel(Level.INFO);
       // Create initial entries
-      log.debug("Creating initial entries");
+      LOG.debug("Creating initial entries");
       for (int i = 0; i < MAXENTRIES; i++) {
         entry = cache.openCacheEntry(String.valueOf(i), 1);
         assertNotNull("openCacheEntry timed out", entry);
@@ -300,7 +325,7 @@ public final class ConcurrentCacheTest {
       cache.checkNumberOfEntries(MAXENTRIES, MAXENTRIES);
 
       // Add some more. Cleanup is guaranteed to run if we overshoot by 50%
-      log.debug("Creating more entries (to overshoot the limit)");
+      LOG.debug("Creating more entries (to overshoot the limit)");
       for (int i = MAXENTRIES; i <= OVERSHOOT; i++) {
         entry = cache.openCacheEntry(String.valueOf(i), 1);
         assertNotNull("openCacheEntry timed out", entry);
@@ -312,7 +337,7 @@ public final class ConcurrentCacheTest {
         entry.close();
       }
 
-      log.debug("Sleeping to allow for cleanup to run again");
+      LOG.debug("Sleeping to allow for cleanup to run again");
       Thread.sleep(100);
 
       // Access the cache once more to trigger a cleanup
@@ -325,30 +350,34 @@ public final class ConcurrentCacheTest {
       entry.setCacheValidity(60 * 1000);
       entry.close();
 
-      log.debug("Done creating entries");
+      LOG.debug("Done creating entries");
 
       // Cleanup should have run now
       cache.checkNumberOfEntries(MIN_ENTRIES_AFTER_CLEANUP, MAXENTRIES - 1);
     } finally {
       Logger.getLogger(ConcurrentCache.class).setLevel(Level.TRACE);
-      log.trace("<testMaxEntries");
+      LOG.trace("<testMaxEntries");
     }
   }
 
   private static final class CacheTestRunner implements Runnable {
+    /** ID. */
     private final int id;
+    /** cache. */
     private final ConcurrentCache<String, Integer> cache;
 
+    /** keys. */
     private static final String[] KEYS = {
       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
       "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
     };
-    public volatile boolean shouldExit = false;
+    /** bool. */
+   private volatile boolean shouldExit = false;
 
-    public CacheTestRunner(
-        final ConcurrentCache<String, Integer> cache, final int id) {
-      this.cache = cache;
-      this.id = id;
+    CacheTestRunner(
+        final ConcurrentCache<String, Integer> aCache, final int anId) {
+      this.cache = aCache;
+      this.id = anId;
     }
 
     @Override

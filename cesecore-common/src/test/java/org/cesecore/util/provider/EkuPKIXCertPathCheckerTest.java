@@ -47,46 +47,62 @@ import org.junit.Test;
  */
 public class EkuPKIXCertPathCheckerTest {
 
-  private static final Logger log =
+    /** Loffer. */
+  private static final Logger LOG =
       Logger.getLogger(EkuPKIXCertPathCheckerTest.class);
+  /** Key. */
   private static KeyPair keyPair;
+  /** Nool. */
   private static final boolean CA = true;
+  /** bool. */
   private static final boolean LEAF = false;
 
+  /** Setup.
+   *
+   * @throws InvalidAlgorithmParameterException fail
+   */
   @BeforeClass
   public static void beforeClass() throws InvalidAlgorithmParameterException {
     CryptoProviderTools.installBCProvider();
     keyPair = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
   }
-
-  final List<String> ekusEmpty = Arrays.asList(new String[] {});
-  final List<String> ekus2 =
+  /** Config. */
+  private final List<String> ekusEmpty = Arrays.asList(new String[] {});
+  /** Config. */
+  private final List<String> ekus2 =
       Arrays.asList(new String[] {KeyPurposeId.id_kp_emailProtection.getId()});
-  final List<String> ekus3 =
+  /** Config. */
+  private final List<String> ekus3 =
       Arrays.asList(
           new String[] {
             KeyPurposeId.id_kp_codeSigning.getId(),
             KeyPurposeId.id_kp_smartcardlogon.getId()
           });
-  final List<String> ekus4 =
+  /** Config. */
+  private final List<String> ekus4 =
       Arrays.asList(
           new String[] {
             KeyPurposeId.id_kp_ipsecEndSystem.getId(),
             KeyPurposeId.id_kp_serverAuth.getId()
           });
-  final List<String> ekus5 =
+  /** Config. */
+  private final List<String> ekus5 =
       Arrays.asList(new String[] {KeyPurposeId.id_kp_serverAuth.getId()});
-  final List<String> ekus6 =
+  /** Config. */
+  private final List<String> ekus6 =
       Arrays.asList(
           new String[] {
             KeyPurposeId.id_kp_clientAuth.getId(),
             KeyPurposeId.id_kp_codeSigning.getId(),
             KeyPurposeId.id_kp_emailProtection.getId()
           });
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testNoEkuInCert() throws Exception {
-    log.trace(">testNoEkuInCert");
+    LOG.trace(">testNoEkuInCert");
     /*
      * When no EKU is present in the certificate, the PKIXCertPathChecker
      *  should never be invoked.
@@ -100,9 +116,12 @@ public class EkuPKIXCertPathCheckerTest {
     assertFalse(validateCert(keyPair, CA, null, ekus2));
     assertFalse(validateCert(keyPair, LEAF, null, ekus3));
     assertFalse(validateCert(keyPair, CA, null, ekus3));
-    log.trace("<testNoEkuInCert");
+    LOG.trace("<testNoEkuInCert");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testEmptyCriticalEkuInCert() throws Exception {
     /*
@@ -119,7 +138,10 @@ public class EkuPKIXCertPathCheckerTest {
     assertFalse(validateCert(keyPair, LEAF, ekusEmpty, ekus3));
     assertFalse(validateCert(keyPair, CA, ekusEmpty, ekus3));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCriticalEkuWithOneInCert() throws Exception {
     assertTrue(validateCert(keyPair, LEAF, ekus5, null));
@@ -133,7 +155,10 @@ public class EkuPKIXCertPathCheckerTest {
     assertFalse(validateCert(keyPair, LEAF, ekus5, ekus6));
     assertFalse(validateCert(keyPair, CA, ekus5, ekus6));
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testCriticalEkuWithTwoInCert() throws Exception {
     assertTrue(validateCert(keyPair, LEAF, ekus4, null));
@@ -149,7 +174,7 @@ public class EkuPKIXCertPathCheckerTest {
   }
 
   /**
-   * @param keyPair keys
+   * @param aKeyPair keys
    * @param isCa CA
    * @param actualOids OIDs
    * @param requiredOids OIDs
@@ -157,7 +182,7 @@ public class EkuPKIXCertPathCheckerTest {
    * @throws Exception fail
    */
   private boolean validateCert(
-      final KeyPair keyPair,
+      final KeyPair aKeyPair,
       final boolean isCa,
       final List<String> actualOids,
       final List<String> requiredOids)
@@ -190,8 +215,8 @@ public class EkuPKIXCertPathCheckerTest {
             new Date(now - 3600000L),
             new Date(now + 3600000L),
             null,
-            keyPair.getPrivate(),
-            keyPair.getPublic(),
+            aKeyPair.getPrivate(),
+            aKeyPair.getPublic(),
             AlgorithmConstants.SIGALG_SHA1_WITH_RSA,
             isCa,
             ku,

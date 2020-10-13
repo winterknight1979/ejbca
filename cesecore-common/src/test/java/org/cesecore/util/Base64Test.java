@@ -25,14 +25,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests base64 encoding and decoding
+ * Tests base64 encoding and decoding.
  *
  * @version $Id: Base64Test.java 27794 2018-01-09 10:09:35Z bastianf $
  */
 public class Base64Test {
-  private static final Logger log = Logger.getLogger(Base64Test.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(Base64Test.class);
 
-  private static final String testcert_oneline =
+  /** Cert. */
+  private static final String TESTCERT_ONELINE =
       ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
           + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
           + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
@@ -51,7 +53,8 @@ public class Base64Test {
           + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ"
           + "QUOBOvc=");
 
-  private static final String testcert_crlf =
+  /** Cert. */
+  private static final String TESTCERT_CRLF =
       ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE\n"
           + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky\n"
           + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG\n"
@@ -70,7 +73,8 @@ public class Base64Test {
           + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ\n"
           + "QUOBOvc=");
 
-  private static final byte[] longMsg = {
+  /** Message. */
+  private static final byte[] LONG_MSG = {
     77, 73, 65, 67, 65, 81, 77, 119, 103, 65, 89, 74, 75, 111, 90, 73, 104, 118,
     99, 78, 65, 81, 99, 66, 111, 73, 65, 107, 103, 65, 83, 67, 67, 118, 73, 119,
     103, 68, 67, 65, 66, 103, 107, 113, 104, 107, 105, 71, 57, 119, 48, 66, 66,
@@ -455,17 +459,22 @@ public class Base64Test {
     65, 61
   };
 
+  /** Setup.
+   * @throws Exception  fail*/
   @Before
   public void setUp() throws Exception {
-    log.trace(">setUp()");
+    LOG.trace(">setUp()");
     CryptoProviderTools.installBCProvider();
-    log.trace("<setUp()");
+    LOG.trace("<setUp()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testBase64Small() throws Exception {
     // Testcert is on long line of base 64 encoded stuff
-    byte[] certBytes = Base64.decode(testcert_oneline.getBytes());
+    byte[] certBytes = Base64.decode(TESTCERT_ONELINE.getBytes());
     assertNotNull(certBytes);
     // This should be a cert
     Certificate cert =
@@ -473,41 +482,49 @@ public class Base64Test {
     assertNotNull(cert);
     // Base64 encode it again
     byte[] encBytes = Base64.encode(cert.getEncoded(), false);
-    assertEquals(new String(encBytes), testcert_oneline);
+    assertEquals(new String(encBytes), TESTCERT_ONELINE);
     // Testcert_crlf has \n after each line
-    certBytes = Base64.decode(testcert_crlf.getBytes());
+    certBytes = Base64.decode(TESTCERT_CRLF.getBytes());
     assertNotNull(certBytes);
     // This should be a cert
     cert = CertTools.getCertfromByteArray(certBytes, Certificate.class);
     assertNotNull(cert);
     // Base64 encode it again
     encBytes = Base64.encode(cert.getEncoded(), true);
-    assertEquals(new String(encBytes), testcert_crlf);
+    assertEquals(new String(encBytes), TESTCERT_CRLF);
     // This is the same method as above
     encBytes = Base64.encode(cert.getEncoded());
-    assertEquals(new String(encBytes), testcert_crlf);
+    assertEquals(new String(encBytes), TESTCERT_CRLF);
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testBase64Long() throws Exception {
     // This one has spaces in it
-    byte[] bytes = Base64.decode(longMsg);
+    byte[] bytes = Base64.decode(LONG_MSG);
     assertNotNull(bytes);
     byte[] encBytes = Base64.encode(bytes, false);
     String str1 = new String(encBytes);
-    String str2 = new String(longMsg);
+    String str2 = new String(LONG_MSG);
     // Should not be same, str2 has blanks in it
     assertFalse(str1 == str2);
     str2 = StringUtils.deleteWhitespace(str2);
     // now it should be same
     assertEquals(str1, str2);
   }
-
+  /**
+   * Test.
+   */
   @Test(expected = DecoderException.class)
   public void testIncorrectPadding1() {
     Base64.decode("DAxFSkJDQSBTYW".getBytes(Charset.forName("UTF-8")));
   }
 
+  /**
+   * Test.
+   */
   @Test(expected = DecoderException.class)
   public void testIncorrectPadding2() {
     Base64.decode("DAxFSkJDQSBTYW=".getBytes(Charset.forName("UTF-8")));

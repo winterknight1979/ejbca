@@ -22,14 +22,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests base64 encoding and decoding
+ * Tests base64 encoding and decoding.
  *
  * @version $Id: HexTest.java 22553 2016-01-11 13:06:46Z mikekushner $
  */
 public class HexTest {
-  private static final Logger log = Logger.getLogger(HexTest.class);
-
-  private static String testcert_oneline =
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(HexTest.class);
+/**Cert. */
+  private static String testcertOneline =
       ("MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE"
           + "AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky"
           + "NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG"
@@ -47,7 +48,7 @@ public class HexTest {
           + "emox1mlQ5rgO9sSel6jHkwceaq4A55+qXAjQVsuy76UJnc8ncYX8f98uSYKcjxo/"
           + "ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ"
           + "QUOBOvc=");
-
+/** Cert. */
   private static String hexCert =
       "308203013082026aa00302010202087331288210307371300d06092a864886f70d010105"
       + "0500302f310f300d06035504031306546573744341310f300d060355040a1306416e61"
@@ -72,18 +73,24 @@ public class HexTest {
       + "b2efa5099dcf277185fc7fdf2e49829c8f1a3f89f9f578731b2fc7462dde5b73618d05"
       + "9926845204a03bdb7e7f63a3ba61952f22caf1766210b87aca3c5dbf93efe059414381"
       + "3af7";
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Before
   public void setUp() throws Exception {
-    log.trace(">setUp()");
+    LOG.trace(">setUp()");
     CryptoProviderTools.installBCProviderIfNotAvailable();
-    log.trace("<setUp()");
+    LOG.trace("<setUp()");
   }
-
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void test01HexSmall() throws Exception {
     // Testcert is on long line of base 64 encoded stuff
-    byte[] certBytes = Base64.decode(testcert_oneline.getBytes());
+    byte[] certBytes = Base64.decode(testcertOneline.getBytes());
     assertNotNull(certBytes);
     // This should be a cert
     Certificate cert =

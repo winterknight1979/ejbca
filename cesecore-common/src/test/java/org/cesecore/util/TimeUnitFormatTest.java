@@ -29,21 +29,34 @@ import org.junit.Test;
 public class TimeUnitFormatTest {
 
   // duplicate code from SimpleTime start
+      /** Config. */
   public static final long MILLISECONDS_PER_YEAR = 31536000000L; // 365 days
+  /** Config. */
   public static final long MILLISECONDS_PER_MONTH = 2592000000L; // 30 days
+  /** Config. */
   public static final long MILLISECONDS_PER_DAY = 86400000L;
+  /** Config. */
   public static final long MILLISECONDS_PER_HOUR = 3600000L;
+  /** Config. */
   public static final long MILLISECONDS_PER_MINUTE = 60000L;
+  /** Config. */
   public static final long MILLISECONDS_PER_SECOND = 1000L;
 
+  /** Config. */
   public static final String TYPE_YEARS = "y";
+  /** Config. */
   public static final String TYPE_MONTHS = "mo";
+  /** Config. */
   public static final String TYPE_DAYS = "d";
+  /** Config. */
   public static final String TYPE_HOURS = "h";
+  /** Config. */
   public static final String TYPE_MINUTES = "m";
+  /** Config. */
   public static final String TYPE_SECONDS = "s";
+  /** Config. */
   public static final String TYPE_MILLISECONDS = "ms";
-
+  /** Config. */
   private static final Map<String, Long> MILLISECONDS_FACTOR =
       new LinkedHashMap<String, Long>();
 
@@ -58,7 +71,8 @@ public class TimeUnitFormatTest {
   }
   // duplicate code from SimpleTime end
 
-  public TimeUnitFormatTest() {}
+  /** null. */
+  public TimeUnitFormatTest() { }
 
   /**
    * Tests the default parser and formatter (with '*y *mo *d *h *m *s *ms').
