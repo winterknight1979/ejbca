@@ -27,18 +27,23 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests the ConfigurationHolder class
+ * Tests the ConfigurationHolder class.
  *
  * @version $Id: ConfigurationHolderTest.java 19777 2014-09-18 13:11:18Z
  *     mikekushner $
  */
 public class ConfigurationHolderTest {
 
+    /** Setup. */
   @Before
   public void setUp() {
     ConfigurationHolder.instance().clear();
   }
 
+  /**
+   * Test.
+   * @throws Exception fail
+   */
   @Test
   public void testGetString() throws Exception {
     File f = File.createTempFile("cesecore", "test");
@@ -74,7 +79,15 @@ public class ConfigurationHolderTest {
       f.deleteOnExit();
     }
   }
-
+  /** Test.
+   *
+   * @throws SecurityException fail
+   * @throws NoSuchFieldException fail
+   * @throws IllegalArgumentException fail
+   * @throws IllegalAccessException fail
+   * @throws IOException fail
+   * @throws ConfigurationException fail
+   */
   @Test
   public void testGetDefaultValuesWithCommas()
       throws SecurityException, NoSuchFieldException, IllegalArgumentException,

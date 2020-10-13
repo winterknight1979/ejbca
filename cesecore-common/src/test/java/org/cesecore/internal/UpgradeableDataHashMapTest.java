@@ -16,7 +16,8 @@ import org.junit.Test;
  */
 public class UpgradeableDataHashMapTest {
 
-  static final Logger log = Logger.getLogger(UpgradeableDataHashMapTest.class);
+    /** Ligger. */
+  static final Logger LOG = Logger.getLogger(UpgradeableDataHashMapTest.class);
 
   /**
    * Test if UpgradeableDataHashMap is vulnerable to CVE-2010-4476 through the
@@ -28,32 +29,33 @@ public class UpgradeableDataHashMapTest {
    * <p>UpgradeableDataHashMap.VERSION is normally stored as a Float.
    */
   @Test
-  public void testCVE_2010_4476() {
-    final String XML_W_BADFLOAT =
+  public void testCVE20104476() {
+    final String xmlWBadFloar =
         "<java version=\"1.6.0_21\" class=\"java.beans.XMLDecoder\">"
             + "<object class=\"java.util.HashMap\"><void method=\"put\">"
             + "<string>version</string><float>2.2250738585072012e-308</float>"
             + "</void></object></java>";
-    final String XML_W_BADDERFLOAT =
+    final String xmlWBadderFloat =
         "<java version=\"1.6.0_21\" class=\"java.beans.XMLDecoder\">"
             + "<object class=\"java.util.HashMap\"><void method=\"put\">"
             + "<string>version</string><double>2.2250738585072012e-308</double>"
             + "</void></object></java>";
-    final String FAIL_MESSAGE =
+    final String failMessage =
         "JDK is vulnerable to CVE-2010-4476 (requires write access to EJBCA"
             + " database to exploit).";
-    assertTrue(FAIL_MESSAGE, new DecoderThread(XML_W_BADFLOAT).execute());
-    assertTrue(FAIL_MESSAGE, new DecoderThread(XML_W_BADDERFLOAT).execute());
+    assertTrue(failMessage, new DecoderThread(xmlWBadFloar).execute());
+    assertTrue(failMessage, new DecoderThread(xmlWBadderFloat).execute());
   }
 
   /** Separate thread for test that might hang. */
   class DecoderThread
       implements Runnable { // NOPMD this is a stand-alone test, not a part of a
     // JEE application
-    final String decodeXML;
+    /** XML. */
+      private final String decodeXML;
 
-    DecoderThread(final String decodeXML) {
-      this.decodeXML = decodeXML;
+    DecoderThread(final String adecodeXML) {
+      this.decodeXML = adecodeXML;
     }
 
     protected boolean execute() {
@@ -77,17 +79,17 @@ public class UpgradeableDataHashMapTest {
     @SuppressWarnings("unchecked")
     @Override
     public void run() {
-      try (final SecureXMLDecoder decoder =
+      try (SecureXMLDecoder decoder =
           new SecureXMLDecoder(
               new java.io.ByteArrayInputStream(
                   decodeXML.getBytes(StandardCharsets.UTF_8)))) {
         final HashMap<Object, Object> h =
             (HashMap<Object, Object>) decoder.readObject();
         for (Object o : h.keySet()) {
-          log.info(o.toString() + ": " + h.get(o));
+          LOG.info(o.toString() + ": " + h.get(o));
         }
       } catch (IOException e) {
-        log.error("Failed to decode XML", e);
+        LOG.error("Failed to decode XML", e);
         throw new IllegalStateException(e);
       }
     }

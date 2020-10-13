@@ -24,23 +24,26 @@ import org.junit.Test;
  */
 public class InternalResourcesTest {
 
-  /** Note diff between EJBCA and CESeCore */
+  /** Note diff between EJBCA and CESeCore. */
   private static final String TEST_RESOURCE_LOCATION = "/intresources";
   // Classpath issues, use "src/intresources" when running from within eclipse
   // private static final String TEST_RESOURCE_LOCATION = "src/intresources";
 
+  /** Setup. */
   @Before
   public void before() {
     ConfigurationHolder.backupConfiguration();
     ConfigurationHolder.updateConfiguration(
         "intresources.secondarylanguage", "sv");
   }
-
+  /** Teardown. */
   @After
   public void after() {
     ConfigurationHolder.restoreConfiguration();
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetLocalizedMessageString() {
     InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);
@@ -56,7 +59,9 @@ public class InternalResourcesTest {
         "Test sv-SE",
         intres.getLocalizedMessageCs("raadmin.testmsgsv").toString());
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testGetUnfoundMessageButPreserveParameters() {
     InternalResources intres = new InternalResources();
@@ -64,6 +69,9 @@ public class InternalResourcesTest {
     assertEquals("foo, a, b", result);
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testNonExistingLocalizedMessageString() {
     InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);
@@ -73,6 +81,9 @@ public class InternalResourcesTest {
         "raadmin.foo", intres.getLocalizedMessageCs("raadmin.foo").toString());
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testGetLocalizedMessageStringObject() {
     InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);
@@ -98,6 +109,9 @@ public class InternalResourcesTest {
             .toString());
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testGetLocalizedMessageStringObjectWithNull() {
     InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);
@@ -129,6 +143,9 @@ public class InternalResourcesTest {
         intres.getLocalizedMessageCs("raadmin.testparams").toString());
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testMessageStringWithExtraParameter() {
     InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);
@@ -146,7 +163,7 @@ public class InternalResourcesTest {
             .toString());
   }
 
-  /** Test that we don't allow unlimited recursion in the language strings */
+  /** Test that we don't allow unlimited recursion in the language strings. */
   @Test
   public void testMessageStringWithRecursive() {
     InternalResources intres = new InternalResources(TEST_RESOURCE_LOCATION);

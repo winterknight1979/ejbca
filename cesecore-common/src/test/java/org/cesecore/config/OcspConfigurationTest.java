@@ -22,16 +22,21 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests the OcspConfiguration class
+ * Tests the OcspConfiguration class.
  *
  * @version $Id: OcspConfigurationTest.java 16148 2013-01-19 17:04:56Z anatom $
  */
 public class OcspConfigurationTest {
 
+    /** Setup. */
   @Before
   public void setUp() {
     ConfigurationHolder.instance().clear();
   }
+  /**
+   * Test.
+   * @throws Exception fail
+   */
 
   @Test
   public void testMaxAgeNextUpdate() throws Exception {

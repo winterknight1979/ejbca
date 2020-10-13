@@ -58,10 +58,11 @@ import org.junit.runner.Description;
  */
 public class OcspKeyBindingTest {
 
+    /** extensions. */
   private static List<Extension> ekuExtensionOnly;
 
-  // Define a traceLogMethodsRule similar to the system tests
-  // TraceLogMethodsRule() implementation.
+  /** Define a traceLogMethodsRule similar to the system tests
+   TraceLogMethodsRule() implementation. */
   @Rule
   public TestRule traceLogMethodsRule =
       new TestWatcher() {
@@ -73,7 +74,7 @@ public class OcspKeyBindingTest {
           }
           super.starting(description);
         }
-        ;
+
 
         @Override
         protected void finished(final Description description) {
@@ -84,14 +85,28 @@ public class OcspKeyBindingTest {
           super.finished(description);
         }
       };
-
+/** Setup.
+ *
+ * @throws Exception fail
+ */
   @BeforeClass
   public static void beforeClass() throws Exception {
     CryptoProviderTools.installBCProvider();
     ekuExtensionOnly =
         Arrays.asList(new Extension[] {getExtendedKeyUsageExtension()});
   }
-
+  /**
+   * Test.
+ * @throws IOException fail
+ * @throws InvalidAlgorithmParameterException fail
+ * @throws InvalidKeyException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws SignatureException fail
+ * @throws IllegalStateException fail
+ * @throws NoSuchProviderException fail
+ * @throws OperatorCreationException fail
+ * @throws CertificateException fail
+   */
   @Test
   public void testOcspSigningCertificateValidationPositives()
       throws IOException, InvalidAlgorithmParameterException,
@@ -132,6 +147,18 @@ public class OcspKeyBindingTest {
             ekuConfig));
   }
 
+  /**
+   * Test.
+ * @throws IOException fail
+ * @throws InvalidAlgorithmParameterException fail
+ * @throws InvalidKeyException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws SignatureException fail
+ * @throws IllegalStateException fail
+ * @throws NoSuchProviderException fail
+ * @throws OperatorCreationException fail
+ * @throws CertificateException fail
+   */
   @Test
   public void testOcspSigningCertificateAssertionPositives()
       throws IOException, InvalidAlgorithmParameterException,
@@ -150,6 +177,18 @@ public class OcspKeyBindingTest {
     }
   }
 
+  /**
+   * Test.
+ * @throws IOException fail
+ * @throws InvalidAlgorithmParameterException fail
+ * @throws InvalidKeyException fail
+ * @throws NoSuchAlgorithmException fail
+ * @throws SignatureException fail
+ * @throws IllegalStateException fail
+ * @throws NoSuchProviderException fail
+ * @throws OperatorCreationException fail
+ * @throws CertificateException fail
+   */
   @Test
   public void testOcspSigningCertificateValidationNegatives()
       throws IOException, InvalidAlgorithmParameterException,
@@ -178,6 +217,18 @@ public class OcspKeyBindingTest {
             getCertificate(X509KeyUsage.nonRepudiation, null), ekuConfig));
   }
 
+  /**
+   * Test.
+ * @throws IOException Fail
+ * @throws InvalidAlgorithmParameterException Fail
+ * @throws InvalidKeyException Fail
+ * @throws NoSuchAlgorithmException Fail
+ * @throws SignatureException Fail
+ * @throws IllegalStateException Fail
+ * @throws NoSuchProviderException Fail
+ * @throws OperatorCreationException Fail
+ * @throws CertificateException Fail
+   */
   @Test
   public void testOcspSigningCertificateAssertionNegatives()
       throws IOException, InvalidAlgorithmParameterException,
@@ -246,6 +297,9 @@ public class OcspKeyBindingTest {
     return new Extension(Extension.extendedKeyUsage, true, seq.getEncoded());
   }
 
+  /**
+   * Test.
+   */
   @Test
   public void testProperties() {
     final OcspKeyBinding keybind = new OcspKeyBinding();

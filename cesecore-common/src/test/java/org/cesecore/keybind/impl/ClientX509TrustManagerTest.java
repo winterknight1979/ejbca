@@ -44,32 +44,40 @@ import org.junit.runner.Description;
  *     jeklund $
  */
 public class ClientX509TrustManagerTest {
-
-  private static final Logger log =
+/** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(ClientX509TrustManagerTest.class);
-
+/** Watcher. */
   @Rule
   public final TestWatcher traceLogMethodsRule =
       new TestWatcher() {
         @Override
         protected void starting(final Description description) {
-          log.trace(">" + description.getMethodName());
+          LOG.trace(">" + description.getMethodName());
           super.starting(description);
         }
-        ;
+
 
         @Override
         protected void finished(final Description description) {
-          log.trace("<" + description.getMethodName());
+          LOG.trace("<" + description.getMethodName());
           super.finished(description);
         }
       };
 
+      /** Teardown.
+     * @throws Throwable fail*/
   @BeforeClass
   public static void beforeClass() throws Throwable {
     CryptoProviderTools.installBCProviderIfNotAvailable();
   }
 
+  /**
+   * Test.
+ * @throws InvalidAlgorithmParameterException Fail
+ * @throws OperatorCreationException Fail
+ * @throws CertificateException Fail
+   */
   @Test
   public void testFirstEncounteredServerCertificate()
       throws InvalidAlgorithmParameterException, OperatorCreationException,
@@ -108,7 +116,7 @@ public class ClientX509TrustManagerTest {
           new X509Certificate[] {x509Certificate2}, null);
       fail("Untrusted certificate should not pass validation.");
     } catch (CertificateException e) {
-      log.debug("Expected exception: " + e.getMessage());
+      LOG.debug("Expected exception: " + e.getMessage());
     }
     // We should be able to see the remote TLS certificate even if it was not
     // trusted
@@ -152,7 +160,7 @@ public class ClientX509TrustManagerTest {
           new X509Certificate[] {x509Certificate2}, null);
       fail("Untrusted certificate should not pass validation.");
     } catch (CertificateException e) {
-      log.debug("Expected exception: " + e.getMessage());
+      LOG.debug("Expected exception: " + e.getMessage());
     }
     assertEquals(
         "Validated server TLS certificate was not encountered.",
