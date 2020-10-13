@@ -156,7 +156,8 @@ public class DnComponentsTest {
 
     String dn1 =
         CertTools.stringToBCDNString(
-            "SURNAME=Json,=fff,Description=test,CN=oid,SN=12345,NAME=name,C=se");
+            "SURNAME=Json,=fff,Description=test,"
+            + "CN=oid,SN=12345,NAME=name,C=se");
     final X500Name name1 = CertTools.stringToBcX500Name(dn1);
     ASN1ObjectIdentifier[] oids1 = name1.getAttributeTypes();
     assertEquals(CeSecoreNameStyle.DESCRIPTION, oids1[0]);
@@ -170,7 +171,10 @@ public class DnComponentsTest {
 
     String dn2 =
         CertTools.stringToBCDNString(
-            "jurisdictionCountry=SE,jurisdictionState=Stockholm,SURNAME=Json,=fff,CN=oid,jurisdictionLocality=Solna,SN=12345,unstructuredname=foo.bar.com,unstructuredaddress=1.2.3.4,NAME=name,C=se");
+            "jurisdictionCountry=SE,jurisdictionState=Stockholm,SURNAME=Json,"
+            + "=fff,CN=oid,jurisdictionLocality=Solna,SN=12345,"
+            + "unstructuredname=foo.bar.com,unstructuredaddress=1.2.3.4,"
+            + "NAME=name,C=se");
     final X500Name name2 = CertTools.stringToBcX500Name(dn2);
     ASN1ObjectIdentifier[] oids2 = name2.getAttributeTypes();
     assertEquals(CeSecoreNameStyle.JURISDICTION_COUNTRY, oids2[0]);
@@ -184,7 +188,10 @@ public class DnComponentsTest {
     assertEquals(BCStyle.SURNAME, oids2[8]);
     assertEquals(BCStyle.C, oids2[9]);
     assertEquals(
-        "JurisdictionCountry=SE,JurisdictionState=Stockholm,JurisdictionLocality=Solna,unstructuredAddress=1.2.3.4,unstructuredName=foo.bar.com,CN=oid,Name=name,SN=12345,SURNAME=Json,C=se",
+        "JurisdictionCountry=SE,JurisdictionState=Stockholm,"
+        + "JurisdictionLocality=Solna,unstructuredAddress=1.2.3.4,"
+        + "unstructuredName=foo.bar.com,CN=oid,Name=name,SN=12345,"
+        + "SURNAME=Json,C=se",
         dn2);
   }
 }

@@ -202,7 +202,8 @@ public final class SubjectDirAttrExtension extends CertTools {
         vec.add(new DERGeneralizedTime(value));
         attr =
             new Attribute(
-                new ASN1ObjectIdentifier(ID_PDA_DATE_OF_BIRTH), new DERSet(vec));
+                new ASN1ObjectIdentifier(ID_PDA_DATE_OF_BIRTH),
+                new DERSet(vec));
         ret.add(attr);
       } else {
         LOG.error(

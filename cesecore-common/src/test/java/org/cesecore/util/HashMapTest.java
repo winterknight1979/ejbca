@@ -102,7 +102,8 @@ public class HashMapTest {
     }
   }
 
-  /* from stack xchange, to work around the Java Versioning system change between Java 8 and Java 9 */
+  /* from stack xchange, to work around the Java Versioning
+   * system change between Java 8 and Java 9 */
   private static int getVersion() {
     String version = System.getProperty("java.version");
     if (version.startsWith("1.")) {

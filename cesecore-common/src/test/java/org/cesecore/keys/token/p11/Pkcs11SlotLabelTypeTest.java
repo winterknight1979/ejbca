@@ -56,6 +56,7 @@ public class Pkcs11SlotLabelTypeTest {
     assertFalse(
         "Label of >32 characters validated.",
         Pkcs11SlotLabelType.SLOT_LABEL.validate(
-            "YeahbutIcantusethewordsoberbecausethatsatermfromthosepeopleandIhavecleansedmyself"));
+            "YeahbutIcantusethewordsoberbecausethatsatermfromthose"
+            + "peopleandIhavecleansedmyself"));
   }
 }

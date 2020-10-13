@@ -88,7 +88,8 @@ public class EkuPKIXCertPathCheckerTest {
   public void testNoEkuInCert() throws Exception {
     log.trace(">testNoEkuInCert");
     /*
-     * When no EKU is present in the certificate, the PKIXCertPathChecker should never be invoked.
+     * When no EKU is present in the certificate, the PKIXCertPathChecker
+     *  should never be invoked.
      * This just documents the actual behavior in such a case.
      */
     assertTrue(validateCert(keyPair, LEAF, null, null));
@@ -105,7 +106,8 @@ public class EkuPKIXCertPathCheckerTest {
   @Test
   public void testEmptyCriticalEkuInCert() throws Exception {
     /*
-     * When an empty EKU is present in the certificate, the PKIXCertPathChecker will perform the check for required.
+     * When an empty EKU is present in the certificate, the PKIXCertPathChecker
+     * will perform the check for required.
      * However, it is not clear if it should be invoked in such a case.
      */
     assertTrue(validateCert(keyPair, LEAF, ekusEmpty, null));

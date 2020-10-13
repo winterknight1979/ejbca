@@ -315,52 +315,52 @@ public class RequestMessageTest {
   private static byte[] p10utf8StringPwd =
       Base64.decode(
           ("MIIBITCBzAIBADBHMQswCQYDVQQGEwJTRTETMBEGA1UECAwKU29tZS1TdGF0ZTER"
-               + "MA8GA1UECgwIUHJpbWVLZXkxEDAOBgNVBAMMB3AxMHRlc3QwXDANBgkqhkiG9w0B"
-               + "AQEFAANLADBIAkEArE7GcTm9U3rEqTfldN+Ja3FnMhZXfq3Uq4AWi2VPVqEDmJzX"
-               + "TINOlnDeK3y4jJ1kNqrSITfznobbDHR1pNSWYwIDAQABoCAwHgYJKoZIhvcNAQkH"
-               + "MREMD2ZTUkVwOHBueHR4M0N1VjANBgkqhkiG9w0BAQsFAANBAGO8WZj42s3lo463"
-               + "SdaP7kqE15BdkbReCIV+HA8dw9dphulLyFTTAxGZs8c28O2f81iA9jtW8yLUWnSg"
-               + "UaIHwek=")
+           + "MA8GA1UECgwIUHJpbWVLZXkxEDAOBgNVBAMMB3AxMHRlc3QwXDANBgkqhkiG9w0B"
+           + "AQEFAANLADBIAkEArE7GcTm9U3rEqTfldN+Ja3FnMhZXfq3Uq4AWi2VPVqEDmJzX"
+           + "TINOlnDeK3y4jJ1kNqrSITfznobbDHR1pNSWYwIDAQABoCAwHgYJKoZIhvcNAQkH"
+           + "MREMD2ZTUkVwOHBueHR4M0N1VjANBgkqhkiG9w0BAQsFAANBAGO8WZj42s3lo463"
+           + "SdaP7kqE15BdkbReCIV+HA8dw9dphulLyFTTAxGZs8c28O2f81iA9jtW8yLUWnSg"
+           + "UaIHwek=")
               .getBytes());
 
   /** a P10 with a PKCS#9 challengePassword encoded as IA5String */
   private static byte[] p10ia5StringPwd =
       Base64.decode(
           ("MIICyzCCAbMCAQAwVzELMAkGA1UEBhMCTkwxDTALBgNVBAoTBEJDSUUxIzAhBgNV"
-               + "BAsUGk1RX1F1ZXVlX01hbmFnZXItb250d2lra2VsMRQwEgYDVQQDEwtRT0xCTVdV"
-               + "MzBPMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANqGLzOMWBAFjbZ0"
-               + "EkQ2tgTOaYdyx+T7Jt+6fS5B0FPjzjbzcF922RnJmR/KOqctnrMXdcSDrscO7NQe"
-               + "A4BIi9Ap1W8/UYFACoHdERgge6i44nHobfgNo1jtoweSUYjMVtWMX+U6GCsIjIAe"
-               + "N+TKtKxrnIbvV7hjw8RypSBuU82tTejNFfOgUtvLGJbFOrVtT2E1lej+soAlicyT"
-               + "Y/S87TuF3GoRNmvxpxmLMjNstspS+6Xy2CMfp4qV/m5mQMzLWIpAeL22HBxLXz6/"
-               + "I0Nn5HpPqSeam8W+NTsc1FBIebXrsLaQxRWocIDQDiyLScOPtzJbe3TvNVldXl08"
-               + "C+/rF3sCAwEAAaAvMC0GCSqGSIb3DQEJBzEgFh5XZ2lfTC1PLGdUa2ZGZ0UudUtC"
-               + "OVQ/WElaOXRXN0UwDQYJKoZIhvcNAQEFBQADggEBALtc/mEKlwIY6d9dRFFS5U8q"
-               + "BBmHS1t1QYPxCNyXHtJCU72k6BfzECMGnHT5HtcxLm4AmpMFVENNSBLK8sSwPpFe"
-               + "ekZjOUZ95rxd7INhwQaBpcRT9Uj4V4/jWVCwToaB/AoZw5ttLTi9rf5tg8hWA9Lu"
-               + "dtLL9srbfed/g2Vg9hz+F/QMsDDNah4hRjCCBU33szbP0nHIPbKnHWjdhoWcCi0h"
-               + "Bv0HszDnF+H1ihaHJwLNdFhRymEKzXSWs+wbSHUQz9+O2OSiRKUJLbVgQ7diL5JZ"
-               + "hS/tGtoRHV11z1MkHasunu0Y4bICWILislBKY224Tiq0LTWjujnHr6/6ewoPU7M=")
+           + "BAsUGk1RX1F1ZXVlX01hbmFnZXItb250d2lra2VsMRQwEgYDVQQDEwtRT0xCTVdV"
+           + "MzBPMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANqGLzOMWBAFjbZ0"
+           + "EkQ2tgTOaYdyx+T7Jt+6fS5B0FPjzjbzcF922RnJmR/KOqctnrMXdcSDrscO7NQe"
+           + "A4BIi9Ap1W8/UYFACoHdERgge6i44nHobfgNo1jtoweSUYjMVtWMX+U6GCsIjIAe"
+           + "N+TKtKxrnIbvV7hjw8RypSBuU82tTejNFfOgUtvLGJbFOrVtT2E1lej+soAlicyT"
+           + "Y/S87TuF3GoRNmvxpxmLMjNstspS+6Xy2CMfp4qV/m5mQMzLWIpAeL22HBxLXz6/"
+           + "I0Nn5HpPqSeam8W+NTsc1FBIebXrsLaQxRWocIDQDiyLScOPtzJbe3TvNVldXl08"
+           + "C+/rF3sCAwEAAaAvMC0GCSqGSIb3DQEJBzEgFh5XZ2lfTC1PLGdUa2ZGZ0UudUtC"
+           + "OVQ/WElaOXRXN0UwDQYJKoZIhvcNAQEFBQADggEBALtc/mEKlwIY6d9dRFFS5U8q"
+           + "BBmHS1t1QYPxCNyXHtJCU72k6BfzECMGnHT5HtcxLm4AmpMFVENNSBLK8sSwPpFe"
+           + "ekZjOUZ95rxd7INhwQaBpcRT9Uj4V4/jWVCwToaB/AoZw5ttLTi9rf5tg8hWA9Lu"
+           + "dtLL9srbfed/g2Vg9hz+F/QMsDDNah4hRjCCBU33szbP0nHIPbKnHWjdhoWcCi0h"
+           + "Bv0HszDnF+H1ihaHJwLNdFhRymEKzXSWs+wbSHUQz9+O2OSiRKUJLbVgQ7diL5JZ"
+           + "hS/tGtoRHV11z1MkHasunu0Y4bICWILislBKY224Tiq0LTWjujnHr6/6ewoPU7M=")
               .getBytes());
 
   /** a P10 with a PKCS#9 challengePassword encoded as PrintableString */
   private static byte[] p10printableStringPwd =
       Base64.decode(
           ("MIICyzCCAbMCAQAwVzELMAkGA1UEBhMCTkwxDTALBgNVBAoTBEJDSUUxIzAhBgNV"
-               + "BAsUGk1RX1F1ZXVlX01hbmFnZXItb250d2lra2VsMRQwEgYDVQQDEwtRT0xCTVdV"
-               + "MzBPMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN07joDr5Qe+DEIZ"
-               + "X3A441t/rRlFM99MN0pMzelnilAseX43ClAE8y/JjjFOPOzlNh0iYAK6fvQCgODx"
-               + "0raXAmjVm+8+ug8P/2awazvufHBI0YGQujlOWtLZH3PV2qPs14DTVvQ+FhqpAPHz"
-               + "zG/ut42WzpI9aRb5YK2b8wytLjsoVk9h/S8P1fyXafluZhF+nuyP6K9sDtJZbU0l"
-               + "DgZzfJJ5792uOvDzryRZuK1LBvGBblH2mZHsFtEXmmDsgeGcetpe2XTqQc8E6/7p"
-               + "0OEbhYslSW7k2AO0/6V+8OTn1dVF763w+58uiaOynDWpAhdd1C4uarOuyq4fiRZ8"
-               + "5Key60kCAwEAAaAvMC0GCSqGSIb3DQEJBzEgEx5mU1JFcDhwbnh0eDNDdVZMQmp5"
-               + "ZnVYSkFiSW1CdVAwDQYJKoZIhvcNAQEFBQADggEBABW69xlR2ACV2LJmJIg2P/r0"
-               + "KJ4+8eK0z+d8a3IUc/9HXDfmTokaZekC3ux+/M2eBHz11UrjVJ3Lv39wMaEVDWf2"
-               + "wtRlZ4QUVLdZPQLxVGuLgVScEfjlPe/nCIz5XMCByBaSxsqkdFHuFrlm1lfLxB3Y"
-               + "QG+w3tzSxNKfVLpwWjel6i7VjryfgzRUV4p3Too05rU1761E8NWE977ruz7z9vJM"
-               + "IE+kadoVCZKqUjpQWYfThNF8w+Blh//eq2Ai3VcQseHV3epxU7iBzmTfGXs5Kjjz"
-               + "4Bdl+Nj8V5PRlEf8hjm7VldLczABKfnJM6aVMQ/L8YueRCnNzMNdcgBbfrfGXCU=")
+           + "BAsUGk1RX1F1ZXVlX01hbmFnZXItb250d2lra2VsMRQwEgYDVQQDEwtRT0xCTVdV"
+           + "MzBPMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN07joDr5Qe+DEIZ"
+           + "X3A441t/rRlFM99MN0pMzelnilAseX43ClAE8y/JjjFOPOzlNh0iYAK6fvQCgODx"
+           + "0raXAmjVm+8+ug8P/2awazvufHBI0YGQujlOWtLZH3PV2qPs14DTVvQ+FhqpAPHz"
+           + "zG/ut42WzpI9aRb5YK2b8wytLjsoVk9h/S8P1fyXafluZhF+nuyP6K9sDtJZbU0l"
+           + "DgZzfJJ5792uOvDzryRZuK1LBvGBblH2mZHsFtEXmmDsgeGcetpe2XTqQc8E6/7p"
+           + "0OEbhYslSW7k2AO0/6V+8OTn1dVF763w+58uiaOynDWpAhdd1C4uarOuyq4fiRZ8"
+           + "5Key60kCAwEAAaAvMC0GCSqGSIb3DQEJBzEgEx5mU1JFcDhwbnh0eDNDdVZMQmp5"
+           + "ZnVYSkFiSW1CdVAwDQYJKoZIhvcNAQEFBQADggEBABW69xlR2ACV2LJmJIg2P/r0"
+           + "KJ4+8eK0z+d8a3IUc/9HXDfmTokaZekC3ux+/M2eBHz11UrjVJ3Lv39wMaEVDWf2"
+           + "wtRlZ4QUVLdZPQLxVGuLgVScEfjlPe/nCIz5XMCByBaSxsqkdFHuFrlm1lfLxB3Y"
+           + "QG+w3tzSxNKfVLpwWjel6i7VjryfgzRUV4p3Too05rU1761E8NWE977ruz7z9vJM"
+           + "IE+kadoVCZKqUjpQWYfThNF8w+Blh//eq2Ai3VcQseHV3epxU7iBzmTfGXs5Kjjz"
+           + "4Bdl+Nj8V5PRlEf8hjm7VldLczABKfnJM6aVMQ/L8YueRCnNzMNdcgBbfrfGXCU=")
               .getBytes());
 
   @Test

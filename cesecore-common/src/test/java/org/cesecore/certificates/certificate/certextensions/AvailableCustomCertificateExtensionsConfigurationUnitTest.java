@@ -55,7 +55,8 @@ public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
     oldFileProperties.put("id123.oid", " 2.999.123 ");
     oldFileProperties.put(
         "id123.classpath",
-        " org.cesecore.certificates.certificate.certextensions.BasicCertificateExtension"
+        " org.cesecore.certificates.certificate."
+        + "certextensions.BasicCertificateExtension"
             + " ");
     oldFileProperties.put("id123.displayname", " My Extension ");
     oldFileProperties.put("id123.used", " tRuE ");

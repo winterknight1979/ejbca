@@ -193,7 +193,8 @@ public class PKCS11CryptoTokenTest extends CryptoTokenTestBase {
     return createPKCS11TokenWithAttributesFile(null, null, true);
   }
 
-  public static CryptoToken createPKCS11Token(final String name, final boolean extractable)
+  public static CryptoToken createPKCS11Token(
+          final String name, final boolean extractable)
       throws NoSuchSlotException {
     return createPKCS11TokenWithAttributesFile(null, name, extractable);
   }

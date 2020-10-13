@@ -838,7 +838,8 @@ public class BasicCertificateExtensionTest {
     assertEquals("This is a printable string", ia5str.getString());
   }
 
-  private ASN1Encodable getObject(final byte[] valueEncoded) throws IOException {
+  private ASN1Encodable getObject(final byte[] valueEncoded)
+          throws IOException {
     ASN1InputStream in =
         new ASN1InputStream(new ByteArrayInputStream(valueEncoded));
     try {

@@ -642,8 +642,14 @@ public abstract class CryptoTokenTestBase {
     cryptoToken.deleteEntry("aestest00001");
   }
 
-  /* Not used because HMAC on HSMs is too hard... keep for future reference though
-  protected void doGenerateHmacKey(CryptoToken token) throws InvalidKeyException, CryptoTokenOfflineException, KeyStoreException, NoSuchProviderException, NoSuchAlgorithmException, CertificateException, SignatureException, CryptoTokenAuthenticationFailedException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException {
+  /* Not used because HMAC on HSMs is too hard... keep for future reference
+   * though
+  protected void doGenerateHmacKey(CryptoToken token)
+  throws InvalidKeyException, CryptoTokenOfflineException, KeyStoreException,
+   NoSuchProviderException, NoSuchAlgorithmException, CertificateException,
+   SignatureException, CryptoTokenAuthenticationFailedException, IOException,
+   InvalidAlgorithmParameterException, NoSuchPaddingException,
+   IllegalBlockSizeException {
       token.activate(tokenpin.toCharArray());
       assertEquals(CryptoToken.STATUS_ACTIVE, token.getTokenStatus());
 
@@ -663,20 +669,24 @@ public abstract class CryptoTokenTestBase {
           // Serialize the token and re-create it from scratch
           Properties prop = token.getProperties();
           byte[] data = token.getTokenData();
-          CryptoToken token2 = CryptoTokenFactory.createCryptoToken(token.getClass().getName(), prop, data, 555);
+          CryptoToken token2 = CryptoTokenFactory.createCryptoToken(
+          token.getClass().getName(), prop, data, 555);
           token2.activate(tokenpin.toCharArray());
-          // Now we have a new crypto token, so lets do the same hmac again and compare
+          // Now we have a new crypto token, so lets do the same hmac again
+           *  and compare
           hMacKey = token2.getKey("aestest00001");
           hMac.init(hMacKey);
           hMac.update(input.getBytes());
           byte[] bytes1 = hMac.doFinal();
-          assertEquals(new String(Hex.encode(bytes)), new String(Hex.encode(bytes1)));
+          assertEquals(new String(Hex.encode(bytes)),
+           new String(Hex.encode(bytes1)));
           // Make sure the HMAC fails as well
           String input2 = "23456789";
           hMac.init(hMacKey);
           hMac.update(input2.getBytes());
           byte[] bytes2 = hMac.doFinal();
-          assertFalse(new String(Hex.encode(bytes)).equals(new String(Hex.encode(bytes2))));
+          assertFalse(new String(Hex.encode(bytes)).
+          equals(new String(Hex.encode(bytes2))));
       } finally {
           // Clean up by deleting key
           //token.deleteEntry(tokenpin.toCharArray(), "aestest00001");

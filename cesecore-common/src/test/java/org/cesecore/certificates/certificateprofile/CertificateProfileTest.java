@@ -386,7 +386,8 @@ public class CertificateProfileTest {
 
     String indn2 =
         "UID=PVE,CN=Philip"
-            + " Vendil,CN=SecondUsername,SN=123435,SN=54321,GIVENNAME=Philip,SURNAME=Vendil";
+            + " Vendil,CN=SecondUsername,SN=123435,SN=54321,"
+            + "GIVENNAME=Philip,SURNAME=Vendil";
     String outdn2 = profile.createSubjectDNSubSet(indn2);
     String expecteddn2 =
         "UID=PVE,CN=Philip"
@@ -419,7 +420,8 @@ public class CertificateProfileTest {
         expectedaltname1.equalsIgnoreCase(outaltname1));
 
     String inaltname2 =
-        "RFC822NAME=test@test.se,RFC822NAME=test2@test2.se,UPN=testacc@test.se,IPADDRESS=10.1.1.0,IPADDRESS=10.1.1.2";
+        "RFC822NAME=test@test.se,RFC822NAME=test2@test2.se,"
+        + "UPN=testacc@test.se,IPADDRESS=10.1.1.0,IPADDRESS=10.1.1.2";
     String outaltname2 = profile.createSubjectAltNameSubSet(inaltname2);
     String expectedaltname2 =
         "RFC822NAME=test@test.se,RFC822NAME=test2@test2.se,UPN=testacc@test.se";

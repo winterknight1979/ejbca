@@ -47,7 +47,8 @@ public class PatternLoggerTest {
         LOG_PATTERN,
         "yyyy-MM-dd:HH:mm:ss:z",
         "GMT",
-        "^content1;\"content2\";\\d{4}-\\d{2}-\\d{2}:\\d{2}:\\d{2}:\\d{2}:GMT;0;content3$");
+        "^content1;\"content2\";\\d{4}-\\d{2}-\\d{2}:\\d{2}:\\d{2}:"
+        + "\\d{2}:GMT;0;content3$");
     testPatternLoggerInternal(
         LOG_PATTERN,
         "yyyy-MM-dd HH:mm:ssZ",
@@ -58,7 +59,8 @@ public class PatternLoggerTest {
         LOG_PATTERN,
         "yyyy-MM-dd'T'HH:mm:ssZ",
         "CET",
-        "^content1;\"content2\";\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+0\\d00;0;content3$");
+        "^content1;\"content2\";\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:"
+        + "\\d{2}\\+0\\d00;0;content3$");
     log.trace("<testPatternLogger");
   }
 
@@ -73,7 +75,10 @@ public class PatternLoggerTest {
    * @throws Exception fail
    */
   private void testPatternLoggerInternal(
-      final String pattern, final String dateFormat, final String timeZone, final String expected)
+      final String pattern,
+      final String dateFormat,
+      final String timeZone,
+      final String expected)
       throws Exception {
     log.trace(">testPatternLoggerInternal");
     final PatternLogger patternLogger =

@@ -33,7 +33,8 @@ public class DnFieldExtractorTest {
     assertEquals("DN=", comp);
     String dn =
         "name=tomas,street=a street, pseudonym=pseudo,cn=Tomas"
-            + " Gustavsson,o=PrimeKey,organizationidentifier=12345,L=Stockholm,dc=PrimeKey,DC=com,description=Test"
+            + " Gustavsson,o=PrimeKey,organizationidentifier=12345,L=Stockholm,"
+            + "dc=PrimeKey,DC=com,description=Test"
             + " DN";
     DNFieldExtractor extractor =
         new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTDN);
@@ -94,7 +95,8 @@ public class DnFieldExtractorTest {
 
     dn =
         "dn=qualifier,cn=Tomas"
-            + " Gustavsson,1.1.1.1=Foo,o=PrimeKey,L=Stockholm,dc=PrimeKey,DC=com";
+            + " Gustavsson,1.1.1.1=Foo,o=PrimeKey,L=Stockholm,dc=PrimeKey,"
+            + "DC=com";
     extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTDN);
     illegal = extractor.isIllegal();
     assertFalse(illegal);
@@ -109,7 +111,8 @@ public class DnFieldExtractorTest {
     // Test an illegal DN string
     dn =
         "qqq,cn=Tomas"
-            + " Gustavsson,1.1.1.1=Foo,o=PrimeKey,L=Stockholm,dc=PrimeKey,DC=com";
+            + " Gustavsson,1.1.1.1=Foo,o=PrimeKey,L=Stockholm,"
+            + "dc=PrimeKey,DC=com";
     extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTDN);
     illegal = extractor.isIllegal();
     assertTrue(illegal);
@@ -119,7 +122,8 @@ public class DnFieldExtractorTest {
   @Test
   public void test01CheckAltNameFields() throws Exception {
     String dn =
-        "DnsName=foo.bar.se,rfc822Name=foo@bar.se,krb5principal=foo/bar@P.COM,registeredId=1.1.1.2";
+        "DnsName=foo.bar.se,rfc822Name=foo@bar.se,krb5principal=foo/bar@P.COM,"
+        + "registeredId=1.1.1.2";
     DNFieldExtractor extractor =
         new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTALTNAME);
     final HashMap<Integer, Integer> i = extractor.getNumberOfFields();
@@ -148,7 +152,9 @@ public class DnFieldExtractorTest {
     assertEquals(1, num);
 
     dn =
-        "uniformResourceId=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,iPAddress=10.1.1.1,krb5principal=foo/bar@P.COM";
+        "uniformResourceId=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,"
+        + "rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,"
+        + "iPAddress=10.1.1.1,krb5principal=foo/bar@P.COM";
     extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTALTNAME);
     illegal = extractor.isIllegal();
     assertFalse(illegal);
@@ -159,7 +165,9 @@ public class DnFieldExtractorTest {
     String field = extractor.getField(DNFieldExtractor.URI, 0);
     assertEquals("http://www.a.se/", field);
     dn =
-        "uniformResourceIdentifier=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,iPAddress=10.1.1.1";
+        "uniformResourceIdentifier=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,"
+        + "rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,"
+        + "iPAddress=10.1.1.1";
     extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTALTNAME);
     illegal = extractor.isIllegal();
     assertFalse(illegal);
@@ -168,7 +176,8 @@ public class DnFieldExtractorTest {
     num = extractor.getNumberOfFields(DNFieldExtractor.URI);
     assertEquals(1, num);
     dn =
-        "uri=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,iPAddress=10.1.1.1";
+        "uri=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,rfc822name=tomas@a.se,"
+        + "dNSName=www.a.se,dNSName=www.b.se,iPAddress=10.1.1.1";
     extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTALTNAME);
     illegal = extractor.isIllegal();
     assertFalse(illegal);
@@ -179,7 +188,9 @@ public class DnFieldExtractorTest {
     field = extractor.getField(DNFieldExtractor.URI, 0);
     assertEquals("http://www.a.se/", field);
     dn =
-        "uniformResourceIdentifier=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,iPAddress=10.1.1.1";
+        "uniformResourceIdentifier=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,"
+        + "rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,"
+        + "iPAddress=10.1.1.1";
     extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTALTNAME);
     illegal = extractor.isIllegal();
     assertFalse(illegal);
@@ -188,7 +199,9 @@ public class DnFieldExtractorTest {
     num = extractor.getNumberOfFields(DNFieldExtractor.URI);
     assertEquals(1, num);
     dn =
-        "uniformResourceId=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,iPAddress=10.1.1.1";
+        "uniformResourceId=http://www.a.se/,upn=foo@a.se,upn=foo@b.se,"
+        + "rfc822name=tomas@a.se,dNSName=www.a.se,dNSName=www.b.se,"
+        + "iPAddress=10.1.1.1";
     extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTALTNAME);
     illegal = extractor.isIllegal();
     assertFalse(illegal);

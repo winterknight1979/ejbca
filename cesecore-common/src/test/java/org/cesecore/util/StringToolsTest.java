@@ -304,7 +304,7 @@ public class StringToolsTest {
     assertFalse(StringTools.isValidSanDnsName("primekey-.com"));
     assertFalse(
         StringTools.isValidSanDnsName(
-            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.com"));
+      "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.com"));
     assertFalse(
         StringTools.isValidSanDnsName(
             "x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x."
@@ -338,7 +338,7 @@ public class StringToolsTest {
                 + "x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.com"));
     assertTrue(
         StringTools.isValidSanDnsName(
-            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.com"));
+      "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.com"));
   }
 
   @Test
@@ -439,7 +439,8 @@ public class StringToolsTest {
 
     certdata =
         "AAAAFFFF,"
-            + " 1.2.3.4.5=Test,CN=foo,1.2.345678=Hello,O=foo,ORGANIZATIONIDENTIFIER=OrgIdent,C=SE";
+            + " 1.2.3.4.5=Test,CN=foo,1.2.345678=Hello,O=foo,"
+            + "ORGANIZATIONIDENTIFIER=OrgIdent,C=SE";
     res = StringTools.parseCertData(certdata);
     assertNotNull(res);
     assertEquals(
@@ -448,7 +449,8 @@ public class StringToolsTest {
         "AAAAFFFF");
     assertEquals(
         "Failed to find the client certificate issuerDN",
-        "1.2.3.4.5=Test,CN=foo,1.2.345678=Hello,O=foo,ORGANIZATIONIDENTIFIER=OrgIdent,C=SE",
+        "1.2.3.4.5=Test,CN=foo,1.2.345678=Hello,O=foo,"
+        + "ORGANIZATIONIDENTIFIER=OrgIdent,C=SE",
         res[1]);
   }
 
@@ -712,7 +714,8 @@ public class StringToolsTest {
 
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
-              "encv1:61ea7d4ce0564370246f219b7ab7533f8066c4d0a58950e45dd1d34497f98e08:100:3a3e10a382d4c504fc4b7900be204bcc",
+              "encv1:61ea7d4ce0564370246f219b7ab7533f8066c4d0a58950e45dd1d3449"
+              + "7f98e08:100:3a3e10a382d4c504fc4b7900be204bcc",
               "1POTQK7ofSGTPsOOXwIo2Z0jfXsADtXx".toCharArray());
       assertEquals(
           "Encrypted/decrypted password (from 6.8.0) does not match",
@@ -778,7 +781,8 @@ public class StringToolsTest {
 
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
-              "encv1:61ea7d4ce0564370246f219b7ab7533f8066c4d0a58950e45dd1d34497f98e08:100:3a3e10a382d4c504fc4b7900be204bcc",
+              "encv1:61ea7d4ce0564370246f219b7ab7533f8066c4d0a58950e45dd1d34497"
+              + "f98e08:100:3a3e10a382d4c504fc4b7900be204bcc",
               "1POTQK7ofSGTPsOOXwIo2Z0jfXsADtXx".toCharArray());
       assertEquals(
           "Encrypted/decrypted password (from 6.8.0) with 100 rounds does not"
@@ -787,7 +791,8 @@ public class StringToolsTest {
           pwd);
       pwd =
           StringTools.pbeDecryptStringWithSha256Aes192(
-              "encv1:7c11bd9798e9d74293d967266fad9d04e6a19833fd3674b049580efa3153e32d:100000:f9b7f769bb98f7b52eadf6643b598541",
+              "encv1:7c11bd9798e9d74293d967266fad9d04e6a19833fd3674b049580efa31"
+              + "53e32d:100000:f9b7f769bb98f7b52eadf6643b598541",
               "1POTQK7ofSGTPsOOXwIo2Z0jfXsADtXx".toCharArray());
       assertEquals(
           "Encrypted/decrypted password (from 6.8.0) with 100000 rounds does"
