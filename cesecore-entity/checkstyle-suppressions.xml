@@ -20,6 +20,7 @@
  	<suppress checks="MethodLengthCheck" files="AccessRulesMigrator.java" lines="58"/>
  	<suppress checks="ParameterNumberCheck" files="RoleMember.java" lines="102"/>
  	<suppress checks="ParameterNumberCheck" files="RoleMemberData.java" lines="106"/>
+ 	<suppress checks="MethodLengthCheck" files="AccessRulesMigratorTest.java" lines="200,453,714,979,1419,1796,2265,2640,3046,3599"/>
  
  	
  </suppressions>

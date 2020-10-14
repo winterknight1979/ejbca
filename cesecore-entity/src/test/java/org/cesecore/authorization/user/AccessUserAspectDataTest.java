@@ -22,7 +22,9 @@ import org.junit.Test;
  *     mikekushner $
  */
 public class AccessUserAspectDataTest {
-
+    /**
+       * Test.
+       */
   @SuppressWarnings("deprecation")
   @Test
   public void testGeneratePrimaryKeyWhereRoleNameAndMatchValueAreTheSame() {
@@ -44,7 +46,9 @@ public class AccessUserAspectDataTest {
         "Two identical primary keys were produced for different values",
         alpha != beta);
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testGeneratePrimaryKeyWhereRoleNameAndMatchValueAreSwitched() {

@@ -34,17 +34,23 @@ import org.junit.Test;
 @SuppressWarnings("deprecation")
 public class AccessRulesMigratorTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AccessRulesMigratorTest.class);
 
+  /** Config. */
   private static final String ERRMSG_ALLOWED_TO_DENIED =
       "Access granted that should have been denied.";
+  /** Config. */
   private static final String ERRMSG_DENIED_TO_ALLOWED =
       "Access denied that should have been granted.";
 
+  /** Config. */
   private static final Boolean STATE_ALLOW = Role.STATE_ALLOW;
+  /** Config. */
   private static final Boolean STATE_DENY = Role.STATE_DENY;
 
+  /** Migrators. */
   private final AccessRulesMigrator accessRulesMigratorSystemA =
       new AccessRulesMigrator(
           Arrays.asList(
@@ -170,11 +176,13 @@ public class AccessRulesMigratorTest {
               "/services/view",
               "/system_functionality",
               "/system_functionality/edit_administrator_privileges",
-              "/system_functionality/edit_available_custom_certificate_extensions",
+              "/system_functionality/"
+              + "edit_available_custom_certificate_extensions",
               "/system_functionality/edit_available_extended_key_usages",
               "/system_functionality/edit_systemconfiguration",
               "/system_functionality/view_administrator_privileges",
-              "/system_functionality/view_available_custom_certificate_extensions",
+              "/system_functionality/"
+              + "view_available_custom_certificate_extensions",
               "/system_functionality/view_available_extended_key_usages",
               "/system_functionality/view_systemconfiguration",
               "/userdatasourcesrules",
@@ -186,10 +194,12 @@ public class AccessRulesMigratorTest {
               "/userdatasourcesrules/456/remove_userdata",
               "/xcustomrule1",
               "/xcustomrule2"));
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationEmptyRole() {
-    log.trace(">testMigrationEmptyRole()");
+    LOG.trace(">testMigrationEmptyRole()");
     final List<AccessRuleData> oldAccessRules = Arrays.asList();
     final List<ExpectedResourceState> expectedNewAccessRules = Arrays.asList();
     final List<ExpectedResourceState> expectedResourceAccesses =
@@ -397,7 +407,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -408,7 +419,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -433,12 +445,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationEmptyRole()");
+    LOG.trace("<testMigrationEmptyRole()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationSuperAdmin() {
-    log.trace(">testMigrationSuperAdmin()");
+    LOG.trace(">testMigrationSuperAdmin()");
     final List<AccessRuleData> oldAccessRules =
         Arrays.asList(
             new AccessRuleData("", "/", AccessRuleState.RULE_ACCEPT, true));
@@ -654,7 +668,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_ALLOW,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_ALLOW,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -665,7 +680,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_ALLOW,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_ALLOW,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -690,12 +706,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationSuperAdmin()");
+    LOG.trace("<testMigrationSuperAdmin()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationSecurityOfficer() {
-    log.trace(">testMigrationSecurityOfficer()");
+    LOG.trace(">testMigrationSecurityOfficer()");
     final List<AccessRuleData> oldAccessRules =
         Arrays.asList(
             new AccessRuleData("", "/", AccessRuleState.RULE_ACCEPT, true),
@@ -915,7 +933,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_ALLOW,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_ALLOW,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -926,7 +945,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_ALLOW,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_ALLOW,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -951,12 +971,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationSecurityOfficer()");
+    LOG.trace("<testMigrationSecurityOfficer()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationAuditor() {
-    log.trace(">testMigrationAuditor()");
+    LOG.trace(">testMigrationAuditor()");
     // Auditor role as it would look using old rule templating (2/3 CAs, 2/2
     // EEPs)
     final List<AccessRuleData> oldAccessRules =
@@ -1060,7 +1082,8 @@ public class AccessRulesMigratorTest {
                 false),
             new AccessRuleData(
                 "",
-                "/system_functionality/view_available_custom_certificate_extensions",
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions",
                 AccessRuleState.RULE_ACCEPT,
                 false),
             new AccessRuleData(
@@ -1137,7 +1160,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges/"),
             new ExpectedResourceState(
                 STATE_ALLOW,
-                "/system_functionality/view_available_custom_certificate_extensions/"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions/"),
             new ExpectedResourceState(
                 STATE_ALLOW,
                 "/system_functionality/view_available_extended_key_usages/"),
@@ -1349,7 +1373,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -1360,7 +1385,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_ALLOW,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_ALLOW,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -1385,12 +1411,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationAuditor()");
+    LOG.trace("<testMigrationAuditor()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationSupervisor() {
-    log.trace(">testMigrationSupervisor()");
+    LOG.trace(">testMigrationSupervisor()");
     // Supervisor role as it would look using old rule templating (2/3 CAs, 2/2
     // EEPs)
     final List<AccessRuleData> oldAccessRules =
@@ -1722,7 +1750,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -1733,7 +1762,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -1758,12 +1788,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationSupervisor()");
+    LOG.trace("<testMigrationSupervisor()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationRaAdministrator() {
-    log.trace(">testMigrationRaAdministrator()");
+    LOG.trace(">testMigrationRaAdministrator()");
     // RAAdministrator role as it would look using old rule templating (2/3 CAs,
     // 2/2 EEPs)
     final List<AccessRuleData> oldAccessRules =
@@ -2187,7 +2219,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -2198,7 +2231,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -2223,12 +2257,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationRaAdministrator()");
+    LOG.trace("<testMigrationRaAdministrator()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationCaAdministrator() {
-    log.trace(">testMigrationCaAdministrator()");
+    LOG.trace(">testMigrationCaAdministrator()");
     // CAAdministrator role as it would look using old rule templating (2/3 CAs)
     final List<AccessRuleData> oldAccessRules =
         Arrays.asList(
@@ -2558,7 +2594,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -2569,7 +2606,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -2594,12 +2632,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationCaAdministrator()");
+    LOG.trace("<testMigrationCaAdministrator()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationPeerRa() {
-    log.trace(">testMigrationPeerRa()");
+    LOG.trace(">testMigrationPeerRa()");
     // Peer RA role as it would look using old rule templating (1/3 CAs, 1/2
     // EEPs)
     final List<AccessRuleData> oldAccessRules =
@@ -2960,7 +3000,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -2971,7 +3012,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -2996,12 +3038,14 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationPeerRa()");
+    LOG.trace("<testMigrationPeerRa()");
   }
-
+  /**
+   * Test.
+   */
   @Test
   public void testMigrationPeerCa() {
-    log.trace(">testMigrationPeerCa()");
+    LOG.trace(">testMigrationPeerCa()");
     // Peer CA role as it would look using old rule templating allowed to
     // publish certs+crls, renew OCSP signer and poll for RA messages
     // (1 external CA, 1 OcspKeyBinding with keys in 1 CryptoToken)
@@ -3274,7 +3318,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/edit_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/edit_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "edit_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/edit_available_extended_key_usages"),
@@ -3285,7 +3330,8 @@ public class AccessRulesMigratorTest {
                 "/system_functionality/view_administrator_privileges"),
             new ExpectedResourceState(
                 STATE_DENY,
-                "/system_functionality/view_available_custom_certificate_extensions"),
+                "/system_functionality/"
+                + "view_available_custom_certificate_extensions"),
             new ExpectedResourceState(
                 STATE_DENY,
                 "/system_functionality/view_available_extended_key_usages"),
@@ -3310,16 +3356,16 @@ public class AccessRulesMigratorTest {
         oldAccessRules,
         expectedNewAccessRules,
         expectedResourceAccesses);
-    log.trace("<testMigrationPeerCa()");
+    LOG.trace("<testMigrationPeerCa()");
   }
 
   /**
    * Test that sub-resource comparisons checks everything between slashes and
-   * not other sibling resources
+   * not other sibling resources.
    */
   @Test
   public void testStartsWithSame() {
-    log.trace(">testStartsWithSame()");
+    LOG.trace(">testStartsWithSame()");
     final AccessRulesMigrator accessRulesMigrator =
         new AccessRulesMigrator(Arrays.asList("/", "/a", "/a/test", "/abc"));
     testMigrationInternal(
@@ -3375,16 +3421,16 @@ public class AccessRulesMigratorTest {
             new AccessRuleData("", "/a", AccessRuleState.RULE_DECLINE, false)),
         Arrays.asList(new ExpectedResourceState(STATE_ALLOW, "/abc/")),
         new ArrayList<ExpectedResourceState>());
-    log.trace("<testStartsWithSame()");
+    LOG.trace("<testStartsWithSame()");
   }
 
   /**
    * Test that even if positive access rules exists for sub-resources, they are
-   * ignored after the conversion
+   * ignored after the conversion.
    */
   @Test
   public void testOldDeclineIsIrreversable() {
-    log.trace(">testOldDeclineIsIrreversable()");
+    LOG.trace(">testOldDeclineIsIrreversable()");
     final AccessRulesMigrator accessRulesMigrator =
         new AccessRulesMigrator(Arrays.asList("/", "/a", "/a/b", "/a/b/c"));
     testMigrationInternal(
@@ -3444,16 +3490,16 @@ public class AccessRulesMigratorTest {
             new ExpectedResourceState(STATE_ALLOW, "/"),
             new ExpectedResourceState(STATE_DENY, "/a/")),
         new ArrayList<ExpectedResourceState>());
-    log.trace("<testOldDeclineIsIrreversable()");
+    LOG.trace("<testOldDeclineIsIrreversable()");
   }
 
   /**
    * Test that recursive accept rules are not overwritten by DENY of sub
-   * resources
+   * resources.
    */
   @Test
   public void testKeepAcceptRecursiveForSubResources() {
-    log.trace(">testKeepAcceptRecursiveForSubResources()");
+    LOG.trace(">testKeepAcceptRecursiveForSubResources()");
     final AccessRulesMigrator accessRulesMigrator =
         new AccessRulesMigrator(
             Arrays.asList("/", "/a", "/a/b", "/a/b/1", "/a/b/2", "/a/c"));
@@ -3540,17 +3586,19 @@ public class AccessRulesMigratorTest {
             new ExpectedResourceState(STATE_ALLOW, "/a/b/1/"),
             new ExpectedResourceState(STATE_DENY, "/a/c/")),
         new ArrayList<ExpectedResourceState>());
-    log.trace("<testKeepAcceptRecursiveForSubResources()");
+    LOG.trace("<testKeepAcceptRecursiveForSubResources()");
   }
 
-  /** Helper class for keeping a String and boolean */
+  /** Helper class for keeping a String and boolean. */
   private class ExpectedResourceState {
-    final boolean state;
-    final String resource;
+      /** param. */
+    private final boolean state;
+    /** param. */
+    private final String resource;
 
-    ExpectedResourceState(final boolean state, final String resource) {
-      this.state = state;
-      this.resource = resource;
+    ExpectedResourceState(final boolean aState, final String aResource) {
+      this.state = aState;
+      this.resource = aResource;
     }
   }
 
@@ -3571,10 +3619,10 @@ public class AccessRulesMigratorTest {
       final List<AccessRuleData> oldAccessRules,
       final List<ExpectedResourceState> expectedAccessRules,
       final List<ExpectedResourceState> expectedResourceAccesses) {
-    log.debug("testMigrationInternal from role '" + roleName + "'.");
+    LOG.debug("testMigrationInternal from role '" + roleName + "'.");
     final HashMap<String, Boolean> newAccessRules =
         accessRulesMigrator.toNewAccessRules(oldAccessRules, roleName);
-    log.debug("newAccessRules role '" + roleName + "':");
+    LOG.debug("newAccessRules role '" + roleName + "':");
     debugLogAccessRules(newAccessRules);
     // Verify that new rules are the expected
     final HashMap<String, Boolean> uncheckedAccessRules =
@@ -3587,15 +3635,15 @@ public class AccessRulesMigratorTest {
           expectedAccessRule.state,
           uncheckedAccessRules.remove(expectedAccessRule.resource));
     }
-    log.debug("uncheckedAccessRules role '" + roleName + "':");
+    LOG.debug("uncheckedAccessRules role '" + roleName + "':");
     debugLogAccessRules(uncheckedAccessRules);
     assertEquals(
         "Unexpected access rules were present. See debug output for a list.",
         0,
         uncheckedAccessRules.size());
     // Verify that new rules grant/deny the provided resources as expected
-    for (final ExpectedResourceState expectedResourceAccess :
-        expectedResourceAccesses) {
+    for (final ExpectedResourceState expectedResourceAccess
+        : expectedResourceAccesses) {
       final String errorMessage =
           expectedResourceAccess.state
               ? ERRMSG_DENIED_TO_ALLOWED
@@ -3612,7 +3660,7 @@ public class AccessRulesMigratorTest {
     final List<Entry<String, Boolean>> accessRulesList =
         AccessRulesHelper.getAsListSortedByKey(accessRules);
     for (final Entry<String, Boolean> entry : accessRulesList) {
-      log.debug(
+      LOG.debug(
           " "
               + entry.getKey()
               + ":"

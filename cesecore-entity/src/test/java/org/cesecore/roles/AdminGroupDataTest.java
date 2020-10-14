@@ -22,13 +22,14 @@ import org.cesecore.authorization.rules.AccessRuleState;
 import org.junit.Test;
 
 /**
- * Unit tests on methods in RoleData
+ * Unit tests on methods in RoleData.
  *
  * @version $Id: AdminGroupDataTest.java 25021 2017-01-18 01:30:19Z jeklund $
  */
 @Deprecated
 public class AdminGroupDataTest {
 
+      /** test. */
   @Test
   public void testHasAccessToRule() {
     final String roleName = "role";

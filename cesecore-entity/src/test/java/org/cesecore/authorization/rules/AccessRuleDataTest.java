@@ -18,13 +18,15 @@ import org.cesecore.authorization.access.AccessTreeState;
 import org.junit.Test;
 
 /**
- * Unit tests for the AccessRuleData class
+ * Unit tests for the AccessRuleData class.
  *
  * @version $Id: AccessRuleDataTest.java 25893 2017-05-23 20:10:03Z mikekushner
  *     $
  */
 public class AccessRuleDataTest {
-
+    /**
+       * Test.
+       */
   @SuppressWarnings("deprecation")
   @Test
   public void testSetState() {
@@ -45,6 +47,9 @@ public class AccessRuleDataTest {
     assertEquals(AccessTreeState.STATE_DECLINE, accessRule.getTreeState());
   }
 
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testGeneratePrimaryKey() {

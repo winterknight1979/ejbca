@@ -28,15 +28,19 @@ import org.junit.Test;
  */
 public class RoleTest {
 
-  private static final Logger log = Logger.getLogger(RoleTest.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RoleTest.class);
+  /** Config. */
   private static final String ERRMSG_ALLOWED_TO_DENIED =
       "Access granted that should have been denied.";
+  /** Config. */
   private static final String ERRMSG_DENIED_TO_ALLOWED =
       "Access denied that should have been granted.";
 
+  /** test. */
   @Test
   public void testHasAccessToResource() {
-    log.trace(">testHasAccessToResource");
+    LOG.trace(">testHasAccessToResource");
     final Role role = new Role(null, "role");
     role.getAccessRules().put("/fuu", Role.STATE_ALLOW);
     role.getAccessRules().put("/foo/bar", Role.STATE_DENY);
@@ -65,7 +69,7 @@ public class RoleTest {
     assertNull(
         "Minimization did not remove top deny rule.",
         role.getAccessRules().get("/"));
-    log.trace("<testHasAccessToResource");
+    LOG.trace("<testHasAccessToResource");
   }
 
   private void hasAccessToResourcesInternal(final Role role) {
@@ -133,19 +137,19 @@ public class RoleTest {
   /** Make sure that access to root is never given by mistake. */
   @Test
   public void testNoDefaultAccessToRoot() {
-    log.trace(">testNoDefaultAccessToRoot");
+    LOG.trace(">testNoDefaultAccessToRoot");
     final Role role = new Role(null, "role");
     role.getAccessRules().put("/fuu", Role.STATE_ALLOW);
     assertFalse(ERRMSG_ALLOWED_TO_DENIED, role.hasAccessToResource("/"));
-    log.trace("<testNoDefaultAccessToRoot");
+    LOG.trace("<testNoDefaultAccessToRoot");
   }
 
   private void debugLogAccessRules(final Role role) {
-    log.debug("Role: " + role.getRoleNameFull());
+    LOG.debug("Role: " + role.getRoleNameFull());
     final List<Entry<String, Boolean>> accessRulesList =
         AccessRulesHelper.getAsListSortedByKey(role.getAccessRules());
     for (final Entry<String, Boolean> entry : accessRulesList) {
-      log.debug(
+      LOG.debug(
           " "
               + entry.getKey()
               + ":"
