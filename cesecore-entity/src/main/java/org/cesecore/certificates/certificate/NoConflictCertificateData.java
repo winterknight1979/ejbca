@@ -13,7 +13,6 @@
 package org.cesecore.certificates.certificate;
 
 import java.io.Serializable;
-
 import javax.persistence.ColumnResult;
 import javax.persistence.Entity;
 import javax.persistence.PostLoad;
@@ -23,7 +22,6 @@ import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 import org.apache.log4j.Logger;
 import org.cesecore.dbprotection.ProtectionStringBuilder;
 import org.cesecore.util.CertTools;
@@ -32,592 +30,679 @@ import org.cesecore.util.StringTools;
 /**
  * Representation of a revoked throw-away certificate and related information.
  *
- * @version $Id: NoConflictCertificateData.java 28264 2018-04-09 15:56:54Z tarmo $
+ * @version $Id: NoConflictCertificateData.java 28264 2018-04-09 15:56:54Z tarmo
+ *     $
  */
 @Entity
 @Table(name = "NoConflictCertificateData")
-@SqlResultSetMappings(value = {
-        @SqlResultSetMapping(name = "RevokedNoConflictCertInfoSubset", columns = { @ColumnResult(name = "fingerprint"), @ColumnResult(name = "serialNumber"),
-                @ColumnResult(name = "expireDate"), @ColumnResult(name = "revocationDate"), @ColumnResult(name = "revocationReason") }),
-        @SqlResultSetMapping(name = "NoConflictCertificateInfoSubset", columns = { @ColumnResult(name = "issuerDN"), @ColumnResult(name = "subjectDN"),
-                @ColumnResult(name = "cAFingerprint"), @ColumnResult(name = "status"), @ColumnResult(name = "type"),
-                @ColumnResult(name = "serialNumber"),
-                @ColumnResult(name = "notBefore"), @ColumnResult(name = "expireDate"), @ColumnResult(name = "revocationDate"),
-                @ColumnResult(name = "revocationReason"), @ColumnResult(name = "username"), @ColumnResult(name = "tag"),
-                @ColumnResult(name = "certificateProfileId"), @ColumnResult(name = "endEntityProfileId"), @ColumnResult(name = "updateTime"),
-                @ColumnResult(name = "subjectKeyId"), @ColumnResult(name = "subjectAltName") }),
-        @SqlResultSetMapping(name = "NoConflictCertificateInfoSubset2", columns = { @ColumnResult(name = "fingerprint"), @ColumnResult(name = "subjectDN"),
-                @ColumnResult(name = "cAFingerprint"), @ColumnResult(name = "status"), @ColumnResult(name = "type"),
-                @ColumnResult(name = "notBefore"), @ColumnResult(name = "expireDate"), @ColumnResult(name = "revocationDate"),
-                @ColumnResult(name = "revocationReason"), @ColumnResult(name = "username"), @ColumnResult(name = "tag"),
-                @ColumnResult(name = "certificateProfileId"), @ColumnResult(name = "endEntityProfileId"), @ColumnResult(name = "updateTime"),
-                @ColumnResult(name = "subjectKeyId"), @ColumnResult(name = "subjectAltName") }),
-        @SqlResultSetMapping(name = "NoConflictCertificateFingerprintUsernameSubset", columns = { @ColumnResult(name = "fingerprint"), @ColumnResult(name = "username") }) })
-public class NoConflictCertificateData extends BaseCertificateData implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
+@SqlResultSetMappings(
+    value = {
+      @SqlResultSetMapping(
+          name = "RevokedNoConflictCertInfoSubset",
+          columns = {
+            @ColumnResult(name = "fingerprint"),
+            @ColumnResult(name = "serialNumber"),
+            @ColumnResult(name = "expireDate"),
+            @ColumnResult(name = "revocationDate"),
+            @ColumnResult(name = "revocationReason")
+          }),
+      @SqlResultSetMapping(
+          name = "NoConflictCertificateInfoSubset",
+          columns = {
+            @ColumnResult(name = "issuerDN"),
+            @ColumnResult(name = "subjectDN"),
+            @ColumnResult(name = "cAFingerprint"),
+            @ColumnResult(name = "status"),
+            @ColumnResult(name = "type"),
+            @ColumnResult(name = "serialNumber"),
+            @ColumnResult(name = "notBefore"),
+            @ColumnResult(name = "expireDate"),
+            @ColumnResult(name = "revocationDate"),
+            @ColumnResult(name = "revocationReason"),
+            @ColumnResult(name = "username"),
+            @ColumnResult(name = "tag"),
+            @ColumnResult(name = "certificateProfileId"),
+            @ColumnResult(name = "endEntityProfileId"),
+            @ColumnResult(name = "updateTime"),
+            @ColumnResult(name = "subjectKeyId"),
+            @ColumnResult(name = "subjectAltName")
+          }),
+      @SqlResultSetMapping(
+          name = "NoConflictCertificateInfoSubset2",
+          columns = {
+            @ColumnResult(name = "fingerprint"),
+            @ColumnResult(name = "subjectDN"),
+            @ColumnResult(name = "cAFingerprint"),
+            @ColumnResult(name = "status"),
+            @ColumnResult(name = "type"),
+            @ColumnResult(name = "notBefore"),
+            @ColumnResult(name = "expireDate"),
+            @ColumnResult(name = "revocationDate"),
+            @ColumnResult(name = "revocationReason"),
+            @ColumnResult(name = "username"),
+            @ColumnResult(name = "tag"),
+            @ColumnResult(name = "certificateProfileId"),
+            @ColumnResult(name = "endEntityProfileId"),
+            @ColumnResult(name = "updateTime"),
+            @ColumnResult(name = "subjectKeyId"),
+            @ColumnResult(name = "subjectAltName")
+          }),
+      @SqlResultSetMapping(
+          name = "NoConflictCertificateFingerprintUsernameSubset",
+          columns = {
+            @ColumnResult(name = "fingerprint"),
+            @ColumnResult(name = "username")
+          })
+    })
+public class NoConflictCertificateData extends BaseCertificateData
+    implements Serializable {
 
-    private static final Logger log = Logger.getLogger(NoConflictCertificateData.class);
+  private static final long serialVersionUID = 1L;
 
-    private String id;
-    private String issuerDN;
-    private String subjectDN;
-    private String subjectAltName = null;  // @since EJBCA 6.6.0
-    private String fingerprint = "";
-    private String cAFingerprint;
-    private int status = 0;
-    private int type = 0;
-    private String serialNumber;
-    private Long notBefore = null;  // @since EJBCA 6.6.0
-    private long expireDate = 0;
-    private long revocationDate = 0;
-    private int revocationReason = 0;
-    private String base64Cert;
-    private String username;
-    private String tag;
-    private Integer certificateProfileId;
-    private Integer endEntityProfileId = null;  // @since EJBCA 6.6.0
-    private long updateTime = 0;
-    private String subjectKeyId;
-    private int rowVersion = 0;
-    private String rowProtection;
-    
-    
-    /**
-     * Copy Constructor
-     * @param copy rtiginal
-     */
-    public NoConflictCertificateData(final NoConflictCertificateData copy) {
-        setId(copy.getId());
-        setBase64Cert(copy.getBase64Cert());
-        setFingerprint(copy.getFingerprint());
-        setSubjectDN(copy.getSubjectDN());
-        setIssuerDN(copy.getIssuerDN());
-        setSubjectAltName(copy.getSubjectAltName());
-        setSerialNumber(copy.getSerialNumber());
-        setUsername(copy.getUsername());
-        setStatus(copy.getStatus());
-        setType(copy.getType());
-        setCaFingerprint(copy.getCaFingerprint());
-        setNotBefore(copy.getNotBefore());
-        setExpireDate(copy.getExpireDate());
-        setRevocationDate(copy.getRevocationDate());
-        setRevocationReason(copy.getRevocationReason());
-        setUpdateTime(copy.getUpdateTime());
-        setCertificateProfileId(copy.getCertificateProfileId());
-        setEndEntityProfileId(copy.getEndEntityProfileId());
-        setSubjectKeyId(copy.getSubjectKeyId());
-        setTag(copy.getTag());
-        setRowVersion(copy.getRowVersion());
-        setRowProtection(copy.getRowProtection());
-    }
+  private static final Logger log =
+      Logger.getLogger(NoConflictCertificateData.class);
 
-    public NoConflictCertificateData() {
-        
-    }
-    
-    /**
-     * Generated GUID for the table entry
-     * 
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
+  private String id;
+  private String issuerDN;
+  private String subjectDN;
+  private String subjectAltName = null; // @since EJBCA 6.6.0
+  private String fingerprint = "";
+  private String cAFingerprint;
+  private int status = 0;
+  private int type = 0;
+  private String serialNumber;
+  private Long notBefore = null; // @since EJBCA 6.6.0
+  private long expireDate = 0;
+  private long revocationDate = 0;
+  private int revocationReason = 0;
+  private String base64Cert;
+  private String username;
+  private String tag;
+  private Integer certificateProfileId;
+  private Integer endEntityProfileId = null; // @since EJBCA 6.6.0
+  private long updateTime = 0;
+  private String subjectKeyId;
+  private int rowVersion = 0;
+  private String rowProtection;
 
-    /** Generated GUID for the table entry
-     * 
-     * @param id ID
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
+  /**
+   * Copy Constructor
+   *
+   * @param copy rtiginal
+   */
+  public NoConflictCertificateData(final NoConflictCertificateData copy) {
+    setId(copy.getId());
+    setBase64Cert(copy.getBase64Cert());
+    setFingerprint(copy.getFingerprint());
+    setSubjectDN(copy.getSubjectDN());
+    setIssuerDN(copy.getIssuerDN());
+    setSubjectAltName(copy.getSubjectAltName());
+    setSerialNumber(copy.getSerialNumber());
+    setUsername(copy.getUsername());
+    setStatus(copy.getStatus());
+    setType(copy.getType());
+    setCaFingerprint(copy.getCaFingerprint());
+    setNotBefore(copy.getNotBefore());
+    setExpireDate(copy.getExpireDate());
+    setRevocationDate(copy.getRevocationDate());
+    setRevocationReason(copy.getRevocationReason());
+    setUpdateTime(copy.getUpdateTime());
+    setCertificateProfileId(copy.getCertificateProfileId());
+    setEndEntityProfileId(copy.getEndEntityProfileId());
+    setSubjectKeyId(copy.getSubjectKeyId());
+    setTag(copy.getTag());
+    setRowVersion(copy.getRowVersion());
+    setRowProtection(copy.getRowProtection());
+  }
 
-    @Override
-    public String getFingerprint() {
-        return fingerprint;
-    }
+  public NoConflictCertificateData() {}
 
-    @Override
-    public void setFingerprint(String fingerprint) {
-        this.fingerprint = fingerprint;
-    }
+  /**
+   * Generated GUID for the table entry
+   *
+   * @return id
+   */
+  public String getId() {
+    return id;
+  }
 
-    @Override
-    public String getIssuerDN() {
-        return issuerDN;
-    }
+  /**
+   * Generated GUID for the table entry
+   *
+   * @param id ID
+   */
+  public void setId(final String id) {
+    this.id = id;
+  }
 
-    @Override
-    public void setIssuerDN(String issuerDN) {
-        this.issuerDN = issuerDN;
-    }
+  @Override
+  public String getFingerprint() {
+    return fingerprint;
+  }
 
-    @Override
-    public String getSubjectDN() {
-        return subjectDN;
-    }
+  @Override
+  public void setFingerprint(final String fingerprint) {
+    this.fingerprint = fingerprint;
+  }
 
-    /**
-     * Use setSubject instead
-     *
-     * @param subjectDN subject dn
-     * @see #setSubject(String)
-     */
-    public void setSubjectDN(String subjectDN) {
-        this.subjectDN = subjectDN;
-    }
+  @Override
+  public String getIssuerDN() {
+    return issuerDN;
+  }
 
-    /** @return Subject Alternative Name from the certificate if it was saved at the time of issuance. */
-    @Transient
-    public String getSubjectAltNameNeverNull() {
-        final String subjectAltName = getSubjectAltName();
-        return subjectAltName == null ? "" : subjectAltName;
-    }
+  @Override
+  public void setIssuerDN(final String issuerDN) {
+    this.issuerDN = issuerDN;
+  }
 
-    @Override
-    public String getSubjectAltName() {
-        return subjectAltName;
-    }
-    public void setSubjectAltName(final String subjectAltName) {
-        this.subjectAltName = subjectAltName;
-    }
+  @Override
+  public String getSubjectDN() {
+    return subjectDN;
+  }
 
-    @Override
-    public String getCaFingerprint() {
-        return cAFingerprint;
-    }
+  /**
+   * Use setSubject instead
+   *
+   * @param subjectDN subject dn
+   * @see #setSubject(String)
+   */
+  public void setSubjectDN(final String subjectDN) {
+    this.subjectDN = subjectDN;
+  }
 
-    @Override
-    public void setCaFingerprint(String cAFingerprint) {
-        this.cAFingerprint = cAFingerprint;
-    }
+  /**
+   * @return Subject Alternative Name from the certificate if it was saved at
+   *     the time of issuance.
+   */
+  @Transient
+  public String getSubjectAltNameNeverNull() {
+    final String subjectAltName = getSubjectAltName();
+    return subjectAltName == null ? "" : subjectAltName;
+  }
 
-    @Override
-    public int getStatus() {
-        return status;
-    }
+  @Override
+  public String getSubjectAltName() {
+    return subjectAltName;
+  }
 
-    @Override
-    public void setStatus(int status) {
-        this.status = status;
-    }
+  public void setSubjectAltName(final String subjectAltName) {
+    this.subjectAltName = subjectAltName;
+  }
 
-    @Override
-    public int getType() {
-        return type;
-    }
+  @Override
+  public String getCaFingerprint() {
+    return cAFingerprint;
+  }
 
-    @Override
-    public void setType(int type) {
-        this.type = type;
-    }
+  @Override
+  public void setCaFingerprint(final String cAFingerprint) {
+    this.cAFingerprint = cAFingerprint;
+  }
 
-    @Override
-    public String getSerialNumber() {
-        return serialNumber;
-    }
+  @Override
+  public int getStatus() {
+    return status;
+  }
 
-    @Override
-    public void setSerialNumber(String serialNumber) {
-        this.serialNumber = serialNumber;
-    }
+  @Override
+  public void setStatus(final int status) {
+    this.status = status;
+  }
 
-    @Override
-    public Long getNotBefore() {
-        return notBefore;
-    }
-    public void setNotBefore(final Long notBefore) {
-        this.notBefore = notBefore;
-    }
+  @Override
+  public int getType() {
+    return type;
+  }
 
-    @Override
-    public long getExpireDate() {
-        return expireDate;
-    }
+  @Override
+  public void setType(final int type) {
+    this.type = type;
+  }
 
-    @Override
-    public void setExpireDate(long expireDate) {
-        this.expireDate = expireDate;
-    }
+  @Override
+  public String getSerialNumber() {
+    return serialNumber;
+  }
 
-    @Override
-    public long getRevocationDate() {
-        return revocationDate;
-    }
+  @Override
+  public void setSerialNumber(final String serialNumber) {
+    this.serialNumber = serialNumber;
+  }
 
-    @Override
-    public void setRevocationDate(long revocationDate) {
-        this.revocationDate = revocationDate;
-    }
+  @Override
+  public Long getNotBefore() {
+    return notBefore;
+  }
 
-    @Override
-    public int getRevocationReason() {
-        return revocationReason;
-    }
+  public void setNotBefore(final Long notBefore) {
+    this.notBefore = notBefore;
+  }
 
-    @Override
-    public void setRevocationReason(int revocationReason) {
-        this.revocationReason = revocationReason;
-    }
+  @Override
+  public long getExpireDate() {
+    return expireDate;
+  }
 
-    @Override
-    public String getBase64Cert() {
-        return this.getZzzBase64Cert();
-    }
+  @Override
+  public void setExpireDate(final long expireDate) {
+    this.expireDate = expireDate;
+  }
 
-    /**
-     * The certificate itself
-     *
-     * @param base64Cert base64 encoded certificate
-     */
-    public void setBase64Cert(String base64Cert) {
-        this.setZzzBase64Cert(base64Cert);
-    }
+  @Override
+  public long getRevocationDate() {
+    return revocationDate;
+  }
 
-    /**
-     * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
-     *
-     * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
-     * @return string
-     * @deprecated Use {@link #getBase64Cert()} instead
-     */
-    @Deprecated
-    public String getZzzBase64Cert() {
-        return base64Cert;
-    }
-    
-    /** @param zzzBase64Cert string
-     * @deprecated Use {@link #setBase64Cert(String)} instead */
-    @Deprecated
-    public void setZzzBase64Cert(final String zzzBase64Cert) {
-        this.base64Cert = zzzBase64Cert;
-    }
+  @Override
+  public void setRevocationDate(final long revocationDate) {
+    this.revocationDate = revocationDate;
+  }
 
-    @Override
-    public String getUsername() {
-        return username;
-    }
+  @Override
+  public int getRevocationReason() {
+    return revocationReason;
+  }
 
-    @Override
-    public void setUsername(String username) {
-        this.username = StringTools.stripUsername(username);
-    }
+  @Override
+  public void setRevocationReason(final int revocationReason) {
+    this.revocationReason = revocationReason;
+  }
 
-    @Override
-    public String getTag() {
-        return tag;
-    }
+  @Override
+  public String getBase64Cert() {
+    return this.getZzzBase64Cert();
+  }
 
-    /**
-     * tag in database. This field was added for the 3.9.0 release, but is not used yet.
-     *
-     * @param tag tag
-     */
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
+  /**
+   * The certificate itself
+   *
+   * @param base64Cert base64 encoded certificate
+   */
+  public void setBase64Cert(final String base64Cert) {
+    this.setZzzBase64Cert(base64Cert);
+  }
 
-    @Override
-    public Integer getCertificateProfileId() {
-        return certificateProfileId;
-    }
+  /**
+   * Horrible work-around due to the fact that Oracle needs to have (LONG and)
+   * CLOB values last in order to avoid ORA-24816.
+   *
+   * <p>Since Hibernate sorts columns by the property names, naming this
+   * Z-something will apparently ensure that this column is used last.
+   *
+   * @return string
+   * @deprecated Use {@link #getBase64Cert()} instead
+   */
+  @Deprecated
+  public String getZzzBase64Cert() {
+    return base64Cert;
+  }
 
-    @Override
-    public void setCertificateProfileId(Integer certificateProfileId) {
-        this.certificateProfileId = certificateProfileId;
-    }
+  /**
+   * @param zzzBase64Cert string
+   * @deprecated Use {@link #setBase64Cert(String)} instead
+   */
+  @Deprecated
+  public void setZzzBase64Cert(final String zzzBase64Cert) {
+    this.base64Cert = zzzBase64Cert;
+  }
 
-    @Override
-    public Long getUpdateTime() {
-        return updateTime;
-    }
+  @Override
+  public String getUsername() {
+    return username;
+  }
 
-    // Hibernate + Oracle ignores nullable=false so we can expect null-objects as input after upgrade. TODO: Verify if still true!
-    @Override
-    public void setUpdateTime(Long updateTime) {
-        this.updateTime = (updateTime == null ? this.updateTime : updateTime);
-    }
+  @Override
+  public void setUsername(final String username) {
+    this.username = StringTools.stripUsername(username);
+  }
 
-    @Override
-    public String getSubjectKeyId() {
-        return subjectKeyId;
-    }
+  @Override
+  public String getTag() {
+    return tag;
+  }
 
-    /**
-     * The ID of the public key of the certificate
-     * @param subjectKeyId ID
-     */
-    public void setSubjectKeyId(String subjectKeyId) {
-        this.subjectKeyId = subjectKeyId;
-    }
-    
-    @Override
-    public int getRowVersion() {
-        return rowVersion;
-    }
+  /**
+   * tag in database. This field was added for the 3.9.0 release, but is not
+   * used yet.
+   *
+   * @param tag tag
+   */
+  public void setTag(final String tag) {
+    this.tag = tag;
+  }
 
-    public void setRowVersion(int rowVersion) {
-        this.rowVersion = rowVersion;
-    }
-    
-    @Override
-    public String getRowProtection() {
-        return this.getZzzRowProtection();
-    }
+  @Override
+  public Integer getCertificateProfileId() {
+    return certificateProfileId;
+  }
 
-    @Override
-    public void setRowProtection(String rowProtection) {
-        this.setZzzRowProtection(rowProtection);
-    }
+  @Override
+  public void setCertificateProfileId(final Integer certificateProfileId) {
+    this.certificateProfileId = certificateProfileId;
+  }
 
-    /**
-     * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
-     *
-     * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
-     * @return String
-     * @deprecated Use {@link #getRowProtection()} instead
-     */
-    @Deprecated
-    public String getZzzRowProtection() {
-        return rowProtection;
-    }
-    /** @param zzzRowProtection String
-     * @deprecated Use {@link #setRowProtection(String)} instead */
-    @Deprecated
-    public void setZzzRowProtection(final String zzzRowProtection) {
-        this.rowProtection = zzzRowProtection;
-    }
-    
-    @Override
-    public void setIssuer(String dn) {
-        setIssuerDN(CertTools.stringToBCDNString(dn));
-    }
+  @Override
+  public Long getUpdateTime() {
+    return updateTime;
+  }
 
-    @Override
-    public void setSubject(String dn) {
-        setSubjectDN(CertTools.stringToBCDNString(dn));
-    }
+  // Hibernate + Oracle ignores nullable=false so we can expect null-objects as
+  // input after upgrade. TODO: Verify if still true!
+  @Override
+  public void setUpdateTime(final Long updateTime) {
+    this.updateTime = (updateTime == null ? this.updateTime : updateTime);
+  }
 
-    @Override
-    public void setEndEntityProfileId(final Integer endEntityProfileId) {
-        this.endEntityProfileId = endEntityProfileId;
-    }
-    
-    @Override
-    public Integer getEndEntityProfileId() {
-        return endEntityProfileId;
-    }
-    
-    
-    
-    // Comparators
+  @Override
+  public String getSubjectKeyId() {
+    return subjectKeyId;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof NoConflictCertificateData)) {
-            return false;
-        }
-        return equals((NoConflictCertificateData) obj, true);
-    }
+  /**
+   * The ID of the public key of the certificate
+   *
+   * @param subjectKeyId ID
+   */
+  public void setSubjectKeyId(final String subjectKeyId) {
+    this.subjectKeyId = subjectKeyId;
+  }
 
-    public boolean equals(NoConflictCertificateData certificateData, boolean mode, boolean strictStatus) {
-        if (mode) {
-            return equalsNonSensitive(certificateData, strictStatus);
-        }
-        return equals(certificateData, strictStatus);
-    }
+  @Override
+  public int getRowVersion() {
+    return rowVersion;
+  }
 
-    private boolean equals(NoConflictCertificateData certificateData, boolean strictStatus) {
-        if (!equalsNonSensitive(certificateData, strictStatus)) {
-            return false;
-        }
-        if ( this.base64Cert==null && certificateData.base64Cert==null ) {
-            return true; // test before shows that fingerprint is equal and then both objects must refer to same row in Base64CertData
-        }
-        if ( this.base64Cert==null || certificateData.base64Cert==null ) {
-            return false; // one is null and the other not null
-        }
-        if (!this.base64Cert.equals(certificateData.base64Cert)) {
-            return false;
-        }
-        return true;
-    }
+  public void setRowVersion(final int rowVersion) {
+    this.rowVersion = rowVersion;
+  }
 
-    private boolean equalsNonSensitive(NoConflictCertificateData certificateData, boolean strictStatus) {
-        
-        if (!id.equals(certificateData.id)) {
-            return false;
-        }
-        if (!issuerDN.equals(certificateData.issuerDN)) {
-            return false;
-        }
-        if (!subjectDN.equals(certificateData.subjectDN)) {
-            return false;
-        }
-        if (!fingerprint.equals(certificateData.fingerprint)) {
-            return false;
-        }
-        if (!cAFingerprint.equals(certificateData.cAFingerprint)) {
-            return false;
-        }
-        if (!equalsStatus(certificateData, strictStatus)) {
-            return false;
-        }
-        if (type != certificateData.type) {
-            return false;
-        }
-        if (!serialNumber.equals(certificateData.serialNumber)) {
-            return false;
-        }
-        if (notBefore==null) {
-            if (certificateData.notBefore!=null) {
-                return false;
-            }
-        } else {
-            if (!notBefore.equals(certificateData.notBefore)) {
-                return false;
-            }
-        }
-        if (expireDate != certificateData.expireDate) {
-            return false;
-        }
-        if (revocationDate != certificateData.revocationDate) {
-            return false;
-        }
-        if (revocationReason != certificateData.revocationReason) {
-            return false;
-        }
-        if (!username.equals(certificateData.username)) {
-            return false;
-        }
-        if (tag == null && certificateData.tag != null) {
-            return false;
-        }
-        if (tag != null && !tag.equals(certificateData.tag)) {
-            return false;
-        }
-        if (certificateProfileId == null && certificateData.certificateProfileId != null) {
-            return false;
-        }
-        if (certificateProfileId != null && !certificateProfileId.equals(certificateData.certificateProfileId)) {
-            return false;
-        }
-        if (endEntityProfileId==null) {
-            if (certificateData.endEntityProfileId!=null) {
-                return false;
-            }
-        } else {
-            if (!endEntityProfileId.equals(certificateData.endEntityProfileId)) {
-                return false;
-            }
-        }
-        if (updateTime != certificateData.updateTime) {
-            return false;
-        }
-        if (subjectAltName==null) {
-            if (certificateData.subjectAltName!=null) {
-                return false;
-            }
-        } else {
-            if (!subjectAltName.equals(certificateData.subjectAltName)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    @Override
-    public int hashCode() {
-        return fingerprint.hashCode() * 11;
-    }
+  @Override
+  public String getRowProtection() {
+    return this.getZzzRowProtection();
+  }
 
-    public void updateWith(NoConflictCertificateData certificateData, boolean inclusionMode) {
-        issuerDN = certificateData.issuerDN;
-        subjectDN = certificateData.subjectDN;
-        fingerprint = certificateData.fingerprint;
-        cAFingerprint = certificateData.cAFingerprint;
-        status = certificateData.status;
-        type = certificateData.type;
-        serialNumber = certificateData.serialNumber;
-        expireDate = certificateData.expireDate;
-        revocationDate = certificateData.revocationDate;
-        revocationReason = certificateData.revocationReason;
-        setUsername(certificateData.username);
-        tag = certificateData.tag;
-        certificateProfileId = certificateData.certificateProfileId;
-        updateTime = certificateData.updateTime;
-        base64Cert = inclusionMode ? null : certificateData.base64Cert;
-        id = certificateData.id;
-    }
-    
+  @Override
+  public void setRowProtection(final String rowProtection) {
+    this.setZzzRowProtection(rowProtection);
+  }
 
-    //
-    // Start Database integrity protection methods
-    //
+  /**
+   * Horrible work-around due to the fact that Oracle needs to have (LONG and)
+   * CLOB values last in order to avoid ORA-24816.
+   *
+   * <p>Since Hibernate sorts columns by the property names, naming this
+   * Z-something will apparently ensure that this column is used last.
+   *
+   * @return String
+   * @deprecated Use {@link #getRowProtection()} instead
+   */
+  @Deprecated
+  public String getZzzRowProtection() {
+    return rowProtection;
+  }
+  /**
+   * @param zzzRowProtection String
+   * @deprecated Use {@link #setRowProtection(String)} instead
+   */
+  @Deprecated
+  public void setZzzRowProtection(final String zzzRowProtection) {
+    this.rowProtection = zzzRowProtection;
+  }
 
-    @Transient
-    @Override
-    protected String getProtectString(final int version) {
-    	final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);
-        // What is important to protect here is the data that we define, id, name and certificate profile data
-        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
-        build.append(getFingerprint()).append(getIssuerDN());
-        if (version>=3) {
-            // From version 3 for EJBCA 6.7 we always use empty String here to allow future migration between databases when this value is unset
-            build.append(getSubjectDnNeverNull());
-        } else {
-            build.append(getSubjectDN());
-        }
-        build.append(getCaFingerprint()).append(getStatus()).append(getType())
-                .append(getSerialNumber()).append(getExpireDate()).append(getRevocationDate()).append(getRevocationReason()).append(getBase64Cert())
-                .append(getUsername()).append(getTag()).append(getCertificateProfileId()).append(getUpdateTime()).append(getSubjectKeyId());
-        if (version>=2) {
-            // In version 2 for EJBCA 6.6 the following columns where added
-            build.append(String.valueOf(getNotBefore()));
-            build.append(String.valueOf(getEndEntityProfileId()));
-            if (version>=3) {
-                // From version 3 for EJBCA 6.7 we always use empty String here to allow future migration between databases when this value is unset
-                build.append(getSubjectAltNameNeverNull());
-            } else {
-                build.append(String.valueOf(getSubjectAltName()));
-            }
-        }
-        if (log.isDebugEnabled()) {
-            // Some profiling
-            if (build.length() > 3000) {
-                log.debug("CertificateData.getProtectString gives size: " + build.length());
-            }
-        }
-        return build.toString();
-    }
+  @Override
+  public void setIssuer(final String dn) {
+    setIssuerDN(CertTools.stringToBCDNString(dn));
+  }
 
-    @Transient
-    @Override
-    protected int getProtectVersion() {
-        return 3;
-    }
+  @Override
+  public void setSubject(final String dn) {
+    setSubjectDN(CertTools.stringToBCDNString(dn));
+  }
 
-    @PrePersist
-    @PreUpdate
-    @Override
-    protected void protectData() {
-        super.protectData();
-    }
+  @Override
+  public void setEndEntityProfileId(final Integer endEntityProfileId) {
+    this.endEntityProfileId = endEntityProfileId;
+  }
 
-    @PostLoad
-    @Override
-    protected void verifyData() {
-        super.verifyData();
-    }
+  @Override
+  public Integer getEndEntityProfileId() {
+    return endEntityProfileId;
+  }
 
-    @Override
-    @Transient
-    protected String getRowId() {
-        return getFingerprint();
+  // Comparators
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof NoConflictCertificateData)) {
+      return false;
     }
-    
-    //
-    // End Database integrity protection methods
-    //
+    return equals((NoConflictCertificateData) obj, true);
+  }
+
+  public boolean equals(
+      final NoConflictCertificateData certificateData,
+      final boolean mode,
+      final boolean strictStatus) {
+    if (mode) {
+      return equalsNonSensitive(certificateData, strictStatus);
+    }
+    return equals(certificateData, strictStatus);
+  }
+
+  private boolean equals(
+      final NoConflictCertificateData certificateData,
+      final boolean strictStatus) {
+    if (!equalsNonSensitive(certificateData, strictStatus)) {
+      return false;
+    }
+    if (this.base64Cert == null && certificateData.base64Cert == null) {
+      return true; // test before shows that fingerprint is equal and then both
+                   // objects must refer to same row in Base64CertData
+    }
+    if (this.base64Cert == null || certificateData.base64Cert == null) {
+      return false; // one is null and the other not null
+    }
+    if (!this.base64Cert.equals(certificateData.base64Cert)) {
+      return false;
+    }
+    return true;
+  }
+
+  private boolean equalsNonSensitive(
+      final NoConflictCertificateData certificateData,
+      final boolean strictStatus) {
+
+    if (!id.equals(certificateData.id)) {
+      return false;
+    }
+    if (!issuerDN.equals(certificateData.issuerDN)) {
+      return false;
+    }
+    if (!subjectDN.equals(certificateData.subjectDN)) {
+      return false;
+    }
+    if (!fingerprint.equals(certificateData.fingerprint)) {
+      return false;
+    }
+    if (!cAFingerprint.equals(certificateData.cAFingerprint)) {
+      return false;
+    }
+    if (!equalsStatus(certificateData, strictStatus)) {
+      return false;
+    }
+    if (type != certificateData.type) {
+      return false;
+    }
+    if (!serialNumber.equals(certificateData.serialNumber)) {
+      return false;
+    }
+    if (notBefore == null) {
+      if (certificateData.notBefore != null) {
+        return false;
+      }
+    } else {
+      if (!notBefore.equals(certificateData.notBefore)) {
+        return false;
+      }
+    }
+    if (expireDate != certificateData.expireDate) {
+      return false;
+    }
+    if (revocationDate != certificateData.revocationDate) {
+      return false;
+    }
+    if (revocationReason != certificateData.revocationReason) {
+      return false;
+    }
+    if (!username.equals(certificateData.username)) {
+      return false;
+    }
+    if (tag == null && certificateData.tag != null) {
+      return false;
+    }
+    if (tag != null && !tag.equals(certificateData.tag)) {
+      return false;
+    }
+    if (certificateProfileId == null
+        && certificateData.certificateProfileId != null) {
+      return false;
+    }
+    if (certificateProfileId != null
+        && !certificateProfileId.equals(certificateData.certificateProfileId)) {
+      return false;
+    }
+    if (endEntityProfileId == null) {
+      if (certificateData.endEntityProfileId != null) {
+        return false;
+      }
+    } else {
+      if (!endEntityProfileId.equals(certificateData.endEntityProfileId)) {
+        return false;
+      }
+    }
+    if (updateTime != certificateData.updateTime) {
+      return false;
+    }
+    if (subjectAltName == null) {
+      if (certificateData.subjectAltName != null) {
+        return false;
+      }
+    } else {
+      if (!subjectAltName.equals(certificateData.subjectAltName)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return fingerprint.hashCode() * 11;
+  }
+
+  public void updateWith(
+      final NoConflictCertificateData certificateData,
+      final boolean inclusionMode) {
+    issuerDN = certificateData.issuerDN;
+    subjectDN = certificateData.subjectDN;
+    fingerprint = certificateData.fingerprint;
+    cAFingerprint = certificateData.cAFingerprint;
+    status = certificateData.status;
+    type = certificateData.type;
+    serialNumber = certificateData.serialNumber;
+    expireDate = certificateData.expireDate;
+    revocationDate = certificateData.revocationDate;
+    revocationReason = certificateData.revocationReason;
+    setUsername(certificateData.username);
+    tag = certificateData.tag;
+    certificateProfileId = certificateData.certificateProfileId;
+    updateTime = certificateData.updateTime;
+    base64Cert = inclusionMode ? null : certificateData.base64Cert;
+    id = certificateData.id;
+  }
+
+  //
+  // Start Database integrity protection methods
+  //
+
+  @Transient
+  @Override
+  protected String getProtectString(final int version) {
+    final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);
+    // What is important to protect here is the data that we define, id, name
+    // and certificate profile data
+    // rowVersion is automatically updated by JPA, so it's not important, it is
+    // only used for optimistic locking
+    build.append(getFingerprint()).append(getIssuerDN());
+    if (version >= 3) {
+      // From version 3 for EJBCA 6.7 we always use empty String here to allow
+      // future migration between databases when this value is unset
+      build.append(getSubjectDnNeverNull());
+    } else {
+      build.append(getSubjectDN());
+    }
+    build
+        .append(getCaFingerprint())
+        .append(getStatus())
+        .append(getType())
+        .append(getSerialNumber())
+        .append(getExpireDate())
+        .append(getRevocationDate())
+        .append(getRevocationReason())
+        .append(getBase64Cert())
+        .append(getUsername())
+        .append(getTag())
+        .append(getCertificateProfileId())
+        .append(getUpdateTime())
+        .append(getSubjectKeyId());
+    if (version >= 2) {
+      // In version 2 for EJBCA 6.6 the following columns where added
+      build.append(String.valueOf(getNotBefore()));
+      build.append(String.valueOf(getEndEntityProfileId()));
+      if (version >= 3) {
+        // From version 3 for EJBCA 6.7 we always use empty String here to allow
+        // future migration between databases when this value is unset
+        build.append(getSubjectAltNameNeverNull());
+      } else {
+        build.append(String.valueOf(getSubjectAltName()));
+      }
+    }
+    if (log.isDebugEnabled()) {
+      // Some profiling
+      if (build.length() > 3000) {
+        log.debug(
+            "CertificateData.getProtectString gives size: " + build.length());
+      }
+    }
+    return build.toString();
+  }
+
+  @Transient
+  @Override
+  protected int getProtectVersion() {
+    return 3;
+  }
+
+  @PrePersist
+  @PreUpdate
+  @Override
+  protected void protectData() {
+    super.protectData();
+  }
+
+  @PostLoad
+  @Override
+  protected void verifyData() {
+    super.verifyData();
+  }
+
+  @Override
+  @Transient
+  protected String getRowId() {
+    return getFingerprint();
+  }
+
+  //
+  // End Database integrity protection methods
+  //
 }

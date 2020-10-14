@@ -27,10 +27,8 @@ import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.List;
 import java.util.Properties;
-
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-
 import org.cesecore.keys.token.CryptoToken;
 import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
@@ -41,166 +39,189 @@ import org.cesecore.keys.token.CryptoTokenOfflineException;
  * be available.
  *
  * @version $Id: CachedCryptoToken.java 22596 2016-01-18 14:59:25Z mikekushner $
- *
  */
 public class CachedCryptoToken implements CryptoToken {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final CryptoToken wrappedCryptoToken;
-    private Key cachedKey = null;
-    private PrivateKey cachedPrivateKey = null;
-    private String cachedSignProviderName = null;
+  private final CryptoToken wrappedCryptoToken;
+  private Key cachedKey = null;
+  private PrivateKey cachedPrivateKey = null;
+  private String cachedSignProviderName = null;
 
-    public CachedCryptoToken(final CryptoToken wrappedCryptoToken) {
-        this.wrappedCryptoToken = wrappedCryptoToken;
-    }
+  public CachedCryptoToken(final CryptoToken wrappedCryptoToken) {
+    this.wrappedCryptoToken = wrappedCryptoToken;
+  }
 
-    @Override
-    public void activate(char[] authenticationcode) throws CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException {
-        wrappedCryptoToken.activate(authenticationcode);
-    }
+  @Override
+  public void activate(final char[] authenticationcode)
+      throws CryptoTokenOfflineException,
+          CryptoTokenAuthenticationFailedException {
+    wrappedCryptoToken.activate(authenticationcode);
+  }
 
-    @Override
-    public void deactivate() {
-        wrappedCryptoToken.deactivate();
-    }
+  @Override
+  public void deactivate() {
+    wrappedCryptoToken.deactivate();
+  }
 
-    @Override
-    public void deleteEntry(String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, CryptoTokenOfflineException {
-        wrappedCryptoToken.deleteEntry(alias);
-    }
+  @Override
+  public void deleteEntry(final String alias)
+      throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+          IOException, CryptoTokenOfflineException {
+    wrappedCryptoToken.deleteEntry(alias);
+  }
 
-    @Override
-    public boolean doPermitExtractablePrivateKey() {
-        return wrappedCryptoToken.doPermitExtractablePrivateKey();
-    }
+  @Override
+  public boolean doPermitExtractablePrivateKey() {
+    return wrappedCryptoToken.doPermitExtractablePrivateKey();
+  }
 
-    @Override
-    public void generateKey(String algorithm, int keysize, String alias) throws NoSuchAlgorithmException, NoSuchProviderException,
-            KeyStoreException, CryptoTokenOfflineException, InvalidKeyException, InvalidAlgorithmParameterException,
-            SignatureException, CertificateException, IOException, NoSuchPaddingException, IllegalBlockSizeException {
-        wrappedCryptoToken.generateKey(algorithm, keysize, alias);
-    }
+  @Override
+  public void generateKey(
+      final String algorithm, final int keysize, final String alias)
+      throws NoSuchAlgorithmException, NoSuchProviderException,
+          KeyStoreException, CryptoTokenOfflineException, InvalidKeyException,
+          InvalidAlgorithmParameterException, SignatureException,
+          CertificateException, IOException, NoSuchPaddingException,
+          IllegalBlockSizeException {
+    wrappedCryptoToken.generateKey(algorithm, keysize, alias);
+  }
 
-    @Override
-    public void generateKeyPair(String keySpec, String alias) throws InvalidAlgorithmParameterException,
-            CryptoTokenOfflineException {
-        wrappedCryptoToken.generateKeyPair(keySpec, alias);
-    }
+  @Override
+  public void generateKeyPair(final String keySpec, final String alias)
+      throws InvalidAlgorithmParameterException, CryptoTokenOfflineException {
+    wrappedCryptoToken.generateKeyPair(keySpec, alias);
+  }
 
-    @Override
-    public void generateKeyPair(AlgorithmParameterSpec spec, String alias) throws InvalidAlgorithmParameterException, CertificateException,
-            IOException, CryptoTokenOfflineException {
-        wrappedCryptoToken.generateKeyPair(spec, alias);
-    }
+  @Override
+  public void generateKeyPair(
+      final AlgorithmParameterSpec spec, final String alias)
+      throws InvalidAlgorithmParameterException, CertificateException,
+          IOException, CryptoTokenOfflineException {
+    wrappedCryptoToken.generateKeyPair(spec, alias);
+  }
 
-    @Override
-    public String getEncProviderName() {
-        return wrappedCryptoToken.getEncProviderName();
-    }
+  @Override
+  public String getEncProviderName() {
+    return wrappedCryptoToken.getEncProviderName();
+  }
 
-    @Override
-    public int getId() {
-        return wrappedCryptoToken.getId();
-    }
+  @Override
+  public int getId() {
+    return wrappedCryptoToken.getId();
+  }
 
-    @Override
-    public String getTokenName() {
-        return wrappedCryptoToken.getTokenName();
-    }
+  @Override
+  public String getTokenName() {
+    return wrappedCryptoToken.getTokenName();
+  }
 
-    @Override
-    public void setTokenName(final String tokenName) {
-        wrappedCryptoToken.setTokenName(tokenName);
-    }
+  @Override
+  public void setTokenName(final String tokenName) {
+    wrappedCryptoToken.setTokenName(tokenName);
+  }
 
-    @Override
-    public boolean isAliasUsed(String alias) {
-        return wrappedCryptoToken.isAliasUsed(alias);
-    }
-    
-    @Override
-    public Key getKey(String alias) throws CryptoTokenOfflineException {
-        if (cachedKey==null) {
-            cachedKey = wrappedCryptoToken.getKey(alias);
-        }
-        return cachedKey;
-    }
+  @Override
+  public boolean isAliasUsed(final String alias) {
+    return wrappedCryptoToken.isAliasUsed(alias);
+  }
 
-    @Override
-    public PrivateKey getPrivateKey(String alias) throws CryptoTokenOfflineException {
-        if (cachedPrivateKey==null) {
-            cachedPrivateKey = wrappedCryptoToken.getPrivateKey(alias);
-        }
-        return cachedPrivateKey;
+  @Override
+  public Key getKey(final String alias) throws CryptoTokenOfflineException {
+    if (cachedKey == null) {
+      cachedKey = wrappedCryptoToken.getKey(alias);
     }
+    return cachedKey;
+  }
 
-    @Override
-    public Properties getProperties() {
-        return wrappedCryptoToken.getProperties();
+  @Override
+  public PrivateKey getPrivateKey(final String alias)
+      throws CryptoTokenOfflineException {
+    if (cachedPrivateKey == null) {
+      cachedPrivateKey = wrappedCryptoToken.getPrivateKey(alias);
     }
+    return cachedPrivateKey;
+  }
 
-    @Override
-    public PublicKey getPublicKey(String alias) throws CryptoTokenOfflineException {
-        return wrappedCryptoToken.getPublicKey(alias);
-    }
+  @Override
+  public Properties getProperties() {
+    return wrappedCryptoToken.getProperties();
+  }
 
-    @Override
-    public String getSignProviderName() {
-        if (cachedSignProviderName==null) {
-            cachedSignProviderName = wrappedCryptoToken.getSignProviderName();
-        }
-        return cachedSignProviderName;
-    }
+  @Override
+  public PublicKey getPublicKey(final String alias)
+      throws CryptoTokenOfflineException {
+    return wrappedCryptoToken.getPublicKey(alias);
+  }
 
-    @Override
-    public byte[] getTokenData() {
-        return wrappedCryptoToken.getTokenData();
+  @Override
+  public String getSignProviderName() {
+    if (cachedSignProviderName == null) {
+      cachedSignProviderName = wrappedCryptoToken.getSignProviderName();
     }
+    return cachedSignProviderName;
+  }
 
-    @Override
-    public int getTokenStatus() {
-        return wrappedCryptoToken.getTokenStatus();
-    }
+  @Override
+  public byte[] getTokenData() {
+    return wrappedCryptoToken.getTokenData();
+  }
 
-    @Override
-    public void init(Properties properties, byte[] data, int id) throws Exception {
-        wrappedCryptoToken.init(properties, data, id);
-    }
+  @Override
+  public int getTokenStatus() {
+    return wrappedCryptoToken.getTokenStatus();
+  }
 
-    @Override
-    public void reset() {
-        wrappedCryptoToken.reset();
-    }
+  @Override
+  public void init(final Properties properties, final byte[] data, final int id)
+      throws Exception {
+    wrappedCryptoToken.init(properties, data, id);
+  }
 
-    @Override
-    public void setProperties(Properties properties) {
-        wrappedCryptoToken.setProperties(properties);
-    }
+  @Override
+  public void reset() {
+    wrappedCryptoToken.reset();
+  }
 
-    @Override
-    public void testKeyPair(final String alias) throws InvalidKeyException, CryptoTokenOfflineException {
-        wrappedCryptoToken.testKeyPair(alias);
-    }
-    @Override
-    public void testKeyPair(String alias, PublicKey publicKey, PrivateKey privateKey) throws InvalidKeyException {
-        wrappedCryptoToken.testKeyPair(alias, publicKey, privateKey);
-    }
+  @Override
+  public void setProperties(final Properties properties) {
+    wrappedCryptoToken.setProperties(properties);
+  }
 
-    @Override
-    public List<String> getAliases() throws KeyStoreException, CryptoTokenOfflineException {
-        return wrappedCryptoToken.getAliases();
-    }
+  @Override
+  public void testKeyPair(final String alias)
+      throws InvalidKeyException, CryptoTokenOfflineException {
+    wrappedCryptoToken.testKeyPair(alias);
+  }
 
-    @Override
-    public void storeKey(String alias, Key key, Certificate[] chain, char[] password) throws KeyStoreException {
-        wrappedCryptoToken.storeKey(alias, key, chain, password);
-        
-    }
+  @Override
+  public void testKeyPair(
+      final String alias,
+      final PublicKey publicKey,
+      final PrivateKey privateKey)
+      throws InvalidKeyException {
+    wrappedCryptoToken.testKeyPair(alias, publicKey, privateKey);
+  }
 
-    @Override
-    public boolean isAutoActivationPinPresent() {
-        return wrappedCryptoToken.isAutoActivationPinPresent();
-    }
+  @Override
+  public List<String> getAliases()
+      throws KeyStoreException, CryptoTokenOfflineException {
+    return wrappedCryptoToken.getAliases();
+  }
+
+  @Override
+  public void storeKey(
+      final String alias,
+      final Key key,
+      final Certificate[] chain,
+      final char[] password)
+      throws KeyStoreException {
+    wrappedCryptoToken.storeKey(alias, key, chain, password);
+  }
+
+  @Override
+  public boolean isAutoActivationPinPresent() {
+    return wrappedCryptoToken.isAutoActivationPinPresent();
+  }
 }

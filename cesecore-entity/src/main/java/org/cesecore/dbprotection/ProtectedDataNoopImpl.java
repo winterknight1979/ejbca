@@ -12,36 +12,35 @@
  *************************************************************************/
 package org.cesecore.dbprotection;
 
-
 /**
- * @version $Id: ProtectedDataNoopImpl.java 29874 2018-09-13 09:38:35Z samuellb $
+ * @version $Id: ProtectedDataNoopImpl.java 29874 2018-09-13 09:38:35Z samuellb
+ *     $
  */
 public class ProtectedDataNoopImpl implements ProtectedDataImpl {
 
-    @Override
-    public void setTableName(final String table) {
-        // Do nothing
-    }
+  @Override
+  public void setTableName(final String table) {
+    // Do nothing
+  }
 
-    @Override
-    public void protectData(final ProtectedData obj) {
-        // Do nothing
-    }
+  @Override
+  public void protectData(final ProtectedData obj) {
+    // Do nothing
+  }
 
-    @Override
-    public void verifyData(final ProtectedData obj) {
-        // Do nothing
-    }
-	
-    @Override
-    public String calculateProtection(final ProtectedData obj) {
-        // Do nothing
-        return null;
-    }
+  @Override
+  public void verifyData(final ProtectedData obj) {
+    // Do nothing
+  }
 
-    @Override
-    public void onDataVerificationError(DatabaseProtectionException e) {
-        // Do nothing
-    }
+  @Override
+  public String calculateProtection(final ProtectedData obj) {
+    // Do nothing
+    return null;
+  }
 
+  @Override
+  public void onDataVerificationError(final DatabaseProtectionException e) {
+    // Do nothing
+  }
 }

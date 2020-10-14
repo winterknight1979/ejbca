@@ -19,36 +19,50 @@ import org.junit.Test;
 
 /**
  * Unit tests for the AccessRuleData class
- * 
- * @version $Id: AccessRuleDataTest.java 25893 2017-05-23 20:10:03Z mikekushner $
  *
+ * @version $Id: AccessRuleDataTest.java 25893 2017-05-23 20:10:03Z mikekushner
+ *     $
  */
 public class AccessRuleDataTest {
 
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testSetState() {
-        AccessRuleData accessRule = new AccessRuleData(AccessRuleData.generatePrimaryKey("Ape", "Monkey"), "Monkey", AccessRuleState.RULE_NOTUSED, false);
-        assertEquals(AccessTreeState.STATE_UNKNOWN, accessRule.getTreeState());
-        accessRule.setInternalState(AccessRuleState.RULE_ACCEPT);
-        assertEquals(AccessTreeState.STATE_ACCEPT, accessRule.getTreeState());
-        accessRule.setRecursive(true);
-        assertEquals(AccessTreeState.STATE_ACCEPT_RECURSIVE, accessRule.getTreeState());
-        accessRule.setRecursive(false);
-        accessRule.setInternalState(AccessRuleState.RULE_DECLINE);
-        assertEquals(AccessTreeState.STATE_DECLINE, accessRule.getTreeState());
-    }
-    
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testGeneratePrimaryKey() {
-        final String roleName = "monkey";
-        final String accessRuleName = "do as I say";
-        final String accessRuleNameWithWhitespace = "   do as I say   ";
-        assertEquals((roleName.hashCode() ^ accessRuleName.hashCode()), AccessRuleData.generatePrimaryKey(roleName, accessRuleName));
-        assertEquals((roleName.hashCode() ^ accessRuleName.hashCode()), AccessRuleData.generatePrimaryKey(roleName, accessRuleNameWithWhitespace));
-        assertEquals((0 ^ accessRuleName.hashCode()), AccessRuleData.generatePrimaryKey(null, accessRuleName));
-        assertEquals((roleName.hashCode() ^ 0), AccessRuleData.generatePrimaryKey(roleName, null));
-    }
-    
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testSetState() {
+    AccessRuleData accessRule =
+        new AccessRuleData(
+            AccessRuleData.generatePrimaryKey("Ape", "Monkey"),
+            "Monkey",
+            AccessRuleState.RULE_NOTUSED,
+            false);
+    assertEquals(AccessTreeState.STATE_UNKNOWN, accessRule.getTreeState());
+    accessRule.setInternalState(AccessRuleState.RULE_ACCEPT);
+    assertEquals(AccessTreeState.STATE_ACCEPT, accessRule.getTreeState());
+    accessRule.setRecursive(true);
+    assertEquals(
+        AccessTreeState.STATE_ACCEPT_RECURSIVE, accessRule.getTreeState());
+    accessRule.setRecursive(false);
+    accessRule.setInternalState(AccessRuleState.RULE_DECLINE);
+    assertEquals(AccessTreeState.STATE_DECLINE, accessRule.getTreeState());
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testGeneratePrimaryKey() {
+    final String roleName = "monkey";
+    final String accessRuleName = "do as I say";
+    final String accessRuleNameWithWhitespace = "   do as I say   ";
+    assertEquals(
+        (roleName.hashCode() ^ accessRuleName.hashCode()),
+        AccessRuleData.generatePrimaryKey(roleName, accessRuleName));
+    assertEquals(
+        (roleName.hashCode() ^ accessRuleName.hashCode()),
+        AccessRuleData.generatePrimaryKey(
+            roleName, accessRuleNameWithWhitespace));
+    assertEquals(
+        (0 ^ accessRuleName.hashCode()),
+        AccessRuleData.generatePrimaryKey(null, accessRuleName));
+    assertEquals(
+        (roleName.hashCode() ^ 0),
+        AccessRuleData.generatePrimaryKey(roleName, null));
+  }
 }
