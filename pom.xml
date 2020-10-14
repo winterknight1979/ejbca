@@ -34,6 +34,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>shared-resources</module>
 		<module>swagger-ui</module>
 		<module>doc-war</module>
+		<module>log4jconfig-bundle</module>
 
 		<!-- CeSeCore JARs -->
 
@@ -64,7 +65,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-ejb-cli</module>
 
 		<!-- WebApp modules -->
-
+		
 		<module>publicweb-gui</module>
 		<module>ejbca-renew-war</module>
 		<module>ejbca-scep-war</module>
