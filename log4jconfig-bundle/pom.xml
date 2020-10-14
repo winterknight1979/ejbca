@@ -1,13 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>log4jconfig-bundle</artifactId>
+
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -70,13 +72,13 @@
 						<configuration>
 							<target>
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
 										<include name="log4j-${appserver.type}.xml.sample" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
 								</copy>
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
 										<include name="log4j-${appserver.type}.xml" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
@@ -84,13 +86,13 @@
 								<!-- If we don't have a specific file for an appserver, perhaps we 
 									have one for the subtype (i.e. jboss and jboss6) -->
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
 										<include name="log4j-${appserver.subtype}.xml.sample" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
 								</copy>
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
 										<include name="log4j-${appserver.subtype}.xml" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
@@ -101,7 +103,6 @@
 				</executions>
 			</plugin>
 		</plugins>
-
 	</build>
 
 	<reporting>
@@ -183,5 +184,4 @@
 			</reporting>
 		</profile>
 	</profiles>
-
 </project>
