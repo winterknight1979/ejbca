@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OCSP - EJBCA - Documentation Space</title>
+
+    
+            <meta name="scroll-content-language-key" content="">
+    
+    <meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery.scrollTo.min.js"></script>
+
+
+<script type="text/javascript" src="assets/js/translate.js"></script>
+
+
+<script type="text/javascript" src="assets/js/scroll-tree.js"></script>
+
+<script type="text/javascript" src="assets/js/theme.main.js"></script>
+
+    <script type="text/javascript" src="assets/js/iframeResizer.min.js"></script>
+
+<link rel="stylesheet" href="assets/css/content-style.css">
+    <link rel="stylesheet" href="assets/css/search.css">
+
+<link rel="stylesheet" href="assets/css/theme.main.css">
+<link rel="stylesheet" href="assets/css/theme.colors.css">
+
+            <!-- ES5 support for older browsers, needed by lunr -->
+        <script src="js/augment.js"></script>
+        <script id="worker" type="javascript/worker">
+
+        startIndex = function() {
+            idx = lunr.Index.load(lunrIndex);
+            idx.pipeline.remove(lunr.stopWordFilter);
+            postMessage({type: "setup-complete"});
+        }
+
+        onmessage = function (event) {
+            var message = event.data;
+
+            if ((message.type === 'setup') && message.baseUrl) {
+                var url = message.baseUrl;
+                importScripts(url + 'js/lunr.js');
+                importScripts(url + 'js/lunr-extras.js');
+                importScripts(url + 'js/lunr-index.js');
+                importScripts(url + 'js/lunr-data.js');
+                startIndex();
+            }
+
+            if (idx && (message.type === 'search-request') && message.query) {
+                var searchWord = message.query;
+                var results = idx.search(searchWord).map(function (result) {
+                    return lunrData.filter(function (d) {
+                        return d.id === parseInt(result.ref, 10)
+                    })[0]
+                });
+                postMessage({type: 'search-results', results: results, query: searchWord, queryId: message.queryId});
+            }
+        }
+
+    </script>
+    </head>
+
+<body pageid="85921598">
+
+<div id="ht-loader">
+    <noscript>
+        <p style="width: 100%; text-align:center; position: absolute; margin-top: 200px;">This content cannot be displayed without JavaScript.<br>Please enable JavaScript and reload the page.</p>
+    </noscript>
+</div>
+
+<div>
+   	<header id="ht-headerbar">
+    <div class="ht-headerbar-left">
+        <a href="" id="ht-menu-toggle" class="sp-aui-icon-small sp-aui-iconfont-appswitcher"></a>
+    </div>
+    <div class="ht-headerbar-right">
+            <div class="sp-aui-icon-small ht-search-index-loader ht-header-icon"></div>
+
+        <div id="ht-search">
+            <div class="ht-search-input" style="display: none;">
+              	<a href="#" class="sp-aui-icon-small sp-aui-iconfont-remove ht-search-clear"></a>
+
+                <form action="#" method="GET" id="search">
+                    <input class="search-input" type="text" placeholder="Search" tabindex="-1" autocomplete="off" name="q" value="">
+                    <input type="hidden" name="max" value="15" />
+                    <input type="submit" style="display:none" tabindex="-4"/>
+                </form>
+
+                <a href="#" id="ht-search-button" class="ht-header-icon ht-header-icon-svg">
+                                        <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g>
+                            <path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></path>
+                        </g>
+                    </svg>
+              	</a>
+
+                <div class="ht-search-dropdown ht-dropdown">
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </header>   	<aside id="ht-sidebar">
+    <div class="ht-sidebar-content">
+        <div class="ht-sidebar-content-scroll-container">
+            <header class="ht-sidebar-header">
+                <h1 class="ht-logo">
+                    <span class="ht-logo-label">EJBCADS</span>
+                    <img class="space-logo" src="EJBCADS.png" />
+                </h1>
+                <a href="EJBCA_6.15.2.6_Documentation.html" class="ht-space-link">
+                    <h2>EJBCA - Documentation Space</h2>
+                </a>
+            </header>
+                            <iframe id="ht-nav" src="toc.html?pageId=23856318"></iframe>
+                <script>
+                    $('iframe#ht-nav').iFrameResize(
+                            { 'log': true, 'autoResize': true, 'heightCalculationMethod': 'lowestElement', 'checkOrigin': false });
+                </script>
+                    </div>
+    </div>
+
+</aside></div>
+
+<div id="ht-wrap-container">
+
+            
+    <div id="ht-sidebar-dragbar">
+    <div class="ht-sidebar-drag-handle">
+        <span class="drag-handle-1"></span>
+        <span class="drag-handle-2"></span>
+        <span class="drag-handle-3"></span>
+    </div>
+</div>
+    <article id="ht-content" class="ht-content">
+        <header class="ht-content-header">
+            <div id="ht-breadcrumb">
+    <ul>
+        <li><a href="EJBCA_6.15.2.6_Documentation.html">EJBCA - Documentation Space</a></li>
+                                                                                                             <li><a href="" onclick="$('.shortcut').each(function(){$(this).removeClass('shortcut')}); $(this).parent().addClass('shortcut'); return false;">...</a> </li>
+                                        <li class="shortcut"><a href="EJBCA_Documentation.html">EJBCA Documentation</a></li>
+                                                                                                         <li class="shortcut"><a href="EJBCA_Operations.html">EJBCA Operations</a></li>
+                                                                                                         <li class="shortcut"><a href="EJBCA_Concept_Guide.html">EJBCA Concept Guide</a></li>
+                                                                                     <li><a href="Protocols.html">Protocols</a></li>
+                                                            </ul>
+</div>            <h1 id="src-23856318"> <span>OCSP</span></h1>
+        </header>
+
+        <div id="main-content" class="wiki-content sp-grid-section" data-index-for-search="true">
+
+    <div  class="confbox admonition admonition-info">
+                            <span class="admonition-icon confluence-information-macro-icon"></span>
+                <div class="admonition-body">
+<p   
+>This page describes general concepts of EJBCA's OCSP responder. For exact instructions of how to set it up, see <a   href="OCSP_Management.html">OCSP Management</a>.</p>
+        </div>
+    </div>
+<p   
+></p>
+<ul class="toc-indentation "><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-Introduction">Introduction</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-RevokedCACertificates">Revoked CA Certificates</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-ExpiredCertificates">Expired Certificates</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-SettingupanOCSPResponderonaRemoteVAStand-alone_OCSP_responder">Setting up an OCSP Responder on a Remote VA</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-MultipleRespondersandCACertificates">Multiple Responders and CA Certificates</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-CertificateChainConstruction">Certificate Chain Construction</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-OCSPResponseCertificateChain">OCSP Response Certificate Chain</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-AuditandAccountLogging">Audit and Account Logging</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-UsingtheOCSPAPI">Using the OCSP API</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-DatabaseIndexes">Database Indexes</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-OCSPGET">OCSP GET</a></p>
+</li><li class=" "><p   
+><a   href="#src-23856318_id-.OCSPv6.15.0-UsageExamples">Usage Examples</a></p>
+</li></ul><ul class="childpages-macro "><li class=" "><p   
+><a   href="Extensions.html">Extensions</a></p>
+<ul class="childpages-macro "><li class=" "><p   
+><a   href="CertificateHash.html">CertificateHash</a></p>
+</li><li class=" "><p   
+><a   href="Unid_FNR.html">Unid FNR</a></p>
+</li></ul></li></ul>    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-Introduction">
+        <h1 class="heading "><span>Introduction</span></h1>
+<p   
+>OCSP (Online Certificate Status Protocol) is used by PKI-clients to verify the validity of certificates in real-time. This is done by sending a request for the status of a specific certificate to an OCSP responder. The responder may or may not be the same as the CA. The OCSP responder sends a signed reply, containing the requested status information back to the client. The client uses this status information to determine whether the certificate is valid for use or revoked.</p>
+<p   
+>The OCSP servlet receives OCSP request over http(s) and sends back a status response signed by the CA.</p>
+<p   
+>The OCSP service receives requests on http://localhost:8080/ejbca/publicweb/status/ocsp. The servlet can process requests for certificates signed by a CA running in EJBCA, as long as the CAs OCSP service has not been deactivated.</p>
+<p   
+>For a CA to be valid as an OCSP-responder it must have the KeyUsage 'Digital Signature' in the certificate profile used to create the CA. This KeyUsage must be included if the CA is to sign OCSP-responses. The default certificate profiles for CAs includes the key usage 'Digital Signature'.</p>
+<p   
+>To generate an OCSP request using OpenSSL (works with both internal and external OCSP responders):</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">openssl ocsp -issuer Test-CA.pem -CAfile Test-CA-chain.pem -cert CertificateToCheck.pem -req_text -url http:</code><code class="plain">//localhost</code><code class="plain">:8080</code><code class="plain">/ejbca/publicweb/status/ocsp</code></div>
+</div>
+    </div>
+<p   
+>To issue GET requests for testing, the following methodology can be used (replace with your own data):</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">openssl ocsp -noverify -no_nonce -respout ocsp.resp -reqout ocsp.req -issuer ManagementCA.cacert.pem -cert ejbca-test2.primekey.se -url </code><code class="string">"http://ejbca-test2.primekey.se:8080/ejbca/publicweb/status/ocsp"</code><code class="plain"> -header </code><code class="string">"HOST"</code><code class="plain"> </code><code class="string">"ejbca-test2.primekey.se"</code><code class="plain"> -text</code></div>
+<div class="line"><code class="plain">openssl enc -</code><code class="keyword">in</code><code class="plain"> ocsp.req -out ocsp.req.b64 -a</code></div>
+<div class="line"><code class="plain">curl --verbose --url http:</code><code class="plain">//ejbca-test2</code><code class="plain">.primekey.se:8080</code><code class="plain">/ejbca/publicweb/status/ocsp/MEkwRzBFMEMwQTAJBgUrDgMCGgUABBT1x9iHOmegR7sYp5Fzdo/u3FMBRgQUH1DTnzl9lscAe3WBTUPCWR</code><code class="plain">+xwpQCCDlpiyU2q5Rb</code></div>
+</div>
+    </div>
+<p   
+>If Firefox is to request and accept OCSP-responses from a CA not in the default trust store, it must be configured to trust this CA:</p>
+<ol class=" "><li class=" "><p   
+>In <strong class=" ">Advanced &gt; Certificates &gt; View Certificates &gt; Authorities</strong>, import and select the CA certificate, and checking the appropriate Trust options.</p>
+</li><li class=" "><p   
+>If <strong class=" ">Query OCSP responder servers to confirm the current validity of certificates</strong> in <strong class=" ">Advanced &gt; Certificates</strong> is selected, and certificates include an OCSP Service URL (AIA extension), Firefox will query the OCSP server when for example double-clicking on a certificate in the certificate manager.</p>
+</li></ol><p   
+>An appropriate URL for validation is: <tt class=" ">http://hostname:8080/ejbca/publicweb/status/ocsp</tt> and doc/samples contains a sample on how to check revocation with OCSP using the new APIs as of JDK 1.5.</p>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-RevokedCACertificates">
+        <h1 class="heading "><span>Revoked CA Certificates</span></h1>
+<p   
+>When the first entry in the CA certificate chain matching an OCSP request is revoked with one of the reason codes &quot;keyCompromise&quot;, &quot;cACompromise&quot;, &quot;aACompromise&quot; or &quot;unspecified&quot;, the status of the requested certificate will be returned as revoked with reason &quot;cACompromise&quot;. This is in accordance with RFC6960, section 2.7.</p>
+<p   
+>This means that you can instantly block the use of leaf certificates by revoking the issuer of these certificates using for example the &quot;cACompromise&quot; reason code, even if the CA certificate is still considered valid according to a CRL at the client.</p>
+    <div  class="confbox admonition admonition-note">
+                            <span class="admonition-icon confluence-information-macro-icon"></span>
+                <div class="admonition-body">
+<p   
+>This also applies if you revoke a cross-signed CA certificate for one of these reasons or import such a CA revocation status update to you VAs. It is still recommended that you revoke the individual certificates, to ensure that they appear in fallback CRLs.</p>
+        </div>
+    </div>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-ExpiredCertificates">
+        <h1 class="heading "><span>Expired Certificates</span></h1>
+<p   
+>EJBCA keeps the status of expired certificates in the database, so the responder will answer queries also for expired certificates unless you remove them from the database. In the internal EJBCA database, the status of expired certificates is set to ARCHIVED in the database (CertificateData table) by the CRL creation job. The ARCHIVED status does not affect the response sent by the OCSP responder.</p>
+<p   
+>The algorithm is:</p>
+<ul class=" "><li class=" "><p   
+>If status is CERT_REVOKED, the certificate is revoked, and reason and date is picked up.</p>
+</li><li class=" "><p   
+>If status is CERT_ARCHIVED and reason is <i class=" ">NOT</i> REMOVEFROMCRL or NOT_REVOKED, the certificate is revoked, and reason and date is picked up.</p>
+</li><li class=" "><p   
+>If status is CERT_ARCHIVED and reason is REMOVEFROMCRL or NOT_REVOKED, the certificate is NOT revoked.</p>
+</li><li class=" "><p   
+>If status is neither CERT_REVOKED or CERT_ARCHIVED, the certificate is NOT revoked.</p>
+</li></ul><p   
+>The archive cutoff extension is used as defined in <a  class="external-link" href="http://www.ietf.org/rfc/rfc6960.txt">RFC 6960</a>.</p>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-SettingupanOCSPResponderonaRemoteVAStand-alone_OCSP_responder">
+        <h1 class="heading "><span id="src-23856318_id-.OCSPv6.15.0-Stand-alone_OCSP_responder" class="confluence-anchor-link"></span><span>Setting up an OCSP Responder on a Remote VA </span></h1>
+<p   
+>You can set up separated OCSP responders in EJBCA in order to isolate the CA from the Internet and still be able to answer OCSP requests. Additionally, you can set up firewalls so that only outgoing traffic is allowed from the CA, and nothing to the CA.</p>
+<p   
+>Separated OCSP responders is also good when you do not require high-performance clustering for the CA, but you do need high-performance for the OCSP responders. This is a common setup, if the CA only issues certificates once every year for one million users, this does not put much pressure on the CA, but the OCSP responders can be put under high load continuously.</p>
+<p   
+>For information on how to set up stand-alone, separated OCSP responders, see <a   href="OCSP_Management.html">OCSP Management</a>.</p>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-MultipleRespondersandCACertificates">
+        <h1 class="heading "><span>Multiple Responders and CA Certificates</span></h1>
+<p   
+>The OCSP responder can have many responder certificates, each issued by one CA and mapped by an OcspKeyBinding. This means that the responder can answer requests targeted at multiple CAs. There is no built-in limitation on the number of CAs that can be handled.</p>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-SelectionofOCSPSigningCertificatefromaRequest">
+        <h2 class="heading "><span>Selection of OCSP Signing Certificate from a Request</span></h2>
+<p   
+>In the OCSP request as defined in RFC 6960, the hash of both issuing CA's Subject DN and public key is available:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">CertID ::= SEQUENCE {</code></div>
+<div class="line"><code class="plain"> hashAlgorithm AlgorithmIdentifier,</code></div>
+<div class="line"><code class="plain"> issuerNameHash OCTET STRING, – Hash of issuer's DN</code></div>
+<div class="line"><code class="plain"> issuerKeyHash OCTET STRING, – Hash of issuer's </code><code class="keyword">public</code><code class="plain"> key</code></div>
+<div class="line"><code class="plain"> serialNumber CertificateSerialNumber }</code></div>
+</div>
+    </div>
+<p   
+>EJBCA selects OcspKeyBinding based on the subject DN and public key of the CA certificate that issued an OCSP signing certificate. The issuing CA certificate is determined from the OCSP certificate chain and the construction of the chain is described below.</p>
+    </div>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-CAKeyRenewalConsiderations">
+        <h2 class="heading "><span>CA Key Renewal Considerations</span></h2>
+<p   
+>EJBCA considers two X.509 CA certificates as the same CA if they share the same Subject DN and as different versions of the same CA if the public key is different. Since both subject and key pair is used in the request, you will need two OcspKeyBindings (one issued before key renewal and one after) to be able to serve OCSP requests where clients use CA certificate for both the old and new key pair in their requests.</p>
+    <div  class="confbox admonition admonition-note">
+                            <span class="admonition-icon confluence-information-macro-icon"></span>
+                <div class="admonition-body">
+<p   
+>EJBCA currently only allows you to issue an OCSP signing certificate from the latest version of the CA. Thus, before such a CA key renewal, you will need to issue OCSP signing certificates that will last for the life-time of the CA certificate.</p>
+        </div>
+    </div>
+    </div>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-CertificateChainConstruction">
+        <h1 class="heading "><span>Certificate Chain Construction</span></h1>
+<p   
+>EJBCA builds the chain for each OCSP signing certificate by looking for the latest CA certificate with a Subject DN equal to the Issuer DN of the OCSP signing certificate. Unless the found CA certificate is self-signed, the procedure is repeated until the full chain is built.</p>
+<p   
+>If the built chain is unable to verify the OCSP signing certificate (due to CA certificate key renewal), a different algorithm is used where EJBCA uses the internal CertificateData.cAFingerprint value to determine the exact certificate that has issued an OCSP signing certificate. Similar to the case where we build the chain using the Issuer DN of the OCSP signing certificate, the process is repeated until a full chain leading up to a self-signed CA is built.</p>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-OCSPResponseCertificateChain">
+        <h1 class="heading "><span>OCSP Response Certificate Chain</span></h1>
+<p   
+>For efficiency reasons, it is possible to configure EJBCA to either omit including the signing certificate or its certificate chain in the OCSP response. Setting the relevant configuration in the <tt class=" ">$EJBCA_HOME/conf/ocsp.properties</tt> file or in the Internal Key Binding in the GUI, has the following effect:</p>
+<ul class=" "><li class=" "><p   
+>If <tt class=" ">ocsp.includesignercert=true</tt> and <tt class=" ">ocsp.includecertchain=true</tt>, the signing certificate and its chain, except for the signing certificate root CA certificate, will be included in the OCSP response. If the signing certificate IS the root CA certificate, then the root CA certificate will be included in the response any way.</p>
+</li><li class=" "><p   
+>If <tt class=" ">ocsp.includesignercert=true</tt> and <tt class=" ">ocsp.includecertchain=false</tt>, only the signing certificate will be included in the OCSP response even if it was a root CA certificate.</p>
+</li><li class=" "><p   
+>If <tt class=" ">ocsp.includesignercert=false</tt>, neither the signing certificate nor the certificate chain will be included in the OCSP response regardless of the value of <tt class=" ">ocsp.includecertchain</tt></p>
+</li></ul>    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-AuditandAccountLogging">
+        <h1 class="heading "><span>Audit and Account Logging</span></h1>
+<p   
+>There are three types of logs that can be generated by the OCSP responder:</p>
+<ul class=" "><li class=" "><p   
+>OCSP service logs</p>
+</li><li class=" "><p   
+>OCSP transaction log</p>
+</li><li class=" "><p   
+>OCSP audit log</p>
+</li></ul>    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-OCSPServiceLogs">
+        <h2 class="heading "><span>OCSP Service Logs</span></h2>
+<p   
+>The OCSP <i class=" ">service logs</i> using Log4j to the JBoss server.log. The JBoss server log is located in JBOSS_HOME/server/default/log/server.log and the logging is configured in JBOSS_HOME/server/default/conf/jboss-log4j.xml.</p>
+    </div>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-TheOCSPTransactionLog">
+        <h2 class="heading "><span>The OCSP Transaction Log</span></h2>
+<p   
+>The OCSP <i class=" ">transaction log</i> can be used to log various information about ocsp-requests. Transaction logging logs summary lines for all OCSP request/responses, which can be used for charging clients if you are running a commercial OCSP service.</p>
+<p   
+>To turn on transaction logs logs, copy ocsp.properties.sample to ocsp.properties and change:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">#ocsp.trx-log = false</code></div>
+</div>
+    </div>
+<p   
+>to</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">ocsp.trx-log = true</code></div>
+</div>
+    </div>
+<p   
+>then uncomment the other lines below that starts with ocsp.trx-log. Change the ocsp.trx-log-log-date line if you want to change how the time recorded in logging should be output. The value should be on the same format as for javas DateFormat, information on valid configurations can be found <a  class="external-link" href="http://javatechniques.com/blog/dateformat-and-simpledateformat-examples/">here</a>.</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">ocsp.trx-log-log-date = yyyy-MM-dd:HH:mm:ss</code></div>
+</div>
+    </div>
+<p   
+>ocsp.trx-log-pattern is a pattern for use with ocsp.audit-order to replace constants with values during logging. For most purposes you will not need to change this string.</p>
+<p   
+>Use ocsp.trx-log-order to specify what information should be logged and in what order. You can also configure what characters you want in between. If you want your log to display all of the values available you only have to un-comment it.</p>
+<p   
+>Available values for the transaction log are:</p>
+    <div  class="tablewrap">
+        <table class="fixed-table wrapped confluenceTable">
+                    <colgroup>
+                                    <col  width="199"/>
+                                    <col  width="686"/>
+                            </colgroup>
+        <thead class=" ">    <tr>
+            <td  class="confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Transaction Log Value</p>
+            </td>
+                <td  class="confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Description</p>
+            </td>
+        </tr>
+</thead><tfoot class=" "></tfoot><tbody class=" ">    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>LOG_ID</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>An integer identifying that starts from 1 and is increased for every received request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>SESSION_ID</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>A random 32 Byte long String generated when the OCSP-responder is started.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>STATUS</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The status of the OCSP-Request.</p>
+<p   
+>SUCCESSFUL = 0;<br/>MALFORMED_REQUEST = 1;<br/>INTERNAL_ERROR = 2;<br/>TRY_LATER = 3;<br/>SIG_REQUIRED = 5;<br/>UNAUTHORIZED = 6;</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>CLIENT_IP</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>IP of the client making the request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>REQ_NAME</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The BC normalized Distinguished Name of the client making the request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>REQ_NAME_RAW</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The unnormalized Distinguished Name of the client making the request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>SIGN_ISSUER_NAME_DN</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The BC normalized issuer Distinguished Name of the certificate used to sign the request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>SIGN_SUBJECT_NAME</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The BC normalized Subject Distinguished Name of the certificate used to sign the request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>SIGN_SERIAL_NO</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Certificate serial number of the certificate used to sign the request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>NUM_CERT_ID</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The number of certificates to check revocation status for.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>ISSUER_NAME_DN</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The BC normalized issuer Distinguished Name of the requested certificate.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>ISSUER_NAME_DN_RAW</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The unnormalized issuer Distinguished Name of the requested certificate.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>ISSUER_NAME_HASH</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>SHA1 hash of the issuer DN.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>ISSUER_KEY</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The public key of the issuer of a requested certificate.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>DIGEST_ALGOR</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Algorithm used by requested certificate to hash issuer key and issuer name.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>SERIAL_NO</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Serial number of the a requested certificate.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>CERT_STATUS</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The requested certificate revocation status. 0=good, 1=revoked, 2=unknown.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>REV_REASON</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The requested certificate revocation reason, or -1, if not revoked. Set to 6 (certificateHold) when certificate is unknown, even if status returned is good.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>REPLY_TIME</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The time measured between when the request is received by the responder and when the response is sent. This time includes the time it takes to read the request bytes.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>PROCESS_TIME</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The time measured between when the request has been read by the responder and when the response is sent. This time starts after the request bytes have been read.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>CERT_PROFILE_ID</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The integer identifier of the certificate profile that was used to issue the requested certificate.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>FORWARDED_FOR</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The HTTP X-Forwarded-For header value.</p>
+            </td>
+        </tr>
+</tbody>        </table>
+            </div>
+    </div>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-TheOCSPAuditLog">
+        <h2 class="heading "><span>The OCSP Audit Log </span></h2>
+    <div  class="confbox admonition admonition-note">
+                            <span class="admonition-icon confluence-information-macro-icon"></span>
+                <div class="admonition-body">
+<p   
+>Do not confuse the OCSP Audit Log with the standard <a   href="EJBCA_Audit_Logging.html">EJBCA Audit Log</a>. OCSP operations are not logged in a standard PKI installation, but a specific audit log can be written to disk for OCSP in particular.</p>
+        </div>
+    </div>
+<p   
+>The OCSP <i class=" ">audit log</i> logs entire requests and responses. This can be useful when requests and responses are signed because the information can be used to verify requests and responses afterwards. Audit logging is configured in the same way as transaction logging. Valid values for audit logging are:</p>
+    <div  class="tablewrap">
+        <table class="fixed-table wrapped confluenceTable">
+                    <colgroup>
+                                    <col  width="188"/>
+                                    <col  width="686"/>
+                            </colgroup>
+        <thead class=" ">    <tr>
+            <td  class="confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Audit Log Value</p>
+            </td>
+                <td  class="confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Description</p>
+            </td>
+        </tr>
+</thead><tfoot class=" "></tfoot><tbody class=" ">    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>LOG_ID</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>An integer identifying that starts from 1 and is increased for every received request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>SESSION_ID</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>A random 32 Byte long String generated when the OCSP-responder is started.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>OCSPREQUEST</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The (hex encoded) byte[] ocsp-request that came with the http-request.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>OCSPRESPONSE</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The (hex encoded) byte[] ocsp-response that was included in the http-response.</p>
+            </td>
+        </tr>
+</tbody>        </table>
+            </div>
+<p   
+>Note that LOG_ID are of the same value in both trx log and audit log for any request. This means they can be cross referenced. You can retrieve information from the transaction log and verify that the information is valid by using the audit Log.</p>
+    </div>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-ConfiguringOutputFilesforOCSPLogging">
+        <h2 class="heading "><span>Configuring Output Files for OCSP Logging</span></h2>
+<p   
+>For JBoss you can configure logging in <i class=" ">JBOSS_HOME/standalone/configuration/standalone.xml</i> to put the transaction and audit logs in separate files:</p>
+    <div  class="confbox admonition admonition-note">
+                            <span class="admonition-icon confluence-information-macro-icon"></span>
+                <div class="admonition-body">
+<p   
+>If using JBoss EAP 6 and an application specific log4j configuration, set the property <strong class=" ">org.jboss.as.logging.per-deployment=true</strong> in <tt class=" ">standalone.xml</tt> or using the JBoss CLI.</p>
+        </div>
+    </div>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">&lt;</code><code class="keyword">periodic</code><code class="plain">-rotating-file-handler </code><code class="color1">name</code><code class="plain">=</code><code class="string">"OCSPTRANSACTION"</code><code class="plain"> </code><code class="color1">autoflush</code><code class="plain">=</code><code class="string">"true"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">formatter</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">        &lt;</code><code class="keyword">pattern</code><code class="plain">-formatter </code><code class="color1">pattern</code><code class="plain">=</code><code class="string">"%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;/</code><code class="keyword">formatter</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">file</code><code class="plain"> </code><code class="color1">relative-to</code><code class="plain">=</code><code class="string">"jboss.server.log.dir"</code><code class="plain"> </code><code class="color1">path</code><code class="plain">=</code><code class="string">"transactions.log"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">suffix</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">".yyyy-MM-dd"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">append</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"true"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">periodic</code><code class="plain">-rotating-file-handler&gt;</code></div>
+<div class="line"><code class="plain">&lt;</code><code class="keyword">periodic</code><code class="plain">-rotating-file-handler </code><code class="color1">name</code><code class="plain">=</code><code class="string">"OCSPAUDIT"</code><code class="plain"> </code><code class="color1">autoflush</code><code class="plain">=</code><code class="string">"true"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">formatter</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">        &lt;</code><code class="keyword">pattern</code><code class="plain">-formatter </code><code class="color1">pattern</code><code class="plain">=</code><code class="string">"%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;/</code><code class="keyword">formatter</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">file</code><code class="plain"> </code><code class="color1">relative-to</code><code class="plain">=</code><code class="string">"jboss.server.log.dir"</code><code class="plain"> </code><code class="color1">path</code><code class="plain">=</code><code class="string">"audit.log"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">suffix</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">".yyyy-MM-dd"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">append</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"true"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">periodic</code><code class="plain">-rotating-file-handler&gt;</code></div>
+<div class="line"><code class="plain">&lt;</code><code class="keyword">logger</code><code class="plain"> </code><code class="color1">category</code><code class="plain">=</code><code class="string">"org.cesecore.certificates.ocsp.logging.TransactionLogger"</code><code class="plain"> </code><code class="color1">use-parent-handlers</code><code class="plain">=</code><code class="string">"false"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">level</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"DEBUG"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">handlers</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">        &lt;</code><code class="keyword">handler</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"OCSPTRANSACTION"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;/</code><code class="keyword">handlers</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">logger</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">&lt;</code><code class="keyword">logger</code><code class="plain"> </code><code class="color1">category</code><code class="plain">=</code><code class="string">"org.cesecore.certificates.ocsp.logging.AuditLogger"</code><code class="plain"> </code><code class="color1">use-parent-handlers</code><code class="plain">=</code><code class="string">"false"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">level</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"DEBUG"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;</code><code class="keyword">handlers</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">        &lt;</code><code class="keyword">handler</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"OCSPAUDIT"</code><code class="plain">/&gt;</code></div>
+<div class="line"><code class="plain">    &lt;/</code><code class="keyword">handlers</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">logger</code><code class="plain">&gt; </code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-SaferLog4jLogging">
+        <h2 class="heading "><span>Safer Log4j Logging</span></h2>
+<p   
+>The default behavior when logging fails, such as when the destination disk is full or disconnected, is to continue responding as normal. If you prefer the responder not to send OCSP-responses when logging fails you can use the following configuration:</p>
+<ol class=" "><li class=" "><p   
+>From your EJBCA folder, run:<br/>ant jbosslog4jsafer</p>
+</li><li class=" "><p   
+>On JBoss 7 / EAP 6 build and deploy a new ejbca.ear that includes jbosslog4jsafer.jar with:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">ant ejbca.ear</code></div>
+<div class="line"><code class="plain">ant deployear</code></div>
+</div>
+    </div>
+</li><li class=" "><p   
+>Set 'ocsp.log-safer = true' in ocsp.properties (and enable ocsp.trx-log and ocsp.audit-log of course).</p>
+</li><li class=" "><p   
+>Modify your JBoss logging to use the SaferDailyRollingFileAppender and ProbableErrorHandler. For example:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">&lt;</code><code class="keyword">appender</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"OCSPTRANSACTION"</code><code class="plain"> </code><code class="color1">class</code><code class="plain">=</code><code class="string">"org.cesecore.util.log.SaferDailyRollingFileAppender"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">errorHandler</code><code class="plain"> </code><code class="color1">class</code><code class="plain">=</code><code class="string">"org.cesecore.util.log.ProbableErrorHandler"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"File"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"${jboss.server.log.dir}/transactions.log"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"Append"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"true"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	</code></div>
+<div class="line"><code class="plain">       &lt;!-- Rollover at midnight each day --&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"DatePattern"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"'.'yyyy-MM-dd"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">layout</code><code class="plain"> </code><code class="color1">class</code><code class="plain">=</code><code class="string">"org.apache.log4j.PatternLayout"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">        &lt;!-- The default pattern: Date Priority [Category] Message\n --&gt;</code></div>
+<div class="line"><code class="plain">		&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"ConversionPattern"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"%d %-5p [%c] %m%n"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;/</code><code class="keyword">layout</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">appender</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">&lt;</code><code class="keyword">appender</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"OCSPAUDIT"</code><code class="plain"> </code><code class="color1">class</code><code class="plain">=</code><code class="string">"org.cesecore.util.log.SaferDailyRollingFileAppender"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">errorHandler</code><code class="plain"> </code><code class="color1">class</code><code class="plain">=</code><code class="string">"org.cesecore.util.log.ProbableErrorHandler"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"File"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"${jboss.server.log.dir}/audit.log"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"Append"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"true"</code><code class="plain"> /&gt;</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">    &lt;!-- Rollover at midnight each day --&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"DatePattern"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"'.'yyyy-MM-dd"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">layout</code><code class="plain"> </code><code class="color1">class</code><code class="plain">=</code><code class="string">"org.apache.log4j.PatternLayout"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">        &lt;!-- The default pattern: Date Priority [Category] Message\n --&gt;</code></div>
+<div class="line"><code class="plain">		&lt;</code><code class="keyword">param</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"ConversionPattern"</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"%d %-5p [%c] %m%n"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;/</code><code class="keyword">layout</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">appender</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">	</code></div>
+<div class="line"><code class="plain">&lt;</code><code class="keyword">logger</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"org.cesecore.certificates.ocsp.logging.TransactionLogger"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">level</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"DEBUG"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">appender</code><code class="plain">-ref </code><code class="color1">ref</code><code class="plain">=</code><code class="string">"OCSPTRANSACTION"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">logger</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">&lt;</code><code class="keyword">logger</code><code class="plain"> </code><code class="color1">name</code><code class="plain">=</code><code class="string">"org.cesecore.certificates.ocsp.logging.AuditLogger"</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">level</code><code class="plain"> </code><code class="color1">value</code><code class="plain">=</code><code class="string">"DEBUG"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">	&lt;</code><code class="keyword">appender</code><code class="plain">-ref </code><code class="color1">ref</code><code class="plain">=</code><code class="string">"OCSPAUDIT"</code><code class="plain"> /&gt;</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">logger</code><code class="plain">&gt; </code></div>
+</div>
+    </div>
+<p   
+>If you use category instead of logger Log4j will output warnings on startup.</p>
+</li><li class=" "><p   
+>Start JBoss and you are ready.</p>
+</li></ol>    </div>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-UsingtheOCSPAPI">
+        <h1 class="heading "><span>Using the OCSP API</span></h1>
+<p   
+>The learn the API, you can study the included source code. The client API is used in the class <tt class=" ">org.ejbca.core.protocol.ocsp.OCSPUnidClient</tt>. The <a   href="EJBCA_Client_Toolbox.html">EJBCA Client Toolbox</a> can serve as a good sample for using the API, in the class <tt class=" ">org.ejbca.ui.cli.Ocsp</tt>.</p>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-DatabaseIndexes">
+        <h1 class="heading subsection"><span>Database Indexes</span></h1>
+<p  class="subsection" 
+>As your OCSP database grows with revoked, and active, certificates you will need database indexes to maintain good performance. See the file doc/sql-scripts/create-index-ejbca.sql (section for certificate data) for indexes needed for CA and OCSP operations.</p>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-OCSPGET">
+        <h1 class="heading "><span>OCSP GET</span></h1>
+<p   
+>The GET OCSP request is defined in <a  class="external-link" href="http://www.ietf.org/rfc/rfc6960.txt">RFC 6960</a> (and RFC2560) A.1 as:</p>
+<p   
+><tt class=" ">'GET {url}/{url-encoding of base-64 encoding of the DER encoding of the OCSPRequest}'</tt>.</p>
+<p   
+>A base64-encoded request can contain the reserved characters '+', '/' and '=', but will be handled correctly both in their %-escaped and original form by the responder, since it's unclear if they do conflict as defined in <a  class="external-link" href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a> 2.2.</p>
+<p   
+>Not all web-product handles the encoded '/' (%2F) nicely. JBoss/Tomcat has to be started with <tt class=" ">-Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true</tt> added to JAVA_OPT in JBOSS_HOME/bin/run.conf. On Glassfish this JVM option is configured under Application Server Settings.</p>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-Responseswithlongervalidityandcaching">
+        <h2 class="heading "><span>Responses with longer validity and caching</span></h2>
+<p   
+><a  class="external-link" href="http://www.ietf.org/rfc/rfc6960.txt">RFC 6960</a> (and RFC2560) defines thisUpdate, nextUpdate and producedAt. producedAt is always included in the response and is the time the response was created. thisUpdate and nextUpdate is enabled by configuring 'ocsp.untilNextUpdate' in ocsp.properties or in the OcspKeyBinding. thisUpdate will be the time a singleResponse is embedded in the main response and nextUpdate will be 'untilNextUpdate' seconds later than thisUpdate. This enables clients that supports this feature to re-use a valid response and decrease to load on the OCSP-responder.</p>
+<p   
+><a  class="external-link" href="http://www.ietf.org/rfc/rfc5019.txt">RFC 5019</a> defines how to use HTTP cache headers as defined in <a  class="external-link" href="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616</a> for OCSP HTTP GET requests. By using the headers Last-Modified, Expires, max-age and Date, less intelligent nextwork component like HTTP caches can cache respones. This enables re-use of responses to decrease the load on the OCSP-responder and can shorten reponse times by deploying caches closer to the actual OCSP consumers. HTTP cache headers is enabled by configuring configuring 'ocsp.maxAge' in ocsp.properties or in the OcspKeyBinding.</p>
+<p   
+>When using RFC 5019 style HTTP headers, JBoss users should be aware that the Date header is overwritten with a cached value. Since generating the Date-string is computationally heavy for regular small GET requests, it is generated about once per second. So a response will have a Last-Modified that is one second in the future from Date from time to time.</p>
+<p   
+>A regular Apache HTTP server can be used for caching requests, load-balancing and dropping some unwanted requests:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">&lt;</code><code class="keyword">VirtualHost</code><code class="plain"> *:80&gt;</code></div>
+<div class="line"><code class="plain">        # Use as much memory as possible for the cache (in 1 kB blocks)</code></div>
+<div class="line"><code class="plain">        # 1GB of memory at ~2kB/ocsp request would hold about 500000 different requests</code></div>
+<div class="line"><code class="plain">        CacheEnable mem /</code></div>
+<div class="line"><code class="plain">        MCacheSize 1048576</code></div>
+<div class="line"><code class="plain">        MCacheMaxObjectCount 1000000</code></div>
+<div class="line"><code class="plain">        MCacheMinObjectSize 1</code></div>
+<div class="line"><code class="plain">        MCacheMaxObjectSize 4096</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">        # Using disk-cache will allow a much larger pool of cached entires and the operation system</code></div>
+<div class="line"><code class="plain">        # will cache those files, but you are responsible for cleaning up old cache-entries using</code></div>
+<div class="line"><code class="plain">        # the "htcacheclean" tool. A disk cache will also live through a server restart.</code></div>
+<div class="line"><code class="plain">        # The user running apache has to have read/write access to "/var/cache/ocsp".</code></div>
+<div class="line"><code class="plain">        #CacheEnable disk /</code></div>
+<div class="line"><code class="plain">        #CacheRoot /var/cache/ocsp</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">        # Ignore requests for uncached responses.. this will protect the OCSP from</code></div>
+<div class="line"><code class="plain">        # DOS attacks using "Cache-Control: no-cache" or "Pragma: no-cache"</code></div>
+<div class="line"><code class="plain">        CacheIgnoreCacheControl On</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">        ProxyRequests Off</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">        &lt;</code><code class="keyword">Location</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">                # Everybody is welcome here..</code></div>
+<div class="line"><code class="plain">                Allow from all</code></div>
+<div class="line"><code class="plain">                Order allow,deny</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">                # ..or just those from networks that is supposed to use the service</code></div>
+<div class="line"><code class="plain">                #Deny from all</code></div>
+<div class="line"><code class="plain">                #Order deny,allow</code></div>
+<div class="line"><code class="plain">                #allow from 127.</code></div>
+<div class="line"><code class="plain">                #allow from 172.16.212.1</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">                ProxyPassReverse </code><code class="comments">balancer://mycluster-kerb/</code></div>
+<div class="line"><code class="plain">        &lt;/</code><code class="keyword">Location</code><code class="plain">&gt;</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">        # Proxy requests to OCSP instances (only one machine currently configured)</code></div>
+<div class="line"><code class="plain">        &lt;</code><code class="keyword">Proxy</code><code class="plain"> </code><code class="comments">balancer://mycluster-kerb</code><code class="plain">&gt;</code></div>
+<div class="line"><code class="plain">                # proxy_ajp has to be enabled for ajp-proxying</code></div>
+<div class="line"><code class="plain">                BalancerMember </code><code class="comments">ajp://127.0.0.1:8009/ejbca/publicweb/status/ocsp</code></div>
+<div class="line"><code class="plain">                # proxy_http has to be enabled for http-proxying</code></div>
+<div class="line"><code class="plain">                #BalancerMember </code><code class="comments">http://ocsp2.domain.org:8080/ejbca/publicweb/status/ocsp</code></div>
+<div class="line"><code class="plain">                #BalancerMember </code><code class="comments">http://ocsp3.domain.org:8080/ejbca/publicweb/status/ocsp</code></div>
+<div class="line"><code class="plain">        &lt;/</code><code class="keyword">Proxy</code><code class="plain">&gt;</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">        # We only want RFC 5019 compliant URLs to be forwarded to the OCSP, the rest</code></div>
+<div class="line"><code class="plain">        # should get a "404 Not found" or "414 Request-URI Too Large."</code></div>
+<div class="line"><code class="plain">        LimitRequestLine 257</code></div>
+<div class="line"><code class="plain">        RewriteEngine On</code></div>
+<div class="line"><code class="plain">        RewriteCond %{REQUEST_METHOD} get [NC]</code></div>
+<div class="line"><code class="plain">        RewriteRule ^/([a-zA-Z0-9+=/]+)$ </code><code class="comments">balancer://mycluster-kerb/</code><code class="plain">$1 [P,L]</code></div>
+<div class="line"> </div>
+<div class="line"><code class="plain">        # Possible values include: debug, info, notice, warn, error, crit,</code></div>
+<div class="line"><code class="plain">        # alert, emerg.</code></div>
+<div class="line"><code class="plain">        LogLevel debug</code></div>
+<div class="line"><code class="plain">        CustomLog /var/log/apache2/access.log combined</code></div>
+<div class="line"><code class="plain">        ErrorLog /var/log/apache2/error.log</code></div>
+<div class="line"><code class="plain">&lt;/</code><code class="keyword">VirtualHost</code><code class="plain">&gt;</code></div>
+</div>
+    </div>
+    </div>
+    </div>
+    <div class="section section-1" id="src-23856318_id-.OCSPv6.15.0-UsageExamples">
+        <h1 class="heading "><span>Usage Examples </span></h1>
+    <div class="section section-2" id="src-23856318_id-.OCSPv6.15.0-AdobeReaderAdobe_Reader">
+        <h2 class="heading "><span id="src-23856318_id-.OCSPv6.15.0-Adobe_Reader" class="confluence-anchor-link"></span><span>Adobe Reader </span></h2>
+<p   
+>A good example of using OCSP is to check digitally signed PDF documents using Adobe Reader.</p>
+<p   
+>To verify certificates in Adobe Reader, you must first add the CA certificate as trusted in Adobe Reader. You can do that in the menu<strong class=" "> Document &gt; Trusted Identities</strong>. Choose Certificates in the list menu and click <strong class=" ">Add contacts</strong> to browse to the CA-certificate that you have downloaded in DER format (for example by choosing download to IE on the public EJBCA pages). The CA certificate must have been saved with a name ending with <strong class=" ">.cer</strong>. After adding the new contact, click <strong class=" ">Edit trust</strong> and check at least <strong class=" ">Signatures and as trusted root</strong> and <strong class=" ">Certified documents</strong>. Applies for both internal and external OCSP responders.</p>
+<p   
+>Certificates that have an <strong class=" ">OCSP service locator</strong> will be verified against the OCSP responder. You can configure this in the certificate profile used to issue certificates.</p>
+<p   
+>If you sign PDF documents with embedded OCSP responses, these responses must include a <strong class=" ">nextUpdate</strong> field, and the timestamp must be within the <strong class=" ">thisUpdate</strong> and <strong class=" ">nextUpdate</strong> period of the OCSP response.</p>
+<p   
+></p>
+    </div>
+    </div>
+        </div>
+
+    </article>
+
+
+            <nav id="ht-post-nav">
+                <a href="EST.html" class="ht-post-nav-prev">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-prev" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EST</span>
+        </a>
+                <a href="Extensions.html" class="ht-post-nav-next">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-next" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>Extensions</span>
+        </a>
+    </nav>    
+            
+    <footer id="ht-footer">
+    <a href="#" id="ht-jump-top" class="sp-aui-icon-small sp-aui-iconfont-arrows-up"></a>
+</footer></div>
+
+<div>
+    <div id="ht-mq-detect"></div>
+</div>
+
+    <script src="js/lunr.js"></script>
+    <script src="js/lunr-extras.js"></script>
+    <script src="assets/js/scroll-search.js"></script>
+
+</body>
+</html>
