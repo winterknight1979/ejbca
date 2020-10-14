@@ -39,26 +39,42 @@ public class AccessTreeUpdateData extends ProtectedData
 
   private static final long serialVersionUID = 778158550351189295L;
 
+  /** Data. */
   public static final Integer AUTHORIZATIONTREEUPDATEDATA = Integer.valueOf(1);
+  /** Marker. */
   public static final Integer NEW_AUTHORIZATION_PATTERN_MARKER =
-      Integer.valueOf(2);
+          Integer.valueOf(2);
+  /** Default. */
   public static final int DEFAULTACCESSTREEUPDATENUMBER = 0;
 
+  /** Key. */
   private Integer primaryKey;
+  /** Number. */
   private int accessTreeUpdateNumber;
+  /** Version. */
   private int rowVersion = 0;
+  /** Protction. */
   private String rowProtection;
 
+  /**
+   * Constructor.
+   */
   public AccessTreeUpdateData() {
     setPrimaryKey(AUTHORIZATIONTREEUPDATEDATA);
     setAccessTreeUpdateNumber(DEFAULTACCESSTREEUPDATENUMBER);
   }
 
+  /**
+   * @return key
+   */
   // @Id @Column
   public Integer getPrimaryKey() {
     return primaryKey;
   }
 
+  /**
+   * @param primKey Key
+   */
   public final void setPrimaryKey(final Integer primKey) {
     this.primaryKey = primKey;
   }
@@ -74,17 +90,26 @@ public class AccessTreeUpdateData extends ProtectedData
     return accessTreeUpdateNumber;
   }
 
-  public void setAccessTreeUpdateNumber(final int accessTreeUpdateNumber) {
-    this.accessTreeUpdateNumber = accessTreeUpdateNumber;
+  /**
+   * @param anAccessTreeUpdateNumber No
+   */
+  public void setAccessTreeUpdateNumber(final int anAccessTreeUpdateNumber) {
+    this.accessTreeUpdateNumber = anAccessTreeUpdateNumber;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion Version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -94,8 +119,8 @@ public class AccessTreeUpdateData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   //

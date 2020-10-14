@@ -51,50 +51,80 @@ public class AuditRecordData extends ProtectedData
 
   private static final long serialVersionUID = 3998646190932834045L;
 
+  /** Key. */
   private String pk;
+  /** ID. */
   private String nodeId;
+  /** Sequence. */
   private Long sequenceNumber;
+  /** Time. */
   private Long timeStamp;
+  /** Type. */
   private String eventType;
+  /** Status. */
   private String eventStatus;
+  /** Auth. */
   private String authToken;
+  /** Service. */
   private String service;
+  /** Mod. */
   private String module;
+  /**ID. */
   private String customId;
+  /** Search. */
   private String searchDetail1;
+  /** Search. */
   private String searchDetail2;
+  /** Details. */
   private String additionalDetails;
+  /** Version. */
   private int rowVersion = 0;
+  /** Protection. */
   private String rowProtection;
 
-  public AuditRecordData() {}
+  /** Null constructor. */
+  public AuditRecordData() { }
 
+  /**   *
+   * @param aNodeId ID
+   * @param aSequenceNumber SN
+   * @param aTimeStamp TS
+   * @param anEventType Type
+   * @param anEventStatus Status
+   * @param anAuthToken Token
+   * @param aService Service
+   * @param aModule Mod
+   * @param aCustomId ID
+   * @param theSearchDetail1 Search
+   * @param theSearchDetail2 Search
+   * @param theAdditionalDetails Details
+   */
   public AuditRecordData(
-      final String nodeId,
-      final Long sequenceNumber,
-      final Long timeStamp,
-      final EventType eventType,
-      final EventStatus eventStatus,
-      final String authToken,
-      final ServiceType service,
-      final ModuleType module,
-      final String customId,
-      final String searchDetail1,
-      final String searchDetail2,
-      final Map<String, Object> additionalDetails) {
+      final String aNodeId,
+      final Long aSequenceNumber,
+      final Long aTimeStamp,
+      final EventType anEventType,
+      final EventStatus anEventStatus,
+      final String anAuthToken,
+      final ServiceType aService,
+      final ModuleType aModule,
+      final String aCustomId,
+      final String theSearchDetail1,
+      final String theSearchDetail2,
+      final Map<String, Object> theAdditionalDetails) {
     this.pk = GUIDGenerator.generateGUID(this);
-    this.nodeId = nodeId;
-    this.sequenceNumber = sequenceNumber;
-    this.timeStamp = timeStamp;
-    this.eventType = eventType.toString();
-    this.eventStatus = eventStatus.toString();
-    this.authToken = authToken;
-    this.service = service.toString();
-    this.module = module.toString();
-    this.customId = customId;
-    this.searchDetail1 = searchDetail1;
-    this.searchDetail2 = searchDetail2;
-    setMapAdditionalDetails(additionalDetails);
+    this.nodeId = aNodeId;
+    this.sequenceNumber = aSequenceNumber;
+    this.timeStamp = aTimeStamp;
+    this.eventType = anEventType.toString();
+    this.eventStatus = anEventStatus.toString();
+    this.authToken = anAuthToken;
+    this.service = aService.toString();
+    this.module = aModule.toString();
+    this.customId = aCustomId;
+    this.searchDetail1 = theSearchDetail1;
+    this.searchDetail2 = theSearchDetail2;
+    setMapAdditionalDetails(theAdditionalDetails);
   }
 
   /** @return the primary key */
@@ -102,9 +132,9 @@ public class AuditRecordData extends ProtectedData
     return pk;
   }
 
-  /** @param pk is the primary key */
-  public void setPk(final String pk) {
-    this.pk = pk;
+  /** @param apk is the primary key */
+  public void setPk(final String apk) {
+    this.pk = apk;
   }
 
   @Override
@@ -112,9 +142,9 @@ public class AuditRecordData extends ProtectedData
     return nodeId;
   }
 
-  /** @param nodeId The node identifier that this log record comes from. */
-  public void setNodeId(final String nodeId) {
-    this.nodeId = nodeId;
+  /** @param aNodeId The node identifier that this log record comes from. */
+  public void setNodeId(final String aNodeId) {
+    this.nodeId = aNodeId;
   }
 
   @Override
@@ -122,9 +152,9 @@ public class AuditRecordData extends ProtectedData
     return sequenceNumber;
   }
 
-  /** @param sequenceNumber This log sequence number MUST be unique. */
-  public void setSequenceNumber(final Long sequenceNumber) {
-    this.sequenceNumber = sequenceNumber;
+  /** @param aSequenceNumber This log sequence number MUST be unique. */
+  public void setSequenceNumber(final Long aSequenceNumber) {
+    this.sequenceNumber = aSequenceNumber;
   }
 
   @Override
@@ -132,9 +162,9 @@ public class AuditRecordData extends ProtectedData
     return timeStamp;
   }
 
-  /** @param timeStamp Sets Timestamp to this value. */
-  public void setTimeStamp(final Long timeStamp) {
-    this.timeStamp = timeStamp;
+  /** @param aTimeStamp Sets Timestamp to this value. */
+  public void setTimeStamp(final Long aTimeStamp) {
+    this.timeStamp = aTimeStamp;
   }
 
   /** @return event type string. @see EventTypes */
@@ -145,10 +175,10 @@ public class AuditRecordData extends ProtectedData
   /**
    * Sets event type. @see EventTypes
    *
-   * @param eventType should match the enumeration names.
+   * @param anEventType should match the enumeration names.
    */
-  public void setEventType(final String eventType) {
-    this.eventType = eventType;
+  public void setEventType(final String anEventType) {
+    this.eventType = anEventType;
   }
 
   /** @return event status. @see EventStatusEnum */
@@ -165,10 +195,10 @@ public class AuditRecordData extends ProtectedData
   /**
    * Sets event type. @see EventStatusEnum
    *
-   * @param eventStatus should match the enumeration names.
+   * @param anEventStatus should match the enumeration names.
    */
-  public void setEventStatus(final String eventStatus) {
-    this.eventStatus = eventStatus;
+  public void setEventStatus(final String anEventStatus) {
+    this.eventStatus = anEventStatus;
   }
 
   @Override
@@ -177,13 +207,13 @@ public class AuditRecordData extends ProtectedData
   }
 
   /**
-   * Sets the user that triggered the creation of a log
+   * Sets the user that triggered the creation of a log.
    *
-   * @param authToken user id. Normally obtained by the following example:
+   * @param anAuthToken user id. Normally obtained by the following example:
    *     authenticationToken.toString()
    */
-  public void setAuthToken(final String authToken) {
-    this.authToken = authToken;
+  public void setAuthToken(final String anAuthToken) {
+    this.authToken = anAuthToken;
   }
 
   /**
@@ -198,10 +228,10 @@ public class AuditRecordData extends ProtectedData
   /**
    * Sets service type. @see ServiceTypes
    *
-   * @param service service
+   * @param aService service
    */
-  public void setService(final String service) {
-    this.service = service;
+  public void setService(final String aService) {
+    this.service = aService;
   }
 
   /**
@@ -216,10 +246,10 @@ public class AuditRecordData extends ProtectedData
   /**
    * Sets module type. @see ModuleTypes
    *
-   * @param module Module type.
+   * @param aModule Module type.
    */
-  public void setModule(final String module) {
-    this.module = module;
+  public void setModule(final String aModule) {
+    this.module = aModule;
   }
 
   @Override
@@ -227,8 +257,11 @@ public class AuditRecordData extends ProtectedData
     return customId;
   }
 
-  public void setCustomId(final String customId) {
-    this.customId = customId;
+  /**
+   * @param aCustomId ID
+   */
+  public void setCustomId(final String aCustomId) {
+    this.customId = aCustomId;
   }
 
   @Override
@@ -236,8 +269,11 @@ public class AuditRecordData extends ProtectedData
     return searchDetail1;
   }
 
-  public void setSearchDetail1(final String searchDetail1) {
-    this.searchDetail1 = searchDetail1;
+  /**
+   * @param aSearchDetail1 Search
+   */
+  public void setSearchDetail1(final String aSearchDetail1) {
+    this.searchDetail1 = aSearchDetail1;
   }
 
   @Override
@@ -245,10 +281,16 @@ public class AuditRecordData extends ProtectedData
     return searchDetail2;
   }
 
-  public void setSearchDetail2(final String searchDetail2) {
-    this.searchDetail2 = searchDetail2;
+  /**
+   * @param aSearchDetail2 Search
+   */
+  public void setSearchDetail2(final String aSearchDetail2) {
+    this.searchDetail2 = aSearchDetail2;
   }
 
+  /**
+   * @return RDN value
+   */
   @Transient
   public String getUnescapedRndValue() {
     String value = getAdditionalDetails();
@@ -267,19 +309,25 @@ public class AuditRecordData extends ProtectedData
   /**
    * Sets additional details in raw format.
    *
-   * @param additionalDetails details
+   * @param theAdditionalDetails details
    */
-  public void setAdditionalDetails(final String additionalDetails) {
-    this.additionalDetails = additionalDetails;
+  public void setAdditionalDetails(final String theAdditionalDetails) {
+    this.additionalDetails = theAdditionalDetails;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -289,8 +337,8 @@ public class AuditRecordData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   /** @return additional details. */
@@ -302,13 +350,13 @@ public class AuditRecordData extends ProtectedData
     return XmlSerializer.decode(getUnescapedRndValue());
   }
 
-  /** @param additionalDetails additional details. */
+  /** @param theAdditionalDetails additional details. */
   @Transient
   public void setMapAdditionalDetails(
-      final Map<String, Object> additionalDetails) {
+      final Map<String, Object> theAdditionalDetails) {
     // TODO: Decide on which implementation to use for serialization of the
     // additional details
-    setAdditionalDetails(XmlSerializer.encode(additionalDetails));
+    setAdditionalDetails(XmlSerializer.encode(theAdditionalDetails));
     // setAdditionalDetails(JsonSerializer.toJSON(additionalDetails));
   }
 

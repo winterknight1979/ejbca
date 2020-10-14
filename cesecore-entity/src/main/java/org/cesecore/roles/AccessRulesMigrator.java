@@ -33,10 +33,15 @@ import org.cesecore.authorization.rules.AccessRuleData;
 @SuppressWarnings("deprecation")
 public class AccessRulesMigrator {
 
-  private static final Logger log = Logger.getLogger(AccessRulesMigrator.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AccessRulesMigrator.class);
 
+  /** resources. */
   private final List<String> allKnownResourcesNormalized = new ArrayList<>();
 
+  /**   *
+   * @param allKnownResourcesInInstallation Rresources
+   */
   public AccessRulesMigrator(
       final Collection<String> allKnownResourcesInInstallation) {
     for (final String current : allKnownResourcesInInstallation) {
@@ -45,33 +50,49 @@ public class AccessRulesMigrator {
     }
   }
 
+  /**   *
+   * @param oldAccessRules rules
+   * @param roleNameForLogging name
+   * @return map
+   */
   public HashMap<String, Boolean> toNewAccessRules(
       final Collection<AccessRuleData> oldAccessRules,
       final String roleNameForLogging) {
     final HashMap<String, Boolean> ret = new HashMap<>();
     /*
-     * 1. AccessTreeState.STATE_DECLINE is always recursive and cannot be trumped by any subrule
-     * 2. AccessTreeState.STATE_ACCEPT_RECURSIVE can only be reverted by a subnode with AccessTreeState.STATE_DECLINE
-     * 3. Unknown leaf nodes are declined unless a previous node had AccessTreeState.STATE_ACCEPT_RECURSIVE
-     * 4. Only access rules configured in an AdminGroup are added to the AccessTree
+     * 1. AccessTreeState.STATE_DECLINE is always recursive and cannot
+     * be trumped by any subrule
+     * 2. AccessTreeState.STATE_ACCEPT_RECURSIVE can only be reverted
+     * by a subnode with AccessTreeState.STATE_DECLINE
+     * 3. Unknown leaf nodes are declined unless a previous node had
+     * AccessTreeState.STATE_ACCEPT_RECURSIVE
+     * 4. Only access rules configured in an AdminGroup are added
+     * to the AccessTree
      * 5. Application knows about all existing resource that can be configured
      *
      * Order of conversion below matters.
      *
      * Generic rules:
-     *  (From 1) Any /rulea/:decline          -> Remove all rules starting with /rulea/ and add /rulea/:deny to new rules
-     *  (From 2) Any /ruleb/:accept+recursive -> Remove all rules starting with /ruleb/ and add /ruleb/:allow to new rules
+     *  (From 1) Any /rulea/:decline          -> Remove all rules starting
+     *  with /rulea/ and add /rulea/:deny to new rules
+     *  (From 2) Any /ruleb/:accept+recursive -> Remove all rules starting
+     *  with /ruleb/ and add /ruleb/:allow to new rules
      *
      * Conversion of accept+nonRecursive:
      *  (From 3 and 5)
-     *   Any /rulec/:accept+nonRecursive where all currently existing sub-resource are also accepted
+     *   Any /rulec/:accept+nonRecursive where all currently existing
+     *   sub-resource are also accepted
      *     -> Add /rulec/:allow to new rules
-     *   Any /rulec/:accept+nonRecursive where not all currently existing sub-resource are accepted
-     *     -> Add /rulec/:allow to new rules and a /rulec/sub/:deny for each not accepted sub-resource
+     *   Any /rulec/:accept+nonRecursive where not all currently existing
+     *    sub-resource are accepted
+     *     -> Add /rulec/:allow to new rules and a /rulec/sub/:deny for each
+     *     not accepted sub-resource
      *
-     * (Note that this last step changes the behavior when new sub-resources are created if all existing ones where granted at upgrade time!)
+     * (Note that this last step changes the behavior when new sub-resources
+     * are created if all existing ones where granted at upgrade time!)
      *
-     * Complexity per role: <2*N^2+N+N*M ≃ N*M [N configured access rules in role, M total access rules in system]
+     * Complexity per role: <2*N^2+N+N*M ≃ N*M [N configured access rules in
+     *  role, M total access rules in system]
      */
     final Set<AccessRuleData> oldRules = new HashSet<>(oldAccessRules);
     // If there is entries with unknown, remove them first since they provide no
@@ -79,8 +100,8 @@ public class AccessRulesMigrator {
     for (final AccessRuleData accessRuleData : new ArrayList<>(oldRules)) {
       if (AccessTreeState.STATE_UNKNOWN.equals(accessRuleData.getTreeState())) {
         oldRules.remove(accessRuleData);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Ignoring STATE_UNKNOWN for resource '"
                   + AccessRulesHelper.normalizeResource(
                       accessRuleData.getAccessRuleName())
@@ -105,8 +126,8 @@ public class AccessRulesMigrator {
             ret.remove(resourceCurrent);
           }
         }
-        if (log.isDebugEnabled()) {
-          log.debug("Adding STATE_DENY for resource '" + resource + "'.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding STATE_DENY for resource '" + resource + "'.");
         }
         ret.put(resource, Role.STATE_DENY);
       }
@@ -129,8 +150,8 @@ public class AccessRulesMigrator {
             ret.remove(resourceCurrent);
           }
         }
-        if (log.isDebugEnabled()) {
-          log.debug("Adding STATE_ALLOW for resource '" + resource + "'.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding STATE_ALLOW for resource '" + resource + "'.");
         }
         ret.put(resource, Role.STATE_ALLOW);
       }
@@ -176,14 +197,14 @@ public class AccessRulesMigrator {
         }
       }
       if (denied.isEmpty()) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Adding STATE_ALLOW for resource '"
                   + acceptNonRecursiveRule
                   + "'.");
         }
         if (!granted.isEmpty()) {
-          log.debug(
+          LOG.debug(
               "Role '"
                   + roleNameForLogging
                   + "' will be been granted access to all future new sub"
@@ -193,23 +214,23 @@ public class AccessRulesMigrator {
         }
         ret.put(acceptNonRecursiveRule, Role.STATE_ALLOW);
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Adding STATE_ALLOW for resource '"
                   + acceptNonRecursiveRule
                   + "'.");
         }
         ret.put(acceptNonRecursiveRule, Role.STATE_ALLOW);
         for (final String deniedSubResource : denied) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 " and adding STATE_DENY for resource '"
                     + deniedSubResource
                     + "'.");
           }
           ret.put(deniedSubResource, Role.STATE_DENY);
         }
-        log.info(
+        LOG.info(
             "Role '"
                 + roleNameForLogging
                 + "' will be been granted access to all future new sub"

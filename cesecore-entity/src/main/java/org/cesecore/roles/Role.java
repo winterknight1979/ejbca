@@ -42,20 +42,29 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
 
   private static final long serialVersionUID = 1L;
 
+  /** Config. */
   public static final float LATEST_VERSION = 1;
+  /** Config. */
   public static final int ROLE_ID_UNASSIGNED = 0;
+  /** Config. */
   public static final Boolean STATE_ALLOW = Boolean.TRUE;
+  /** Config. */
   public static final Boolean STATE_DENY = Boolean.FALSE;
 
+  /** Config. */
   private static final String KEY_ACCESS_RULES = "accessRules";
+  /** Config. */
   private static final String KEY_ASSOCIATED_CSS = "associatedCss";
 
+  /** Param. */
   private int roleId;
+  /** Param. */
   private String roleName;
+  /** Param. */
   private String nameSpace;
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param role orig
    */
@@ -66,30 +75,45 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
     getAccessRules().putAll(role.getAccessRules());
   }
 
-  public Role(final String nameSpace, final String roleName) {
+  /**
+   * @param aNameSpace NS
+   * @param aRoleName Name
+   */
+  public Role(final String aNameSpace, final String aRoleName) {
     this.roleId = ROLE_ID_UNASSIGNED;
-    setNameSpace(nameSpace);
-    this.roleName = roleName;
+    setNameSpace(aNameSpace);
+    this.roleName = aRoleName;
   }
 
+  /**
+   * @param aNameSpace NS
+   * @param aRoleName Name
+   * @param accessRules Rules
+   */
   public Role(
-      final String nameSpace,
-      final String roleName,
+      final String aNameSpace,
+      final String aRoleName,
       final HashMap<String, Boolean> accessRules) {
     this.roleId = ROLE_ID_UNASSIGNED;
-    setNameSpace(nameSpace);
-    this.roleName = roleName;
+    setNameSpace(aNameSpace);
+    this.roleName = aRoleName;
     getAccessRules().putAll(accessRules);
   }
 
+  /**
+   * @param aNameSpace NS
+   * @param aRoleName Name
+   * @param resourcesAllowed Allowed
+   * @param resourcesDenied Denied
+   */
   public Role(
-      final String nameSpace,
-      final String roleName,
+      final String aNameSpace,
+      final String aRoleName,
       final List<String> resourcesAllowed,
       final List<String> resourcesDenied) {
     this.roleId = ROLE_ID_UNASSIGNED;
-    setNameSpace(nameSpace);
-    this.roleName = roleName;
+    setNameSpace(aNameSpace);
+    this.roleName = aRoleName;
     if (resourcesAllowed != null) {
       for (final String resource : resourcesAllowed) {
         getAccessRules()
@@ -108,52 +132,78 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
   }
 
   /**
-   * Constructor used during load from database
+   * Constructor used during load from database.
    *
-   * @param roleId ID
-   * @param nameSpace NS
-   * @param roleName Name
+   * @param aroleId ID
+   * @param anameSpace NS
+   * @param aroleName Name
    * @param dataMap data
    */
   public Role(
-      final int roleId,
-      final String nameSpace,
-      final String roleName,
+      final int aroleId,
+      final String anameSpace,
+      final String aroleName,
       final LinkedHashMap<Object, Object> dataMap) {
-    this.roleId = roleId;
-    setNameSpace(nameSpace);
-    this.roleName = roleName;
+    this.roleId = aroleId;
+    setNameSpace(anameSpace);
+    this.roleName = aroleName;
     loadData(dataMap);
   }
 
+  /**
+   * @return ID
+   */
   public int getRoleId() {
     return roleId;
   }
 
-  public void setRoleId(final int roleId) {
-    this.roleId = roleId;
+  /**
+   * @param aRoleId ID
+   */
+  public void setRoleId(final int aRoleId) {
+    this.roleId = aRoleId;
   }
 
+  /**
+   * @return NS
+   */
   public String getNameSpace() {
     return nameSpace;
   }
 
-  public void setNameSpace(final String nameSpace) {
-    this.nameSpace = StringUtils.isEmpty(nameSpace) ? "" : nameSpace.trim();
+  /**
+   * @param aNameSpace NS
+   */
+  public void setNameSpace(final String aNameSpace) {
+    this.nameSpace = StringUtils.isEmpty(aNameSpace) ? "" : aNameSpace.trim();
   }
 
+  /**
+   * @return name
+   */
   public String getRoleName() {
     return roleName;
   }
 
-  public void setRoleName(final String roleName) {
-    this.roleName = StringUtils.isEmpty(roleName) ? "" : roleName.trim();
+  /**
+   * @param aRoleName name
+   */
+  public void setRoleName(final String aRoleName) {
+    this.roleName = StringUtils.isEmpty(aRoleName) ? "" : aRoleName.trim();
   }
 
+  /**
+   * @return name
+   */
   public String getRoleNameFull() {
     return (nameSpace.isEmpty() ? "" : nameSpace + " ") + roleName;
   }
 
+  /**
+   * @param nameSpace NS
+   * @param roleName Name
+   * @return role
+   */
   public static String getRoleNameFullAsCacheName(
       final String nameSpace, final String roleName) {
     return (nameSpace == null || nameSpace.isEmpty() ? ";" : nameSpace + ";")
@@ -241,10 +291,16 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
     return true;
   }
 
-  public void setStyleId(final int Id) {
-    data.put(KEY_ASSOCIATED_CSS, Id);
+  /**
+   * @param anId ID
+   */
+  public void setStyleId(final int anId) {
+    data.put(KEY_ASSOCIATED_CSS, anId);
   }
 
+  /**
+   * @return ID
+   */
   public int getStyleId() {
     Integer ret = (Integer) data.get(KEY_ASSOCIATED_CSS);
     if (ret == null) {
@@ -284,7 +340,7 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
     return AccessRulesHelper.hasAccessToResource(getAccessRules(), resource);
   }
 
-  /** Normalize access rules tree (make sure rules always end with a '/') */
+  /** Normalize access rules tree (make sure rules always end with a '/'). */
   public void normalizeAccessRules() {
     AccessRulesHelper.normalizeResources(getAccessRules());
   }

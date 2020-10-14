@@ -41,97 +41,121 @@ import org.cesecore.dbprotection.ProtectionStringBuilder;
 public class AccessUserAspectData extends ProtectedData
     implements AccessUserAspect, Comparable<AccessUserAspectData> {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AccessUserAspectData.class);
 
   private static final long serialVersionUID = 2504191317243484124L;
+  /** Key. */
   private int primaryKey;
   // Kept for legacy reasons
+  /** Key. */
   private int legacyPrimaryKey;
+  /** Type. */
   private String tokenType;
+  /** ID. */
   private Integer caId;
+  /** Version. */
   private int rowVersion = 0;
+  /** Protect. */
   private String rowProtection;
+  /** Match. */
   private Integer matchWith;
+  /** Type. */
   private AccessMatchType matchType;
+  /** Value. */
   private String matchValue;
 
+  /**
+  * @param roleName role
+  * @param aCaId CA
+  * @param aMatchWith match
+  * @param aMatchType match
+  * @param aMatchValue match
+  */
   public AccessUserAspectData(
       final String roleName,
-      final int caId,
-      final AccessMatchValue matchWith,
-      final AccessMatchType matchType,
-      final String matchValue) {
+      final int aCaId,
+      final AccessMatchValue aMatchWith,
+      final AccessMatchType aMatchType,
+      final String aMatchValue) {
     this(
         roleName,
-        caId,
-        matchWith.getNumericValue(),
-        matchWith.getTokenType(),
-        matchType,
-        matchValue);
+        aCaId,
+        aMatchWith.getNumericValue(),
+        aMatchWith.getTokenType(),
+        aMatchType,
+        aMatchValue);
   }
 
   /**
-   * This constructor for internal use only
+   * This constructor for internal use only.
    *
    * @param roleName role
-   * @param caId CA
-   * @param matchWith match
-   * @param tokenType type
-   * @param matchType match
-   * @param matchValue match
+   * @param aCcaId CA
+   * @param aMatchWith match
+   * @param aTokenType type
+   * @param aMatchType match
+   * @param aMatchValue match
    */
   public AccessUserAspectData(
       final String roleName,
-      final int caId,
-      final int matchWith,
-      final String tokenType,
-      final AccessMatchType matchType,
-      final String matchValue) {
+      final int aCcaId,
+      final int aMatchWith,
+      final String aTokenType,
+      final AccessMatchType aMatchType,
+      final String aMatchValue) {
     if (roleName == null) {
       throw new InvalidParameterException(
           "Attempted to create an AccessUserAspectData with roleName == null");
     }
-    if (matchType == null) {
+    if (aMatchType == null) {
       throw new InvalidParameterException(
           "Attempted to create an AccessUserAspectData with matchType == null");
     } else {
-      this.matchType = matchType;
+      this.matchType = aMatchType;
     }
-    if (matchValue == null) {
+    if (aMatchValue == null) {
       throw new InvalidParameterException(
           "Attempted to create an AccessUserAspectData with matchValue =="
               + " null");
     } else {
-      this.matchValue = matchValue;
+      this.matchValue = aMatchValue;
     }
-    if (tokenType == null) {
+    if (aTokenType == null) {
       throw new InvalidParameterException(
           "Attempted to create an AccessUserAspectData with tokenType == null");
     } else {
-      this.tokenType = tokenType;
+      this.tokenType = aTokenType;
     }
 
-    this.matchWith = matchWith;
-    this.caId = caId;
+    this.matchWith = aMatchWith;
+    this.caId = aCcaId;
     this.primaryKey =
         generatePrimaryKey(
-            roleName, caId, matchWith, matchType, matchValue, tokenType);
+            roleName, aCcaId, aMatchWith, aMatchType, aMatchValue, aTokenType);
     this.legacyPrimaryKey =
-        generatePrimaryKeyOld(roleName, caId, matchWith, matchType, matchValue);
+        generatePrimaryKeyOld(
+                roleName, aCcaId, aMatchWith, aMatchType, aMatchValue);
   }
 
   /** Private to stop default instantiation. */
   @SuppressWarnings("unused")
-  private AccessUserAspectData() {}
+  private AccessUserAspectData() { }
 
+  /**
+   * @return PK
+   */
   // @Id @Column
   public int getPrimaryKey() {
     return primaryKey;
   }
 
-  public void setPrimaryKey(final int primaryKey) {
-    this.primaryKey = primaryKey;
+  /**
+   * @param aPrimaryKey PK
+   */
+  public void setPrimaryKey(final int aPrimaryKey) {
+    this.primaryKey = aPrimaryKey;
   }
 
   @Override
@@ -140,11 +164,11 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   @Override
-  public void setMatchWith(final Integer matchWith) {
-    if (matchWith == null) {
+  public void setMatchWith(final Integer aMatchWith) {
+    if (aMatchWith == null) {
       throw new InvalidParameterException("Invalid to set matchWith == null");
     }
-    this.matchWith = matchWith;
+    this.matchWith = aMatchWith;
   }
 
   @Override
@@ -156,19 +180,19 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   @Override
-  public void setMatchType(final Integer matchType) {
-    if (matchType == null) {
+  public void setMatchType(final Integer aMatchType) {
+    if (aMatchType == null) {
       throw new InvalidParameterException("Invalid to set matchType == null");
     }
-    this.matchType = AccessMatchType.matchFromDatabase(matchType);
+    this.matchType = AccessMatchType.matchFromDatabase(aMatchType);
   }
 
   @Override
-  public void setMatchTypeAsValue(final AccessMatchType matchType) {
-    if (matchType == null) {
+  public void setMatchTypeAsValue(final AccessMatchType aMatchType) {
+    if (aMatchType == null) {
       throw new InvalidParameterException("Invalid to set matchType == null");
     }
-    this.matchType = matchType;
+    this.matchType = aMatchType;
   }
 
   @Override
@@ -183,17 +207,17 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   @Override
-  public void setMatchValue(final String matchValue) {
-    if (matchValue == null) {
+  public void setMatchValue(final String aMatchValue) {
+    if (aMatchValue == null) {
       // We must allow null value in order to upgrade smoothly from very old
       // versions. See ECA-6343
       // We can log though, to say that there is something to clean out
-      log.info(
+      LOG.info(
           "Trying to set matchValue == null. Old records in the database with"
               + " matchType 2000-2004 and matchValue should be deleted during"
               + " post-upgrade but can be deleted manually as well.");
     }
-    this.matchValue = matchValue;
+    this.matchValue = aMatchValue;
   }
 
   @Override
@@ -202,27 +226,39 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   @Override
-  public void setCaId(final Integer caId) {
-    if (caId == null) {
+  public void setCaId(final Integer aCaId) {
+    if (aCaId == null) {
       throw new InvalidParameterException("Invalid to set caId == null");
     }
-    this.caId = caId;
+    this.caId = aCaId;
   }
 
+  /**
+   * @return version
+   */
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
+  /**
+   * @return protect
+   */
   public String getRowProtection() {
     return rowProtection;
   }
 
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  /**
+   * @param aRowProtection protect
+   */
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   @Override
@@ -231,8 +267,8 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   @Override
-  public void setTokenType(final String tokenType) {
-    this.tokenType = tokenType;
+  public void setTokenType(final String aTokenType) {
+    this.tokenType = aTokenType;
   }
 
   /**
@@ -291,9 +327,11 @@ public class AccessUserAspectData extends ProtectedData
           "Could not generate primary key for aspect with null token type.");
     }
     // Use 23 and 31 as seed and aggregate values, as they are coprime numbers.
+    final int seed = 23;
+    final int aggregate = 31;
     return hash(
-        23,
-        31,
+        seed,
+        aggregate,
         new int[] {
           roleNameHash,
           matchValueHash,
@@ -305,7 +343,7 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   /**
-   * Create a combined hash value, stolen from the Great Skeet
+   * Create a combined hash value, stolen from the Great Skeet.
    *
    * @param seedValue a start value
    * @param aggregateValue an aggregate value, should be coprime to seedValue
@@ -322,7 +360,7 @@ public class AccessUserAspectData extends ProtectedData
   }
 
   /**
-   * Method for creating a primary key
+   * Method for creating a primary key.
    *
    * @param roleName the name of the role that this value belongs to
    * @param caId the ID of the CA that issued the user

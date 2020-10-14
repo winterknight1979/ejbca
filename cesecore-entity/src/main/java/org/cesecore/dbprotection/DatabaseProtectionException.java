@@ -24,7 +24,7 @@ public class DatabaseProtectionException extends RuntimeException {
 
   private static final long serialVersionUID = -1L;
 
-  /* We don't want to send raw database entries outside the JVM. */
+  /** We don't want to send raw database entries outside the JVM. */
   private final transient ProtectedData entity;
 
   /**
@@ -32,17 +32,17 @@ public class DatabaseProtectionException extends RuntimeException {
    * read entity causing the error.
    *
    * @param msg msg
-   * @param entity Entitt
+   * @param anEntity Entitt
    */
   public DatabaseProtectionException(
-      final String msg, final ProtectedData entity) {
+      final String msg, final ProtectedData anEntity) {
     super(msg);
-    this.entity = entity;
+    this.entity = anEntity;
   }
 
   /**
    * Constructs an instance of exception with a simple details message and the
-   * underlying exception
+   * underlying exception.
    *
    * @param msg message
    * @param e cause
@@ -52,7 +52,7 @@ public class DatabaseProtectionException extends RuntimeException {
     this.entity = null;
   }
   /**
-   * Constructs an instance of exception with a simple details message
+   * Constructs an instance of exception with a simple details message.
    *
    * @param msg message
    */
@@ -62,7 +62,7 @@ public class DatabaseProtectionException extends RuntimeException {
   }
 
   /**
-   * Constructs an instance of exception wrapping the causing error
+   * Constructs an instance of exception wrapping the causing error.
    *
    * @param e cause
    */

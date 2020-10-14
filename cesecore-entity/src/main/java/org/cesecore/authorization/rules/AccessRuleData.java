@@ -41,98 +41,117 @@ public class AccessRuleData extends ProtectedData
 
   private static final long serialVersionUID = 8314055274021576487L;
 
+  /** PK. */
   private int primaryKey;
+  /** Name. */
   private String accessRuleName;
+  /** State. */
   private AccessRuleState internalState;
+  /** Bool. */
   private Boolean recursiveBool;
+  /** Int. */
   private Integer recursiveInt;
+  /** Version. */
   private int rowVersion = 0;
+  /** protect. */
   private String rowProtection;
 
   /** Default constructor private to prohibit default instantiation. */
   @SuppressWarnings("unused")
-  private AccessRuleData() {}
+  private AccessRuleData() { }
 
   /**
-   * Creates a new instance of AccessRule
+   * Creates a new instance of AccessRule.
    *
-   * @param primaryKey Primary key for this rule. Can be generated using the
+   * @param aPrimaryKey Primary key for this rule. Can be generated using the
    *     static method {@link AccessRuleData#generatePrimaryKey(String, String)}
-   * @param accessRuleName The rule that this AccessRule should represent.
-   * @param internalState The rule's state.
+   * @param anAccessRuleName The rule that this AccessRule should represent.
+   * @param anInternalState The rule's state.
    * @param isRecursive True if the rule is recursive.
    */
   public AccessRuleData(
-      final int primaryKey,
-      final String accessRuleName,
-      final AccessRuleState internalState,
+      final int aPrimaryKey,
+      final String anAccessRuleName,
+      final AccessRuleState anInternalState,
       final boolean isRecursive) {
-    if (accessRuleName == null) {
+    if (anAccessRuleName == null) {
       throw new InvalidParameterException(
           "Illegal to create an access rule with accessruleName == null");
-    } else if (internalState == null) {
+    } else if (anInternalState == null) {
       throw new InvalidParameterException(
           "Illegal to create an access rule with internalState == null");
     }
-    this.primaryKey = primaryKey;
-    this.accessRuleName = accessRuleName.trim();
-    this.internalState = internalState;
+    this.primaryKey = aPrimaryKey;
+    this.accessRuleName = anAccessRuleName.trim();
+    this.internalState = anInternalState;
     setRecursive(isRecursive);
   }
 
   /**
-   * Creates a new instance of AccessRule
+   * Creates a new instance of AccessRule.
    *
-   * @param roleName The name of the Role to which this rule belongs. Used to
+   * @param aRoleName The name of the Role to which this rule belongs. Used to
    *     generate primary key.
-   * @param accessRuleName The rule that this AccessRule should represent.
-   * @param internalState The rule's state.
+   * @param anAccessRuleName The rule that this AccessRule should represent.
+   * @param anInternalState The rule's state.
    * @param isRecursive True if the rule is recursive.
    */
   public AccessRuleData(
-      final String roleName,
-      final String accessRuleName,
-      final AccessRuleState internalState,
+      final String aRoleName,
+      final String anAccessRuleName,
+      final AccessRuleState anInternalState,
       final boolean isRecursive) {
-    if (roleName == null) {
+    if (aRoleName == null) {
       throw new InvalidParameterException(
           "Illegal to create an access rule with roleName == null");
     } else {
-      this.primaryKey = generatePrimaryKey(roleName, accessRuleName);
+      this.primaryKey = generatePrimaryKey(aRoleName, anAccessRuleName);
     }
-    if (accessRuleName == null) {
+    if (anAccessRuleName == null) {
       throw new InvalidParameterException(
           "Illegal to create an access rule with accessruleName == null");
     } else {
-      this.accessRuleName = accessRuleName.trim();
+      this.accessRuleName = anAccessRuleName.trim();
     }
-    if (internalState == null) {
+    if (anInternalState == null) {
       throw new InvalidParameterException(
           "Illegal to create an access rule with internalState == null");
     } else {
-      this.internalState = internalState;
+      this.internalState = anInternalState;
     }
     setRecursive(isRecursive);
   }
 
+  /**
+   * @return Name
+   */
   // @Column
   public String getAccessRuleName() {
     return accessRuleName;
   }
 
-  public void setAccessRuleName(final String accessRuleName) {
-    if (accessRuleName == null) {
+  /**
+   * @param anAccessRuleName Name
+   */
+  public void setAccessRuleName(final String anAccessRuleName) {
+    if (anAccessRuleName == null) {
       throw new InvalidParameterException(
           "Illegal to create an access rule with accessruleName == null");
     }
-    this.accessRuleName = accessRuleName.trim();
+    this.accessRuleName = anAccessRuleName.trim();
   }
 
+  /**
+   * @return state
+   */
   @Transient
   public AccessRuleState getInternalState() {
     return internalState;
   }
 
+  /**
+   * @param state state
+   */
   public void setInternalState(final AccessRuleState state) {
     if (state == null) {
       throw new InvalidParameterException(
@@ -144,16 +163,20 @@ public class AccessRuleData extends ProtectedData
     }
   }
 
-  /*
-   * Formerly known as PRIMKEY
+  /**
+   * Formerly known as PRIMKEY.
+ * @return PK
    */
   // @Id @Column
   public int getPrimaryKey() {
     return primaryKey;
   }
 
-  public void setPrimaryKey(final int primaryKey) {
-    this.primaryKey = primaryKey;
+  /**
+   * @param aPrimaryKey PK
+   */
+  public void setPrimaryKey(final int aPrimaryKey) {
+    this.primaryKey = aPrimaryKey;
   }
 
   /**
@@ -177,6 +200,9 @@ public class AccessRuleData extends ProtectedData
         "Could not retreive AccessRulesData.recursive from database.");
   }
 
+  /**
+   * @param recursive bool
+   */
   public final void setRecursive(final boolean recursive) {
     if (internalState == AccessRuleState.RULE_ACCEPT) {
       setRecursiveBool(Boolean.valueOf(recursive));
@@ -200,14 +226,14 @@ public class AccessRuleData extends ProtectedData
   /**
    * Use setIsRecursive(boolean) instead of this method!
    *
-   * @param recursiveBool boolean
+   * @param aRecursiveBool boolean
    */
-  public void setRecursiveBool(final Boolean recursiveBool) {
-    if (recursiveBool == null) {
+  public void setRecursiveBool(final Boolean aRecursiveBool) {
+    if (aRecursiveBool == null) {
       throw new InvalidParameterException(
           "Illegal to create an access rule with recursiveBool == null");
     }
-    this.recursiveBool = recursiveBool;
+    this.recursiveBool = aRecursiveBool;
   }
 
   /**
@@ -233,13 +259,19 @@ public class AccessRuleData extends ProtectedData
     this.recursiveInt = isRecursiveInt;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -249,22 +281,29 @@ public class AccessRuleData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
-  /*
+  /**
    * Formerly known as "RULE".
+   * @return rule
    */
   // @Column
   public int getState() {
     return internalState.getDatabaseValue();
   }
 
+  /**
+   * @param state State
+   */
   public void setState(final int state) {
     this.internalState = AccessRuleState.matchDatabaseValue(state);
   }
 
+  /**
+   * @return state
+   */
   @Transient
   public AccessTreeState getTreeState() {
     AccessTreeState result = AccessTreeState.STATE_UNKNOWN;

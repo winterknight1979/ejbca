@@ -44,13 +44,20 @@ public class CachedCryptoToken implements CryptoToken {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private final CryptoToken wrappedCryptoToken;
+  /** Param. */
   private Key cachedKey = null;
+  /** Param. */
   private PrivateKey cachedPrivateKey = null;
+  /** Param. */
   private String cachedSignProviderName = null;
 
-  public CachedCryptoToken(final CryptoToken wrappedCryptoToken) {
-    this.wrappedCryptoToken = wrappedCryptoToken;
+  /**
+   * @param awrappedCryptoToken token
+   */
+  public CachedCryptoToken(final CryptoToken awrappedCryptoToken) {
+    this.wrappedCryptoToken = awrappedCryptoToken;
   }
 
   @Override

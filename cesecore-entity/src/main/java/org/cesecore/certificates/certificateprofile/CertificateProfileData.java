@@ -44,57 +44,78 @@ public class CertificateProfileData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateProfileData.class); // NOPMD
 
+  /** Param. */
   private Integer id;
+  /** Param. */
   private String
       certificateProfileName; // NOPMD, this is what the database column is
                               // called.
+  /** Param. */
   private Serializable data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  /** Needed by JPA */
-  public CertificateProfileData() {}
+  /** Needed by JPA. */
+  public CertificateProfileData() { }
 
   /**
    * Entity holding data of a certificate profile.
    *
-   * @param id ID
+   * @param anId ID
    * @param profilename Name
    * @param profile Profile
    */
   public CertificateProfileData(
-      final Integer id,
+      final Integer anId,
       final String profilename,
       final CertificateProfile profile) {
-    setId(id);
+    setId(anId);
     setCertificateProfileName(profilename);
     setCertificateProfile(profile);
-    if (log.isDebugEnabled()) {
-      log.debug("Created certificateprofile " + profilename + ", " + id);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Created certificateprofile " + profilename + ", " + anId);
     }
   }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public Integer getId() {
     return id;
   }
 
-  public final void setId(final Integer id) {
-    this.id = id;
+  /**
+   * @param anId ID
+   */
+  public final void setId(final Integer anId) {
+    this.id = anId;
   }
 
+  /**
+   * @return Name
+   */
   // @Column
   public String getCertificateProfileName() {
     return certificateProfileName;
   }
 
-  public void setCertificateProfileName(final String certificateProfileName) {
-    this.certificateProfileName = certificateProfileName;
+  /**
+   * @param aCertificateProfileName Name
+   */
+  public void setCertificateProfileName(final String aCertificateProfileName) {
+    this.certificateProfileName = aCertificateProfileName;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public Serializable getDataUnsafe() {
     return data;
@@ -103,19 +124,25 @@ public class CertificateProfileData extends ProtectedData
   /**
    * DO NOT USE! Stick with setData(HashMap data) instead.
    *
-   * @param data data
+   * @param theData data
    */
-  public void setDataUnsafe(final Serializable data) {
-    this.data = data;
+  public void setDataUnsafe(final Serializable theData) {
+    this.data = theData;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -125,8 +152,8 @@ public class CertificateProfileData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   @Transient
@@ -139,8 +166,8 @@ public class CertificateProfileData extends ProtectedData
     }
   }
 
-  private final void setData(final LinkedHashMap<?, ?> data) {
-    setDataUnsafe(data);
+  private void setData(final LinkedHashMap<?, ?> theData) {
+    setDataUnsafe(theData);
   }
 
   /**
@@ -181,15 +208,15 @@ public class CertificateProfileData extends ProtectedData
     returnval =
         new CertificateProfile(
             CertificateProfileConstants.CERTPROFILE_NO_PROFILE);
-    final LinkedHashMap<?, ?> data = getData();
+    final LinkedHashMap<?, ?> thedata = getData();
     // If CertificateProfile-data is upgraded we want to save the new data, so
     // we must get the old version before loading the data
     // and perhaps upgrading
     final float oldversion =
-        ((Float) data.get(UpgradeableDataHashMap.VERSION)).floatValue();
+        ((Float) thedata.get(UpgradeableDataHashMap.VERSION)).floatValue();
     // Load the profile data, this will potentially upgrade the
     // CertificateProfile
-    returnval.loadData(data);
+    returnval.loadData(thedata);
     if (Float.compare(oldversion, returnval.getVersion()) != 0) {
       // Save new data versions differ
       setCertificateProfile(returnval);
@@ -247,19 +274,20 @@ public class CertificateProfileData extends ProtectedData
   @Transient
   @Override
   protected String getProtectString(final int version) {
+    final int cap = 2200;
     final ProtectionStringBuilder build =
         new ProtectionStringBuilder(
-            2200); // an almost empty profile gives ~2100 chars of protect
+            cap); // an almost empty profile gives ~2100 chars of protect
                    // string
     // What is important to protect here is the data that we define, id, name
     // and certificate profile data
     // rowVersion is automatically updated by JPA, so it's not important, it is
     // only used for optimistic locking
     build.append(getId()).append(getCertificateProfileName()).append(getData());
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       // Some profiling
-      if (build.length() > 2200) {
-        log.debug(
+      if (build.length() > cap) {
+        LOG.debug(
             "CertificateProfileData.getProtectString gives size: "
                 + build.length());
       }

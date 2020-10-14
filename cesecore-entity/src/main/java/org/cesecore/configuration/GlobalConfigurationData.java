@@ -48,7 +48,7 @@ import org.cesecore.util.CertTools;
 import org.cesecore.util.LookAheadObjectInputStream;
 
 /**
- * Entity Bean for database persisted configurations
+ * Entity Bean for database persisted configurations.
  *
  * @version $Id: GlobalConfigurationData.java 34415 2020-01-30 12:29:30Z aminkh
  *     $
@@ -59,8 +59,10 @@ public class GlobalConfigurationData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(GlobalConfigurationData.class);
+  /**Accepted classes. */
   private static final HashSet<Class<? extends Serializable>>
       ACCEPTED_SERIALIZATION_CLASSES_SET =
           new HashSet<>(
@@ -82,41 +84,54 @@ public class GlobalConfigurationData extends ProtectedData
                   RaCssInfo.class,
                   RaStyleInfo.class));
 
-  /** Unique ID defined by respective configuration object */
+  /** Unique ID defined by respective configuration object. */
   private String configurationId;
 
+  /** Param. */
   private byte[] data;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
    * Entity holding data of admin's configuration. Create by sending in the id
    * and string representation of global configuration
    *
-   * @param configurationId the unique id of global configuration.
-   * @param configuration is the serialized string representation of the global
+   * @param aConfigurationId the unique id of global configuration.
+   * @param aConfiguration is the serialized string representation of the global
    *     configuration.
    */
   public GlobalConfigurationData(
-      final String configurationId, final ConfigurationBase configuration) {
-    setConfigurationId(configurationId);
-    setConfiguration(configuration);
-    if (log.isDebugEnabled()) {
-      log.debug("Created configuration " + configurationId);
+      final String aConfigurationId, final ConfigurationBase aConfiguration) {
+    setConfigurationId(aConfigurationId);
+    setConfiguration(aConfiguration);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Created configuration " + aConfigurationId);
     }
   }
 
-  public GlobalConfigurationData() {}
+  /** Null constructor. */
+  public GlobalConfigurationData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public String getConfigurationId() {
     return configurationId;
   }
 
-  public void setConfigurationId(final String configurationId) {
-    this.configurationId = configurationId;
+  /**
+   * @param aConfigurationId ID
+   */
+  public void setConfigurationId(final String aConfigurationId) {
+    this.configurationId = aConfigurationId;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   // Gets the data on raw bytes from the database
   public byte[] getDataUnsafe() {
@@ -125,10 +140,10 @@ public class GlobalConfigurationData extends ProtectedData
   /**
    * DO NOT USE! Stick with setData(HashMap data) instead.
    *
-   * @param data data
+   * @param theData data
    */
-  public void setDataUnsafe(final byte[] data) {
-    this.data = data;
+  public void setDataUnsafe(final byte[] theData) {
+    this.data = theData;
   }
 
   /**
@@ -139,7 +154,7 @@ public class GlobalConfigurationData extends ProtectedData
    */
   @Transient
   public Serializable getObjectUnsafe() {
-    try (final LookAheadObjectInputStream laois =
+    try (LookAheadObjectInputStream laois =
         new LookAheadObjectInputStream(
             new ByteArrayInputStream(getDataUnsafe())); ) {
       laois.setEnabledMaxObjects(false);
@@ -147,30 +162,39 @@ public class GlobalConfigurationData extends ProtectedData
       laois.setEnabledSubclassing(true, "org.cesecore");
       return (Serializable) laois.readObject();
     } catch (IOException e) {
-      log.error("Failed to load Global Configuration as byte[].", e);
+      LOG.error("Failed to load Global Configuration as byte[].", e);
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException(e);
     }
     return null;
   }
 
-  public void setObjectUnsafe(final Serializable data) {
-    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final ObjectOutputStream oos = new ObjectOutputStream(baos); ) {
-      oos.writeObject(data);
+  /**
+   * @param theData Data
+   */
+  public void setObjectUnsafe(final Serializable theData) {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         ObjectOutputStream oos = new ObjectOutputStream(baos); ) {
+      oos.writeObject(theData);
       setDataUnsafe(baos.toByteArray());
     } catch (IOException e) {
-      log.warn("Failed to save Global Configuration as byte[].", e);
+      LOG.warn("Failed to save Global Configuration as byte[].", e);
     }
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -180,10 +204,13 @@ public class GlobalConfigurationData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
+  /**
+   * @return data
+   */
   @SuppressWarnings("rawtypes")
   @Transient
   public HashMap getData() {
@@ -196,8 +223,8 @@ public class GlobalConfigurationData extends ProtectedData
   }
 
   @SuppressWarnings("rawtypes")
-  private void setData(final HashMap data) {
-    setObjectUnsafe(data);
+  private void setData(final HashMap theData) {
+    setObjectUnsafe(theData);
   }
 
   /**

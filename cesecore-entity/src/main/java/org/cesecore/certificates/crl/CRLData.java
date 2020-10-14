@@ -43,17 +43,28 @@ public class CRLData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 5542295476157001912L;
 
-  private static final Logger log = Logger.getLogger(CRLData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CRLData.class);
 
+  /** param. */
   private int cRLNumber;
+  /** param. */
   private int deltaCRLIndicator;
+  /** param. */
   private String issuerDN;
+  /** param. */
   private String fingerprint;
+  /** param. */
   private String cAFingerprint;
+  /** param. */
   private long thisUpdate;
+  /** param. */
   private long nextUpdate;
+  /** param. */
   private String base64Crl;
+  /** param. */
   private int rowVersion = 0;
+  /** param. */
   private String rowProtection;
 
   /**
@@ -63,29 +74,29 @@ public class CRLData extends ProtectedData implements Serializable {
    *
    * @param incrl the (X509)CRL to be stored in the database.
    * @param number monotonically increasing CRL number
-   * @param issuerDN DN
-   * @param thisUpdate Date
-   * @param nextUpdate Date of next update
+   * @param anIssuerDN DN
+   * @param aThisUpdate Date
+   * @param aNextUpdate Date of next update
    * @param cafingerprint FP
-   * @param deltaCRLIndicator -1 for a normal CRL and 1 for a deltaCRL
+   * @param aDeltaCRLIndicator -1 for a normal CRL and 1 for a deltaCRL
    */
   public CRLData(
       final byte[] incrl,
       final int number,
-      final String issuerDN,
-      final Date thisUpdate,
-      final Date nextUpdate,
+      final String anIssuerDN,
+      final Date aThisUpdate,
+      final Date aNextUpdate,
       final String cafingerprint,
-      final int deltaCRLIndicator) {
+      final int aDeltaCRLIndicator) {
     String b64Crl = new String(Base64.encode(incrl));
     setBase64Crl(b64Crl);
     String fp = CertTools.getFingerprintAsString(incrl);
     setFingerprint(fp);
     // Make sure names are always looking the same
-    String issuer = CertTools.stringToBCDNString(issuerDN);
+    String issuer = CertTools.stringToBCDNString(anIssuerDN);
     setIssuerDN(issuer);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Creating crldata, fp="
               + fp
               + ", issuer="
@@ -93,112 +104,158 @@ public class CRLData extends ProtectedData implements Serializable {
               + ", crlNumber="
               + number
               + ", deltaCRLIndicator="
-              + deltaCRLIndicator);
+              + aDeltaCRLIndicator);
     }
     setCaFingerprint(cafingerprint);
     setCrlNumber(number);
-    setThisUpdate(thisUpdate);
-    setNextUpdate(nextUpdate);
-    setDeltaCRLIndicator(deltaCRLIndicator);
+    setThisUpdate(aThisUpdate);
+    setNextUpdate(aNextUpdate);
+    setDeltaCRLIndicator(aDeltaCRLIndicator);
   }
 
-  public CRLData() {}
+  /** Null constructor. */
+  public CRLData() { }
 
+  /**
+   * @return num
+   */
   // @Column
   public int getCrlNumber() {
     return cRLNumber;
   }
 
-  public void setCrlNumber(final int cRLNumber) {
-    this.cRLNumber = cRLNumber;
+  /**
+   * @param aCRLNumber Num
+   */
+  public void setCrlNumber(final int aCRLNumber) {
+    this.cRLNumber = aCRLNumber;
   }
 
+  /**
+   * @return delta
+   */
   // @Column
   public int getDeltaCRLIndicator() {
     return deltaCRLIndicator;
   }
 
-  public void setDeltaCRLIndicator(final int deltaCRLIndicator) {
-    this.deltaCRLIndicator = deltaCRLIndicator;
+  /**
+   * @param aDeltaCRLIndicator delta
+   */
+  public void setDeltaCRLIndicator(final int aDeltaCRLIndicator) {
+    this.deltaCRLIndicator = aDeltaCRLIndicator;
   }
 
+  /**
+   * @return DN
+   */
   // @Column
   public String getIssuerDN() {
     return issuerDN;
   }
 
   /**
-   * Use setIssuer instead
+   * Use setIssuer instead.
    *
-   * @param issuerDN DN
+   * @param anIssuerDN DN
    * @see #setIssuer(String)
    */
-  public void setIssuerDN(final String issuerDN) {
-    this.issuerDN = issuerDN;
+  public void setIssuerDN(final String anIssuerDN) {
+    this.issuerDN = anIssuerDN;
   }
 
+  /**
+   * @return FP
+   */
   // @Id @Column
   public String getFingerprint() {
     return fingerprint;
   }
 
-  public void setFingerprint(final String fingerprint) {
-    this.fingerprint = fingerprint;
+  /**
+   * @param aFingerprint FP
+   */
+  public void setFingerprint(final String aFingerprint) {
+    this.fingerprint = aFingerprint;
   }
 
+  /**
+   * @return FP
+   */
   // @Column
   public String getCaFingerprint() {
     return cAFingerprint;
   }
 
-  public void setCaFingerprint(final String cAFingerprint) {
-    this.cAFingerprint = cAFingerprint;
+  /**
+   * @param aCAFingerprint FP
+   */
+  public void setCaFingerprint(final String aCAFingerprint) {
+    this.cAFingerprint = aCAFingerprint;
   }
 
+  /**
+   * @return dtae
+   */
   // @Column
   public long getThisUpdate() {
     return thisUpdate;
   }
 
   /**
-   * Date formated as seconds since 1970 (== Date.getTime())
+   * Date formated as seconds since 1970 (== Date.getTime()).
    *
-   * @param thisUpdate Date
+   * @param aThisUpdate Date
    */
-  public void setThisUpdate(final long thisUpdate) {
-    this.thisUpdate = thisUpdate;
+  public void setThisUpdate(final long aThisUpdate) {
+    this.thisUpdate = aThisUpdate;
   }
 
+  /**
+   * @return date
+   */
   // @Column
   public long getNextUpdate() {
     return nextUpdate;
   }
 
   /**
-   * Date formated as seconds since 1970 (== Date.getTime())
+   * Date formated as seconds since 1970 (== Date.getTime()).
    *
-   * @param nextUpdate date
+   * @param aNextUpdate date
    */
-  public void setNextUpdate(final long nextUpdate) {
-    this.nextUpdate = nextUpdate;
+  public void setNextUpdate(final long aNextUpdate) {
+    this.nextUpdate = aNextUpdate;
   }
 
+  /**
+   * @return CRL
+   */
   // @Column @Lob
   public String getBase64Crl() {
     return base64Crl;
   }
 
-  public void setBase64Crl(final String base64Crl) {
-    this.base64Crl = base64Crl;
+  /**
+   * @param aBase64Crl CRL
+   */
+  public void setBase64Crl(final String aBase64Crl) {
+    this.base64Crl = aBase64Crl;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -208,13 +265,16 @@ public class CRLData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   //
   // Public methods used to help us manage CRLs
   //
+  /**
+   * @return CRL
+   */
   @Transient
   public X509CRL getCRL() {
     X509CRL crl = null;
@@ -222,21 +282,27 @@ public class CRLData extends ProtectedData implements Serializable {
       String b64Crl = getBase64Crl();
       crl = CertTools.getCRLfromByteArray(Base64.decode(b64Crl.getBytes()));
     } catch (CRLException ce) {
-      log.error("Can't decode CRL.", ce);
+      LOG.error("Can't decode CRL.", ce);
       return null;
     }
     return crl;
   }
 
+  /**
+   * @param incrl CRL
+   */
   public void setCRL(final X509CRL incrl) {
     try {
       String b64Crl = new String(Base64.encode((incrl).getEncoded()));
       setBase64Crl(b64Crl);
     } catch (CRLException ce) {
-      log.error("Can't extract DER encoded CRL.", ce);
+      LOG.error("Can't extract DER encoded CRL.", ce);
     }
   }
 
+  /**
+   * @return CRL
+   */
   @Transient
   public byte[] getCRLBytes() {
     byte[] crl = null;
@@ -245,22 +311,31 @@ public class CRLData extends ProtectedData implements Serializable {
     return crl;
   }
 
+  /**
+   * @param dn Issuer DN
+   */
   public void setIssuer(final String dn) {
     setIssuerDN(CertTools.stringToBCDNString(dn));
   }
 
-  public void setThisUpdate(final Date thisUpdate) {
-    if (thisUpdate == null) {
+  /**
+   * @param aThisUpdate Date
+   */
+  public void setThisUpdate(final Date aThisUpdate) {
+    if (aThisUpdate == null) {
       setThisUpdate(-1L);
     }
-    setThisUpdate(thisUpdate.getTime());
+    setThisUpdate(aThisUpdate.getTime());
   }
 
-  public void setNextUpdate(final Date nextUpdate) {
-    if (nextUpdate == null) {
+  /**
+   * @param aNextUpdate Date
+   */
+  public void setNextUpdate(final Date aNextUpdate) {
+    if (aNextUpdate == null) {
       setNextUpdate(-1L);
     }
-    setNextUpdate(nextUpdate.getTime());
+    setNextUpdate(aNextUpdate.getTime());
   }
 
   //

@@ -23,12 +23,17 @@ import org.apache.log4j.Logger;
  * &#064;Transient
  * &#064;Override
  * String getProtectString(int version) {
- *   return &quot;concatenation of fields to be integrity protected. Must be deterministic and can change with different version of rowprotection.&quot;;
+ *   return &quot;concatenation of fields to be integrity protected. Must be
+ *   deterministic and can change with different version of
+ *    rowprotection.&quot;;
  *   // Example from CertificateProfileData
  *   // StringBuilder build = new StringBuilder();
- *   // What is important to protect here is the data that we define, id, name and certificate profile data
- *   // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
- *   // build.append(getId()).append(getCertificateProfileName()).append(getData());
+ *   // What is important to protect here is the data that we define, id,
+ *    name and certificate profile data
+ *   // rowVersion is automatically updated by JPA, so it's not important,
+ *    it is only used for optimistic locking
+ *   // build.append(getId()).append(getCertificateProfileName())
+ *           .append(getData());
  *   // return build.toString();
  * }
  *
@@ -64,23 +69,25 @@ import org.apache.log4j.Logger;
  */
 public abstract class ProtectedData {
 
-  private static final Logger log = Logger.getLogger(ProtectedData.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ProtectedData.class);
 
-  /** Implementation for the database protection method used */
+  /** Implementation for the database protection method used. */
   protected ProtectedDataImpl impl;
 
-  /** Definition of the optional database integrity protection implementation */
-  private static final String implClassName =
+  /** Definition of the optional database integrity
+   *  protection implementation. */
+  private static final String IMPL_CLASS_NAME =
       "org.cesecore.dbprotection.ProtectedDataIntegrityImpl";
   /**
    * Cache class so we don't have to do Class.forName for every entity object
-   * created
+   * created.
    */
   private static volatile Class<?> implClass = null;
 
   /**
    * Optimization variable so we don't have to check for existence of implClass
-   * for every construction of an entity object
+   * for every construction of an entity object.
    */
   private static volatile boolean integrityExists = true;
 
@@ -96,8 +103,8 @@ public abstract class ProtectedData {
           // never end up here again (ClassNotFoundException)
           // and if the class exists we will never end up here again (it will
           // not be null)
-          implClass = Class.forName(implClassName);
-          log.debug(
+          implClass = Class.forName(IMPL_CLASS_NAME);
+          LOG.debug(
               "ProtectedDataIntegrityImpl is available, and used, in this"
                   + " version of EJBCA.");
         }
@@ -107,14 +114,14 @@ public abstract class ProtectedData {
         // We only end up here once, if the class does not exist, we will never
         // end up here again
         integrityExists = false;
-        log.info(
+        LOG.info(
             "No database integrity protection available in this version of"
                 + " EJBCA.");
         impl = new ProtectedDataNoopImpl();
       } catch (InstantiationException | InvocationTargetException e) {
-        log.error("Error intitilizing database integrity protection: ", e);
+        LOG.error("Error intitilizing database integrity protection: ", e);
       } catch (IllegalAccessException e) {
-        log.error("Error intitilizing database integrity protection: ", e);
+        LOG.error("Error intitilizing database integrity protection: ", e);
       }
     } else {
       impl = new ProtectedDataNoopImpl();
@@ -151,13 +158,16 @@ public abstract class ProtectedData {
    *
    * @param rowProtection protect
    */
-  public abstract void setRowProtection(final String rowProtection);
+  public abstract void setRowProtection(String rowProtection);
 
+  /**
+   * @return Protection
+   */
   public abstract String getRowProtection();
 
   /**
    * Returns id of the row in the database, in case of failure we can see in the
-   * log which row failed to verify
+   * log which row failed to verify.
    *
    * @return id of database row, specific for implementing class.
    */

@@ -44,12 +44,17 @@ public class Base64CertData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 4132839902195978822L;
 
-  private static final Logger log = Logger.getLogger(Base64CertData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(Base64CertData.class);
 
+  /** Fp. */
   private String fingerprint = "";
+  /** Cert. */
   private String base64Cert;
+  /** Version. */
   private int rowVersion = 0;
 
+  /** Protect. */
   private String rowProtection;
 
   /**
@@ -67,13 +72,13 @@ public class Base64CertData extends ProtectedData implements Serializable {
       setFingerprint(CertTools.getFingerprintAsString(incert));
     } catch (CertificateEncodingException cee) {
       final String msg = "Can't extract DER encoded certificate information.";
-      log.error(msg, cee);
+      LOG.error(msg, cee);
       throw new RuntimeException(msg);
     }
   }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param copy original
    */
@@ -84,10 +89,12 @@ public class Base64CertData extends ProtectedData implements Serializable {
     setRowVersion(copy.getRowVersion());
   }
 
-  public Base64CertData() {}
+  /** Default.
+   */
+  public Base64CertData() { }
 
   /**
-   * Fingerprint of certificate
+   * Fingerprint of certificate.
    *
    * @return fingerprint
    */
@@ -97,12 +104,12 @@ public class Base64CertData extends ProtectedData implements Serializable {
   }
 
   /**
-   * Fingerprint of certificate
+   * Fingerprint of certificate.
    *
-   * @param fingerprint fingerprint
+   * @param aFingerprint fingerprint
    */
-  public void setFingerprint(final String fingerprint) {
-    this.fingerprint = fingerprint;
+  public void setFingerprint(final String aFingerprint) {
+    this.fingerprint = aFingerprint;
   }
 
   /**
@@ -118,21 +125,27 @@ public class Base64CertData extends ProtectedData implements Serializable {
   }
 
   /**
-   * The certificate itself
+   * The certificate itself.
    *
-   * @param base64Cert base64 encoded certificate
+   * @param aBase64Cert base64 encoded certificate
    */
-  public void setBase64Cert(final String base64Cert) {
-    this.base64Cert = base64Cert;
+  public void setBase64Cert(final String aBase64Cert) {
+    this.base64Cert = aBase64Cert;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return this.rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -142,8 +155,8 @@ public class Base64CertData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   //
@@ -158,6 +171,10 @@ public class Base64CertData extends ProtectedData implements Serializable {
     return equals((Base64CertData) obj);
   }
 
+  /**
+   * @param other Other
+   * @return equals
+   */
   public boolean equals(final Base64CertData other) {
     if (other == null) {
       return false;
@@ -217,16 +234,17 @@ public class Base64CertData extends ProtectedData implements Serializable {
   @Transient
   @Override
   protected String getProtectString(final int version) {
-    final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);
+    final int cap = 3000;
+    final ProtectionStringBuilder build = new ProtectionStringBuilder(cap);
     // What is important to protect here is the data that we define, id, name
     // and certificate profile data
     // rowVersion is automatically updated by JPA, so it's not important, it is
     // only used for optimistic locking
     build.append(getFingerprint()).append(getBase64Cert());
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       // Some profiling
-      if (build.length() > 3000) {
-        log.debug(
+      if (build.length() > cap) {
+        LOG.debug(
             "Base64CertData.getProtectString gives size: " + build.length());
       }
     }

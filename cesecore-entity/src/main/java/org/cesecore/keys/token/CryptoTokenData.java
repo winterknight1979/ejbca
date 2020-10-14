@@ -39,95 +39,155 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private int
       id; // Internal and static over time representation when referencing this
           // token
+  /** Param. */
   private String tokenName; // The name the creator has given to token
+  /** Param. */
   private String tokenType; // Mapped to implementation class
+  /** Param. */
   private long lastUpdate = 0; // Last update to database
+  /** Param. */
   private String tokenProps; // Properties of the token
+  /** Param. */
   private String tokenData; // Raw data like a soft keystore
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
+  /**
+   * @param anId ID
+   * @param aTokenName Name
+   * @param aTokenType Type
+   * @param theLastUpdate Time
+   * @param tokenProperties Props
+   * @param tokenDataAsBytes Data
+   */
   public CryptoTokenData(
-      final int id,
-      final String tokenName,
-      final String tokenType,
-      final long lastUpdate,
+      final int anId,
+      final String aTokenName,
+      final String aTokenType,
+      final long theLastUpdate,
       final Properties tokenProperties,
       final byte[] tokenDataAsBytes) {
-    setId(id);
-    setTokenName(tokenName);
-    setTokenType(tokenType);
-    setLastUpdate(lastUpdate);
+    setId(anId);
+    setTokenName(aTokenName);
+    setTokenType(aTokenType);
+    setLastUpdate(theLastUpdate);
     setTokenProperties(tokenProperties);
     setTokenDataAsBytes(tokenDataAsBytes);
   }
 
-  public CryptoTokenData() {}
+  /** Null constructor. */
+  public CryptoTokenData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+    this.id = anId;
   }
 
+  /**
+   * @return name
+   */
   // @Column
   public String getTokenName() {
     return tokenName;
   }
 
-  public void setTokenName(final String tokenName) {
-    this.tokenName = tokenName;
+  /**
+   * @param aTokenName name
+   */
+  public void setTokenName(final String aTokenName) {
+    this.tokenName = aTokenName;
   }
 
+  /**
+   * @return type
+   */
   // @Column
   public String getTokenType() {
     return tokenType;
   }
 
-  public void setTokenType(final String tokenType) {
-    this.tokenType = tokenType;
+  /**
+   * @param aTokenType type
+   */
+  public void setTokenType(final String aTokenType) {
+    this.tokenType = aTokenType;
   }
 
+  /**
+   * @return time
+   */
   // @Column
   public long getLastUpdate() {
     return lastUpdate;
   }
 
-  public void setLastUpdate(final long lastUpdate) {
-    this.lastUpdate = lastUpdate;
+  /**
+   * @param theLastUpdate time
+   */
+  public void setLastUpdate(final long theLastUpdate) {
+    this.lastUpdate = theLastUpdate;
   }
 
+  /**
+   * @return props
+   */
   // @Column @Lob
   public String getTokenProps() {
     return tokenProps;
   }
 
-  public void setTokenProps(final String tokenProps) {
-    this.tokenProps = tokenProps;
+  /**
+   * @param theTokenProps props
+   */
+  public void setTokenProps(final String theTokenProps) {
+    this.tokenProps = theTokenProps;
   }
 
+  /**
+   * @return data
+   */
   // @Column @Lob
   public String getTokenData() {
     return tokenData;
   }
 
-  public void setTokenData(final String tokenData) {
-    this.tokenData = tokenData;
+  /**
+   * @param theTokenData data
+   */
+  public void setTokenData(final String theTokenData) {
+    this.tokenData = theTokenData;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -137,8 +197,8 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   //
@@ -190,6 +250,9 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
   // End Database integrity protection methods
   //
 
+  /**
+   * @return properties
+   */
   @Transient
   public Properties getTokenProperties() {
     final Properties props = new Properties();
@@ -203,6 +266,9 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
     return props;
   }
 
+  /**
+   * @param props properties
+   */
   @Transient
   public void setTokenProperties(final Properties props) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -216,6 +282,9 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
     }
   }
 
+  /**
+   * @return data
+   */
   @Transient
   public byte[] getTokenDataAsBytes() {
     try {
@@ -229,10 +298,16 @@ public class CryptoTokenData extends ProtectedData implements Serializable {
     }
   }
 
+  /**
+   * @param odata data
+   */
   @Transient
-  public void setTokenDataAsBytes(byte[] data) {
-    if (data == null) {
+  public void setTokenDataAsBytes(final byte[] odata) {
+    byte[] data;
+    if (odata == null) {
       data = new byte[0];
+    } else {
+        data = odata;
     }
     try {
       setTokenData(new String(Base64.encode(data, false), "UTF8"));

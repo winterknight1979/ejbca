@@ -28,24 +28,25 @@ import org.cesecore.util.CertTools;
 
 /**
  * Used as base class for NoConflictCertificateData and CertificateData to group
- * the common logic for those entites
+ * the common logic for those entites.
  *
  * @version $Id: ProtectedCertificateData.java 28264 2018-04-09 15:56:54Z tarmo
  *     $
  */
 public abstract class BaseCertificateData extends ProtectedData {
 
-  private static final Logger log = Logger.getLogger(BaseCertificateData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(BaseCertificateData.class);
 
   /**
-   * The certificate itself
+   * The certificate itself.
    *
    * @return base64 encoded certificate
    */
   public abstract String getBase64Cert();
 
   /**
-   * Fingerprint of certificate
+   * Fingerprint of certificate.
    *
    * @return fingerprint
    */
@@ -60,21 +61,21 @@ public abstract class BaseCertificateData extends ProtectedData {
   public abstract String getSubjectDN();
 
   /**
-   * DN of issuer of certificate
+   * DN of issuer of certificate.
    *
    * @return issuer dn
    */
   public abstract String getIssuerDN();
 
   /**
-   * Serialnumber formated as BigInteger.toString()
+   * Serialnumber formated as BigInteger.toString().
    *
    * @return serial number
    */
   public abstract String getSerialNumber();
 
   /**
-   * username in database
+   * username in database.
    *
    * @return username
    */
@@ -96,7 +97,7 @@ public abstract class BaseCertificateData extends ProtectedData {
   public abstract Integer getCertificateProfileId();
 
   /**
-   * status of certificate, ex CertificateConstants.CERT_ACTIVE
+   * status of certificate, ex CertificateConstants.CERT_ACTIVE.
    *
    * @see CertificateConstants#CERT_ACTIVE etc
    * @return status
@@ -116,7 +117,7 @@ public abstract class BaseCertificateData extends ProtectedData {
   public abstract long getExpireDate();
 
   /**
-   * Set to revocation reason if status == CERT_REVOKED
+   * Set to revocation reason if status == CERT_REVOKED.
    *
    * @return revocation reason, RevokedCertInfo.NOT_REVOKED etc
    * @see RevokedCertInfo#NOT_REVOKED etc
@@ -148,7 +149,7 @@ public abstract class BaseCertificateData extends ProtectedData {
   public abstract Integer getEndEntityProfileId();
 
   /**
-   * Fingerprint of CA certificate
+   * Fingerprint of CA certificate.
    *
    * @return fingerprint
    */
@@ -156,7 +157,7 @@ public abstract class BaseCertificateData extends ProtectedData {
 
   /**
    * What type of user the certificate belongs to, ex
-   * CertificateConstants.CERTTYPE_ENDENTITY
+   * CertificateConstants.CERTTYPE_ENDENTITY.
    *
    * @return user type
    */
@@ -170,6 +171,9 @@ public abstract class BaseCertificateData extends ProtectedData {
    */
   public abstract String getTag();
 
+  /**
+   * @return version
+   */
   public abstract int getRowVersion();
 
   //
@@ -177,7 +181,7 @@ public abstract class BaseCertificateData extends ProtectedData {
   //
 
   /**
-   * status of certificate, ex CertificateConstants.CERT_ACTIVE
+   * status of certificate, ex CertificateConstants.CERT_ACTIVE.
    *
    * @param status status
    */
@@ -185,14 +189,14 @@ public abstract class BaseCertificateData extends ProtectedData {
 
   /**
    * What type of user the certificate belongs to, ex
-   * CertificateConstants.CERTTYPE_ENDENTITY
+   * CertificateConstants.CERTTYPE_ENDENTITY.
    *
    * @param type type
    */
   public abstract void setType(int type);
 
   /**
-   * Date formated as milliseconds since 1970 (== Date.getTime())
+   * Date formated as milliseconds since 1970 (== Date.getTime()).
    *
    * @param expireDate expire date
    */
@@ -200,14 +204,14 @@ public abstract class BaseCertificateData extends ProtectedData {
 
   /**
    * Set to date when revocation occurred if status == CERT_REVOKED. Format ==
-   * Date.getTime()
+   * Date.getTime().
    *
    * @param revocationDate revocation date
    */
   public abstract void setRevocationDate(long revocationDate);
 
   /**
-   * Set to revocation reason if status == CERT_REVOKED
+   * Set to revocation reason if status == CERT_REVOKED.
    *
    * @param revocationReason revocation reason
    */
@@ -226,28 +230,28 @@ public abstract class BaseCertificateData extends ProtectedData {
   //
 
   /**
-   * Sets serial number (formated as BigInteger.toString())
+   * Sets serial number (formated as BigInteger.toString()).
    *
    * @param serialNumber serial number formated as BigInteger.toString()
    */
   public abstract void setSerialNumber(String serialNumber);
 
   /**
-   * Fingerprint of certificate
+   * Fingerprint of certificate.
    *
    * @param fingerprint fingerprint
    */
   public abstract void setFingerprint(String fingerprint);
 
   /**
-   * DN of issuer of certificate
+   * DN of issuer of certificate.
    *
    * @param issuerDN issuer dn
    */
   public abstract void setIssuer(String issuerDN);
 
   /**
-   * Use setIssuer instead
+   * Use setIssuer instead.
    *
    * @param issuerDN issuer dn
    * @see #setIssuer(String)
@@ -255,14 +259,14 @@ public abstract class BaseCertificateData extends ProtectedData {
   public abstract void setIssuerDN(String issuerDN);
 
   /**
-   * DN of subject in certificate
+   * DN of subject in certificate.
    *
    * @param subjectDN subject dn
    */
   public abstract void setSubject(String subjectDN);
 
   /**
-   * username in database
+   * username in database.
    *
    * @param username username
    */
@@ -275,17 +279,20 @@ public abstract class BaseCertificateData extends ProtectedData {
    */
   public abstract void setCertificateProfileId(Integer certificateProfileId);
 
+  /**
+   * @param endEntityProfileId ID
+   */
   public abstract void setEndEntityProfileId(Integer endEntityProfileId);
 
   /**
-   * Fingerprint of CA certificate
+   * Fingerprint of CA certificate.
    *
    * @param cafp fingerprint
    */
   public abstract void setCaFingerprint(String cafp);
 
   /**
-   * expire date of certificate
+   * expire date of certificate.
    *
    * @param expireDate expire date
    */
@@ -298,7 +305,7 @@ public abstract class BaseCertificateData extends ProtectedData {
   }
 
   /**
-   * date the certificate was revoked
+   * date the certificate was revoked.
    *
    * @param revocationDate revocation date
    */
@@ -311,7 +318,7 @@ public abstract class BaseCertificateData extends ProtectedData {
   }
 
   /**
-   * return the current class name
+   * return the current class name.
    *
    * @return name (without package info) of the current class
    */
@@ -346,7 +353,7 @@ public abstract class BaseCertificateData extends ProtectedData {
               + "' issued by '"
               + getIssuerDN()
               + "'.";
-      log.info(message);
+      LOG.info(message);
       return null;
     }
     // it was in the other table.
@@ -365,8 +372,8 @@ public abstract class BaseCertificateData extends ProtectedData {
     try {
       String certEncoded = getBase64Cert(entityManager);
       if (certEncoded == null || certEncoded.isEmpty()) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               getClassName()
                   + " data was null or empty. Fingerprint of certificate: "
                   + getFingerprint());
@@ -376,7 +383,7 @@ public abstract class BaseCertificateData extends ProtectedData {
       return CertTools.getCertfromByteArray(
           Base64.decode(certEncoded.getBytes()), Certificate.class);
     } catch (CertificateException ce) {
-      log.error("Can't decode certificate.", ce);
+      LOG.error("Can't decode certificate.", ce);
       return null;
     }
   }
@@ -398,19 +405,19 @@ public abstract class BaseCertificateData extends ProtectedData {
         certEncoded = base64CertData.getBase64Cert();
       }
       if (certEncoded == null || certEncoded.isEmpty()) {
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
           String message =
               getClassName()
                   + " data was null or empty. Fingerprint of certificate: "
                   + getFingerprint();
-          log.debug(message);
+          LOG.debug(message);
         }
         return null;
       }
       return CertTools.getCertfromByteArray(
           Base64.decode(certEncoded.getBytes()), Certificate.class);
     } catch (CertificateException ce) {
-      log.error("Can't decode " + getClassName() + ".", ce);
+      LOG.error("Can't decode " + getClassName() + ".", ce);
       return null;
     }
   }
@@ -443,7 +450,7 @@ public abstract class BaseCertificateData extends ProtectedData {
   }
 
   /**
-   * DN of subject in certificate
+   * DN of subject in certificate.
    *
    * @return subject dn. If it is null, return empty string
    */

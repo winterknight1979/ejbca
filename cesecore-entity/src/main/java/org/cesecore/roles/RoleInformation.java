@@ -21,43 +21,47 @@ import org.cesecore.roles.member.RoleMember;
 
 /**
  * Container POJO used due to the fact RoleData in certain contexts doesn't
- * survive encoding to JSF
+ * survive encoding to JSF.
  *
  * @version $Id: RoleInformation.java 25516 2017-03-16 16:08:31Z jeklund $
  */
 @SuppressWarnings("deprecation")
 public class RoleInformation implements Serializable {
   private static final long serialVersionUID = 1L;
+  /** Param. */
   private final int identifier;
+  /** Param. */
   private final String name;
+  /** Param. */
   private final List<AccessUserAspectData> accessUserAspects;
   // Fields added in EJBCA 6.8.0 that we cannot be sure is ever set (defaults to
   // null)
+  /** Param. */
   private final String nameSpace;
 
   /**
-   * @param identifier ID
+   * @param anIdentifier ID
    * @param roleName Name
-   * @param accessUserAspects Aspects
+   * @param theAccessUserAspects Aspects
    * @deprecated use fromRoleMembers
    */
   @Deprecated
   public RoleInformation(
-      final int identifier,
+      final int anIdentifier,
       final String roleName,
-      final List<AccessUserAspectData> accessUserAspects) {
-    this(identifier, null, roleName, accessUserAspects);
+      final List<AccessUserAspectData> theAccessUserAspects) {
+    this(anIdentifier, null, roleName, theAccessUserAspects);
   }
 
   private RoleInformation(
-      final int identifier,
-      final String nameSpace,
+      final int anIdentifier,
+      final String aNameSpace,
       final String roleName,
-      final List<AccessUserAspectData> accessUserAspects) {
-    this.identifier = identifier;
+      final List<AccessUserAspectData> theAccessUserAspects) {
+    this.identifier = anIdentifier;
     this.name = roleName;
-    this.accessUserAspects = accessUserAspects;
-    this.nameSpace = nameSpace;
+    this.accessUserAspects = theAccessUserAspects;
+    this.nameSpace = aNameSpace;
   }
 
   /**
@@ -137,20 +141,40 @@ public class RoleInformation implements Serializable {
 
   @Override
   public boolean equals(final Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+        return true;
+    }
+    if (obj == null) {
+        return false;
+    }
+    if (getClass() != obj.getClass()) {
+        return false;
+    }
     RoleInformation other = (RoleInformation) obj;
-    if (identifier != other.identifier) return false;
+    if (identifier != other.identifier) {
+        return false;
+    }
     if (name == null) {
-      if (other.name != null) return false;
-    } else if (!name.equals(other.name)) return false;
+      if (other.name != null) {
+          return false;
+      }
+    } else if (!name.equals(other.name)) {
+        return false;
+    }
     if (nameSpace == null) {
-      if (other.nameSpace != null) return false;
-    } else if (!nameSpace.equals(other.nameSpace)) return false;
+      if (other.nameSpace != null) {
+          return false;
+      }
+    } else if (!nameSpace.equals(other.nameSpace)) {
+        return false;
+    }
     return true;
   }
 
+
+  /**
+   * @return aspects
+   */
   public List<AccessUserAspectData> getAccessUserAspects() {
     return accessUserAspects;
   }

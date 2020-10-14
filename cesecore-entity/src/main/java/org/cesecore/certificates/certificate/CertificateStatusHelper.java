@@ -41,13 +41,13 @@ public abstract class CertificateStatusHelper {
       return CertificateStatus.NOT_AVAILABLE;
     }
     final int certProfileId;
-    {
+
       final Integer tmp = certificateData.getCertificateProfileId();
       certProfileId =
           tmp != null
               ? tmp.intValue()
               : CertificateProfileConstants.CERTPROFILE_NO_PROFILE;
-    }
+
     final int status = certificateData.getStatus();
     final int revReason = certificateData.getRevocationReason();
     final long revDate = certificateData.getRevocationDate();

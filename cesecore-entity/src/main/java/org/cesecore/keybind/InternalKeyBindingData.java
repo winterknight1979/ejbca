@@ -46,80 +46,116 @@ public class InternalKeyBindingData extends ProtectedData
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingData.class);
 
+  /** Param. */
   private int
       id; // Internal and static over time representation when referencing this
           // object
+  /** Param. */
   private String name; // A human friendly representation of this object
+
+  /** Param. */
   private String
       status; // The status as a String constant of InternalKeyBindingStatus
+  /** Param. */
   private String keyBindingType; // Mapped to implementation class
+  /** Param. */
   private String
       certificateId; // Reference to a Certificate currently in use by the
                      // implementation
+  /** Param. */
   private int
       cryptoTokenId; // Reference to a CryptoToken currently in use by the
                      // implementation
+  /** Param. */
   private String
       keyPairAlias; // Reference to an alias in the CryptoToken currently in use
                     // by the implementation
+  /** Param. */
   private String
       rawData; // Raw data like a with implementation specific details and
                // configuration
+  /** Param. */
   private long lastUpdate =
       0; // Last update to database, Unix epoch milliseconds
+  /** Param. */
   private int rowVersion = 0; // JPA Optimistic locking requirement
+  /** Param. */
   private String rowProtection; // Row integrity protection
 
+  /**
+   * @param anId ID
+   * @param aNname Name
+   * @param aStatus Status
+   * @param aKeyBindingType Type
+   * @param aCertificateId ID
+   * @param aCryptoTokenId ID
+   * @param aKeyPairAlias Alais
+   * @param dataMap Map
+   */
   public InternalKeyBindingData(
-      final int id,
-      final String name,
-      final InternalKeyBindingStatus status,
-      final String keyBindingType,
-      final String certificateId,
-      final int cryptoTokenId,
-      final String keyPairAlias,
+      final int anId,
+      final String aNname,
+      final InternalKeyBindingStatus aStatus,
+      final String aKeyBindingType,
+      final String aCertificateId,
+      final int aCryptoTokenId,
+      final String aKeyPairAlias,
       final LinkedHashMap<Object, Object> dataMap) {
-    setId(id);
-    setName(name);
-    setStatusEnum(status);
-    setKeyBindingType(keyBindingType);
-    if (certificateId != null) {
-      setCertificateId(certificateId.toLowerCase(Locale.ENGLISH));
+    setId(anId);
+    setName(aNname);
+    setStatusEnum(aStatus);
+    setKeyBindingType(aKeyBindingType);
+    if (aCertificateId != null) {
+      setCertificateId(aCertificateId.toLowerCase(Locale.ENGLISH));
     } else {
       setCertificateId(null);
     }
-    setCryptoTokenId(cryptoTokenId);
-    setKeyPairAlias(keyPairAlias);
+    setCryptoTokenId(aCryptoTokenId);
+    setKeyPairAlias(aKeyPairAlias);
     setDataMap(dataMap);
     setLastUpdate(System.currentTimeMillis());
   }
 
-  public InternalKeyBindingData() {}
+  /** Null constructor. */
+  public InternalKeyBindingData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+    this.id = anId;
   }
 
+  /**
+   * @return Name
+   */
   // @Column
   public String getName() {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aName name
+   */
+  public void setName(final String aName) {
+    this.name = aName;
   }
 
   // @Column
   /**
-   * Use getStatusEnum() instead
+   * Use getStatusEnum() instead.
    *
    * @return status
    */
@@ -127,60 +163,90 @@ public class InternalKeyBindingData extends ProtectedData
     return status;
   }
   /**
-   * Use setStatusEnum(..) instead
+   * Use setStatusEnum(..) instead.
    *
-   * @param status status
+   * @param aStatus status
    */
-  public void setStatus(final String status) {
-    this.status = status;
+  public void setStatus(final String aStatus) {
+    this.status = aStatus;
   }
 
+  /**
+   * @return type
+   */
   // @Column
   public String getKeyBindingType() {
     return keyBindingType;
   }
 
-  public void setKeyBindingType(final String keyBindingType) {
-    this.keyBindingType = keyBindingType;
+  /**
+   * @param aKeyBindingType Type
+   */
+  public void setKeyBindingType(final String aKeyBindingType) {
+    this.keyBindingType = aKeyBindingType;
   }
 
+  /**
+   * @return ID
+   */
   // @Column
   public String getCertificateId() {
     return certificateId;
   }
 
-  public void setCertificateId(final String certificateId) {
-    if (certificateId != null) {
-      this.certificateId = certificateId.toLowerCase(Locale.ENGLISH);
+  /**
+   * @param aCertificateId ID
+   */
+  public void setCertificateId(final String aCertificateId) {
+    if (aCertificateId != null) {
+      this.certificateId = aCertificateId.toLowerCase(Locale.ENGLISH);
     } else {
       this.certificateId = null;
     }
   }
+  /**
+   * @return ID
+   */
   // @Column
   public int getCryptoTokenId() {
     return cryptoTokenId;
   }
 
-  public void setCryptoTokenId(final int cryptoTokenId) {
-    this.cryptoTokenId = cryptoTokenId;
+  /**
+   * @param aCryptoTokenId ID
+   */
+  public void setCryptoTokenId(final int aCryptoTokenId) {
+    this.cryptoTokenId = aCryptoTokenId;
   }
 
+  /**
+   * @return alias
+   */
   // @Column
   public String getKeyPairAlias() {
     return keyPairAlias;
   }
 
-  public void setKeyPairAlias(final String keyPairAlias) {
-    this.keyPairAlias = keyPairAlias;
+  /**
+   * @param aKeyPairAlias Alias
+   */
+  public void setKeyPairAlias(final String aKeyPairAlias) {
+    this.keyPairAlias = aKeyPairAlias;
   }
 
+  /**
+   * @return time
+   */
   // @Column
   public long getLastUpdate() {
     return lastUpdate;
   }
 
-  public void setLastUpdate(final long lastUpdate) {
-    this.lastUpdate = lastUpdate;
+  /**
+   * @param theLastUpdate time
+   */
+  public void setLastUpdate(final long theLastUpdate) {
+    this.lastUpdate = theLastUpdate;
   }
 
   // @Column @Lob
@@ -195,19 +261,25 @@ public class InternalKeyBindingData extends ProtectedData
   /**
    * Should not be invoked directly. Use setDataMap(..) instead.
    *
-   * @param rawData data
+   * @param theRawData data
    */
-  public void setRawData(final String rawData) {
-    this.rawData = rawData;
+  public void setRawData(final String theRawData) {
+    this.rawData = theRawData;
   }
 
   // @Version @Column
+  /**
+   * @return version
+   */
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -217,8 +289,8 @@ public class InternalKeyBindingData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   //
@@ -272,6 +344,9 @@ public class InternalKeyBindingData extends ProtectedData
   // End Database integrity protection methods
   //
 
+  /**
+   * @return map
+   */
   @Transient
   @SuppressWarnings("unchecked")
   public LinkedHashMap<Object, Object> getDataMap() {
@@ -287,13 +362,16 @@ public class InternalKeyBindingData extends ProtectedData
       final String msg =
           "Failed to parse InternalKeyBindingData data map in database: "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getRawData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getRawData());
       }
       throw new IllegalStateException(msg, e);
     }
   }
 
+  /**
+   * @param dataMap Map
+   */
   @Transient
   @SuppressWarnings({"rawtypes", "unchecked"})
   public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
@@ -313,13 +391,19 @@ public class InternalKeyBindingData extends ProtectedData
     }
   }
 
+  /**
+   * @return Status
+   */
   @Transient
   public InternalKeyBindingStatus getStatusEnum() {
     return InternalKeyBindingStatus.valueOf(getStatus());
   }
 
+  /**
+   * @param aStatus Status
+   */
   @Transient
-  public void setStatusEnum(final InternalKeyBindingStatus status) {
-    setStatus(status.name());
+  public void setStatusEnum(final InternalKeyBindingStatus aStatus) {
+    setStatus(aStatus.name());
   }
 }

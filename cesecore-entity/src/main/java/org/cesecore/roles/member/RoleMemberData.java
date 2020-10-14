@@ -45,23 +45,34 @@ public class RoleMemberData extends ProtectedData
 
   private static final long serialVersionUID = 1L;
 
+  /** Param. */
   private int primaryKey;
 
+  /** Param. */
   private String tokenType;
+  /** Param. */
   private int tokenIssuerId;
+  /** Param. */
   private int tokenMatchKey;
+  /** Param. */
   private int tokenMatchOperator;
+  /** Param. */
   private String tokenMatchValueColumn;
+  /** Param. */
   private int roleId;
+  /** Param. */
   private String descriptionColumn;
 
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  public RoleMemberData() {}
+  /** Null constructor. */
+  public RoleMemberData()  { }
 
   /**
-   * Construct the object from RoleMember value object
+   * Construct the object from RoleMember value object.
    *
    * @param roleMember member
    */
@@ -73,40 +84,41 @@ public class RoleMemberData extends ProtectedData
   /**
    * Slightly more verbose constructor used for upgrades.
    *
-   * @param primaryKey the primary key for this object. It's required to check
+   * @param aPrimaryKey the primary key for this object. It's required to check
    *     the database for any objects with the same key, otherwise that object
    *     will be overridden
-   * @param tokenType a string which defined the implementation of
+   * @param aTokenType a string which defined the implementation of
    *     AcceessMatchValue used by this member
-   * @param tokenIssuerId the issuer of token if relevant or 0
+   * @param aTokenIssuerId the issuer of token if relevant or 0
    *     (RoleMember.NO_ISSUER) otherwise
-   * @param tokenMatchKey the integer value determining how to interpret the
+   * @param aTokenMatchKey the integer value determining how to interpret the
    *     tokenMatchValue, defined in a class that inherits the interface
    *     AcceessMatchValue
-   * @param tokenMatchOperator how to perform the match. 0
+   * @param aTokenMatchOperator how to perform the match. 0
    *     (AccessMatchType.UNUSED.getNumericValue())to let the determine this
    *     from tokenSubType.
    * @param tokenMatchValue the actual value with which to match
-   * @param roleId the ID of the role to which this member belongs. May be null.
+   * @param aRoleId the ID of the role to which this member
+   * belongs. May be null.
    * @param description a human readable description of this role member. Null
    *     will be treated as an empty String.
    */
   public RoleMemberData(
-      final int primaryKey,
-      final String tokenType,
-      final int tokenIssuerId,
-      final int tokenMatchKey,
-      final int tokenMatchOperator,
+      final int aPrimaryKey,
+      final String aTokenType,
+      final int aTokenIssuerId,
+      final int aTokenMatchKey,
+      final int aTokenMatchOperator,
       final String tokenMatchValue,
-      final int roleId,
+      final int aRoleId,
       final String description) {
-    this.primaryKey = primaryKey;
-    this.tokenType = tokenType;
-    this.tokenIssuerId = tokenIssuerId;
-    this.tokenMatchKey = tokenMatchKey;
-    this.tokenMatchOperator = tokenMatchOperator;
+    this.primaryKey = aPrimaryKey;
+    this.tokenType = aTokenType;
+    this.tokenIssuerId = aTokenIssuerId;
+    this.tokenMatchKey = aTokenMatchKey;
+    this.tokenMatchOperator = aTokenMatchOperator;
     this.tokenMatchValueColumn = tokenMatchValue;
-    this.roleId = roleId;
+    this.roleId = aRoleId;
     this.setDescription(description);
   }
 
@@ -115,8 +127,11 @@ public class RoleMemberData extends ProtectedData
     return primaryKey;
   }
 
-  public void setPrimaryKey(final int primaryKey) {
-    this.primaryKey = primaryKey;
+  /**
+   * @param aPrimaryKey PK
+   */
+  public void setPrimaryKey(final int aPrimaryKey) {
+    this.primaryKey = aPrimaryKey;
   }
 
   /**
@@ -127,8 +142,11 @@ public class RoleMemberData extends ProtectedData
     return tokenType;
   }
 
-  public void setTokenType(final String tokenType) {
-    this.tokenType = tokenType;
+  /**
+   * @param aTokenType type
+   */
+  public void setTokenType(final String aTokenType) {
+    this.tokenType = aTokenType;
   }
 
   /**
@@ -139,8 +157,11 @@ public class RoleMemberData extends ProtectedData
     return tokenIssuerId;
   }
 
-  public void setTokenIssuerId(final int tokenIssuerId) {
-    this.tokenIssuerId = tokenIssuerId;
+  /**
+   * @param aTokenIssuerId ID
+   */
+  public void setTokenIssuerId(final int aTokenIssuerId) {
+    this.tokenIssuerId = aTokenIssuerId;
   }
 
   /**
@@ -151,8 +172,11 @@ public class RoleMemberData extends ProtectedData
     return tokenMatchKey;
   }
 
-  public void setTokenMatchKey(final int tokenMatchKey) {
-    this.tokenMatchKey = tokenMatchKey;
+  /**
+   * @param aTokenMatchKey key
+   */
+  public void setTokenMatchKey(final int aTokenMatchKey) {
+    this.tokenMatchKey = aTokenMatchKey;
   }
 
   /** @return what kind of operator to apply to the match value */
@@ -160,31 +184,40 @@ public class RoleMemberData extends ProtectedData
     return tokenMatchOperator;
   }
 
-  public void setTokenMatchOperator(final int tokenMatchOperator) {
-    this.tokenMatchOperator = tokenMatchOperator;
+  /**
+   * @param aTokenMatchOperator Op
+   */
+  public void setTokenMatchOperator(final int aTokenMatchOperator) {
+    this.tokenMatchOperator = aTokenMatchOperator;
   }
 
   // @Column(name="tokenMatchValue")
+  /** @return column
+ * @deprecated (Only for database mapping) {@link #getTokenMatchValue()} */
   @Deprecated
-  /** @deprecated (Only for database mapping) {@link #getTokenMatchValue()} */
   public String getTokenMatchValueColumn() {
     return tokenMatchValueColumn;
   }
 
-  @Deprecated
+
   /**
-   * @deprecated (Only for database mapping) {@link #setTokenMatchValue(String)}
+   * @param aTokenMatchValueColumn column
+ * @deprecated (Only for database mapping) {@link #setTokenMatchValue(String)}
    */
-  public void setTokenMatchValueColumn(final String tokenMatchValueColumn) {
-    this.tokenMatchValueColumn = tokenMatchValueColumn;
+  @Deprecated
+  public void setTokenMatchValueColumn(final String aTokenMatchValueColumn) {
+    this.tokenMatchValueColumn = aTokenMatchValueColumn;
   }
 
-  @Transient
   /** @return the actual value with which we match (never returns null) */
+  @Transient
   public String getTokenMatchValue() {
     return StringUtils.defaultIfEmpty(getTokenMatchValueColumn(), "");
   }
 
+  /**
+   * @param tokenMatchValue value
+   */
   @Transient
   public void setTokenMatchValue(final String tokenMatchValue) {
     this.setTokenMatchValueColumn(
@@ -199,40 +232,57 @@ public class RoleMemberData extends ProtectedData
     return roleId;
   }
 
-  public void setRoleId(final int roleId) {
-    this.roleId = roleId;
+  /**
+   * @param aRoleId ID
+   */
+  public void setRoleId(final int aRoleId) {
+    this.roleId = aRoleId;
   }
 
   // @Column(name="description")
+  /** @return column
+ * @deprecated (Only for database mapping) {@link #getDescription()} */
   @Deprecated
-  /** @deprecated (Only for database mapping) {@link #getDescription()} */
   public String getDescriptionColumn() {
     return descriptionColumn;
   }
 
+
+  /** @param aDescriptionColumn column
+ * @deprecated (Only for database mapping) {@link #setDescription(String)}.
+   */
   @Deprecated
-  /** @deprecated (Only for database mapping) {@link #setDescription(String)} */
-  public void setDescriptionColumn(final String descriptionColumn) {
-    this.descriptionColumn = descriptionColumn;
+  public void setDescriptionColumn(final String aDescriptionColumn) {
+    this.descriptionColumn = aDescriptionColumn;
   }
 
-  @Transient
+
   /** @return a human readable description of the role member */
+  @Transient
   public String getDescription() {
     return StringUtils.defaultIfEmpty(getDescriptionColumn(), "");
   }
 
+  /**
+   * @param description desc
+   */
   @Transient
   public void setDescription(final String description) {
     this.setDescriptionColumn(StringUtils.defaultIfEmpty(description, null));
   }
 
+  /**
+   * @return version
+   */
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   /** @return the row integrity protection String */
@@ -240,8 +290,11 @@ public class RoleMemberData extends ProtectedData
     return getZzzRowProtection();
   }
 
-  public void setRowProtection(final String rowProtection) {
-    this.setZzzRowProtection(rowProtection);
+  /**
+   *  @param aRowProtection protection
+   */
+  public void setRowProtection(final String aRowProtection) {
+    this.setZzzRowProtection(aRowProtection);
   }
 
   /**
@@ -327,6 +380,9 @@ public class RoleMemberData extends ProtectedData
         .toComparison();
   }
 
+  /**
+   * @return member
+   */
   @Transient
   public RoleMember asValueObject() {
     return new RoleMember(
@@ -341,7 +397,7 @@ public class RoleMemberData extends ProtectedData
   }
 
   /**
-   * Sets all fields except the ID
+   * Sets all fields except the ID.
    *
    * @param roleMember member
    */

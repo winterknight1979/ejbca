@@ -11,4 +11,15 @@
  	<suppress checks="MagicNumberCheck" files="[/\\]test[/\\]"/>
  	<suppress checks="JavadocPackageCheck" files="[/\\]test[/\\]"/>
  	
+ 	<suppress checks="ParameterNumberCheck" files="AuditRecordData.java" lines="102"/>
+ 	<suppress checks="UnusedImportsCheck" files="BaseCertificateData.java" lines="23"/> <!-- Used in JDOC -->
+ 	<suppress checks="MagicNumberCheck" files="CertificateData.java" lines="890,865"/> <!-- Old versions-->
+ 	<suppress checks="ParameterNumberCheck" files="CertificateData.java" lines="196"/>
+ 	<suppress checks="MagicNumberCheck" files="NoConflictCertificateData.java" lines="682,707"/> <!-- Old versions-->
+ 	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingData.java" lines="99"/>
+ 	<suppress checks="MethodLengthCheck" files="AccessRulesMigrator.java" lines="58"/>
+ 	<suppress checks="ParameterNumberCheck" files="RoleMember.java" lines="102"/>
+ 	<suppress checks="ParameterNumberCheck" files="RoleMemberData.java" lines="106"/>
+ 
+ 	
  </suppressions>

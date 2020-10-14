@@ -44,50 +44,74 @@ import org.cesecore.util.SecureXMLDecoder;
 public class RoleData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(RoleData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RoleData.class);
 
+  /** Param. */
   private int id;
+  /** Param. */
   private String nameSpaceColumn;
+  /** Param. */
   private String roleName;
+  /** Param. */
   private String rawData;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  public RoleData() {}
+  /**
+   * Null constructor.
+   */
+  public RoleData() { }
 
+  /**
+   * @param role role
+   */
   public RoleData(final Role role) {
     setRole(role);
   }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+    this.id = anId;
   }
 
   // @Column(name="nameSpace")
-  @Deprecated
+
   /**
-   * @deprecated (Only for database mapping) {@link #getNameSpaceNeverNull()}
+   * @return Column
+ * @deprecated (Only for database mapping)
    */
+  @Deprecated
   public String getNameSpaceColumn() {
     return nameSpaceColumn;
   }
 
-  @Deprecated
   /**
-   * @deprecated (Only for database mapping) {@link
-   *     #setNameSpaceNeverNull(String)}
+   * @param aNameSpaceColumn column
+ * @deprecated (Only for database mapping)
    */
-  public void setNameSpaceColumn(final String nameSpaceColumn) {
-    this.nameSpaceColumn = nameSpaceColumn;
+  @Deprecated
+  public void setNameSpaceColumn(final String aNameSpaceColumn) {
+    this.nameSpaceColumn = aNameSpaceColumn;
   }
 
   // Ensure that we treat empty string as null for consistent behavior with
   // Oracle
+  /**
+   * @return NS
+   */
   @Transient
   public String getNameSpace() {
     return StringUtils.defaultIfEmpty(getNameSpaceColumn(), "");
@@ -95,18 +119,27 @@ public class RoleData extends ProtectedData implements Serializable {
 
   // Ensure that we treat empty string as null for consistent behavior with
   // Oracle
+  /**
+   * @param nameSpace NS
+   */
   @Transient
   public void setNameSpace(final String nameSpace) {
     setNameSpaceColumn(StringUtils.defaultIfEmpty(nameSpace, null));
   }
 
+  /**
+   * @return name
+   */
   // @Column
   public String getRoleName() {
     return roleName;
   }
 
-  public void setRoleName(final String roleName) {
-    this.roleName = roleName;
+  /**
+   * @param aRoleName Name
+   */
+  public void setRoleName(final String aRoleName) {
+    this.roleName = aRoleName;
   }
 
   // @Column
@@ -121,16 +154,19 @@ public class RoleData extends ProtectedData implements Serializable {
   /**
    * Should not be invoked directly. Use setDataMap(..) instead.
    *
-   * @param rawData data
+   * @param theRawData data
    */
-  public void setRawData(final String rawData) {
-    this.rawData = rawData;
+  public void setRawData(final String theRawData) {
+    this.rawData = theRawData;
   }
 
+  /**
+   * @return Map
+   */
   @Transient
   @SuppressWarnings("unchecked")
   public LinkedHashMap<Object, Object> getDataMap() {
-    try (final SecureXMLDecoder decoder =
+    try (SecureXMLDecoder decoder =
         new SecureXMLDecoder(
             new ByteArrayInputStream(
                 getRawData().getBytes(StandardCharsets.UTF_8))); ) {
@@ -142,28 +178,37 @@ public class RoleData extends ProtectedData implements Serializable {
               + roleName
               + "': "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getRawData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getRawData());
       }
       throw new IllegalStateException(msg, e);
     }
   }
 
+  /**
+   * @param dataMap map
+   */
   @Transient
   public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (final XMLEncoder encoder = new XMLEncoder(baos); ) {
+    try (XMLEncoder encoder = new XMLEncoder(baos); ) {
       // We must base64 encode string for UTF safety
       encoder.writeObject(new Base64PutHashMap(dataMap));
     }
     setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));
   }
 
+  /**
+   * @return role
+   */
   @Transient
   public Role getRole() {
     return new Role(getId(), getNameSpace(), getRoleName(), getDataMap());
   }
 
+  /**
+   * @param role role
+   */
   @Transient
   public void setRole(final Role role) {
     setId(role.getRoleId());
@@ -172,13 +217,19 @@ public class RoleData extends ProtectedData implements Serializable {
     setDataMap(role.getRawData());
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -188,8 +239,8 @@ public class RoleData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   //
@@ -261,17 +312,33 @@ public class RoleData extends ProtectedData implements Serializable {
 
   @Override
   public boolean equals(final Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+        return true;
+    }
+    if (obj == null) {
+        return false;
+    }
+    if (getClass() != obj.getClass()) {
+        return false;
+    }
     RoleData other = (RoleData) obj;
-    if (id != other.id) return false;
+    if (id != other.id) {
+        return false;
+    }
     if (nameSpaceColumn == null) {
-      if (other.nameSpaceColumn != null) return false;
-    } else if (!nameSpaceColumn.equals(other.nameSpaceColumn)) return false;
+      if (other.nameSpaceColumn != null) {
+          return false;
+      }
+    } else if (!nameSpaceColumn.equals(other.nameSpaceColumn)) {
+        return false;
+    }
     if (roleName == null) {
-      if (other.roleName != null) return false;
-    } else if (!roleName.equals(other.roleName)) return false;
+      if (other.roleName != null) {
+          return false;
+      }
+    } else if (!roleName.equals(other.roleName)) {
+        return false;
+    }
     return true;
   }
 }

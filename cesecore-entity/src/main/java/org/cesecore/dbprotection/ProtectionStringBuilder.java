@@ -20,18 +20,30 @@ package org.cesecore.dbprotection;
  */
 public class ProtectionStringBuilder {
 
+    /** Tag. */
   private static final String SEPARATOR_TAG = "<sep/>";
 
+  /** SB. */
   private final StringBuilder sb;
 
+  /** null.
+   */
   public ProtectionStringBuilder() {
     sb = new StringBuilder();
   }
 
+  /**
+   * @param initialCapacity cap
+   */
   public ProtectionStringBuilder(final int initialCapacity) {
     sb = new StringBuilder(initialCapacity);
   }
 
+  /**
+   * Append.
+   * @param o Object
+   * @return this
+   */
   public ProtectionStringBuilder append(final Object o) {
     if (sb.length() > 0) {
       sb.append(SEPARATOR_TAG);
@@ -44,6 +56,9 @@ public class ProtectionStringBuilder {
     return this;
   }
 
+  /**
+   * @return Length
+   */
   public int length() {
     return sb.length();
   }

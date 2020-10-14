@@ -38,50 +38,81 @@ import org.cesecore.dbprotection.ProtectionStringBuilder;
 public class AdminGroupData extends ProtectedData
     implements Serializable, Comparable<AdminGroupData> {
 
+      /** Param. */
   public static final String DEFAULT_ROLE_NAME = "DEFAULT";
 
   private static final long serialVersionUID = -160810489638829430L;
+  /** Param. */
   private Integer primaryKey;
+  /** Param. */
   private Map<Integer, AccessRuleData> accessRules;
+  /** Param. */
   private Map<Integer, AccessUserAspectData> accessUsers;
+  /** Param. */
   private String roleName;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
-  public AdminGroupData() {}
+  /**
+   * Null constructor. */
+  public AdminGroupData() { }
 
-  public AdminGroupData(final Integer primaryKey, final String roleName) {
-    this.primaryKey = primaryKey;
-    this.roleName = roleName;
+  /**
+   * @param aPrimaryKey PK
+   * @param aRoleName Name
+   */
+  public AdminGroupData(final Integer aPrimaryKey, final String aRoleName) {
+    this.primaryKey = aPrimaryKey;
+    this.roleName = aRoleName;
     accessUsers = new HashMap<Integer, AccessUserAspectData>();
     accessRules = new HashMap<Integer, AccessRuleData>();
   }
 
+  /**
+   * @return PK
+   */
   // @Id @Column
   public Integer getPrimaryKey() {
     return primaryKey;
   }
 
-  public void setPrimaryKey(final Integer primaryKey) {
-    this.primaryKey = primaryKey;
+  /**
+   * @param aPrimaryKey PK
+   */
+  public void setPrimaryKey(final Integer aPrimaryKey) {
+    this.primaryKey = aPrimaryKey;
   }
 
+  /**
+   * @return name
+   */
   // @Column
   public String getRoleName() {
     return roleName;
   }
 
-  public void setRoleName(final String roleName) {
-    this.roleName = roleName;
+  /**
+   * @param aRoleName name
+   */
+  public void setRoleName(final String aRoleName) {
+    this.roleName = aRoleName;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -91,13 +122,15 @@ public class AdminGroupData extends ProtectedData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
-  /*
-   * If we use lazy fetching we have to take care so that the Entity is managed until we fetch the values. Set works better with eager fetching for
+  /**
+   * If we use lazy fetching we have to take care so that the Entity is
+   * managed until we fetch the values. Set works better with eager fetching for
    * Hibernate.
+ * @return map
    */
   // @OneToMany(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER)
   // @JoinColumn(name = "RoleData_accessUsers")
@@ -105,14 +138,19 @@ public class AdminGroupData extends ProtectedData
     return accessUsers;
   }
 
+  /**
+   * @param theAccessUsers mao
+   */
   public void setAccessUsers(
-      final Map<Integer, AccessUserAspectData> accessUsers) {
-    this.accessUsers = accessUsers;
+      final Map<Integer, AccessUserAspectData> theAccessUsers) {
+    this.accessUsers = theAccessUsers;
   }
 
-  /*
-   * If we use lazy fetching we have to take care so that the Entity is managed until we fetch the values. Set works better with eager fetching for
+  /**
+   * If we use lazy fetching we have to take care so that the Entity is
+   * managed until we fetch the values. Set works better with eager fetching for
    * Hibernate.
+ * @return map
    */
   // @OneToMany(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER)
   // @JoinColumn(name = "RoleData_accessRules")
@@ -120,8 +158,12 @@ public class AdminGroupData extends ProtectedData
     return accessRules;
   }
 
-  public void setAccessRules(final Map<Integer, AccessRuleData> accessRules) {
-    this.accessRules = accessRules;
+  /**
+   * @param theAccessRules rules
+   */
+  public void setAccessRules(
+          final Map<Integer, AccessRuleData> theAccessRules) {
+    this.accessRules = theAccessRules;
   }
 
   /**

@@ -44,18 +44,32 @@ import org.cesecore.util.SecureXMLDecoder;
 public class CAData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(CAData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CAData.class);
 
+  /** ID. */
   private Integer cAId;
+  /** Name. */
   private String name;
+  /** DN. */
   private String subjectDN;
+  /** Status. */
   private int status = 0; // not null, we need a default
+  /** Time. */
   private long expireTime = 0; // not null, we need a default
+  /** Time. */
   private long updateTime = 0; // not null, we need a default
+  /** Data. */
   private String data;
+  /** Version. */
   private int rowVersion = 0; // not null, we need a default
+  /** Protect. */
   private String rowProtection;
 
+  /**
+   * @param subjectdn DN
+   * @return ID
+   */
   public static Integer calculateCAId(final String subjectdn) {
     return Integer.valueOf(subjectdn.hashCode());
   }
@@ -64,17 +78,17 @@ public class CAData extends ProtectedData implements Serializable {
    * Entity Bean holding data of a CA.
    *
    * @param subjectdn DN
-   * @param name of CA
-   * @param status initial status
+   * @param aName of CA
+   * @param aStatus initial status
    * @param ca CA to store
    */
   public CAData(
       final String subjectdn,
-      final String name,
-      final int status,
+      final String aName,
+      final int aStatus,
       final CA ca) {
     setCaId(calculateCAId(subjectdn));
-    setName(name);
+    setName(aName);
     setSubjectDN(subjectdn);
     if (ca.getCACertificate() != null) {
       final Certificate cacert = ca.getCACertificate();
@@ -84,62 +98,94 @@ public class CAData extends ProtectedData implements Serializable {
     // Set status, because it can occur in the ca object as well, but we think
     // the one passed as argument here is what
     // is desired primarily, so make sure we set that
-    ca.setStatus(status);
+    ca.setStatus(aStatus);
     setCA(ca);
-    if (log.isDebugEnabled()) {
-      log.debug("Created CA " + name);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Created CA " + aName);
     }
   }
 
-  public CAData() {}
+  /** Default. */
+  public CAData() { }
 
+  /**
+   * @return ID
+   */
   // @Id @Column
   public Integer getCaId() {
     return cAId;
   }
 
-  public final void setCaId(final Integer cAId) {
-    this.cAId = cAId;
+  /**
+   * @param aCAId ID
+   */
+  public final void setCaId(final Integer aCAId) {
+    this.cAId = aCAId;
   }
 
+  /**
+   * @return name
+   */
   // @Column
   public String getName() {
     return name;
   }
 
-  public void setName(final String name) {
-    this.name = name;
+  /**
+   * @param aName Name
+   */
+  public void setName(final String aName) {
+    this.name = aName;
   }
 
+
+  /**
+   * @return DN
+   */
   // @Column
   public String getSubjectDN() {
     return subjectDN;
   }
 
-  public void setSubjectDN(final String subjectDN) {
-    this.subjectDN = subjectDN;
+  /**
+   * @param aSubjectDN DN
+   */
+  public void setSubjectDN(final String aSubjectDN) {
+    this.subjectDN = aSubjectDN;
   }
 
+  /**
+   * @return Status
+   */
   // @Column
   public int getStatus() {
     return status;
   }
 
-  public void setStatus(final int status) {
-    this.status = status;
+  /**
+   * @param aStatus Status
+   */
+  public void setStatus(final int aStatus) {
+    this.status = aStatus;
   }
 
+  /**
+   * @return Time
+   */
   // @Column
   public long getExpireTime() {
     return expireTime;
   }
 
-  public void setExpireTime(final long expireTime) {
-    this.expireTime = expireTime;
+  /**
+   * @param anExpireTime time
+   */
+  public void setExpireTime(final long anExpireTime) {
+    this.expireTime = anExpireTime;
   }
 
   /**
-   * When was this CA updated in the database
+   * When was this CA updated in the database.
    *
    * @return time
    */
@@ -148,26 +194,41 @@ public class CAData extends ProtectedData implements Serializable {
     return updateTime;
   }
 
-  public void setUpdateTime(final long updateTime) {
-    this.updateTime = updateTime;
+  /**
+   * @param anUpdateTime time
+   */
+  public void setUpdateTime(final long anUpdateTime) {
+    this.updateTime = anUpdateTime;
   }
 
+  /**
+   * @return Data
+   */
   // @Column @Lob
   public String getData() {
     return data;
   }
 
-  public void setData(final String data) {
-    this.data = data;
+  /**
+   * @param theData Data
+   */
+  public void setData(final String theData) {
+    this.data = theData;
   }
 
+  /**
+   * @return version
+   */
   // @Version @Column
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   // @Column @Lob
@@ -177,10 +238,13 @@ public class CAData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
+  /**
+   * @return Date
+   */
   @Transient
   public Date getUpdateTimeAsDate() {
     return new Date(getUpdateTime());
@@ -217,6 +281,8 @@ public class CAData extends ProtectedData implements Serializable {
                 getUpdateTimeAsDate(),
                 new Date(getExpireTime()));
         break;
+      default: // no-op
+          break;
     }
     return ca;
   }
@@ -245,6 +311,9 @@ public class CAData extends ProtectedData implements Serializable {
     }
   }
 
+  /**
+   * @return Map
+   */
   @Transient
   public LinkedHashMap<Object, Object> getDataMap() {
     try (SecureXMLDecoder decoder =
@@ -262,13 +331,16 @@ public class CAData extends ProtectedData implements Serializable {
               + getName()
               + "': "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getData());
       }
       throw new IllegalStateException(msg, e);
     }
   }
 
+  /**
+   * @param dataMap Map
+   */
   @Transient
   @SuppressWarnings({"rawtypes", "unchecked"})
   public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
@@ -281,11 +353,11 @@ public class CAData extends ProtectedData implements Serializable {
       final java.beans.XMLEncoder encoder = new java.beans.XMLEncoder(baos);
       encoder.writeObject(a);
       encoder.close();
-      final String data = baos.toString("UTF8");
-      if (log.isDebugEnabled()) {
-        log.debug("Saving CA data with length: " + data.length() + " for CA.");
+      final String aData = baos.toString("UTF8");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Saving CA data with length: " + aData.length() + " for CA.");
       }
-      setData(data);
+      setData(aData);
       setUpdateTime(System.currentTimeMillis());
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
@@ -299,7 +371,8 @@ public class CAData extends ProtectedData implements Serializable {
   @Transient
   @Override
   public String getProtectString(final int version) {
-    final ProtectionStringBuilder build = new ProtectionStringBuilder(8000);
+    final int capacity = 8000;
+    final ProtectionStringBuilder build = new ProtectionStringBuilder(capacity);
     // What is important to protect here is the data that we define
     // rowVersion is automatically updated by JPA, so it's not important, it is
     // only used for optimistic locking
@@ -311,10 +384,10 @@ public class CAData extends ProtectedData implements Serializable {
         .append(getExpireTime())
         .append(getUpdateTime())
         .append(getData());
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       // Some profiling
-      if (build.length() > 8000) {
-        log.debug("CAData.getProtectString gives size: " + build.length());
+      if (build.length() > capacity) {
+        LOG.debug("CAData.getProtectString gives size: " + build.length());
       }
     }
     return build.toString();

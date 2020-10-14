@@ -99,34 +99,58 @@ public class NoConflictCertificateData extends BaseCertificateData
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log =
+  /**
+   * Logger. */
+  private static final Logger LOG =
       Logger.getLogger(NoConflictCertificateData.class);
 
+  /** Param. */
   private String id;
+  /** Param. */
   private String issuerDN;
+  /** Param. */
   private String subjectDN;
+  /** Param. */
   private String subjectAltName = null; // @since EJBCA 6.6.0
+  /** Param. */
   private String fingerprint = "";
+  /** Param. */
   private String cAFingerprint;
+  /** Param. */
   private int status = 0;
+  /** Param. */
   private int type = 0;
+  /** Param. */
   private String serialNumber;
+  /** Param. */
   private Long notBefore = null; // @since EJBCA 6.6.0
+  /** Param. */
   private long expireDate = 0;
+  /** Param. */
   private long revocationDate = 0;
+  /** Param. */
   private int revocationReason = 0;
+  /** Param. */
   private String base64Cert;
+  /** Param. */
   private String username;
+  /** Param. */
   private String tag;
+  /** Param. */
   private Integer certificateProfileId;
+  /** Param. */
   private Integer endEntityProfileId = null; // @since EJBCA 6.6.0
+  /** Param. */
   private long updateTime = 0;
+  /** Param. */
   private String subjectKeyId;
+  /** Param. */
   private int rowVersion = 0;
+  /** Param. */
   private String rowProtection;
 
   /**
-   * Copy Constructor
+   * Copy Constructor.
    *
    * @param copy rtiginal
    */
@@ -155,10 +179,11 @@ public class NoConflictCertificateData extends BaseCertificateData
     setRowProtection(copy.getRowProtection());
   }
 
-  public NoConflictCertificateData() {}
+  /** Null constructor. */
+  public NoConflictCertificateData() { }
 
   /**
-   * Generated GUID for the table entry
+   * Generated GUID for the table entry.
    *
    * @return id
    */
@@ -167,12 +192,12 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   /**
-   * Generated GUID for the table entry
+   * Generated GUID for the table entry.
    *
-   * @param id ID
+   * @param anId ID
    */
-  public void setId(final String id) {
-    this.id = id;
+  public void setId(final String anId) {
+    this.id = anId;
   }
 
   @Override
@@ -181,8 +206,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setFingerprint(final String fingerprint) {
-    this.fingerprint = fingerprint;
+  public void setFingerprint(final String aFingerprint) {
+    this.fingerprint = aFingerprint;
   }
 
   @Override
@@ -191,8 +216,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setIssuerDN(final String issuerDN) {
-    this.issuerDN = issuerDN;
+  public void setIssuerDN(final String anIssuerDN) {
+    this.issuerDN = anIssuerDN;
   }
 
   @Override
@@ -201,13 +226,13 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   /**
-   * Use setSubject instead
+   * Use setSubject instead.
    *
-   * @param subjectDN subject dn
+   * @param aSubjectDN subject dn
    * @see #setSubject(String)
    */
-  public void setSubjectDN(final String subjectDN) {
-    this.subjectDN = subjectDN;
+  public void setSubjectDN(final String aSubjectDN) {
+    this.subjectDN = aSubjectDN;
   }
 
   /**
@@ -216,8 +241,8 @@ public class NoConflictCertificateData extends BaseCertificateData
    */
   @Transient
   public String getSubjectAltNameNeverNull() {
-    final String subjectAltName = getSubjectAltName();
-    return subjectAltName == null ? "" : subjectAltName;
+    final String asubjectAltName = getSubjectAltName();
+    return asubjectAltName == null ? "" : asubjectAltName;
   }
 
   @Override
@@ -225,8 +250,11 @@ public class NoConflictCertificateData extends BaseCertificateData
     return subjectAltName;
   }
 
-  public void setSubjectAltName(final String subjectAltName) {
-    this.subjectAltName = subjectAltName;
+  /**
+   * @param aSubjectAltName name
+   */
+  public void setSubjectAltName(final String aSubjectAltName) {
+    this.subjectAltName = aSubjectAltName;
   }
 
   @Override
@@ -235,8 +263,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setCaFingerprint(final String cAFingerprint) {
-    this.cAFingerprint = cAFingerprint;
+  public void setCaFingerprint(final String aCAFingerprint) {
+    this.cAFingerprint = aCAFingerprint;
   }
 
   @Override
@@ -245,8 +273,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setStatus(final int status) {
-    this.status = status;
+  public void setStatus(final int aStatus) {
+    this.status = aStatus;
   }
 
   @Override
@@ -255,8 +283,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setType(final int type) {
-    this.type = type;
+  public void setType(final int aType) {
+    this.type = aType;
   }
 
   @Override
@@ -265,8 +293,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setSerialNumber(final String serialNumber) {
-    this.serialNumber = serialNumber;
+  public void setSerialNumber(final String aSerialNumber) {
+    this.serialNumber = aSerialNumber;
   }
 
   @Override
@@ -274,8 +302,11 @@ public class NoConflictCertificateData extends BaseCertificateData
     return notBefore;
   }
 
-  public void setNotBefore(final Long notBefore) {
-    this.notBefore = notBefore;
+  /**
+   * @param aNotBefore start
+   */
+  public void setNotBefore(final Long aNotBefore) {
+    this.notBefore = aNotBefore;
   }
 
   @Override
@@ -284,8 +315,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setExpireDate(final long expireDate) {
-    this.expireDate = expireDate;
+  public void setExpireDate(final long anExpireDate) {
+    this.expireDate = anExpireDate;
   }
 
   @Override
@@ -294,8 +325,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setRevocationDate(final long revocationDate) {
-    this.revocationDate = revocationDate;
+  public void setRevocationDate(final long aRevocationDate) {
+    this.revocationDate = aRevocationDate;
   }
 
   @Override
@@ -304,8 +335,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setRevocationReason(final int revocationReason) {
-    this.revocationReason = revocationReason;
+  public void setRevocationReason(final int aRevocationReason) {
+    this.revocationReason = aRevocationReason;
   }
 
   @Override
@@ -314,12 +345,12 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   /**
-   * The certificate itself
+   * The certificate itself.
    *
-   * @param base64Cert base64 encoded certificate
+   * @param aBase64Cert base64 encoded certificate
    */
-  public void setBase64Cert(final String base64Cert) {
-    this.setZzzBase64Cert(base64Cert);
+  public void setBase64Cert(final String aBase64Cert) {
+    this.setZzzBase64Cert(aBase64Cert);
   }
 
   /**
@@ -352,8 +383,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  public void setUsername(final String aUsername) {
+    this.username = StringTools.stripUsername(aUsername);
   }
 
   @Override
@@ -365,10 +396,10 @@ public class NoConflictCertificateData extends BaseCertificateData
    * tag in database. This field was added for the 3.9.0 release, but is not
    * used yet.
    *
-   * @param tag tag
+   * @param aTag tag
    */
-  public void setTag(final String tag) {
-    this.tag = tag;
+  public void setTag(final String aTag) {
+    this.tag = aTag;
   }
 
   @Override
@@ -377,8 +408,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setCertificateProfileId(final Integer certificateProfileId) {
-    this.certificateProfileId = certificateProfileId;
+  public void setCertificateProfileId(final Integer aCertificateProfileId) {
+    this.certificateProfileId = aCertificateProfileId;
   }
 
   @Override
@@ -389,8 +420,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   // Hibernate + Oracle ignores nullable=false so we can expect null-objects as
   // input after upgrade. TODO: Verify if still true!
   @Override
-  public void setUpdateTime(final Long updateTime) {
-    this.updateTime = (updateTime == null ? this.updateTime : updateTime);
+  public void setUpdateTime(final Long anUpdateTime) {
+    this.updateTime = (anUpdateTime == null ? this.updateTime : anUpdateTime);
   }
 
   @Override
@@ -399,12 +430,12 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   /**
-   * The ID of the public key of the certificate
+   * The ID of the public key of the certificate.
    *
-   * @param subjectKeyId ID
+   * @param aSubjectKeyId ID
    */
-  public void setSubjectKeyId(final String subjectKeyId) {
-    this.subjectKeyId = subjectKeyId;
+  public void setSubjectKeyId(final String aSubjectKeyId) {
+    this.subjectKeyId = aSubjectKeyId;
   }
 
   @Override
@@ -412,8 +443,11 @@ public class NoConflictCertificateData extends BaseCertificateData
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   @Override
@@ -422,8 +456,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.setZzzRowProtection(rowProtection);
+  public void setRowProtection(final String aRowProtection) {
+    this.setZzzRowProtection(aRowProtection);
   }
 
   /**
@@ -460,8 +494,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setEndEntityProfileId(final Integer endEntityProfileId) {
-    this.endEntityProfileId = endEntityProfileId;
+  public void setEndEntityProfileId(final Integer anEndEntityProfileId) {
+    this.endEntityProfileId = anEndEntityProfileId;
   }
 
   @Override
@@ -479,6 +513,12 @@ public class NoConflictCertificateData extends BaseCertificateData
     return equals((NoConflictCertificateData) obj, true);
   }
 
+  /**
+   * @param certificateData data
+   * @param mode mode
+   * @param strictStatus status
+   * @return bool
+   */
   public boolean equals(
       final NoConflictCertificateData certificateData,
       final boolean mode,
@@ -600,6 +640,10 @@ public class NoConflictCertificateData extends BaseCertificateData
     return fingerprint.hashCode() * 11;
   }
 
+  /**
+   * @param certificateData Data
+   * @param inclusionMode Mode
+   */
   public void updateWith(
       final NoConflictCertificateData certificateData,
       final boolean inclusionMode) {
@@ -628,7 +672,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   @Transient
   @Override
   protected String getProtectString(final int version) {
-    final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);
+    final int cap = 3000;
+    final ProtectionStringBuilder build = new ProtectionStringBuilder(cap);
     // What is important to protect here is the data that we define, id, name
     // and certificate profile data
     // rowVersion is automatically updated by JPA, so it's not important, it is
@@ -667,10 +712,10 @@ public class NoConflictCertificateData extends BaseCertificateData
         build.append(String.valueOf(getSubjectAltName()));
       }
     }
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       // Some profiling
-      if (build.length() > 3000) {
-        log.debug(
+      if (build.length() > cap) {
+        LOG.debug(
             "CertificateData.getProtectString gives size: " + build.length());
       }
     }
@@ -680,7 +725,8 @@ public class NoConflictCertificateData extends BaseCertificateData
   @Transient
   @Override
   protected int getProtectVersion() {
-    return 3;
+    final int version = 3;
+    return version;
   }
 
   @PrePersist

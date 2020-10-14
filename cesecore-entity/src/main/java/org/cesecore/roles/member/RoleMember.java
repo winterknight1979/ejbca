@@ -24,18 +24,29 @@ import org.cesecore.roles.Role;
  */
 public class RoleMember implements Serializable {
 
-  public static int ROLE_MEMBER_ID_UNASSIGNED = 0;
-  public static int NO_ROLE = Role.ROLE_ID_UNASSIGNED;
-  public static int NO_ISSUER = 0;
+      /** Config. */
+  public static final int ROLE_MEMBER_ID_UNASSIGNED = 0;
+  /** Config. */
+  public static final int NO_ROLE = Role.ROLE_ID_UNASSIGNED;
+  /** Config. */
+  public static final int NO_ISSUER = 0;
 
   private static final long serialVersionUID = 1L;
+  /** Param. */
   private int id;
+  /** Param. */
   private String tokenType;
+  /** Param. */
   private int tokenIssuerId;
+  /** Param. */
   private int tokenMatchKey;
+  /** Param. */
   private int tokenMatchOperator;
+  /** Param. */
   private String tokenMatchValue;
+  /** Param. */
   private int roleId;
+  /** Param. */
   private String description;
 
   /**
@@ -43,33 +54,33 @@ public class RoleMember implements Serializable {
    * primary key 0, which means that this object hasn't been persisted yet. In
    * that case, the primary key will be set by the CRUD bean.
    *
-   * @param tokenType Type
-   * @param tokenIssuerId the issuer identifier of this token or 0 if not
+   * @param aTokenType Type
+   * @param aTokenIssuerId the issuer identifier of this token or 0 if not
    *     relevant
-   * @param tokenMatchKey Key
-   * @param tokenMatchOperator Operator
-   * @param tokenMatchValue the actual value with which to match
-   * @param roleId roleId the ID of the role to which this member belongs. May
+   * @param aTokenMatchKey Key
+   * @param aTokenMatchOperator Operator
+   * @param aTokenMatchValue the actual value with which to match
+   * @param aRoleId roleId the ID of the role to which this member belongs. May
    *     be null.
-   * @param description a human readable description of this role member.
+   * @param aDescription a human readable description of this role member.
    */
   public RoleMember(
-      final String tokenType,
-      final int tokenIssuerId,
-      final int tokenMatchKey,
-      final int tokenMatchOperator,
-      final String tokenMatchValue,
-      final int roleId,
-      final String description) {
+      final String aTokenType,
+      final int aTokenIssuerId,
+      final int aTokenMatchKey,
+      final int aTokenMatchOperator,
+      final String aTokenMatchValue,
+      final int aRoleId,
+      final String aDescription) {
     this(
         ROLE_MEMBER_ID_UNASSIGNED,
-        tokenType,
-        tokenIssuerId,
-        tokenMatchKey,
-        tokenMatchOperator,
-        tokenMatchValue,
-        roleId,
-        description);
+        aTokenType,
+        aTokenIssuerId,
+        aTokenMatchKey,
+        aTokenMatchOperator,
+        aTokenMatchValue,
+        aRoleId,
+        aDescription);
   }
 
   /**
@@ -77,38 +88,38 @@ public class RoleMember implements Serializable {
    * primary key 0, which means that this object hasn't been persisted yet. In
    * that case, the primary key will be set by the CRUD bean.
    *
-   * @param id ID
-   * @param tokenType Type
-   * @param tokenIssuerId the issuer identifier of this token or 0 if not
+   * @param anId ID
+   * @param aTokenType Type
+   * @param aTokenIssuerId the issuer identifier of this token or 0 if not
    *     relevant
-   * @param tokenMatchKey Key
-   * @param tokenMatchOperator Operator
-   * @param tokenMatchValue the actual value with which to match
-   * @param roleId roleId the ID of the role to which this member belongs. May
+   * @param aTokenMatchKey Key
+   * @param aTokenMatchOperator Operator
+   * @param aTokenMatchValue the actual value with which to match
+   * @param aRoleId roleId the ID of the role to which this member belongs. May
    *     be null.
-   * @param description a human readable description of this role member.
+   * @param aDescription a human readable description of this role member.
    */
   public RoleMember(
-      final int id,
-      final String tokenType,
-      final int tokenIssuerId,
-      final int tokenMatchKey,
-      final int tokenMatchOperator,
-      final String tokenMatchValue,
-      final int roleId,
-      final String description) {
-    this.id = id;
-    this.tokenType = tokenType;
-    this.tokenIssuerId = tokenIssuerId;
-    this.tokenMatchKey = tokenMatchKey;
-    this.tokenMatchOperator = tokenMatchOperator;
-    this.tokenMatchValue = tokenMatchValue;
-    this.roleId = roleId;
-    this.description = description;
+      final int anId,
+      final String aTokenType,
+      final int aTokenIssuerId,
+      final int aTokenMatchKey,
+      final int aTokenMatchOperator,
+      final String aTokenMatchValue,
+      final int aRoleId,
+      final String aDescription) {
+    this.id = anId;
+    this.tokenType = aTokenType;
+    this.tokenIssuerId = aTokenIssuerId;
+    this.tokenMatchKey = aTokenMatchKey;
+    this.tokenMatchOperator = aTokenMatchOperator;
+    this.tokenMatchValue = aTokenMatchValue;
+    this.roleId = aRoleId;
+    this.description = aDescription;
   }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param roleMember original
    */
@@ -123,71 +134,123 @@ public class RoleMember implements Serializable {
     this.description = roleMember.description;
   }
 
+  /**
+   * @return ID
+   */
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+    this.id = anId;
   }
 
+  /**
+   * @return type
+   */
   public String getTokenType() {
     return tokenType;
   }
 
-  public void setTokenType(final String tokenType) {
-    this.tokenType = tokenType;
+  /**
+   * @param aTokenType type
+   */
+  public void setTokenType(final String aTokenType) {
+    this.tokenType = aTokenType;
   }
 
+  /**
+   * @return ID
+   */
   public int getTokenIssuerId() {
     return tokenIssuerId;
   }
 
-  public void setTokenIssuerId(final int tokenIssuerId) {
-    this.tokenIssuerId = tokenIssuerId;
+  /**
+   * @param aTokenIssuerId ID
+   */
+  public void setTokenIssuerId(final int aTokenIssuerId) {
+    this.tokenIssuerId = aTokenIssuerId;
   }
 
+  /**
+   * @return type
+   */
   public AccessMatchType getAccessMatchType() {
     return AccessMatchType.matchFromDatabase(tokenMatchOperator);
   }
 
+  /**
+   * @return key
+   */
   public int getTokenMatchKey() {
     return tokenMatchKey;
   }
 
-  public void setTokenMatchKey(final int tokenMatchKey) {
-    this.tokenMatchKey = tokenMatchKey;
+  /**
+   * @param aTokenMatchKey key
+   */
+  public void setTokenMatchKey(final int aTokenMatchKey) {
+    this.tokenMatchKey = aTokenMatchKey;
   }
 
+  /**
+   * @return op
+   */
   public int getTokenMatchOperator() {
     return tokenMatchOperator;
   }
 
-  public void setTokenMatchOperator(final int tokenMatchOperator) {
-    this.tokenMatchOperator = tokenMatchOperator;
+  /**
+   * @param aTokenMatchOperator op
+   */
+  public void setTokenMatchOperator(final int aTokenMatchOperator) {
+    this.tokenMatchOperator = aTokenMatchOperator;
   }
 
+  /**
+   * @return value
+   */
   public String getTokenMatchValue() {
     return tokenMatchValue;
   }
 
-  public void setTokenMatchValue(final String tokenMatchValue) {
-    this.tokenMatchValue = tokenMatchValue;
+  /**
+   * @param aTokenMatchValue value
+   */
+  public void setTokenMatchValue(final String aTokenMatchValue) {
+    this.tokenMatchValue = aTokenMatchValue;
   }
 
+
+  /**
+   * @return id
+   */
   public int getRoleId() {
     return roleId;
   }
 
-  public void setRoleId(final int roleId) {
-    this.roleId = roleId;
+  /**
+   * @param aRoleId id
+   */
+  public void setRoleId(final int aRoleId) {
+    this.roleId = aRoleId;
   }
 
+  /**
+   * @return desc
+   */
   public String getDescription() {
     return description;
   }
 
-  public void setDescription(final String description) {
-    this.description = description;
+  /**
+   * @param aDescription desc
+   */
+  public void setDescription(final String aDescription) {
+    this.description = aDescription;
   }
 }

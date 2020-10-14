@@ -42,9 +42,13 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileData;
 @SuppressWarnings("serial")
 @Deprecated
 public class Eca7277CertificateProfileData extends CertificateProfileData {
-  private static final Logger log =
+  /** Logger. */
+    private static final Logger LOG =
       Logger.getLogger(Eca7277CertificateProfileData.class);
 
+  /**
+   * @param data data
+   */
   public Eca7277CertificateProfileData(final CertificateProfileData data) {
     super(
         data.getId(),
@@ -56,8 +60,8 @@ public class Eca7277CertificateProfileData extends CertificateProfileData {
 
   @Override
   protected String getProtectString(final int rowversion) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Verification of row protected data for Certificate Profile "
               + getCertificateProfileName()
               + " failed. Trying to fix the protect string now.");

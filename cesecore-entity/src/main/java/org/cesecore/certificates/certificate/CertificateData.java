@@ -109,28 +109,49 @@ public class CertificateData extends BaseCertificateData
 
   private static final long serialVersionUID = -8493105317760641442L;
 
-  private static final Logger log = Logger.getLogger(CertificateData.class);
-
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CertificateData.class);
+  /** Param. */
   private String issuerDN;
+  /** Param. */
   private String subjectDN;
+  /** Param. */
   private String subjectAltName = null; // @since EJBCA 6.6.0
+  /** Param. */
   private String fingerprint = "";
+  /** Param. */
   private String cAFingerprint;
+  /** Param. */
   private int status = 0;
+  /** Param. */
   private int type = 0;
+  /** Param. */
   private String serialNumber;
+  /** Param. */
   private Long notBefore = null; // @since EJBCA 6.6.0
+  /** Param. */
   private long expireDate = 0;
+  /** Param. */
   private long revocationDate = 0;
+  /** Param. */
   private int revocationReason = 0;
+  /** Param. */
   private String base64Cert;
+  /** Param. */
   private String username;
+  /** Param. */
   private String tag;
+  /** Param. */
   private Integer certificateProfileId;
+  /** Param. */
   private Integer endEntityProfileId = null; // @since EJBCA 6.6.0
+  /** Param. */
   private long updateTime = 0;
+  /** Param. */
   private String subjectKeyId;
+  /** Param. */
   private int rowVersion = 0;
+  /** Protect. */
   private String rowProtection;
 
   /**
@@ -152,15 +173,16 @@ public class CertificateData extends BaseCertificateData
    *     of parameters, if the public key in the certificate does not have
    *     parameters. Can be null if RSA or certificate public key contains all
    *     parameters.
-   * @param username the username in UserData to map the certificate to
+   * @param aUsername the username in UserData to map the certificate to
    * @param cafp CA certificate fingerprint, can be null
-   * @param status status of the certificate, active, revoked etcc, i.e.
+   * @param aStatus status of the certificate, active, revoked etcc, i.e.
    *     CertificateConstants.CERT_ACTIVE etc
-   * @param type the user type the certificate belongs to, i.e.
+   * @param aType the user type the certificate belongs to, i.e.
    *     EndEntityTypes.USER_ENDUSER etc
    * @param certprofileid certificate profile id, can be 0 for "no profile"
-   * @param endEntityProfileId end entity profile id, can be 0 for "no profile"
-   * @param tag a custom tag to map the certificate to any custom defined tag
+   * @param anEndEntityProfileId end entity profile id, can be 0
+   *         for "no profile"
+   * @param aTag a custom tag to map the certificate to any custom defined tag
    * @param updatetime the time the certificate was updated in the database,
    *     i.e. System.currentTimeMillis().
    * @param storeCertificate true if the certificate should be stored in this
@@ -174,13 +196,13 @@ public class CertificateData extends BaseCertificateData
   public CertificateData(
       final Certificate certificate,
       final PublicKey enrichedpubkey,
-      final String username,
+      final String aUsername,
       final String cafp,
-      final int status,
-      final int type,
+      final int aStatus,
+      final int aType,
       final int certprofileid,
-      final int endEntityProfileId,
-      final String tag,
+      final int anEndEntityProfileId,
+      final String aTag,
       final long updatetime,
       final boolean storeCertificate,
       final boolean storeSubjectAltName) {
@@ -199,8 +221,8 @@ public class CertificateData extends BaseCertificateData
       if (storeSubjectAltName) {
         setSubjectAltName(CertTools.getSubjectAlternativeName(certificate));
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Creating CertificateData, subjectDN="
                 + getSubjectDnNeverNull()
                 + ", subjectAltName="
@@ -214,23 +236,23 @@ public class CertificateData extends BaseCertificateData
       }
       setSerialNumber(CertTools.getSerialNumber(certificate).toString());
 
-      setUsername(username);
+      setUsername(aUsername);
       // Values for status and type
-      setStatus(status);
-      setType(type);
+      setStatus(aStatus);
+      setType(aType);
       setCaFingerprint(cafp);
-      final Date notBefore = CertTools.getNotBefore(certificate);
-      if (notBefore == null) {
+      final Date aNotBefore = CertTools.getNotBefore(certificate);
+      if (aNotBefore == null) {
         setNotBefore(null);
       } else {
-        setNotBefore(notBefore.getTime());
+        setNotBefore(aNotBefore.getTime());
       }
       setExpireDate(CertTools.getNotAfter(certificate));
       setRevocationDate(-1L);
       setRevocationReason(RevokedCertInfo.NOT_REVOKED);
       setUpdateTime(updatetime); // (new Date().getTime());
       setCertificateProfileId(certprofileid);
-      setEndEntityProfileId(Integer.valueOf(endEntityProfileId));
+      setEndEntityProfileId(Integer.valueOf(anEndEntityProfileId));
       // Create a key identifier
       PublicKey pubk = certificate.getPublicKey();
       if (enrichedpubkey != null) {
@@ -246,23 +268,23 @@ public class CertificateData extends BaseCertificateData
                     KeyTools.createSubjectKeyId(pubk).getKeyIdentifier(),
                     false));
       } catch (Exception e) {
-        log.warn(
+        LOG.warn(
             "Error creating subjectKeyId for certificate with fingerprint '"
                 + fp
                 + ": ",
             e);
       }
       setSubjectKeyId(keyId);
-      setTag(tag);
+      setTag(aTag);
     } catch (CertificateEncodingException cee) {
       final String msg = "Can't extract DER encoded certificate information.";
-      log.error(msg, cee);
+      LOG.error(msg, cee);
       throw new RuntimeException(msg);
     }
   }
 
   /**
-   * Copy Constructor
+   * Copy Constructor.
    *
    * @param copy data
    */
@@ -290,7 +312,8 @@ public class CertificateData extends BaseCertificateData
     setRowProtection(copy.getRowProtection());
   }
 
-  public CertificateData() {}
+  /** Null constructor. */
+  public CertificateData() { }
 
   @Override
   public String getFingerprint() {
@@ -298,8 +321,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setFingerprint(final String fingerprint) {
-    this.fingerprint = fingerprint;
+  public void setFingerprint(final String aFingerprint) {
+    this.fingerprint = aFingerprint;
   }
 
   @Override
@@ -308,8 +331,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setIssuerDN(final String issuerDN) {
-    this.issuerDN = issuerDN;
+  public void setIssuerDN(final String anIssuerDN) {
+    this.issuerDN = anIssuerDN;
   }
 
   @Override
@@ -318,13 +341,13 @@ public class CertificateData extends BaseCertificateData
   }
 
   /**
-   * Use setSubject instead
+   * Use setSubject instead.
    *
-   * @param subjectDN subject dn
+   * @param aSubjectDN subject dn
    * @see #setSubject(String)
    */
-  public void setSubjectDN(final String subjectDN) {
-    this.subjectDN = subjectDN;
+  public void setSubjectDN(final String aSubjectDN) {
+    this.subjectDN = aSubjectDN;
   }
 
   /**
@@ -333,8 +356,8 @@ public class CertificateData extends BaseCertificateData
    */
   @Transient
   public String getSubjectAltNameNeverNull() {
-    final String subjectAltName = getSubjectAltName();
-    return subjectAltName == null ? "" : subjectAltName;
+    final String aSubjectAltName = getSubjectAltName();
+    return aSubjectAltName == null ? "" : aSubjectAltName;
   }
 
   @Override
@@ -342,8 +365,11 @@ public class CertificateData extends BaseCertificateData
     return subjectAltName;
   }
 
-  public void setSubjectAltName(final String subjectAltName) {
-    this.subjectAltName = subjectAltName;
+  /**
+   * @param aSubjectAltName Name
+   */
+  public void setSubjectAltName(final String aSubjectAltName) {
+    this.subjectAltName = aSubjectAltName;
   }
 
   @Override
@@ -352,8 +378,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setCaFingerprint(final String cAFingerprint) {
-    this.cAFingerprint = cAFingerprint;
+  public void setCaFingerprint(final String aCAFingerprint) {
+    this.cAFingerprint = aCAFingerprint;
   }
 
   @Override
@@ -362,8 +388,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setStatus(final int status) {
-    this.status = status;
+  public void setStatus(final int aStatus) {
+    this.status = aStatus;
   }
 
   @Override
@@ -372,8 +398,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setType(final int type) {
-    this.type = type;
+  public void setType(final int aType) {
+    this.type = aType;
   }
 
   @Override
@@ -382,8 +408,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setSerialNumber(final String serialNumber) {
-    this.serialNumber = serialNumber;
+  public void setSerialNumber(final String aSerialNumber) {
+    this.serialNumber = aSerialNumber;
   }
 
   @Override
@@ -391,8 +417,11 @@ public class CertificateData extends BaseCertificateData
     return notBefore;
   }
 
-  public void setNotBefore(final Long notBefore) {
-    this.notBefore = notBefore;
+  /**
+   * @param aNotBefore start
+   */
+  public void setNotBefore(final Long aNotBefore) {
+    this.notBefore = aNotBefore;
   }
 
   @Override
@@ -401,8 +430,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setExpireDate(final long expireDate) {
-    this.expireDate = expireDate;
+  public void setExpireDate(final long anExpireDate) {
+    this.expireDate = anExpireDate;
   }
 
   @Override
@@ -411,8 +440,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setRevocationDate(final long revocationDate) {
-    this.revocationDate = revocationDate;
+  public void setRevocationDate(final long aRevocationDate) {
+    this.revocationDate = aRevocationDate;
   }
 
   @Override
@@ -421,8 +450,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setRevocationReason(final int revocationReason) {
-    this.revocationReason = revocationReason;
+  public void setRevocationReason(final int aRevocationReason) {
+    this.revocationReason = aRevocationReason;
   }
 
   @Override
@@ -431,12 +460,12 @@ public class CertificateData extends BaseCertificateData
   }
 
   /**
-   * The certificate itself
+   * The certificate itself.
    *
-   * @param base64Cert base64 encoded certificate
+   * @param aBase64Cert base64 encoded certificate
    */
-  public void setBase64Cert(final String base64Cert) {
-    this.setZzzBase64Cert(base64Cert);
+  public void setBase64Cert(final String aBase64Cert) {
+    this.setZzzBase64Cert(aBase64Cert);
   }
 
   /**
@@ -469,8 +498,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setUsername(final String username) {
-    this.username = StringTools.stripUsername(username);
+  public void setUsername(final String aUsername) {
+    this.username = StringTools.stripUsername(aUsername);
   }
 
   @Override
@@ -482,10 +511,10 @@ public class CertificateData extends BaseCertificateData
    * tag in database. This field was added for the 3.9.0 release, but is not
    * used yet.
    *
-   * @param tag tag
+   * @param aTag tag
    */
-  public void setTag(final String tag) {
-    this.tag = tag;
+  public void setTag(final String aTag) {
+    this.tag = aTag;
   }
 
   @Override
@@ -494,8 +523,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setCertificateProfileId(final Integer certificateProfileId) {
-    this.certificateProfileId = certificateProfileId;
+  public void setCertificateProfileId(final Integer aCertificateProfileId) {
+    this.certificateProfileId = aCertificateProfileId;
   }
 
   @Override
@@ -506,8 +535,8 @@ public class CertificateData extends BaseCertificateData
   // Hibernate + Oracle ignores nullable=false so we can expect null-objects as
   // input after upgrade. TODO: Verify if still true!
   @Override
-  public void setUpdateTime(final Long updateTime) {
-    this.updateTime = (updateTime == null ? this.updateTime : updateTime);
+  public void setUpdateTime(final Long anUpdateTime) {
+    this.updateTime = (anUpdateTime == null ? this.updateTime : anUpdateTime);
   }
 
   @Override
@@ -516,12 +545,12 @@ public class CertificateData extends BaseCertificateData
   }
 
   /**
-   * The ID of the public key of the certificate
+   * The ID of the public key of the certificate.
    *
-   * @param subjectKeyId ID
+   * @param aSubjectKeyId ID
    */
-  public void setSubjectKeyId(final String subjectKeyId) {
-    this.subjectKeyId = subjectKeyId;
+  public void setSubjectKeyId(final String aSubjectKeyId) {
+    this.subjectKeyId = aSubjectKeyId;
   }
 
   @Override
@@ -529,8 +558,11 @@ public class CertificateData extends BaseCertificateData
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion cversion
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   @Override
@@ -539,8 +571,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.setZzzRowProtection(rowProtection);
+  public void setRowProtection(final String aRowProtection) {
+    this.setZzzRowProtection(aRowProtection);
   }
 
   /**
@@ -582,8 +614,8 @@ public class CertificateData extends BaseCertificateData
   }
 
   @Override
-  public void setEndEntityProfileId(final Integer endEntityProfileId) {
-    this.endEntityProfileId = endEntityProfileId;
+  public void setEndEntityProfileId(final Integer anEndEntityProfileId) {
+    this.endEntityProfileId = anEndEntityProfileId;
   }
 
   @Override
@@ -601,6 +633,12 @@ public class CertificateData extends BaseCertificateData
     return equals((CertificateData) obj, true);
   }
 
+  /**
+   * @param certificateData data
+   * @param mode mode
+   * @param strictStatus Status
+   * @return bool
+   */
   public boolean equals(
       final CertificateData certificateData,
       final boolean mode,
@@ -707,6 +745,10 @@ public class CertificateData extends BaseCertificateData
     return fingerprint.hashCode() * 11;
   }
 
+  /**
+   * @param certificateData Data
+   * @param inclusionMode Mode
+   */
   public void updateWith(
       final CertificateData certificateData, final boolean inclusionMode) {
     issuerDN = certificateData.issuerDN;
@@ -813,7 +855,8 @@ public class CertificateData extends BaseCertificateData
   @Transient
   @Override
   protected String getProtectString(final int version) {
-    final ProtectionStringBuilder build = new ProtectionStringBuilder(3000);
+    final int cap = 3000;
+    final ProtectionStringBuilder build = new ProtectionStringBuilder(cap);
     // What is important to protect here is the data that we define, id, name
     // and certificate profile data
     // rowVersion is automatically updated by JPA, so it's not important, it is
@@ -852,10 +895,10 @@ public class CertificateData extends BaseCertificateData
         build.append(String.valueOf(getSubjectAltName()));
       }
     }
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       // Some profiling
-      if (build.length() > 3000) {
-        log.debug(
+      if (build.length() > cap) {
+        LOG.debug(
             "CertificateData.getProtectString gives size: " + build.length());
       }
     }
@@ -865,7 +908,8 @@ public class CertificateData extends BaseCertificateData
   @Transient
   @Override
   protected int getProtectVersion() {
-    return 3;
+    final int version = 3;
+    return version;
   }
 
   @PrePersist

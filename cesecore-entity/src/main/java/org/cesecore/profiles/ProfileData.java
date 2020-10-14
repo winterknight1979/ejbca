@@ -33,7 +33,7 @@ import org.cesecore.util.Base64PutHashMap;
 import org.cesecore.util.SecureXMLDecoder;
 
 /**
- * Implementation of the "ProfileData" table in the database
+ * Implementation of the "ProfileData" table in the database.
  *
  * @version $Id: ProfileData.java 34163 2020-01-02 15:00:17Z samuellb $
  */
@@ -42,27 +42,35 @@ import org.cesecore.util.SecureXMLDecoder;
 public class ProfileData extends ProtectedData implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = Logger.getLogger(ProfileData.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ProfileData.class);
 
+  /** param. */
   private int id;
+  /** param. */
   private String profileName;
+  /** param. */
   private String profileType;
+  /** param. */
   private String rawData;
+  /** param. */
   private int rowVersion = 0;
+  /** param. */
   private String rowProtection;
 
-  public ProfileData() {}
+  /** Null constructor. */
+  public ProfileData() { }
 
   /**
    * Entity holding data of an approval profile.
    *
-   * @param id ID
+   * @param anid ID
    * @param profile profile
    */
-  public ProfileData(final int id, final Profile profile) {
-    setId(id);
+  public ProfileData(final int anid, final Profile profile) {
+    setId(anid);
     profile.setProfileId(
-        id); // ID in the data map should be same as in database column
+        anid); // ID in the data map should be same as in database column
     setProfileName(profile.getProfileName());
     setProfileType(profile.getProfileType());
     setDataMap(profile.getDataMap());
@@ -70,7 +78,7 @@ public class ProfileData extends ProtectedData implements Serializable {
 
   /**
    * Loads the values of the submitted profile implementation into this entity
-   * object
+   * object.
    *
    * @param profile a profile
    */
@@ -81,28 +89,46 @@ public class ProfileData extends ProtectedData implements Serializable {
     setDataMap(profile.getDataMap());
   }
 
+  /**
+   * @return ID
+   */
   public int getId() {
     return id;
   }
 
-  public void setId(final int id) {
-    this.id = id;
+  /**
+   * @param anId ID
+   */
+  public void setId(final int anId) {
+    this.id = anId;
   }
 
+  /**
+   * @return name
+   */
   public String getProfileName() {
     return profileName;
   }
 
-  public void setProfileName(final String profileName) {
-    this.profileName = profileName;
+  /**
+   * @param aProfileName name
+   */
+  public void setProfileName(final String aProfileName) {
+    this.profileName = aProfileName;
   }
 
+  /**
+   * @return type
+   */
   public String getProfileType() {
     return profileType;
   }
 
-  public void setProfileType(final String profileType) {
-    this.profileType = profileType;
+  /**
+   * @param aProfileType type
+   */
+  public void setProfileType(final String aProfileType) {
+    this.profileType = aProfileType;
   }
 
   /**
@@ -116,12 +142,15 @@ public class ProfileData extends ProtectedData implements Serializable {
   /**
    * Should not be invoked directly. Use setDataMap(..) instead.
    *
-   * @param rawData data
+   * @param theRawData data
    */
-  public void setRawData(final String rawData) {
-    this.rawData = rawData;
+  public void setRawData(final String theRawData) {
+    this.rawData = theRawData;
   }
 
+  /**
+   * @return map
+   */
   @Transient
   @SuppressWarnings("unchecked")
   public LinkedHashMap<Object, Object> getDataMap() {
@@ -141,13 +170,16 @@ public class ProfileData extends ProtectedData implements Serializable {
               + profileName
               + "': "
               + e.getMessage();
-      if (log.isDebugEnabled()) {
-        log.debug(msg + ". Data:\n" + getRawData());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(msg + ". Data:\n" + getRawData());
       }
       throw new IllegalStateException(msg, e);
     }
   }
 
+  /**
+   * @param dataMap map
+   */
   @Transient
   @SuppressWarnings({"rawtypes", "unchecked"})
   public void setDataMap(final LinkedHashMap<Object, Object> dataMap) {
@@ -179,12 +211,18 @@ public class ProfileData extends ProtectedData implements Serializable {
     return build.toString();
   }
 
+  /**
+   * @return version
+   */
   public int getRowVersion() {
     return rowVersion;
   }
 
-  public void setRowVersion(final int rowVersion) {
-    this.rowVersion = rowVersion;
+  /**
+   * @param aRowVersion version
+   */
+  public void setRowVersion(final int aRowVersion) {
+    this.rowVersion = aRowVersion;
   }
 
   @Transient
@@ -199,8 +237,8 @@ public class ProfileData extends ProtectedData implements Serializable {
   }
 
   @Override
-  public void setRowProtection(final String rowProtection) {
-    this.rowProtection = rowProtection;
+  public void setRowProtection(final String aRowProtection) {
+    this.rowProtection = aRowProtection;
   }
 
   @Override
