@@ -18,29 +18,56 @@ import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue
 import org.junit.Test;
 
 /**
- * @version $Id: AccessUserAspectDataTest.java 28007 2018-01-18 12:49:29Z mikekushner $
- *
+ * @version $Id: AccessUserAspectDataTest.java 28007 2018-01-18 12:49:29Z
+ *     mikekushner $
  */
 public class AccessUserAspectDataTest {
-
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testGeneratePrimaryKeyWhereRoleNameAndMatchValueAreTheSame() {
-        int alpha = AccessUserAspectData.generatePrimaryKey("foo", 1337, X500PrincipalAccessMatchValue.WITH_COMMONNAME,
-                AccessMatchType.TYPE_EQUALCASE, "bar1");
-        int beta = AccessUserAspectData.generatePrimaryKey("foo", 1337, X500PrincipalAccessMatchValue.WITH_COMMONNAME,
-                AccessMatchType.TYPE_EQUALCASE, "bar2");
-        assertTrue("Two identical primary keys were produced for different values", alpha != beta);
-    }
-    
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testGeneratePrimaryKeyWhereRoleNameAndMatchValueAreSwitched() {
-        int alpha = AccessUserAspectData.generatePrimaryKey("foo", 1337, X500PrincipalAccessMatchValue.WITH_COMMONNAME,
-                AccessMatchType.TYPE_EQUALCASE, "bar");
-        int beta = AccessUserAspectData.generatePrimaryKey("bar", 1337, X500PrincipalAccessMatchValue.WITH_COMMONNAME,
-                AccessMatchType.TYPE_EQUALCASE, "foo");
-        assertTrue("Two identical primary keys were produced for different values", alpha != beta);
-    }
-
+    /**
+       * Test.
+       */
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testGeneratePrimaryKeyWhereRoleNameAndMatchValueAreTheSame() {
+    int alpha =
+        AccessUserAspectData.generatePrimaryKey(
+            "foo",
+            1337,
+            X500PrincipalAccessMatchValue.WITH_COMMONNAME,
+            AccessMatchType.TYPE_EQUALCASE,
+            "bar1");
+    int beta =
+        AccessUserAspectData.generatePrimaryKey(
+            "foo",
+            1337,
+            X500PrincipalAccessMatchValue.WITH_COMMONNAME,
+            AccessMatchType.TYPE_EQUALCASE,
+            "bar2");
+    assertTrue(
+        "Two identical primary keys were produced for different values",
+        alpha != beta);
+  }
+  /**
+   * Test.
+   */
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testGeneratePrimaryKeyWhereRoleNameAndMatchValueAreSwitched() {
+    int alpha =
+        AccessUserAspectData.generatePrimaryKey(
+            "foo",
+            1337,
+            X500PrincipalAccessMatchValue.WITH_COMMONNAME,
+            AccessMatchType.TYPE_EQUALCASE,
+            "bar");
+    int beta =
+        AccessUserAspectData.generatePrimaryKey(
+            "bar",
+            1337,
+            X500PrincipalAccessMatchValue.WITH_COMMONNAME,
+            AccessMatchType.TYPE_EQUALCASE,
+            "foo");
+    assertTrue(
+        "Two identical primary keys were produced for different values",
+        alpha != beta);
+  }
 }

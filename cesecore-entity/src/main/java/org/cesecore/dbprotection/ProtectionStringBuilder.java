@@ -14,39 +14,57 @@ package org.cesecore.dbprotection;
 
 /**
  * Wrapper for StringBuilder that inserts a separator between elements.
- * @version $Id: ProtectionStringBuilder.java 17625 2013-09-20 07:12:06Z netmackan $
+ *
+ * @version $Id: ProtectionStringBuilder.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class ProtectionStringBuilder {
 
-	private static final String SEPARATOR_TAG = "<sep/>";
-	
-	private final StringBuilder sb;
+    /** Tag. */
+  private static final String SEPARATOR_TAG = "<sep/>";
 
-	public ProtectionStringBuilder() {
-		sb = new StringBuilder();
-	}
+  /** SB. */
+  private final StringBuilder sb;
 
-	public ProtectionStringBuilder(final int initialCapacity) {
-		sb = new StringBuilder(initialCapacity);
-	}
+  /** null.
+   */
+  public ProtectionStringBuilder() {
+    sb = new StringBuilder();
+  }
 
-	public ProtectionStringBuilder append(final Object o) {
-		if (sb.length()>0) {
-			sb.append(SEPARATOR_TAG);
-		}
-		// String.valueOf(o) would return "null" when null, which is not the same as null.
-		if (o != null) {
-			sb.append(o.toString());
-		}
-		return this;
-	}
+  /**
+   * @param initialCapacity cap
+   */
+  public ProtectionStringBuilder(final int initialCapacity) {
+    sb = new StringBuilder(initialCapacity);
+  }
 
-	public int length() {
-		return sb.length();
-	}
-	
-	@Override
-	public String toString() {
-		return sb.toString();
-	}
+  /**
+   * Append.
+   * @param o Object
+   * @return this
+   */
+  public ProtectionStringBuilder append(final Object o) {
+    if (sb.length() > 0) {
+      sb.append(SEPARATOR_TAG);
+    }
+    // String.valueOf(o) would return "null" when null, which is not the same as
+    // null.
+    if (o != null) {
+      sb.append(o.toString());
+    }
+    return this;
+  }
+
+  /**
+   * @return Length
+   */
+  public int length() {
+    return sb.length();
+  }
+
+  @Override
+  public String toString() {
+    return sb.toString();
+  }
 }
