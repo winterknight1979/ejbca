@@ -85,6 +85,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-test-aggregator</module>
 
 
+		<module>ejbca-ear</module>
 	</modules>
 
 	<scm>
