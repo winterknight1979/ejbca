@@ -32,6 +32,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 		<module>build-config</module>
 		<module>shared-resources</module>
+		<module>swagger-ui</module>
 
 		<!-- CeSeCore JARs -->
 
@@ -81,7 +82,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 		<module>ejbca-test-aggregator</module>
 
-		
+
 	</modules>
 
 	<scm>

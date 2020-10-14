@@ -340,21 +340,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
                             <generatePom>true</generatePom>
                         </configuration>
                     </execution>
-                    <execution>
-                        <phase>initialize</phase>
-                        <id>Install Swagger UI</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <file>ext/swagger-ui.war</file>
-                            <groupId>org.ejbca.swagger</groupId>
-                            <artifactId>swagger-ui</artifactId>
-                            <version>1.0.0</version>
-                            <packaging>war</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
