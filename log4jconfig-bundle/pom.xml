@@ -72,13 +72,13 @@
 						<configuration>
 							<target>
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource/conf">
 										<include name="log4j-${appserver.type}.xml.sample" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
 								</copy>
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource/conf">
 										<include name="log4j-${appserver.type}.xml" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
@@ -86,13 +86,13 @@
 								<!-- If we don't have a specific file for an appserver, perhaps we 
 									have one for the subtype (i.e. jboss and jboss6) -->
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource/conf">
 										<include name="log4j-${appserver.subtype}.xml.sample" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
 								</copy>
 								<copy overwrite="true" todir="${project.build.outputDirectory}" failonerror="false">
-									<fileset dir="${project.build.directory}/maven-shared-archive-resource}/conf">
+									<fileset dir="${project.build.directory}/maven-shared-archive-resource/conf">
 										<include name="log4j-${appserver.subtype}.xml" />
 									</fileset>
 									<mapper type="regexp" from="log4j-.*" to="log4j.xml" />
