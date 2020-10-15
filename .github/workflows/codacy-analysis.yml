@@ -22,7 +22,13 @@ jobs:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code
         uses: actions/checkout@v2
-      
+     
+      - name: Build
+        - run: |
+          echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
+          @mvn -fn -B -Pjboss -DskipTests=true clean verify
+     
+
       #We want to run and upload spotbugs results BEFORE we generate the SARIF file
       - name: Run Codacy Analysis CLI
         uses: codacy/codacy-analysis-cli-action@master
