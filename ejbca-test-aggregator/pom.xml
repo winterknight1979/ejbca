@@ -75,6 +75,12 @@ It should explicitly depend on all other modules.</description>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-ejb</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun.xml.ws</groupId>
+					<artifactId>jaxws-ri</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
@@ -87,6 +93,12 @@ It should explicitly depend on all other modules.</description>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-ws</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun.xml.ws</groupId>
+					<artifactId>jaxws-ri</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>

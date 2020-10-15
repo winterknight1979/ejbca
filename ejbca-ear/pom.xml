@@ -11,6 +11,7 @@
 	<packaging>ear</packaging>
 
 	<dependencies>
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>cesecore-ejb</artifactId>
@@ -18,16 +19,16 @@
 			<type>ejb</type>
 		</dependency>
 		<dependency>
-		<groupId>${project.groupId}</groupId>
-		<artifactId>ejbca-ejb</artifactId>
-		<version>${project.version}</version>
-		<type>ejb</type>
-		<exclusions>
-			<exclusion>
-				 <groupId>com.sun.xml.ws</groupId>
-   				 <artifactId>jaxws-ri</artifactId>
-			</exclusion>
-		</exclusions>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-ejb</artifactId>
+			<version>${project.version}</version>
+			<type>ejb</type>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun.xml.ws</groupId>
+					<artifactId>jaxws-ri</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -65,6 +66,119 @@
 			<version>${project.version}</version>
 			<type>war</type>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-cmp-war</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>healthcheck-war</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-webdist-war</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>clearcache-war</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>admin-gui</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-ws</artifactId>
+			<version>${project.version}</version>
+			<type>ejb</type>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun.xml.ws</groupId>
+					<artifactId>jaxws-ri</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>doc-war</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-renew-war</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-cmp-tcp</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ra-gui</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>swagger-ui</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+
+		<!-- non-module deps -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>log4jconfig-bundle</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.myfaces.tomahawk</groupId>
+			<artifactId>tomahawk</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.myfaces.core</groupId>
+			<artifactId>myfaces-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.myfaces.core</groupId>
+			<artifactId>myfaces-impl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-pool</groupId>
+			<artifactId>commons-pool</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.owasp</groupId>
+			<artifactId>csrfguard</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.quickserverlab</groupId>
+			<artifactId>quickserver-main</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -73,6 +187,8 @@
 				<artifactId>maven-ear-plugin</artifactId>
 				<version>3.1.0</version>
 				<configuration>
+					<packagingExcludes>**/*shared-resources*</packagingExcludes>
+					<defaultLibBundleDir>lib</defaultLibBundleDir>
 					<modules>
 						<ejbModule>
 							<groupId>${project.groupId}</groupId>
@@ -112,11 +228,78 @@
 							<artifactId>certstore-war</artifactId>
 							<bundleFileName>certstore.war</bundleFileName>
 							<contextRoot>/ejbca/publicweb/certificates</contextRoot>
-						</webModule><webModule>
+						</webModule>
+						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>crlstore-war</artifactId>
 							<bundleFileName>crlstore.war</bundleFileName>
 							<contextRoot>/ejbca/publicweb/crls</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>ejbca-cmp-war</artifactId>
+							<bundleFileName>cmp.war</bundleFileName>
+							<contextRoot>/ejbca/publicweb</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>healthcheck-war</artifactId>
+							<bundleFileName>healthcheck.war</bundleFileName>
+							<contextRoot>/ejbca/publicweb/healthcheck</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>ejbca-webdist-war</artifactId>
+							<bundleFileName>webdist.war</bundleFileName>
+							<contextRoot>/ejbca/publicweb/webdist</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>clearcache-war</artifactId>
+							<bundleFileName>clearcache.war</bundleFileName>
+							<contextRoot>/ejbca/clearcache</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>admin-gui</artifactId>
+							<bundleFileName>adminweb.war</bundleFileName>
+							<contextRoot>/ejbca/adminweb</contextRoot>
+						</webModule>
+						<ejbModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>ejbca-ws</artifactId>
+							<bundleFileName>ejbca-ws-ejb.jar</bundleFileName>
+						</ejbModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>doc-war</artifactId>
+							<bundleFileName>doc.war</bundleFileName>
+							<contextRoot>/ejbca/doc</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>ejbca-renew-war</artifactId>
+							<bundleFileName>renew.war</bundleFileName>
+							<contextRoot>/ejbca/renew</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>ejbca-cmp-tcp</artifactId>
+							<bundleFileName>ejbca-cmp-tcp.war</bundleFileName>
+							<contextRoot>/ejbca/cmp-tcp</contextRoot>
+						</webModule>
+
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>ra-gui</artifactId>
+							<bundleFileName>ra-gui.war</bundleFileName>
+							<contextRoot>/ejbca/ra</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>swagger-ui</artifactId>
+							<bundleFileName>swagger-ui.war</bundleFileName>
+							<contextRoot>/ejbca/swagger-ui</contextRoot>
 						</webModule>
 					</modules>
 				</configuration>
