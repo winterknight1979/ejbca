@@ -18,7 +18,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.ErrorHandler;
@@ -43,116 +42,151 @@ import org.cesecore.util.query.QueryCriteria;
 
 /**
  * Simple implementation of (secure) audit that writes all log to Log4J.
- * 
- * This implementation does not comply to the CESeCore TSF regarding log protection and only provided as a compliment
- * to monitor operations or for use in high performance environments where compliance is not an issue.
- * 
+ *
+ * <p>This implementation does not comply to the CESeCore TSF regarding log
+ * protection and only provided as a compliment to monitor operations or for use
+ * in high performance environments where compliance is not an issue.
+ *
  * @version $Id: Log4jDevice.java 18374 2014-01-16 13:13:34Z anatom $
  */
 public class Log4jDevice implements AuditLogDevice {
 
-	private static final Logger LOG = Logger.getLogger(Log4jDevice.class);
-	private static final String UNSUPPORTED = Log4jDevice.class.getSimpleName() + " does not support query, verification or export operations.";
-	private final List<Log4jDeviceErrorHandler> errorHandlers = new ArrayList<Log4jDeviceErrorHandler>();
-	
-	public Log4jDevice() {
-		@SuppressWarnings("unchecked")
-        final Enumeration<Appender> enumeration = LOG.getAllAppenders();
-		while (enumeration.hasMoreElements()) {
-			final Appender appender = enumeration.nextElement();
-			final ErrorHandler errorHandler = appender.getErrorHandler();
-			if (errorHandler != null) {
-				final Log4jDeviceErrorHandler wrappedErrorHandler = new Log4jDeviceErrorHandler(errorHandler);
-				errorHandlers.add(wrappedErrorHandler);
-				appender.setErrorHandler(wrappedErrorHandler);
-			}
-		}
-	}
-	
-	private void assertNoErrors() throws AuditRecordStorageException {
-		for (final Log4jDeviceErrorHandler errorHandler : errorHandlers) {
-			if (!errorHandler.isOk()) {
-				throw new AuditRecordStorageException("A log4j device failed to log.");
-			}
-		}
-	}
+  private static final Logger LOG = Logger.getLogger(Log4jDevice.class);
+  private static final String UNSUPPORTED =
+      Log4jDevice.class.getSimpleName()
+          + " does not support query, verification or export operations.";
+  private final List<Log4jDeviceErrorHandler> errorHandlers =
+      new ArrayList<Log4jDeviceErrorHandler>();
 
-	@Override
-	public boolean isSupportingQueries() {
-		return false;
-	}
+  public Log4jDevice() {
+    @SuppressWarnings("unchecked")
+    final Enumeration<Appender> enumeration = LOG.getAllAppenders();
+    while (enumeration.hasMoreElements()) {
+      final Appender appender = enumeration.nextElement();
+      final ErrorHandler errorHandler = appender.getErrorHandler();
+      if (errorHandler != null) {
+        final Log4jDeviceErrorHandler wrappedErrorHandler =
+            new Log4jDeviceErrorHandler(errorHandler);
+        errorHandlers.add(wrappedErrorHandler);
+        appender.setErrorHandler(wrappedErrorHandler);
+      }
+    }
+  }
 
-	@Override
-	public void setEjbs(final Map<Class<?>, ?> ejbs) {
-		// Does not use any beans
-	}
+  private void assertNoErrors() throws AuditRecordStorageException {
+    for (final Log4jDeviceErrorHandler errorHandler : errorHandlers) {
+      if (!errorHandler.isOk()) {
+        throw new AuditRecordStorageException("A log4j device failed to log.");
+      }
+    }
+  }
 
-	@Override
-	public AuditLogExportReport exportAuditLogs(final AuthenticationToken token, final CryptoToken cryptoToken, final Date timestamp,
-			final boolean deleteAfterExport, final Map<String, Object> signatureDetails, final Properties properties, final Class<? extends AuditExporter> c) throws AuditLogExporterException {
-		throw new UnsupportedOperationException(UNSUPPORTED);
-	}
+  @Override
+  public boolean isSupportingQueries() {
+    return false;
+  }
 
-	@Override
-	public List<? extends AuditLogEntry> selectAuditLogs(final AuthenticationToken token, final int startIndex, final int max, final QueryCriteria criteria, final Properties properties) {
-		throw new UnsupportedOperationException(UNSUPPORTED);
-	}
+  @Override
+  public void setEjbs(final Map<Class<?>, ?> ejbs) {
+    // Does not use any beans
+  }
 
-	@Override
-	public AuditLogValidationReport verifyLogsIntegrity(final AuthenticationToken token, final Date date, final Properties properties) throws AuditLogValidatorException {
-		throw new UnsupportedOperationException(UNSUPPORTED);
-	}
+  @Override
+  public AuditLogExportReport exportAuditLogs(
+      final AuthenticationToken token,
+      final CryptoToken cryptoToken,
+      final Date timestamp,
+      final boolean deleteAfterExport,
+      final Map<String, Object> signatureDetails,
+      final Properties properties,
+      final Class<? extends AuditExporter> c)
+      throws AuditLogExporterException {
+    throw new UnsupportedOperationException(UNSUPPORTED);
+  }
 
-	@Override
-	public void log(final TrustedTime trustedTime, final EventType eventType, final EventStatus eventStatus, final ModuleType module, final ServiceType service,
-			final String authToken, final String customId, final String searchDetail1, final String searchDetail2, final Map<String, Object> additionalDetails, Properties properties)
-			throws AuditRecordStorageException {
-	    // Log lines are usually between 117 and 1700 bytes. An initial length of 1024 will cover most of them, speeding things up.
-		final StringBuilder sb = new StringBuilder(1024);
-		if (trustedTime != null) {
-			sb.append(ValidityDate.formatAsISO8601(trustedTime.getTime(), ValidityDate.TIMEZONE_SERVER));
-		}
-		appendIfNotNull(sb, eventType);
-		appendIfNotNull(sb, eventStatus);
-		appendIfNotNull(sb, module);
-		appendIfNotNull(sb, service);
-		appendIfNotNull(sb, authToken);
-		appendIfNotNull(sb, customId);
-		appendIfNotNull(sb, searchDetail1);
-		appendIfNotNull(sb, searchDetail2);
-		if (additionalDetails != null) {
-			for (final String detail : additionalDetails.keySet()) {
-				if (sb.length()!=0) {
-					sb.append(';');
-				}
-				sb.append(detail).append('=');
-				final Object o = additionalDetails.get(detail);
-				if (o != null) {
-					sb.append(o.toString());
-				}
-			}
-		}
-		LOG.info(sb.toString());
-		assertNoErrors();
-	}
-	
-	// TODO: Not perfect for parsing, since any of the appended values might contain a ';' char
-	private void appendIfNotNull(final StringBuilder sb, final Object o) {
-		if (sb.length()!=0) {
-			sb.append(';');
-		}
-		if (o != null) {
-			sb.append(o.toString());
-		}
-	}
+  @Override
+  public List<? extends AuditLogEntry> selectAuditLogs(
+      final AuthenticationToken token,
+      final int startIndex,
+      final int max,
+      final QueryCriteria criteria,
+      final Properties properties) {
+    throw new UnsupportedOperationException(UNSUPPORTED);
+  }
 
-	@Override
-	public void prepareReset() throws AuditLogResetException {
-		// No action required
-	}
+  @Override
+  public AuditLogValidationReport verifyLogsIntegrity(
+      final AuthenticationToken token,
+      final Date date,
+      final Properties properties)
+      throws AuditLogValidatorException {
+    throw new UnsupportedOperationException(UNSUPPORTED);
+  }
 
-	@Override
-	public void reset() throws AuditLogResetException {
-		// No action required
-	}
+  @Override
+  public void log(
+      final TrustedTime trustedTime,
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String authToken,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final Map<String, Object> additionalDetails,
+      final Properties properties)
+      throws AuditRecordStorageException {
+    // Log lines are usually between 117 and 1700 bytes. An initial length of
+    // 1024 will cover most of them, speeding things up.
+    final StringBuilder sb = new StringBuilder(1024);
+    if (trustedTime != null) {
+      sb.append(
+          ValidityDate.formatAsISO8601(
+              trustedTime.getTime(), ValidityDate.TIMEZONE_SERVER));
+    }
+    appendIfNotNull(sb, eventType);
+    appendIfNotNull(sb, eventStatus);
+    appendIfNotNull(sb, module);
+    appendIfNotNull(sb, service);
+    appendIfNotNull(sb, authToken);
+    appendIfNotNull(sb, customId);
+    appendIfNotNull(sb, searchDetail1);
+    appendIfNotNull(sb, searchDetail2);
+    if (additionalDetails != null) {
+      for (final String detail : additionalDetails.keySet()) {
+        if (sb.length() != 0) {
+          sb.append(';');
+        }
+        sb.append(detail).append('=');
+        final Object o = additionalDetails.get(detail);
+        if (o != null) {
+          sb.append(o.toString());
+        }
+      }
+    }
+    LOG.info(sb.toString());
+    assertNoErrors();
+  }
+
+  // TODO: Not perfect for parsing, since any of the appended values might
+  // contain a ';' char
+  private void appendIfNotNull(final StringBuilder sb, final Object o) {
+    if (sb.length() != 0) {
+      sb.append(';');
+    }
+    if (o != null) {
+      sb.append(o.toString());
+    }
+  }
+
+  @Override
+  public void prepareReset() throws AuditLogResetException {
+    // No action required
+  }
+
+  @Override
+  public void reset() throws AuditLogResetException {
+    // No action required
+  }
 }

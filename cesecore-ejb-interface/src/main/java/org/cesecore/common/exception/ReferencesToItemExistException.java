@@ -16,40 +16,50 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * Thrown when trying to delete an item when references to it exist.
- * For example when trying to delete a Publisher when it is used in Certificate Profiles.
- * <p>
- * The message contains details about which objects or which types of objects contain the references.
- * @version $Id: ReferencesToItemExistException.java 30470 2018-11-12 11:02:11Z samuellb $
+ * Thrown when trying to delete an item when references to it exist. For example
+ * when trying to delete a Publisher when it is used in Certificate Profiles.
+ *
+ * <p>The message contains details about which objects or which types of objects
+ * contain the references.
+ *
+ * @version $Id: ReferencesToItemExistException.java 30470 2018-11-12 11:02:11Z
+ *     samuellb $
  */
 public class ReferencesToItemExistException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates a new instance of <code>ReferencesToItemExistException</code> without detail message.
-     * @deprecated A message describing which types of objects are referencing the item should be included. This constructor is for deserialization only.
-     */
-    @Deprecated
-    public ReferencesToItemExistException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>ReferencesToItemExistException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public ReferencesToItemExistException(String msg) {
-        super(ErrorCode.REFERENCES_TO_ITEM_EXIST, msg);
-    }
+  /**
+   * Creates a new instance of <code>ReferencesToItemExistException</code>
+   * without detail message.
+   *
+   * @deprecated A message describing which types of objects are referencing the
+   *     item should be included. This constructor is for deserialization only.
+   */
+  @Deprecated
+  public ReferencesToItemExistException() {
+    super();
+  }
 
-    /**
-     * Constructs an instance of <code>ReferencesToItemExistException</code> with the specified detail message and cause.
-     * @param message the detail message.
-     * @param cause exception causing this exception.
-     */
-    public ReferencesToItemExistException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * Constructs an instance of <code>ReferencesToItemExistException</code> with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public ReferencesToItemExistException(final String msg) {
+    super(ErrorCode.REFERENCES_TO_ITEM_EXIST, msg);
+  }
+
+  /**
+   * Constructs an instance of <code>ReferencesToItemExistException</code> with
+   * the specified detail message and cause.
+   *
+   * @param message the detail message.
+   * @param cause exception causing this exception.
+   */
+  public ReferencesToItemExistException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

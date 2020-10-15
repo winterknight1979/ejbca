@@ -13,35 +13,41 @@
 package org.cesecore.certificates.crl;
 
 import java.util.Collection;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CA;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 
 /**
- * Interface for CrlCreateSession, a session bean for generating CRLs and deltaCRLs.
- * Authorization for generating CRLs are handled by the fact that you need to be authorized to the CA. 
- * Authorization checks are thus done in CaSessionBean when this session retrieves the CA for CRL generation.
- * 
+ * Interface for CrlCreateSession, a session bean for generating CRLs and
+ * deltaCRLs. Authorization for generating CRLs are handled by the fact that you
+ * need to be authorized to the CA. Authorization checks are thus done in
+ * CaSessionBean when this session retrieves the CA for CRL generation.
+ *
  * @version $Id: CrlCreateSession.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public interface CrlCreateSession {
 
-    /**
-     * Requests for a CRL to be created with the passed (revoked) certificates. 
-     * Generates the CRL and stores it in the database.
-     *
-     * @param admin administrator performing the task
-     * @param ca the CA this operation regards
-     * @param certs collection of RevokedCertInfo object.
-     * @param basecrlnumber the CRL number of the Base CRL to generate a deltaCRL, -1 to generate a full CRL
-     * @param nextCrlNumber the CRL number.
-     * @return The newly created CRL in DER encoded byte form or null, use CertTools.getCRLfromByteArray to convert to X509CRL.
-     * @throws AuthorizationDeniedException If access denied 
-     * @throws CryptoTokenOfflineException If offline
-     */
-    byte[] generateAndStoreCRL(AuthenticationToken admin, CA ca, Collection<RevokedCertInfo> certs, int basecrlnumber, int nextCrlNumber)
-            throws CryptoTokenOfflineException, AuthorizationDeniedException;
-
+  /**
+   * Requests for a CRL to be created with the passed (revoked) certificates.
+   * Generates the CRL and stores it in the database.
+   *
+   * @param admin administrator performing the task
+   * @param ca the CA this operation regards
+   * @param certs collection of RevokedCertInfo object.
+   * @param basecrlnumber the CRL number of the Base CRL to generate a deltaCRL,
+   *     -1 to generate a full CRL
+   * @param nextCrlNumber the CRL number.
+   * @return The newly created CRL in DER encoded byte form or null, use
+   *     CertTools.getCRLfromByteArray to convert to X509CRL.
+   * @throws AuthorizationDeniedException If access denied
+   * @throws CryptoTokenOfflineException If offline
+   */
+  byte[] generateAndStoreCRL(
+      AuthenticationToken admin,
+      CA ca,
+      Collection<RevokedCertInfo> certs,
+      int basecrlnumber,
+      int nextCrlNumber)
+      throws CryptoTokenOfflineException, AuthorizationDeniedException;
 }

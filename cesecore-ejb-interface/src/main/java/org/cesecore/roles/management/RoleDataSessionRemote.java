@@ -16,10 +16,9 @@ import javax.ejb.Remote;
 
 /**
  * Interface for low level Role operations.
- * 
- * @version $Id: RoleDataSessionRemote.java 26449 2017-08-28 20:05:53Z mikekushner $
+ *
+ * @version $Id: RoleDataSessionRemote.java 26449 2017-08-28 20:05:53Z
+ *     mikekushner $
  */
 @Remote
-public interface RoleDataSessionRemote extends RoleDataSession {
-
-}
+public interface RoleDataSessionRemote extends RoleDataSession {}

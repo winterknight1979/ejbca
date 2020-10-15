@@ -14,30 +14,27 @@ package org.cesecore.certificates.ocsp.exception;
 
 /**
  * A exception wrapper to cover different BouncyCastle provider errors.
- * 
- * @version $Id: CryptoProviderException.java 17625 2013-09-20 07:12:06Z netmackan $
  *
+ * @version $Id: CryptoProviderException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class CryptoProviderException extends RuntimeException {
 
+  private static final long serialVersionUID = -3334600937753128052L;
 
-    private static final long serialVersionUID = -3334600937753128052L;
-    
-    public CryptoProviderException() {
-        super();
-    }
+  public CryptoProviderException() {
+    super();
+  }
 
-    public CryptoProviderException(String msg, Throwable t) {
-        super(msg, t);
-    }
+  public CryptoProviderException(final String msg, final Throwable t) {
+    super(msg, t);
+  }
 
-    public CryptoProviderException(String msg) {
-        super(msg);
-    }
+  public CryptoProviderException(final String msg) {
+    super(msg);
+  }
 
-    public CryptoProviderException(Throwable msg) {
-        super(msg);
-    }
-
-
+  public CryptoProviderException(final Throwable msg) {
+    super(msg);
+  }
 }

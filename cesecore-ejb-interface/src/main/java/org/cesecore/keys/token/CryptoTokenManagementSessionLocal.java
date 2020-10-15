@@ -16,29 +16,36 @@ import javax.ejb.Local;
 
 /**
  * @see CryptoTokenManagementSession
- * @version $Id: CryptoTokenManagementSessionLocal.java 27816 2018-01-09 16:19:36Z samuellb $
+ * @version $Id: CryptoTokenManagementSessionLocal.java 27816 2018-01-09
+ *     16:19:36Z samuellb $
  */
 @Local
-public interface CryptoTokenManagementSessionLocal extends CryptoTokenManagementSession {
+public interface CryptoTokenManagementSessionLocal
+    extends CryptoTokenManagementSession {
 
-    /**
-     * This method can be used whenever the authorization is implied. E.g. the caller had access
-     * to an object that references this CryptoToken and that reference cannot change.
-     * @param cryptoTokenId ID
-     * 
-     * @return a reference to the cached and potentially active CryptoToken object.
-     */
-    CryptoToken getCryptoToken(int cryptoTokenId);
+  /**
+   * This method can be used whenever the authorization is implied. E.g. the
+   * caller had access to an object that references this CryptoToken and that
+   * reference cannot change.
+   *
+   * @param cryptoTokenId ID
+   * @return a reference to the cached and potentially active CryptoToken
+   *     object.
+   */
+  CryptoToken getCryptoToken(int cryptoTokenId);
 
-    /** @param cryptoTokenId ID
-     * @return value object with non-sensitive information about the CryptoToken for UI use or similar. */
-    CryptoTokenInfo getCryptoTokenInfo(int cryptoTokenId);
+  /**
+   * @param cryptoTokenId ID
+   * @return value object with non-sensitive information about the CryptoToken
+   *     for UI use or similar.
+   */
+  CryptoTokenInfo getCryptoTokenInfo(int cryptoTokenId);
 
-    /**
-     * Checks if a crypto token is present and active. 
-     * 
-     * @param cryptoTokenId the ID of the crypto token
-     * @return true if it exists, is present and is active.
-     */
-    boolean isCryptoTokenStatusActive(int cryptoTokenId);
+  /**
+   * Checks if a crypto token is present and active.
+   *
+   * @param cryptoTokenId the ID of the crypto token
+   * @return true if it exists, is present and is active.
+   */
+  boolean isCryptoTokenStatusActive(int cryptoTokenId);
 }

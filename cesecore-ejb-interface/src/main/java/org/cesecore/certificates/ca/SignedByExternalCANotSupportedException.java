@@ -9,28 +9,29 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
-
 /**
  * Thrown when trying to create a new CA signed by an external CA using the WS *
- * @version $Id: SignedByExternalCANotSupportedException.java 26057 2017-06-22 08:08:34Z anatom $
+ *
+ * @version $Id: SignedByExternalCANotSupportedException.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 public class SignedByExternalCANotSupportedException extends CesecoreException {
 
-    
-    private static final long serialVersionUID = -8917528643510939912L;
+  private static final long serialVersionUID = -8917528643510939912L;
 
-    /**
-     * Constructs an instance of <code>SignedByExternalCANotSupportedException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public SignedByExternalCANotSupportedException(String msg) {
-        super(ErrorCode.SIGNED_BY_EXTERNAL_CA_NOT_SUPPORTED, msg);
-    }
-    
+  /**
+   * Constructs an instance of <code>SignedByExternalCANotSupportedException
+   * </code> with the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public SignedByExternalCANotSupportedException(final String msg) {
+    super(ErrorCode.SIGNED_BY_EXTERNAL_CA_NOT_SUPPORTED, msg);
+  }
 }

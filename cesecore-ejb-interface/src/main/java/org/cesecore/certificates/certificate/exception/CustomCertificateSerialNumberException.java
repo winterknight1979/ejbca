@@ -15,20 +15,23 @@ package org.cesecore.certificates.certificate.exception;
 import org.cesecore.CesecoreException;
 
 /**
- * Exception used in order to catch the error that we are trying to use custom certificate serial numbers, but are not using a unique
- * issuerDN/certSerialNo index in the database. This index is needed in order to use custom certificate serial numbers.
- * 
- * @version $Id: CustomCertificateSerialNumberException.java 18868 2014-05-02 06:12:20Z mikekushner $
+ * Exception used in order to catch the error that we are trying to use custom
+ * certificate serial numbers, but are not using a unique issuerDN/certSerialNo
+ * index in the database. This index is needed in order to use custom
+ * certificate serial numbers.
+ *
+ * @version $Id: CustomCertificateSerialNumberException.java 18868 2014-05-02
+ *     06:12:20Z mikekushner $
  */
 public class CustomCertificateSerialNumberException extends CesecoreException {
 
-    private static final long serialVersionUID = -2969078756967846634L;
+  private static final long serialVersionUID = -2969078756967846634L;
 
-    public CustomCertificateSerialNumberException(String message) {
-        super(message);
-    }
+  public CustomCertificateSerialNumberException(final String message) {
+    super(message);
+  }
 
-    public CustomCertificateSerialNumberException(Exception e) {
-        super(e);
-    }
+  public CustomCertificateSerialNumberException(final Exception e) {
+    super(e);
+  }
 }

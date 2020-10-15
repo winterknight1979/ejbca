@@ -13,46 +13,49 @@
 package org.cesecore.roles.management;
 
 import java.util.List;
-
 import javax.ejb.Local;
-
 import org.cesecore.roles.Role;
 
 /**
  * Interface for low level Role operations.
- * 
+ *
  * @version $Id: RoleDataSessionLocal.java 26493 2017-09-05 13:31:40Z anatom $
  */
 @Local
 public interface RoleDataSessionLocal extends RoleDataSession {
 
-    /** @return all roles */
-    List<Role> getAllRoles();
+  /** @return all roles */
+  List<Role> getAllRoles();
 
-    /** @param id ID
-     * @return a role by its unique id or null if the role does not exist */
-    Role getRole(int id);
+  /**
+   * @param id ID
+   * @return a role by its unique id or null if the role does not exist
+   */
+  Role getRole(int id);
 
-    /**
-     * Find a role in the database from the unique roleName and nameSpace combination.
-     * @param roleName Role
-     * @param nameSpace Namespace
-     * @return the role or null if none was found
-     */
-    Role getRole(String roleName, String nameSpace);
+  /**
+   * Find a role in the database from the unique roleName and nameSpace
+   * combination.
+   *
+   * @param roleName Role
+   * @param nameSpace Namespace
+   * @return the role or null if none was found
+   */
+  Role getRole(String roleName, String nameSpace);
 
-    /**
-     * Delete a role from the database (currently not affecting any role members)
-     * @param roleId ole
-     * @return true if a change was made to the database (the row was deleted)
-     */
-    boolean deleteRoleNoAuthorizationCheck(int roleId);
+  /**
+   * Delete a role from the database (currently not affecting any role members)
+   *
+   * @param roleId ole
+   * @return true if a change was made to the database (the row was deleted)
+   */
+  boolean deleteRoleNoAuthorizationCheck(int roleId);
 
-    /** 
-     * Persist (creating a new row if needed) the role to the database.
-     * @param role Role
-     * 
-     * @return persisted version of the role
-     */
-    Role persistRole(Role role);
+  /**
+   * Persist (creating a new row if needed) the role to the database.
+   *
+   * @param role Role
+   * @return persisted version of the role
+   */
+  Role persistRole(Role role);
 }

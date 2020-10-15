@@ -16,9 +16,10 @@ import javax.ejb.Remote;
 
 /**
  * Remote interface for GlobalConfigurationSession.
- * @version $Id: GlobalConfigurationSessionRemote.java 19968 2014-10-09 13:13:58Z mikekushner $
+ *
+ * @version $Id: GlobalConfigurationSessionRemote.java 19968 2014-10-09
+ *     13:13:58Z mikekushner $
  */
 @Remote
-public interface GlobalConfigurationSessionRemote extends GlobalConfigurationSession {
-	
-}
+public interface GlobalConfigurationSessionRemote
+    extends GlobalConfigurationSession {}

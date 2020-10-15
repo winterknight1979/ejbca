@@ -13,12 +13,11 @@
 package org.cesecore.audit.impl.integrityprotected;
 
 import javax.ejb.Local;
-
 import org.cesecore.audit.AuditLogger;
 
 /**
- * @version $Id: IntegrityProtectedLoggerSessionLocal.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: IntegrityProtectedLoggerSessionLocal.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 @Local
-public interface IntegrityProtectedLoggerSessionLocal extends AuditLogger {
-}
+public interface IntegrityProtectedLoggerSessionLocal extends AuditLogger {}

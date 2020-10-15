@@ -16,10 +16,10 @@ import javax.ejb.Remote;
 
 /**
  * Remote interface for CertificateCreateSession.
- * 
- * @version $Id: CertificateCreateSessionRemote.java 17625 2013-09-20 07:12:06Z netmackan $
+ *
+ * @version $Id: CertificateCreateSessionRemote.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 @Remote
-public interface CertificateCreateSessionRemote extends CertificateCreateSession {
-
-}
+public interface CertificateCreateSessionRemote
+    extends CertificateCreateSession {}

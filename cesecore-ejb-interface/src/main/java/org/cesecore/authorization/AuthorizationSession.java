@@ -15,35 +15,42 @@ package org.cesecore.authorization;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
- * Main interface for checking authorization. This interface makes use of roles and entity authentication to verify authorization.
- * 
+ * Main interface for checking authorization. This interface makes use of roles
+ * and entity authentication to verify authorization.
+ *
  * @version $Id: AuthorizationSession.java 25135 2017-01-27 15:27:27Z jeklund $
  */
 public interface AuthorizationSession {
 
-    /**
-     * Checks if the current user is authorized for the given resource.
-     * Will create audit log. 
-     * 
-     * @param authenticationToken The {@link AuthenticationToken} to check access for.
-     * @param resources String identifier(s) of the resource(s) in question.
-     * @return true if user is authorized, false if not.
-     */
-    boolean isAuthorized(AuthenticationToken authenticationToken, String...resources);
+  /**
+   * Checks if the current user is authorized for the given resource. Will
+   * create audit log.
+   *
+   * @param authenticationToken The {@link AuthenticationToken} to check access
+   *     for.
+   * @param resources String identifier(s) of the resource(s) in question.
+   * @return true if user is authorized, false if not.
+   */
+  boolean isAuthorized(
+      AuthenticationToken authenticationToken, String... resources);
 
-    /**
-     * Checks if the current user is authorized for the given resource.
-     * Will not create any audit log. 
-     * 
-     * @param authenticationToken The {@link AuthenticationToken} to check access for.
-     * @param resources String identifier(s) of the resource(s) in question.
-     * @return true if user is authorized, false if not.
-     */
-    boolean isAuthorizedNoLogging(AuthenticationToken authenticationToken, String...resources);
+  /**
+   * Checks if the current user is authorized for the given resource. Will not
+   * create any audit log.
+   *
+   * @param authenticationToken The {@link AuthenticationToken} to check access
+   *     for.
+   * @param resources String identifier(s) of the resource(s) in question.
+   * @return true if user is authorized, false if not.
+   */
+  boolean isAuthorizedNoLogging(
+      AuthenticationToken authenticationToken, String... resources);
 
-    /**
-     * Helper method to clear the local access control rule cache. Normally the cache expires after configured time, but when modifying access rules
-     * on the local node we can force cache clearing so we don't have to wait. Other nodes in a cluster will still wait until expire though.
-     */
-    void forceCacheExpire();
+  /**
+   * Helper method to clear the local access control rule cache. Normally the
+   * cache expires after configured time, but when modifying access rules on the
+   * local node we can force cache clearing so we don't have to wait. Other
+   * nodes in a cluster will still wait until expire though.
+   */
+  void forceCacheExpire();
 }

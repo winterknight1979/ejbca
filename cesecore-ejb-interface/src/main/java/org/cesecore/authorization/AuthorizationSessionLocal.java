@@ -13,32 +13,38 @@
 package org.cesecore.authorization;
 
 import java.util.HashMap;
-
 import javax.ejb.Local;
 import javax.ejb.Timer;
-
 import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
- * 
- * @version $Id: AuthorizationSessionLocal.java 25407 2017-03-07 15:08:07Z jeklund $
+ * @version $Id: AuthorizationSessionLocal.java 25407 2017-03-07 15:08:07Z
+ *     jeklund $
  */
 @Local
 public interface AuthorizationSessionLocal extends AuthorizationSession {
 
-    /** Invoked when authorization cache should be checked for updates. */
-    void refreshAuthorizationCache();
+  /** Invoked when authorization cache should be checked for updates. */
+  void refreshAuthorizationCache();
 
-    /** Invoked by background cache refresh timeouts 
-     * @param timer timer*/
-    void timeOut(Timer timer);
+  /**
+   * Invoked by background cache refresh timeouts
+   *
+   * @param timer timer
+   */
+  void timeOut(Timer timer);
 
-    /** Initialize background cache refresh timeouts */
-    void scheduleBackgroundRefresh();
+  /** Initialize background cache refresh timeouts */
+  void scheduleBackgroundRefresh();
 
-    /** @param authenticationToken token
-     * @return the access rules available to the AuthenticationToken and its nested tokens, taking each such tokens role membership into account 
-     * @throws AuthenticationFailedException access denied */
-    HashMap<String, Boolean> getAccessAvailableToAuthenticationToken(AuthenticationToken authenticationToken) throws AuthenticationFailedException;
+  /**
+   * @param authenticationToken token
+   * @return the access rules available to the AuthenticationToken and its
+   *     nested tokens, taking each such tokens role membership into account
+   * @throws AuthenticationFailedException access denied
+   */
+  HashMap<String, Boolean> getAccessAvailableToAuthenticationToken(
+      AuthenticationToken authenticationToken)
+      throws AuthenticationFailedException;
 }

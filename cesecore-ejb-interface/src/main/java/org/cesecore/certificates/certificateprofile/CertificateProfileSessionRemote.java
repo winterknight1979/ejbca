@@ -15,9 +15,9 @@ package org.cesecore.certificates.certificateprofile;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: CertificateProfileSessionRemote.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: CertificateProfileSessionRemote.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 @Remote
-public interface CertificateProfileSessionRemote extends CertificateProfileSession {
-
-}
+public interface CertificateProfileSessionRemote
+    extends CertificateProfileSession {}

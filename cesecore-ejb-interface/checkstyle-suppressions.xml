@@ -7,6 +7,10 @@
  	
  	<!-- Don't check any generated files -->
 	<suppress checks=".*" files="[/\\]target[/\\]"/>
+	
+	<!-- Don't care about magic numbers or package-info.java in test code -->
+ 	<suppress checks="MagicNumberCheck" files="[/\\]test[/\\]"/>
+ 	<suppress checks="JavadocPackageCheck" files="[/\\]test[/\\]"/>
 
  	
  </suppressions>

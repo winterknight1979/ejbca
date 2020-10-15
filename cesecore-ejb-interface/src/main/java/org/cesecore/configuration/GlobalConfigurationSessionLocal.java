@@ -13,20 +13,24 @@
 package org.cesecore.configuration;
 
 import java.util.Set;
-
 import javax.ejb.Local;
 
 /**
  * Local interface for GlobalConfigurationSession.
- * @version $Id: GlobalConfigurationSessionLocal.java 25921 2017-05-31 01:02:34Z jeklund $
+ *
+ * @version $Id: GlobalConfigurationSessionLocal.java 25921 2017-05-31 01:02:34Z
+ *     jeklund $
  */
 @Local
-public interface GlobalConfigurationSessionLocal extends GlobalConfigurationSession {
-    
-    /** @param configurationId ID
-     * @return the found entity instance or null if the entity does not exist */
-    GlobalConfigurationData findByConfigurationId(String configurationId);
-    
-    /** @return all registered configuration IDs. */
-    Set<String> getIds();
+public interface GlobalConfigurationSessionLocal
+    extends GlobalConfigurationSession {
+
+  /**
+   * @param configurationId ID
+   * @return the found entity instance or null if the entity does not exist
+   */
+  GlobalConfigurationData findByConfigurationId(String configurationId);
+
+  /** @return all registered configuration IDs. */
+  Set<String> getIds();
 }

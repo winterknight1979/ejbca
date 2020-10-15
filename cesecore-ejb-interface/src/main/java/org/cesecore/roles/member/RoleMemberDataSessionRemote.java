@@ -16,10 +16,9 @@ import javax.ejb.Remote;
 
 /**
  * CRUD session bean for managing RoleMemberData objects
- * 
- * @version $Id: RoleMemberDataSessionRemote.java 25364 2017-03-01 14:55:03Z samuellb $
+ *
+ * @version $Id: RoleMemberDataSessionRemote.java 25364 2017-03-01 14:55:03Z
+ *     samuellb $
  */
 @Remote
-public interface RoleMemberDataSessionRemote extends RoleMemberDataSession {
-
-}
+public interface RoleMemberDataSessionRemote extends RoleMemberDataSession {}

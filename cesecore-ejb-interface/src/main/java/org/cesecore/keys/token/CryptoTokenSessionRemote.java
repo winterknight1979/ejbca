@@ -15,10 +15,8 @@ package org.cesecore.keys.token;
 import javax.ejb.Remote;
 
 /**
- * @version $Id: CryptoTokenSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
- *
+ * @version $Id: CryptoTokenSessionRemote.java 19902 2014-09-30 14:32:24Z anatom
+ *     $
  */
 @Remote
-public interface CryptoTokenSessionRemote extends CryptoTokenSession {
-
-}
+public interface CryptoTokenSessionRemote extends CryptoTokenSession {}

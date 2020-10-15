@@ -16,10 +16,9 @@ import javax.ejb.Local;
 
 /**
  * CRUD session bean for managing RoleMemberData objects
- * 
- * @version $Id: RoleMemberSessionLocal.java 25364 2017-03-01 14:55:03Z samuellb $
  *
+ * @version $Id: RoleMemberSessionLocal.java 25364 2017-03-01 14:55:03Z samuellb
+ *     $
  */
 @Local
-public interface RoleMemberSessionLocal extends RoleMemberSession {
-}
+public interface RoleMemberSessionLocal extends RoleMemberSession {}

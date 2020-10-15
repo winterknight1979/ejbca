@@ -16,8 +16,9 @@ import javax.ejb.Remote;
 
 /**
  * @see InternalKeyBindingMgmtSession
- * @version $Id: InternalKeyBindingMgmtSessionRemote.java 19902 2014-09-30 14:32:24Z anatom $
+ * @version $Id: InternalKeyBindingMgmtSessionRemote.java 19902 2014-09-30
+ *     14:32:24Z anatom $
  */
 @Remote
-public interface InternalKeyBindingMgmtSessionRemote extends InternalKeyBindingMgmtSession {
-}
+public interface InternalKeyBindingMgmtSessionRemote
+    extends InternalKeyBindingMgmtSession {}

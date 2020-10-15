@@ -16,22 +16,29 @@ import javax.ejb.Local;
 
 /**
  * Local interface for OcspResponseGeneratorSession
- * 
- * @version $Id: OcspResponseGeneratorSessionLocal.java 22251 2015-11-24 13:40:04Z jeklund $
+ *
+ * @version $Id: OcspResponseGeneratorSessionLocal.java 22251 2015-11-24
+ *     13:40:04Z jeklund $
  */
 @Local
-public interface OcspResponseGeneratorSessionLocal extends OcspResponseGeneratorSession {
+public interface OcspResponseGeneratorSessionLocal
+    extends OcspResponseGeneratorSession {
 
+  void initTimers();
 
+  /**
+   * One-time load and conversion of configured keystores to CryptoTokens and
+   * OcspKeyBindings
+   *
+   * @param activationPassword password
+   */
+  void adhocUpgradeFromPre60(char[] activationPassword);
 
-    void initTimers();
+  String healthCheck();
 
-    /** One-time load and conversion of configured keystores to CryptoTokens and OcspKeyBindings 
-     * @param activationPassword password*/
-    void adhocUpgradeFromPre60(char[] activationPassword);
-
-    String healthCheck();
-
-    /** @see org.cesecore.certificates.ocsp.cache.OcspRequestSignerStatusCache#flush() */
-    void clearOcspRequestSignerRevocationStatusCache();    
+  /**
+   * @see
+   *     org.cesecore.certificates.ocsp.cache.OcspRequestSignerStatusCache#flush()
+   */
+  void clearOcspRequestSignerRevocationStatusCache();
 }

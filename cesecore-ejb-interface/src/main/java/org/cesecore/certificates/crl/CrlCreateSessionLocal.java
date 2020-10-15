@@ -16,11 +16,9 @@ import javax.ejb.Local;
 
 /**
  * Local interface for CrlCreateSession
- * 
- * @version $Id: CrlCreateSessionLocal.java 17625 2013-09-20 07:12:06Z netmackan $
  *
+ * @version $Id: CrlCreateSessionLocal.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 @Local
-public interface CrlCreateSessionLocal extends CrlCreateSession {
-
-}
+public interface CrlCreateSessionLocal extends CrlCreateSession {}

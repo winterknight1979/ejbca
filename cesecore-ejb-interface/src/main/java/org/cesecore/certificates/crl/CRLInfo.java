@@ -9,7 +9,7 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.crl;
 
 import java.io.Serializable;
@@ -21,23 +21,37 @@ import java.util.Date;
  * @version $Id: CRLInfo.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public class CRLInfo implements Serializable {
-    
-    private static final long serialVersionUID = 4942836797714142516L;
-    protected String subjectdn;
-    protected int lastcrlnumber;
-    protected Date thisupdate;
-    protected Date nextupdate;
-    
-    public CRLInfo(String subjectdn, int lastcrlnumber, long thisupdate, long nextupdate){
-      this.subjectdn = subjectdn;
-      this.lastcrlnumber = lastcrlnumber;
-      this.thisupdate = new Date(thisupdate);
-      this.nextupdate = new Date(nextupdate);
-    }
-    
-    public String getSubjectDN() {return subjectdn;}
-    public int getLastCRLNumber() { return lastcrlnumber; }
-    public Date getCreateDate() { return thisupdate; }
-    public Date getExpireDate() { return nextupdate; }
-    
+
+  private static final long serialVersionUID = 4942836797714142516L;
+  protected String subjectdn;
+  protected int lastcrlnumber;
+  protected Date thisupdate;
+  protected Date nextupdate;
+
+  public CRLInfo(
+      final String subjectdn,
+      final int lastcrlnumber,
+      final long thisupdate,
+      final long nextupdate) {
+    this.subjectdn = subjectdn;
+    this.lastcrlnumber = lastcrlnumber;
+    this.thisupdate = new Date(thisupdate);
+    this.nextupdate = new Date(nextupdate);
+  }
+
+  public String getSubjectDN() {
+    return subjectdn;
+  }
+
+  public int getLastCRLNumber() {
+    return lastcrlnumber;
+  }
+
+  public Date getCreateDate() {
+    return thisupdate;
+  }
+
+  public Date getExpireDate() {
+    return nextupdate;
+  }
 }

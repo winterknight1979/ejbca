@@ -14,28 +14,27 @@ package org.cesecore.roles;
 
 /**
  * Thrown when trying to access a role which doesn't exist.
- * 
- * @version $Id: RoleNotFoundException.java 17625 2013-09-20 07:12:06Z netmackan $
- * 
+ *
+ * @version $Id: RoleNotFoundException.java 17625 2013-09-20 07:12:06Z netmackan
+ *     $
  */
 public class RoleNotFoundException extends Exception {
 
-    private static final long serialVersionUID = 3905530918766837916L;
-    
-    public RoleNotFoundException() {
-        super();
-    }
+  private static final long serialVersionUID = 3905530918766837916L;
 
-    public RoleNotFoundException(String arg0, Throwable arg1) {
-        super(arg0, arg1);
-    }
+  public RoleNotFoundException() {
+    super();
+  }
 
-    public RoleNotFoundException(String arg0) {
-        super(arg0);
-    }
+  public RoleNotFoundException(final String arg0, final Throwable arg1) {
+    super(arg0, arg1);
+  }
 
-    public RoleNotFoundException(Throwable arg0) {
-        super(arg0);
-    }
+  public RoleNotFoundException(final String arg0) {
+    super(arg0);
+  }
 
+  public RoleNotFoundException(final Throwable arg0) {
+    super(arg0);
+  }
 }
