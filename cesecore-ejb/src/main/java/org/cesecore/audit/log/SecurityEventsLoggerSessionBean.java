@@ -14,12 +14,10 @@ package org.cesecore.audit.log;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
 import org.apache.log4j.Logger;
 import org.cesecore.audit.enums.EventStatus;
 import org.cesecore.audit.enums.EventType;
@@ -38,66 +36,158 @@ import org.cesecore.time.providers.TrustedTimeProviderException;
 /**
  * This class implements the SecurityEventsLogger interface. It handles the
  * creation of a signed log for an event.
- * 
- * @version $Id: SecurityEventsLoggerSessionBean.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
- * 
+ *
+ * @version $Id: SecurityEventsLoggerSessionBean.java 29010 2018-05-23 13:09:53Z
+ *     jekaterina_b_helmes $
  */
-@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "SecurityEventsLoggerSessionRemote")
+@Stateless(
+    mappedName =
+        JndiConstants.APP_JNDI_PREFIX + "SecurityEventsLoggerSessionRemote")
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-public class SecurityEventsLoggerSessionBean implements SecurityEventsLoggerSessionLocal, SecurityEventsLoggerSessionRemote {
+public class SecurityEventsLoggerSessionBean
+    implements SecurityEventsLoggerSessionLocal,
+        SecurityEventsLoggerSessionRemote {
 
-    private static final Logger log = Logger.getLogger(SecurityEventsLoggerSessionBean.class);
-    /** Internal localization of logs and errors */
-    private static final InternalResources intres = InternalResources.getInstance();
+  private static final Logger log =
+      Logger.getLogger(SecurityEventsLoggerSessionBean.class);
+  /** Internal localization of logs and errors */
+  private static final InternalResources intres =
+      InternalResources.getInstance();
 
-    @EJB
-    private InternalSecurityEventsLoggerSessionLocal internalSecurityEventsLoggerSession;
-    @EJB
-    private AuthorizationSessionLocal authorizationSession;
-    @EJB
-    private TrustedTimeWatcherSessionLocal trustedTimeWatcherSession;
+  @EJB
+  private InternalSecurityEventsLoggerSessionLocal
+      internalSecurityEventsLoggerSession;
 
-    @Override
-    public void log(final AuthenticationToken authToken, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service)
-            throws AuditRecordStorageException, AuthorizationDeniedException {
-        log(authToken, eventType, eventStatus, module, service, null, null, null, null);
+  @EJB private AuthorizationSessionLocal authorizationSession;
+  @EJB private TrustedTimeWatcherSessionLocal trustedTimeWatcherSession;
+
+  @Override
+  public void log(
+      final AuthenticationToken authToken,
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service)
+      throws AuditRecordStorageException, AuthorizationDeniedException {
+    log(
+        authToken,
+        eventType,
+        eventStatus,
+        module,
+        service,
+        null,
+        null,
+        null,
+        null);
+  }
+
+  @Override
+  public void log(
+      final AuthenticationToken authToken,
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final Map<String, Object> additionalDetails)
+      throws AuditRecordStorageException, AuthorizationDeniedException {
+    // We need to check that admin have rights to log
+    if (!authorizationSession.isAuthorized(
+        authToken, AuditLogRules.LOG.resource())) {
+      final String msg =
+          intres.getLocalizedMessage(
+              "authorization.notauthorizedtoresource",
+              AuditLogRules.LOG.resource(),
+              null);
+      throw new AuthorizationDeniedException(msg);
     }
+    log(
+        eventType,
+        eventStatus,
+        module,
+        service,
+        authToken.toString(),
+        customId,
+        searchDetail1,
+        searchDetail2,
+        additionalDetails);
+  }
 
-    @Override
-    public void log(final AuthenticationToken authToken, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String customId, String searchDetail1, String searchDetail2,
-            Map<String, Object> additionalDetails) throws AuditRecordStorageException, AuthorizationDeniedException {        
-        // We need to check that admin have rights to log
-        if (!authorizationSession.isAuthorized(authToken, AuditLogRules.LOG.resource())) {
-            final String msg = intres.getLocalizedMessage("authorization.notauthorizedtoresource", AuditLogRules.LOG.resource(), null);
-            throw new AuthorizationDeniedException(msg);
-        }
-        log(eventType, eventStatus, module, service, authToken.toString(), customId, searchDetail1, searchDetail2, additionalDetails);
-    }
-    
-    @Override
-    public void log(final EventType eventType, final EventStatus eventStatus, final ModuleType module, final ServiceType service, final String authToken, final String customId, final String searchDetail1, final String searchDetail2,
-            final String additionalDetailsMsg) throws AuditRecordStorageException {
-        final Map<String, Object> additionalDetails = new LinkedHashMap<String, Object>();
-        additionalDetails.put("msg", additionalDetailsMsg);
-        log(eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails);
-    }
+  @Override
+  public void log(
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String authToken,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final String additionalDetailsMsg)
+      throws AuditRecordStorageException {
+    final Map<String, Object> additionalDetails =
+        new LinkedHashMap<String, Object>();
+    additionalDetails.put("msg", additionalDetailsMsg);
+    log(
+        eventType,
+        eventStatus,
+        module,
+        service,
+        authToken,
+        customId,
+        searchDetail1,
+        searchDetail2,
+        additionalDetails);
+  }
 
-    @Override
-    public void log(final EventType eventType, final EventStatus eventStatus, final ModuleType module, final ServiceType service, final String authToken, final String customId, final String searchDetail1, final String searchDetail2,
-            final Map<String, Object> additionalDetails) throws AuditRecordStorageException {
-        if (log.isTraceEnabled()) {
-            log.trace(String.format(">log:%s:%s:%s:%s:%s:%s:%s:%s:%s", eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails));
-        }
-        try {
-            final TrustedTime tt = trustedTimeWatcherSession.getTrustedTime(false);
-            internalSecurityEventsLoggerSession.log(tt, eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails);
-        } catch (TrustedTimeProviderException e) {
-            log.error(e.getMessage(), e);
-            throw new AuditRecordStorageException(e.getMessage(), e);
-        } finally {
-            if (log.isTraceEnabled()) {
-                log.trace("<log");
-            }
-        }
+  @Override
+  public void log(
+      final EventType eventType,
+      final EventStatus eventStatus,
+      final ModuleType module,
+      final ServiceType service,
+      final String authToken,
+      final String customId,
+      final String searchDetail1,
+      final String searchDetail2,
+      final Map<String, Object> additionalDetails)
+      throws AuditRecordStorageException {
+    if (log.isTraceEnabled()) {
+      log.trace(
+          String.format(
+              ">log:%s:%s:%s:%s:%s:%s:%s:%s:%s",
+              eventType,
+              eventStatus,
+              module,
+              service,
+              authToken,
+              customId,
+              searchDetail1,
+              searchDetail2,
+              additionalDetails));
     }
+    try {
+      final TrustedTime tt = trustedTimeWatcherSession.getTrustedTime(false);
+      internalSecurityEventsLoggerSession.log(
+          tt,
+          eventType,
+          eventStatus,
+          module,
+          service,
+          authToken,
+          customId,
+          searchDetail1,
+          searchDetail2,
+          additionalDetails);
+    } catch (TrustedTimeProviderException e) {
+      log.error(e.getMessage(), e);
+      throw new AuditRecordStorageException(e.getMessage(), e);
+    } finally {
+      if (log.isTraceEnabled()) {
+        log.trace("<log");
+      }
+    }
+  }
 }
