@@ -33,7 +33,7 @@ jobs:
       - name: setup env
         run: echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
       - name: Build
-        run: @mvn -fn -B -Pjboss -DskipTests=true clean verify
+        run: mvn -fn -B -Pjboss -DskipTests=true clean verify
      
 
       #We want to run and upload spotbugs results BEFORE we generate the SARIF file
