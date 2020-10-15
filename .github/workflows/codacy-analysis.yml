@@ -33,6 +33,7 @@ jobs:
       - name: cleanup working tree
         run: |
                git config --global user.name "GitHub Actions" && git config --global user.email "actions@users.noreply.github.com"
+               git add settings.xml 
                git commit -am 'cleanup'
       - name: setup env
         run: echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
