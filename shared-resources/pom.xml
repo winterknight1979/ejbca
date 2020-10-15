@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>goldeneyes.ejbca</groupId>
         <artifactId>ejbca</artifactId>
         <version>${revision}</version>
     </parent>
+
     <artifactId>shared-resources</artifactId>
+
     <name>EJBCA Shared resource bundle</name>
     <description>Shared resource bundle; configurator, and Service Manifest builder.</description>
+
     <build>
         <plugins>
             <plugin>
@@ -340,25 +343,11 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
                             <generatePom>true</generatePom>
                         </configuration>
                     </execution>
-                    <execution>
-                        <phase>initialize</phase>
-                        <id>Install Swagger UI</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <file>ext/swagger-ui.war</file>
-                            <groupId>org.ejbca.swagger</groupId>
-                            <artifactId>swagger-ui</artifactId>
-                            <version>1.0.0</version>
-                            <packaging>war</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
     <reporting>
         <plugins>
             <plugin>
@@ -392,6 +381,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
             </plugin>
         </plugins>
     </reporting>
+
     <profiles>
         <profile>
             <id>only-eclipse</id>

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>External RA using Database Polling - EJBCA - Documentation Space</title>
+
+    
+            <meta name="scroll-content-language-key" content="">
+    
+    <meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery.scrollTo.min.js"></script>
+
+
+<script type="text/javascript" src="assets/js/translate.js"></script>
+
+
+<script type="text/javascript" src="assets/js/scroll-tree.js"></script>
+
+<script type="text/javascript" src="assets/js/theme.main.js"></script>
+
+    <script type="text/javascript" src="assets/js/iframeResizer.min.js"></script>
+
+<link rel="stylesheet" href="assets/css/content-style.css">
+    <link rel="stylesheet" href="assets/css/search.css">
+
+<link rel="stylesheet" href="assets/css/theme.main.css">
+<link rel="stylesheet" href="assets/css/theme.colors.css">
+
+            <!-- ES5 support for older browsers, needed by lunr -->
+        <script src="js/augment.js"></script>
+        <script id="worker" type="javascript/worker">
+
+        startIndex = function() {
+            idx = lunr.Index.load(lunrIndex);
+            idx.pipeline.remove(lunr.stopWordFilter);
+            postMessage({type: "setup-complete"});
+        }
+
+        onmessage = function (event) {
+            var message = event.data;
+
+            if ((message.type === 'setup') && message.baseUrl) {
+                var url = message.baseUrl;
+                importScripts(url + 'js/lunr.js');
+                importScripts(url + 'js/lunr-extras.js');
+                importScripts(url + 'js/lunr-index.js');
+                importScripts(url + 'js/lunr-data.js');
+                startIndex();
+            }
+
+            if (idx && (message.type === 'search-request') && message.query) {
+                var searchWord = message.query;
+                var results = idx.search(searchWord).map(function (result) {
+                    return lunrData.filter(function (d) {
+                        return d.id === parseInt(result.ref, 10)
+                    })[0]
+                });
+                postMessage({type: 'search-results', results: results, query: searchWord, queryId: message.queryId});
+            }
+        }
+
+    </script>
+    </head>
+
+<body pageid="85921598">
+
+<div id="ht-loader">
+    <noscript>
+        <p style="width: 100%; text-align:center; position: absolute; margin-top: 200px;">This content cannot be displayed without JavaScript.<br>Please enable JavaScript and reload the page.</p>
+    </noscript>
+</div>
+
+<div>
+   	<header id="ht-headerbar">
+    <div class="ht-headerbar-left">
+        <a href="" id="ht-menu-toggle" class="sp-aui-icon-small sp-aui-iconfont-appswitcher"></a>
+    </div>
+    <div class="ht-headerbar-right">
+            <div class="sp-aui-icon-small ht-search-index-loader ht-header-icon"></div>
+
+        <div id="ht-search">
+            <div class="ht-search-input" style="display: none;">
+              	<a href="#" class="sp-aui-icon-small sp-aui-iconfont-remove ht-search-clear"></a>
+
+                <form action="#" method="GET" id="search">
+                    <input class="search-input" type="text" placeholder="Search" tabindex="-1" autocomplete="off" name="q" value="">
+                    <input type="hidden" name="max" value="15" />
+                    <input type="submit" style="display:none" tabindex="-4"/>
+                </form>
+
+                <a href="#" id="ht-search-button" class="ht-header-icon ht-header-icon-svg">
+                                        <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g>
+                            <path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></path>
+                        </g>
+                    </svg>
+              	</a>
+
+                <div class="ht-search-dropdown ht-dropdown">
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </header>   	<aside id="ht-sidebar">
+    <div class="ht-sidebar-content">
+        <div class="ht-sidebar-content-scroll-container">
+            <header class="ht-sidebar-header">
+                <h1 class="ht-logo">
+                    <span class="ht-logo-label">EJBCADS</span>
+                    <img class="space-logo" src="EJBCADS.png" />
+                </h1>
+                <a href="EJBCA_6.15.2.6_Documentation.html" class="ht-space-link">
+                    <h2>EJBCA - Documentation Space</h2>
+                </a>
+            </header>
+                            <iframe id="ht-nav" src="toc.html?pageId=16234704"></iframe>
+                <script>
+                    $('iframe#ht-nav').iFrameResize(
+                            { 'log': true, 'autoResize': true, 'heightCalculationMethod': 'lowestElement', 'checkOrigin': false });
+                </script>
+                    </div>
+    </div>
+
+</aside></div>
+
+<div id="ht-wrap-container">
+
+            
+    <div id="ht-sidebar-dragbar">
+    <div class="ht-sidebar-drag-handle">
+        <span class="drag-handle-1"></span>
+        <span class="drag-handle-2"></span>
+        <span class="drag-handle-3"></span>
+    </div>
+</div>
+    <article id="ht-content" class="ht-content">
+        <header class="ht-content-header">
+            <div id="ht-breadcrumb">
+    <ul>
+        <li><a href="EJBCA_6.15.2.6_Documentation.html">EJBCA - Documentation Space</a></li>
+                                                                                                             <li><a href="" onclick="$('.shortcut').each(function(){$(this).removeClass('shortcut')}); $(this).parent().addClass('shortcut'); return false;">...</a> </li>
+                                        <li class="shortcut"><a href="EJBCA_Documentation.html">EJBCA Documentation</a></li>
+                                                                                                         <li class="shortcut"><a href="EJBCA_Operations.html">EJBCA Operations</a></li>
+                                                                                     <li><a href="EJBCA_RA.html">EJBCA RA</a></li>
+                                                            </ul>
+</div>            <h1 id="src-16234704"> <span>External RA using Database Polling</span></h1>
+        </header>
+
+        <div id="main-content" class="wiki-content sp-grid-section" data-index-for-search="true">
+
+<p   
+></p>
+<p   
+><span class="status blue " >ENTERPRISE</span>
+ This is an EJBCA Enterprise feature.</p>
+    <div  class="confbox admonition admonition-warning">
+                            <span class="admonition-icon confluence-information-macro-icon"></span>
+                <div class="admonition-body">
+<p   
+>This functionality is outdated and will not be supported further in the future. Instead we recommend proxying SCEP requests synchronously through an RA using Peers. For information on the new Peer Connector based External RA, available as of EJBCA 6.6.0, see <a   href="EJBCA_RA.html">EJBCA RA</a>.</p>
+        </div>
+    </div>
+<p   
+></p>
+<ul class="toc-indentation "></ul>    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-Introduction">
+        <h1 class="heading "><span>Introduction</span></h1>
+<p   
+>In some cases, for security reasons, is it preferable to deny all inbound traffic to the CA installation and instead let EJBCA periodically fetch and process information from external trusted data sources. For an overview of the solution see the illustration below.</p>
+<p   
+>The External Registration Authority (RA) API contains the most basic functions like:</p>
+<ul class=" "><li class=" "><p   
+>Generate Certificate from PKCS10</p>
+</li><li class=" "><p   
+>Generate PKCS12 for the end user</p>
+</li><li class=" "><p   
+>KeyRecovery of the users key (if requested using PKCS12)</p>
+</li><li class=" "><p   
+>Edit users</p>
+</li><li class=" "><p   
+>Revoke Certificates</p>
+</li><li class=" "><p   
+>Generate a certificate for an existing user using a shared secret</p>
+</li><li class=" "><p   
+>Generate a keystore for an existing user using a shared secret</p>
+</li></ul><p   
+>As of EJBCA 6.3.1, the External RA API is bundled as a part of EJBCA Enterprise Edition and can be enabled in <tt class=" ">conf/externalra.properties</tt>.</p>
+<p   
+><img  class="confluence-embedded-image"  src="images/download/attachments/16234704/external-ra.png" alt="images/download/attachments/16234704/external-ra.png"  height="250" />
+    </p>
+    </div>
+    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ExternalRAServiceWorkers">
+        <h1 class="heading "><span>External RA Service Workers</span></h1>
+<p   
+>External RA Service Workers are configured in the Admin GUI. Each worker will poll a DataSource in the application server. The DataSource should point to a database outside the CA's network security zone. this means pure database connections are used. Depending on your database and configuration these connections can be protected in various ways, for example using SSL.</p>
+<p   
+>A message in the database can contain one or more submessages. The messages in the database can be signed and encrypted. Currently only soft PKCS#12 keystores for decryption and signing responses are supported. If a worker find a new requests message it changes the status of the message to 'in process' and extracts all sub-messages.</p>
+<p   
+>For each submessage the worker will:</p>
+<ol class=" "><li class=" "><p   
+>Decrypt the submessage with a keystore (or reject it if encryption is required).</p>
+</li><li class=" "><p   
+>Verify and validate the signature of the submessage (or reject it if signing is required).</p>
+</li><li class=" "><p   
+>Process the request in the submessage with the signers admin privileges (or with full privileges if no signature is present).</p>
+</li><li class=" "><p   
+>Sign the response submessage (if signatures are required by the Service Worker).</p>
+</li><li class=" "><p   
+>Encrypt the response submessage (if encryption is required by the Service Worker).</p>
+</li></ol><p   
+>and finally write all the response submessages as single message with status <strong class=" ">processed</strong> back to the DataSource. Encryption in submessages are done using CMS/PKCS#7 envelopes.</p>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-EnablingExternalRA">
+        <h2 class="heading "><span>Enabling External RA</span></h2>
+<p   
+>To use External RA Service Workers in EJBCA, do the following:</p>
+<ol class=" "><li class=" "><p   
+>Enable the service in <tt class=" ">EJBCA_HOME/conf/externalra.properties</tt>.</p>
+</li><li class=" "><p   
+>Configure DataSources in EJBCA_HOME/conf/externalra.properties.</p>
+</li><li class=" "><p   
+>If applicable, install the JDBC connector JARs in the application server for databases used in <tt class=" ">EJBCA_HOME/conf/externalra.properties.</tt></p>
+</li><li class=" "><p   
+>Create datasource(s) matching the configuration in <tt class=" ">externalra.properties</tt>.</p>
+</li><li class=" "><p   
+>Re-build and deploy EJBCA using the command <tt class=" ">ant clean deployear</tt>.</p>
+</li></ol><p   
+>To create a non-jta data source for JBoss 7, a command in jboss-cli.sh can be used, for example:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">data-source add --name=ramessage1ds --jta=</code><code class="keyword">false</code><code class="plain"> --driver-name=</code><code class="string">"org.mariadb.jdbc.Driver"</code><code class="plain"> --connection-url=</code><code class="string">"jdbc:mysql://127.0.0.1:3306/messages"</code><code class="plain"> --jndi-name=</code><code class="string">"java:/RAMessage1DS"</code><code class="plain"> --use-ccm=</code><code class="keyword">true</code><code class="plain"> --user-name=</code><code class="string">"ejbca"</code><code class="plain"> --password=</code><code class="string">"ejbca"</code><code class="plain"> --validate-on-match=</code><code class="keyword">true</code><code class="plain"> --background-validation=</code><code class="keyword">false</code><code class="plain"> --prepared-statements-cache-size=</code><code class="value">50</code><code class="plain"> --share-prepared-statements=</code><code class="keyword">true</code><code class="plain"> --min-pool-size=</code><code class="value">5</code><code class="plain"> --max-pool-size=</code><code class="value">150</code><code class="plain"> --pool-prefill=</code><code class="keyword">true</code><code class="plain"> --transaction-isolation=TRANSACTION_READ_COMMITTED --check-valid-connection-sql=</code><code class="string">"select 1;"</code></div>
+</div>
+    </div>
+<p   
+>Or for PostgreSQL:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">data-source add --name=ramessage1ds --jta=</code><code class="keyword">false</code><code class="plain"> --driver-name=</code><code class="string">"org.postgresql.Driver"</code><code class="plain"> --connection-url=</code><code class="string">"jdbc:postgresql://127.0.0.1/messages"</code><code class="plain"> --jndi-name=</code><code class="string">"java:/RAMessage1DS"</code><code class="plain"> --use-ccm=</code><code class="keyword">true</code><code class="plain"> --user-name=</code><code class="string">"ejbca"</code><code class="plain"> --password=</code><code class="string">"ejbca"</code><code class="plain"> --validate-on-match=</code><code class="keyword">true</code><code class="plain"> --background-validation=</code><code class="keyword">false</code><code class="plain"> --prepared-statements-cache-size=</code><code class="value">50</code><code class="plain"> --share-prepared-statements=</code><code class="keyword">true</code><code class="plain"> --min-pool-size=</code><code class="value">5</code><code class="plain"> --max-pool-size=</code><code class="value">150</code><code class="plain"> --pool-prefill=</code><code class="keyword">true</code><code class="plain"> --transaction-isolation=TRANSACTION_READ_COMMITTED --check-valid-connection-sql=</code><code class="string">"select 1"</code></div>
+</div>
+    </div>
+<p   
+><img  class="emoticon emoticon-warning"  src="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg" alt="images/s/en_US/8100/b0984b7297905b7c7bd946458f753ce0130bfc8c/_/images/icons/emoticons/warning.svg"   />
+ Note that<tt class=" "> select 1</tt> must be different for DB2 and Oracle.</p>
+<p   
+>It is recommended to use the following indexes on the external message database:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">create index message_idx1 on message (status);</code></div>
+<div class="line"><code class="plain">create index message_idx2 on message (messageId);</code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-Configuring">
+        <h2 class="heading "><span>Configuring</span></h2>
+<p   
+>In the EJBCA Admin GUI, go to Services and create a new Custom Worker that runs at short intervals. The shorter the interval, the more often the worker will poll the DataSource for new messages.</p>
+<ul class=" "><li class=" "><p   
+>Select Worker: Custom Worker</p>
+</li><li class=" "><p   
+>Custom Worker Class Path: org.ejbca.extra.caservice.ExtRACAServiceWorker</p>
+</li><li class=" "><p   
+>Custom Worker Properties: shown below</p>
+</li><li class=" "><p   
+>Select Interval: Periodical Interval</p>
+</li><li class=" "><p   
+>Period: 10 seconds (or any interval you like but not below 5 seconds)</p>
+</li><li class=" "><p   
+>Select Action: No Action</p>
+</li><li class=" "><p   
+>Active: Checked</p>
+</li></ul><p   
+>The available worker properties are:</p>
+<ul class=" "><li class=" "><p   
+>externalra-caservice.persistenceunit: A reference to the RA database configured in externalra.properties (Default: RAMessage1DS)</p>
+</li><li class=" "><p   
+>externalra-caservice.encryption.required: Only accept encrypted messages in the RA database (Default: false)</p>
+</li><li class=" "><p   
+>externalra-caservice.signature.required: Only accept signed messages in the RA database (Default: false)</p>
+</li><li class=" "><p   
+>externalra-caservice.keystore.path: Full pathname to the PKCS#12 keystore used to decrypt and sign messages. This file must be available on all EJBCA nodes. Only required if encryption or signing is used. (Default for historic reasons: keystore/extrakeystore.p12)</p>
+</li><li class=" "><p   
+>externalra-caservice.keystore.pwd: Password for the keystore defined by externalra-caservice.keystore.path. (Default: foo123)</p>
+</li><li class=" "><p   
+>externalra-caservice.raissuer: CA Name of the CA issuing RA Certificates, used to check the validity of RA signatures. (Default: ManagementCA)</p>
+</li><li class=" "><p   
+>externalra-caservice.whitelist: A comma separated list of request class-names that this worker will accept. If this is empty or undefined all kinds of request are accepted.</p>
+</li></ul><p   
+>Both the worker's keystore and the one used on the RA server must be issued by 'externalra-caservice.raissuer'. The RA server also needs the certificate of the worker's keystore to be able to encrypt request messages. Signing required Key Usage 'Digital Signature' and encryption requires Key Usage 'Key Encipherment'.</p>
+<p   
+>Example:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">externalra-caservice.persistenceunit=RAMessage1DS</code></div>
+<div class="line"><code class="plain">externalra-caservice.encryption.required=</code><code class="keyword">false</code></div>
+<div class="line"><code class="plain">externalra-caservice.signature.required=</code><code class="keyword">false</code></div>
+</div>
+    </div>
+    </div>
+    </div>
+    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ExternalRAAPIClients">
+        <h1 class="heading "><span>External RA API Clients</span></h1>
+<p   
+>External RA API clients creates a message from several submessages, where each submessage</p>
+<ul class=" "><li class=" "><p   
+>Contains a request</p>
+</li><li class=" "><p   
+>Is signed with the RA keystore (optional if not required by Service Worker)</p>
+</li><li class=" "><p   
+>Is encrypted with the Service Worker's keystore certificate (optional if not required by Service Worker)</p>
+</li></ul><p   
+>The message is then written to the database polled by a External RA Service Worker. After a while (depending on how often the Service Worker runs and if the CA is online) the client can fetch the response message.</p>
+<p   
+>The client is also responsible for polling the database for responses from the External RA Service Worker.</p>
+<p   
+>Running <tt class=" ">ant externalra-client</tt> will build a sample client with all dependencies under EJBCA_HOME/dist/extrernalra-cli. This simple client JAR could be used directly as a library and is a good starting point for client development. See <tt class=" ">EJBCA_HOME/modules/externalra/src/org/ejbca/extra/ra/ExtRATestClient.java</tt> and <tt class=" ">EJBCA_HOME/modules/externalra/src-test/</tt> for more details on how the use the API.</p>
+<p   
+>New submessages require a new org.ejbca.extra.db.MyRequest and org.ejbca.extra.caservice.processor.MyRequestProcessor class where 'My' is your name of choice. Dispatching of messages to a processing class is done using Java reflection to automatically instantiate the correct processor, so it is important that the class names are correct.</p>
+<p   
+>For information on External RA clients, see &quot;SCEP RA Server&quot; and &quot;External RA GUI&quot; below.</p>
+<p   
+>To generate javadoc for the external RA API you can:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">cd modules/externalra</code></div>
+<div class="line"><code class="plain">javadoc -classpath ../../lib/hibernate/ejb3-persistence.jar -d javadoc -sourcepath src -subpackages org.ejbca</code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-Security">
+        <h1 class="heading "><span>Security</span></h1>
+<p   
+>It is strongly recommended to at least use signing of messages sent between RA and CA. If the messages are signed will the RAs certificate be used for authorization internally. This makes it possible to trace which RA that approved the information certified and possible to control which kind of information that the RA can approve, by defining End Entity Profiles. If signing is not used the service run as an 'internal user' where anything goes (Super Administrator).</p>
+<p   
+>If message signing is used, the RA servers certificate (used to sign the message) must be an administrator i EJBCA and at least have the following rights:</p>
+<ul class=" "><li class=" "><p   
+>The RA administrator role</p>
+</li><li class=" "><p   
+>View/Create/Edit/Key Recovery/Revocation Rights</p>
+</li><li class=" "><p   
+>Access to the End Entity Profiles used by the RA</p>
+</li><li class=" "><p   
+>Access to the CAs used by the RA</p>
+</li></ul><p   
+>For signing and encryption the client that uses the API on the RA must support these options. The ScepRA does not support signing and encryption.</p>
+<p   
+>For signing is the SHA-256 digest algorithm used and for encryption is AES256 used.</p>
+    </div>
+    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-UsingtheSCEPRAServer">
+        <h1 class="heading "><span>Using the SCEP RA Server</span></h1>
+<p   
+>The SCEP RA Server is an External RA API client built from the EJBCA bundle.</p>
+<p   
+>The SCEP RA Server supports the SCEP 'polling' RA model. A SCEP client can send a request to the SCEP RA Server, and then wait, polling the RA for updates. When the request is processed by the CA, which fetches the pkcs10 request using the External RA API, the certificate is sent back to the SCEP RA Server. When the certificate reaches the SCEP RA Server, it sends back the SCEP certificate response the next time the SCEP client polls the SCEP RA Server. This feature is very useful to securely insulate the CA from the SCEP clients throughout the network.</p>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ConfiguringtheSCEPRAServerontheExternalRAHost">
+        <h2 class="heading "><span>Configuring the SCEP RA Server on the External RA Host</span></h2>
+<p   
+>The SCEP RA Server is the module installed on the external RA server. This module receives SCEP requests from SCEP clients and uses the External RA API to get the CA to process the SCEP requests.</p>
+<ol class=" "><li class=" "><p   
+>Setup a message database on the external RA server</p>
+</li><li class=" "><p   
+>Configure the conf/externalra.properties to deploy a new DataSouce for the message database and re-deploy EJBCA</p>
+</li><li class=" "><p   
+>Configure a new worker for this new DataSource (as described in previous sections)</p>
+</li><li class=" "><p   
+>Issue a PKCS#12 keystore for the SCEP RA Server from the SCEP CA and configure it in EJBCA_HOME/conf/scepra.properties. The SCEP CA is this issuer of all SCEP requests.</p>
+</li><li class=" "><p   
+>Create an End Entity Profile and Certificate Profile to issue SCEP requests from and configure it in EJBCA_HOME/conf/scepra.properties.</p>
+</li><li class=" "><p   
+>Configure a CA mapping in EJBCA_HOME/conf/scepra.properties.</p>
+</li><li class=" "><p   
+>Configure the database connection in EJBCA_HOME/conf/scepra.properties</p>
+</li><li class=" "><p   
+>Optional: Configure scep.ra.authPwd in EJBCA_HOME/conf/scepra.properties if you want to authenticate SCEP messages based on a password in the request.</p>
+</li><li class=" "><p   
+>Make sure the correct database JDBC connector JAR is installed in the application server for your database.</p>
+</li><li class=" "><p   
+>Run 'ant externalra-scep-deploy' to deploy the DataSource and SCEP RA Server (or run 'ant externalra-scep' and deploy the war file dist/scepraserver.war yourself).</p>
+</li></ol>    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-AccessingtheScepRAServerontheExternalRAHost">
+        <h2 class="heading "><span>Accessing the Scep RA Server on the External RA Host</span></h2>
+<p   
+>You can access the Scep RA server on the external RA host by pointing your client (vpn router etc) to the URL http://scepraserver.hostname:8080/scepraserver/scep/pkiclient.exe.</p>
+<p   
+>Using this URL will include the certificate chain in the SCEP responses. Depending on your client you may instead use the URL http://scepraserver.hostname:8080/scepraserver/scep/noca/pkiclient.exe. Using this URL will return only the client certificate on the SCEP response.</p>
+    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-SecurityOptions">
+        <h2 class="heading "><span>Security Options</span></h2>
+<p   
+>Using the External RA, the CA trusts all messages that comes from the RA. This means that if a SCEP client sends a request to the RA, the CA will create the user and issue a certificate as soon as it picks up the message from the RA.</p>
+<p   
+>To make a more secure setup, one of the two following ways are recommended:</p>
+<ul class=" "><li class=" "><p   
+>Each SCEP request can contain a password. Set authPwd in conf/scepra.properties to another value then none. This will require a correct password to be sent in the SCEP request.</p>
+</li><li class=" "><p   
+>Configure Approvals on the CA(s) issuing SCEP certificates.</p>
+</li></ul><p   
+>The two ways can also be combined and both used.</p>
+<p   
+>When approvals are activated, a SCEP request will result in an approval request being created in the CA. The approval request will be for adding or editing a user. An administrator can then view the approval request and approve or reject the new request from the SCEP client. The SCEP client will continue to poll the RA until the request is approved, then a certificate is returned, or the request is rejected, then a failure message is returned.</p>
+<p   
+>If an approval request is rejected, because the router administrator mistyped something for example, you will have to wait 30 minutes before a new request can be done, because the RA will remember the rejection for 30 minutes.</p>
+<p   
+>An approval request will be valid for one hour. After one hour a new request will be created.</p>
+<p   
+>The normal workflow using approvals is the following:</p>
+<ol class=" "><li class=" "><p   
+>A router admin creates a SCEP request to the RA.</p>
+</li><li class=" "><p   
+>The router admin calls up a EJBCA admin and asks to get approval of the request.</p>
+</li><li class=" "><p   
+>The EJBCA admin approves the request and the router gets the certificate, or the EJBCA admin rejects the request and the router gets a failure message.</p>
+</li></ol>    </div>
+    </div>
+    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-UsingtheExternalRAGUI">
+        <h1 class="heading "><span>Using the External RA GUI</span></h1>
+<p   
+>The External RA GUI is an External RA API client built from the EJBCA bundle.</p>
+<p   
+>The External RA GUI allows browser enrollment, enrollment from certificate signing requests and keystore retrieval without incoming traffic to the CA installation. The functionality of the GUI is similar to the EJBCA Public Web pages.</p>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ConfigurationontheExternalRAGUIHost">
+        <h2 class="heading "><span>Configuration on the External RA GUI Host</span></h2>
+<ol class=" "><li class=" "><p   
+>Create a &quot;messages&quot; database on the External RA GUI host that can be accessed from both the EJBCA installation and locally.</p>
+</li><li class=" "><p   
+>Issue a new JKS keystore with EJBCA to enable SSL (HTTPS) on the External RA GUI host.</p>
+</li><li class=" "><p   
+>Issue a PKCS#12 keystore with EJBCA for signing and encrypting messages to the CA and copy it to the host. Don't forget to add the right administrator privileges to this certificate as described above in 'Security'.</p>
+</li><li class=" "><p   
+>Download the certificate of the CA service's PKCS#12 keystore and copy it to the host.</p>
+</li><li class=" "><p   
+>Download the issuing certificate of the host's PKCS#12 keystore and copy it to the host (should be the same as the issuer for CA service's PKCS#12).</p>
+</li><li class=" "><p   
+>Configure conf/externalra-gui.properties to use the keystores, the certificates, the local database and the local application server.</p>
+</li><li class=" "><p   
+>Make sure a database JDBC connector JAR is installed in the local application server for your database.</p>
+</li><li class=" "><p   
+>Run 'ant externalra-gui-deploy' to deploy the DataSource and External RA GUI application, <strong class=" ">or...</strong></p>
+</li><li class=" "><p   
+>run 'ant externalra-gui' to build dist/externalra-gui/externalra-gui.war that can be manually deployed to a pre-cconfigured application server.</p>
+</li><li class=" "><p   
+>Start JBoss and verify that the application is available at http://hostname:8080/externalra-gui/</p>
+</li></ol><p   
+>If you need to use https (https://hostname:8442/externalra-gui/) you have to configure your application server manually. You can look at how it is done by EJBCA for example.</p>
+    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ConfigurationMessagePollingfromEJBCA">
+        <h2 class="heading "><span>Configuration Message Polling from EJBCA</span></h2>
+<ol class=" "><li class=" "><p   
+>Issue a new PKCS#12 keystore for protection of messages.</p>
+</li><li class=" "><p   
+>Configure the conf/externalra.properties to deploy a new DataSource for the message database and re-deploy EJBCA.</p>
+</li><li class=" "><p   
+>Configure a new worker for this new DataSource and keystore (as described in previous sections). Use white-listing described in the service configuration section to only allow org.ejbca.extra.db.CertificateRequestRequest and org.ejbca.extra.db.KeyStoreRetrievalRequest request messages.</p>
+</li><li class=" "><p   
+>Make sure a database JDBC connector JAR is installed in the local application server for the external RA message database.</p>
+</li></ol><p   
+>Sample service properties:</p>
+<ul class=" "><li class=" "><p   
+>Select Worker: Custom Worker</p>
+</li><li class=" "><p   
+>Custom Worker Class Path: org.ejbca.extra.caservice.ExtRACAServiceWorker</p>
+</li><li class=" "><p   
+>Custom Worker Properties: (copy below)</p>
+</li><li class=" "><p   
+>Select Interval: Periodical Interval</p>
+</li><li class=" "><p   
+>Period: 5 seconds</p>
+</li><li class=" "><p   
+>Select Action: No Action</p>
+</li><li class=" "><p   
+>Active: Checked</p>
+</li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">externalra-caservice.whitelist=org.ejbca.extra.db.CertificateRequestRequest,org.ejbca.extra.db.KeyStoreRetrievalRequest</code></div>
+<div class="line"><code class="plain">externalra-caservice.keystore.path=/home/ejbca/externalra-caservice.p12</code></div>
+<div class="line"><code class="plain">externalra-caservice.keystore.pwd=foo123</code></div>
+<div class="line"><code class="plain">externalra-caservice.raissuer=ManagementCA</code></div>
+<div class="line"><code class="plain">externalra-caservice.signature.required=</code><code class="keyword">true</code></div>
+<div class="line"><code class="plain">externalra-caservice.encryption.required=</code><code class="keyword">false</code></div>
+<div class="line"><code class="plain">externalra-caservice.persistenceunit=RAMessage1DS</code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-VerifiedPlatformsandBrowsers">
+        <h2 class="heading "><span>Verified Platforms and Browsers</span></h2>
+<p   
+>The external RA GUI currently supports JBoss and MySQL. Additional databases supported by Hibernate can easily be added.</p>
+<p   
+>Known browsers that support key varies over the years, and a list quickly becomes obsolete. Test and report.</p>
+    </div>
+    </div>
+    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-CMPProxyusingExternalRA">
+        <h1 class="heading "><span>CMP Proxy using External RA</span></h1>
+<p   
+>The CMP Proxy can use an External RA API back-end.</p>
+<p   
+>The CMP Proxy, using External RA back end, will receive CMP messages from clients through HTTP, store them in the External RA database, and wait for a response from the CA to turn up in the External RA database. When the response is received, it will be returned to the client. The client will wait while the External RA polling and processing is taking place, so short polling times should be used (~10 seconds).</p>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ConfiguringtheCMPProxyontheExternalRAHost">
+        <h2 class="heading "><span>Configuring the CMP Proxy on the External RA Host</span></h2>
+<p   
+>The CMP Proxy is the module installed on the external RA server.</p>
+<ol class=" "><li class=" "><p   
+>Unpack an Apache Tomcat server, or a JBoss server.</p>
+</li><li class=" "><p   
+>Setup a message database on the external RA server.</p>
+</li><li class=" "><p   
+>Configure the database datasource in the application server (see below for Tomcat example).</p>
+</li><li class=" "><p   
+>Make sure the correct database JDBC connector JAR is installed in the application server on the external RA server. (i.e. copy mariadb-java-client-1.2.0.jar to apache-tomcat-7.0.67/lib/)</p>
+</li><li class=" "><p   
+>Configure the external RA backend and datasource in EJBCA_HOME/modules/cmpProxy/resources/properties/cmpProxy.properties (if using default datasource name only cmp.backend.protocol needs to be set).</p>
+</li><li class=" "><p   
+>Configure logging level in modules/cmpProxy/resources/properties/log4j.xml.</p>
+</li><li class=" "><p   
+>Run 'ant cmpHttpProxy' to build the CMP Proxy (to dist/cmpHttpProxy) and copy the war file to the deploy directory of the application server.</p>
+</li></ol><p   
+>If you need to trim the configuration of the database connection on the external RA host it is done in modules/cmpProxy/resources/properties/persistence.xml.</p>
+<p   
+>To configure a datasource, using a connection pool, in Tomcat you need to edit <strong class=" ">conf/server.xml&gt;</strong>, adding the following Resource to &lt;GlobalNamingResources&gt;:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">&lt;</code><code class="keyword">Resource</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">name</code><code class="plain">=</code><code class="string">"jdbc/CMPRAMessageDS"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">auth</code><code class="plain">=</code><code class="string">"Container"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">type</code><code class="plain">=</code><code class="string">"javax.sql.DataSource"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">maxActive</code><code class="plain">=</code><code class="string">"100"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">maxIdle</code><code class="plain">=</code><code class="string">"30"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">maxWait</code><code class="plain">=</code><code class="string">"10000"</code></div>
+<div class="line"><code class="plain">  </code><code class="color1">username</code><code class="plain">=</code><code class="string">"ejbca"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">password</code><code class="plain">=</code><code class="string">"ejbca"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">driverClassName</code><code class="plain">=</code><code class="string">"org.mariadb.jdbc.Driver"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">  </code><code class="color1">url</code><code class="plain">=</code><code class="string">"jdbc:mysql://database-host:3306/messages"</code></div>
+<div class="line"><code class="plain">  /&gt;</code></div>
+</div>
+    </div>
+<p   
+>You need to edit username, password and URL.</p>
+<p   
+>You also need to make the datasource available to the webapp by editing <strong class=" ">conf/context.xml</strong>, adding a resource link in the end (just before &lt;/Context&gt;):</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">&lt;</code><code class="keyword">ResourceLink</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">    </code><code class="color1">name</code><code class="plain">=</code><code class="string">"jdbc/CMPRAMessageDS"</code><code class="plain"> </code></div>
+<div class="line"><code class="plain">    </code><code class="color1">global</code><code class="plain">=</code><code class="string">"jdbc/CMPRAMessageDS"</code></div>
+<div class="line"><code class="plain">    </code><code class="color1">type</code><code class="plain">=</code><code class="string">"javax.sql.DataSource"</code><code class="plain">/&gt;</code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ConfigurationMessagePollingfromEJBCA.1">
+        <h2 class="heading "><span>Configuration Message Polling from EJBCA</span></h2>
+<ol class=" "><li class=" "><p   
+>On the CA host, configure conf/externalra.properties to enable External RA service and to deploy a new DataSouce for the message database, and re-deploy EJBCA.</p>
+</li><li class=" "><p   
+>Configure a new worker for this new DataSource (as described in previous sections).</p>
+</li><li class=" "><p   
+>Configure CMP aliases, as you would using direct CMP communication.</p>
+</li><li class=" "><p   
+>Make sure a database JDBC connector JAR is installed in the local application server for the external RA message database.</p>
+</li><li class=" "><p   
+>Configure a new worker for this new DataSource.</p>
+<ul class=" "><li class=" "><p   
+>Optional: If message signing and encryption is required create and configure keystores for this.</p>
+</li><li class=" "><p   
+>Optional: For an extra layer of security, Use white-listing described in the service configuration section to only allow org.ejbca.extra.db.CMPRequest.</p>
+</li></ul></li></ol><p   
+>Sample service properties:</p>
+<ul class=" "><li class=" "><p   
+>Select Worker: Custom Worker</p>
+</li><li class=" "><p   
+>Custom Worker Class Path: org.ejbca.extra.caservice.ExtRACAServiceWorker</p>
+</li><li class=" "><p   
+>Custom Worker Properties: (copy below)</p>
+</li><li class=" "><p   
+>Select Interval: Periodical Interval</p>
+</li><li class=" "><p   
+>Period: 5 seconds</p>
+</li><li class=" "><p   
+>Select Action: No Action</p>
+</li><li class=" "><p   
+>Active: Checked</p>
+</li></ul>    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">externalra-caservice.whitelist=org.ejbca.extra.db.CMPRequest</code></div>
+<div class="line"><code class="plain">externalra-caservice.keystore.path=/home/ejbca/externalra-caservice.p12</code></div>
+<div class="line"><code class="plain">externalra-caservice.keystore.pwd=foo123</code></div>
+<div class="line"><code class="plain">externalra-caservice.raissuer=ManagementCA</code></div>
+<div class="line"><code class="plain">externalra-caservice.signature.required=</code><code class="keyword">true</code></div>
+<div class="line"><code class="plain">externalra-caservice.encryption.required=</code><code class="keyword">false</code></div>
+<div class="line"><code class="plain">externalra-caservice.persistenceunit=RAMessage1DS</code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-AccessingtheCMPProxyontheExternalRAHost">
+        <h2 class="heading "><span>Accessing the CMP Proxy on the External RA Host</span></h2>
+<p   
+>You can access the CMP Proxy as described in the CMP Proxy instructions. There is no difference from a client wether using HTTP backend of External RA backend. Example command, using cmpforopenssl (as in <a   href="CMP.html">CMP</a> examples) but through the proxy:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">./cmpclient --server localhost --port </code><code class="value">8080</code><code class="plain"> --path cmpProxy-</code><code class="value">6.4</code><code class="plain">.</code><code class="value">0</code><code class="plain">/cmpalias --srvcert ManagementCA.cacert.pem --ir --user mykeyid --password password --newclcert clcert.der --newkey privkey.pem --subject </code><code class="string">"CN=user1,O=My Organization,C=SE"</code></div>
+</div>
+    </div>
+<p   
+>As compared to a session directly to the CA:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">./cmpclient --server localhost --port </code><code class="value">8080</code><code class="plain"> --path ejbca/publicweb/cmp/cmpalias --srvcert ManagementCA.cacert.pem --ir --user mykeyid --password password --newclcert clcert.der --newkey privkey.pem --subject </code><code class="string">"CN=user1,O=My Organization,C=SE"</code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-SecurityOptions.1">
+        <h2 class="heading "><span>Security Options</span></h2>
+<p   
+>Using the External RA, the CA works in the same was as if a client connects directly, which means you can use client or RA mode etc. For more information, see <a   href="CMP.html">CMP</a>. You can use whitelisting and signed external RA messages to further limit capabilities of the external RA host itself.</p>
+<p   
+>To sign and encrypt external RA messages, use the following options to configure keystores in cmpProxy.properties:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">cmp.backend.keystorepath</code></div>
+<div class="line"><code class="plain">cmp.backend.keystorepwd</code></div>
+<div class="line"><code class="plain">cmp.backend.caservicecertpath</code></div>
+<div class="line"><code class="plain">cmp.backend.issuerchainpath</code></div>
+</div>
+    </div>
+    </div>
+    </div>
+    <div class="section section-1" id="src-16234704_id-.ExternalRAusingDatabasePollingv6.14.0-ClusteringExternalRAs">
+        <h1 class="heading "><span>Clustering External RAs</span></h1>
+<p   
+>You can have several External RA servers, in order to provide high availability, or increased performance. There are generally two waysto cluster External RA:</p>
+<ul class=" "><li class=" "><p   
+>Setting up a shared, HA, database for the External RA servers.</p>
+</li><li class=" "><p   
+>Setting up independent databases on each External RA server.</p>
+</li></ul><p   
+><img  class="confluence-embedded-image"  src="images/download/attachments/16234704/external-ra-cluster.png" alt="images/download/attachments/16234704/external-ra-cluster.png"   />
+    </p>
+<p   
+>External RA service workers on the CA side works cluster-wide on the CA. This means that if you have multipple CA nodes, a single service worker will run on one node by default, but if this node goes down it will run on other nodes. In addition you can <i class=" ">pin</i> service workers to specific nodes, so you can have three workers configured, that always run on their respective nodes.</p>
+    </div>
+        </div>
+
+    </article>
+
+
+            <nav id="ht-post-nav">
+                <a href="EJBCA_RA.html" class="ht-post-nav-prev">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-prev" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA RA</span>
+        </a>
+                <a href="EJBCA_User_Guide.html" class="ht-post-nav-next">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-next" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA User Guide</span>
+        </a>
+    </nav>    
+            
+    <footer id="ht-footer">
+    <a href="#" id="ht-jump-top" class="sp-aui-icon-small sp-aui-iconfont-arrows-up"></a>
+</footer></div>
+
+<div>
+    <div id="ht-mq-detect"></div>
+</div>
+
+    <script src="js/lunr.js"></script>
+    <script src="js/lunr-extras.js"></script>
+    <script src="assets/js/scroll-search.js"></script>
+
+</body>
+</html>

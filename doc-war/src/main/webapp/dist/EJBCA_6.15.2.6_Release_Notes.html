@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>EJBCA 6.15.2.6 Release Notes - EJBCA - Documentation Space</title>
+
+    
+            <meta name="scroll-content-language-key" content="">
+    
+    <meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery.scrollTo.min.js"></script>
+
+
+<script type="text/javascript" src="assets/js/translate.js"></script>
+
+
+<script type="text/javascript" src="assets/js/scroll-tree.js"></script>
+
+<script type="text/javascript" src="assets/js/theme.main.js"></script>
+
+    <script type="text/javascript" src="assets/js/iframeResizer.min.js"></script>
+
+<link rel="stylesheet" href="assets/css/content-style.css">
+    <link rel="stylesheet" href="assets/css/search.css">
+
+<link rel="stylesheet" href="assets/css/theme.main.css">
+<link rel="stylesheet" href="assets/css/theme.colors.css">
+
+            <!-- ES5 support for older browsers, needed by lunr -->
+        <script src="js/augment.js"></script>
+        <script id="worker" type="javascript/worker">
+
+        startIndex = function() {
+            idx = lunr.Index.load(lunrIndex);
+            idx.pipeline.remove(lunr.stopWordFilter);
+            postMessage({type: "setup-complete"});
+        }
+
+        onmessage = function (event) {
+            var message = event.data;
+
+            if ((message.type === 'setup') && message.baseUrl) {
+                var url = message.baseUrl;
+                importScripts(url + 'js/lunr.js');
+                importScripts(url + 'js/lunr-extras.js');
+                importScripts(url + 'js/lunr-index.js');
+                importScripts(url + 'js/lunr-data.js');
+                startIndex();
+            }
+
+            if (idx && (message.type === 'search-request') && message.query) {
+                var searchWord = message.query;
+                var results = idx.search(searchWord).map(function (result) {
+                    return lunrData.filter(function (d) {
+                        return d.id === parseInt(result.ref, 10)
+                    })[0]
+                });
+                postMessage({type: 'search-results', results: results, query: searchWord, queryId: message.queryId});
+            }
+        }
+
+    </script>
+    </head>
+
+<body pageid="85921598">
+
+<div id="ht-loader">
+    <noscript>
+        <p style="width: 100%; text-align:center; position: absolute; margin-top: 200px;">This content cannot be displayed without JavaScript.<br>Please enable JavaScript and reload the page.</p>
+    </noscript>
+</div>
+
+<div>
+   	<header id="ht-headerbar">
+    <div class="ht-headerbar-left">
+        <a href="" id="ht-menu-toggle" class="sp-aui-icon-small sp-aui-iconfont-appswitcher"></a>
+    </div>
+    <div class="ht-headerbar-right">
+            <div class="sp-aui-icon-small ht-search-index-loader ht-header-icon"></div>
+
+        <div id="ht-search">
+            <div class="ht-search-input" style="display: none;">
+              	<a href="#" class="sp-aui-icon-small sp-aui-iconfont-remove ht-search-clear"></a>
+
+                <form action="#" method="GET" id="search">
+                    <input class="search-input" type="text" placeholder="Search" tabindex="-1" autocomplete="off" name="q" value="">
+                    <input type="hidden" name="max" value="15" />
+                    <input type="submit" style="display:none" tabindex="-4"/>
+                </form>
+
+                <a href="#" id="ht-search-button" class="ht-header-icon ht-header-icon-svg">
+                                        <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g>
+                            <path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></path>
+                        </g>
+                    </svg>
+              	</a>
+
+                <div class="ht-search-dropdown ht-dropdown">
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </header>   	<aside id="ht-sidebar">
+    <div class="ht-sidebar-content">
+        <div class="ht-sidebar-content-scroll-container">
+            <header class="ht-sidebar-header">
+                <h1 class="ht-logo">
+                    <span class="ht-logo-label">EJBCADS</span>
+                    <img class="space-logo" src="EJBCADS.png" />
+                </h1>
+                <a href="EJBCA_6.15.2.6_Documentation.html" class="ht-space-link">
+                    <h2>EJBCA - Documentation Space</h2>
+                </a>
+            </header>
+                            <iframe id="ht-nav" src="toc.html?pageId=85921005"></iframe>
+                <script>
+                    $('iframe#ht-nav').iFrameResize(
+                            { 'log': true, 'autoResize': true, 'heightCalculationMethod': 'lowestElement', 'checkOrigin': false });
+                </script>
+                    </div>
+    </div>
+
+</aside></div>
+
+<div id="ht-wrap-container">
+
+            
+    <div id="ht-sidebar-dragbar">
+    <div class="ht-sidebar-drag-handle">
+        <span class="drag-handle-1"></span>
+        <span class="drag-handle-2"></span>
+        <span class="drag-handle-3"></span>
+    </div>
+</div>
+    <article id="ht-content" class="ht-content">
+        <header class="ht-content-header">
+            <div id="ht-breadcrumb">
+    <ul>
+        <li><a href="EJBCA_6.15.2.6_Documentation.html">EJBCA - Documentation Space</a></li>
+                                                                                                             <li><a href="" onclick="$('.shortcut').each(function(){$(this).removeClass('shortcut')}); $(this).parent().addClass('shortcut'); return false;">...</a> </li>
+                                        <li class="shortcut"><a href="EJBCA_Release_Information.html">EJBCA Release Information</a></li>
+                                                                                     <li><a href="EJBCA_Release_Notes.html">EJBCA Release Notes</a></li>
+                                                            </ul>
+</div>            <h1 id="src-85921005"> <span>EJBCA 6.15.2.6 Release Notes</span></h1>
+        </header>
+
+        <div id="main-content" class="wiki-content sp-grid-section" data-index-for-search="true">
+
+<p   
+>This maintenance release resolves several vulnerabilities found in EJBCA during penetration testing, and we recommend that all customers upgrade their installations if they are affected and cannot otherwise mitigate.</p>
+    <div class="section section-1" id="src-85921005_id-.EJBCA6.15.2.6ReleaseNotesv6.15.2.6-SummaryofVulnerabilities">
+        <h1 class="heading "><span>Summary of Vulnerabilities</span></h1>
+    <div  class="tablewrap">
+        <table class="relative-table confluenceTable">
+                    <colgroup>
+                                    <col  width="22%"/>
+                                    <col  width="28%"/>
+                                    <col  width="25%"/>
+                                    <col  width="24%"/>
+                            </colgroup>
+        <thead class=" ">    <tr>
+            <td  class="highlight-red confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Name</p>
+            </td>
+                <td  class="highlight-red confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Description</p>
+            </td>
+                <td  class="highlight-red confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Who is affected</p>
+            </td>
+                <td  class="highlight-red confluenceTh" rowspan="1" colspan="1">
+    <p   
+>Possible Mitigation</p>
+            </td>
+        </tr>
+</thead><tfoot class=" "></tfoot><tbody class=" ">    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Unchecked Certificate Uploads in Validator</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>The External Command Certificate Validator has been found to save uploaded test certificates to the server. An attacker with administrative access who has gained access to the CA UI could exploit this to upload malicious scripts to the server.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Users of the External Command Certificate Validator.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+></p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Authentication Bypass Vulnerability</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>An error state can be generated in the CA UI by a malicious user, which in turn allows exploit of other bugs, which can lead to privilege escalation and remote code execution.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>If the CA UI is not accessible on a port that does not require client certificate authentication (port 8442 or 8080 on a standard EJBCA installation), the vulnerability can not be exploited.</p>
+<p   
+>Users of the PrimeKey PKI Appliance are <strong class=" ">not</strong> affected as the PKI Appliance by default implements firewall rules which negate the issue.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Use a firewall to ensure that the CA UI URI can only be accessible using client certificate authentication.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>XSS and CSRF Issues</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Two XSS issues and a CSRF issue found during testing.</p>
+<p   
+>As is common with XSS and CSRF vulnerabilities generally, risk is associated with a malicious administrator or an administrator following links to pages within EJBCA sent from a malicious source, both of which are unlikely within a secure environment.</p>
+<p   
+>The CSRF issue could by a talented attacker, with knowledge about the CA system and network access to it, be used for privilege escalation.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>All EJBCA installations.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+></p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Protocol Access Control Bypass</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>EJBCA allows the restriction of available remote protocols (CMP, ACME, REST, etc) through the system configuration. A vulnerability where these restrictions can be bypassed by modifying the URI string from a client has been found.</p>
+<p   
+>EJBCA's internal access control restrictions are still in place, and each respective protocol must be configured to allow for enrollment.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>You may be affected if your PKI is set up for enrollment over a 3rd party protocol, but have for whatever reason disabled that protocol in the System Configuration.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>To ensure complete mitigation of this vulnerability we recommend that you block access paths to unwanted protocols (e.g <i class=" ">ejbca/publicweb/cmp</i>) in your firewall.</p>
+            </td>
+        </tr>
+    <tr>
+            <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Deserialization Bug</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>Several vulnerable sections of code were found, where the verification of serialized objects sent between nodes connected via the Peers protocol still allows unsecure objects to be deserialized.</p>
+            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+>You may be affected if you have connected your VAs or RAs via the Peers protocol.</p>
+<p   
+>For an exploit to be successful:</p>
+<ul class=" "><li class=" "><p   
+>An attacker needs to have compromised the internal PKI in order to issue fraudulent TLS keys.</p>
+</li><li class=" "><p   
+>An attacker must have performed a complete takeover of one of the nodes in order to send a compromised payload.</p>
+</li></ul>            </td>
+                <td  class="confluenceTd" rowspan="1" colspan="1">
+    <p   
+></p>
+            </td>
+        </tr>
+</tbody>        </table>
+            </div>
+    </div>
+    <div class="section section-1" id="src-85921005_id-.EJBCA6.15.2.6ReleaseNotesv6.15.2.6-UpgradeInformation">
+        <h1 class="heading "><span>Upgrade Information</span></h1>
+<p   
+>As a patch release, the upgrade steps to EJBCA 6.15.2.6 are the same as to EJBCA 6.15, see the <a   href="EJBCA_6.15_Upgrade_Notes.html">EJBCA 6.15 Upgrade Notes</a>.</p>
+<p   
+>For general upgrade instructions and information on upgrade paths, see <a   href="Upgrading_EJBCA.html">Upgrading EJBCA</a>.</p>
+    <div class="section section-2" id="src-85921005_id-.EJBCA6.15.2.6ReleaseNotesv6.15.2.6-BehaviorChanges">
+        <h2 class="heading "><span>Behavior Changes</span></h2>
+<p   
+>When listing role members in the CA UI (<strong class=" ">Roles and Access Rules&gt;Members</strong>), there was previously a link to view certificates, if the role member had a match value of <strong class=" ">X509: Certificate serial number</strong>. This link has now been removed from EJBCA 6.15.x.</p>
+    </div>
+    </div>
+    <div class="section section-1" id="src-85921005_safe-id-aWQtLkVKQkNBNi4xNS4yLjZSZWxlYXNlTm90ZXN2Ni4xNS4yLjYtQ2hhbmdlTG9nOlJlc29sdmVkSXNzdWVz">
+        <h1 class="heading "><span>Change Log: Resolved Issues</span></h1>
+<p   
+>The following lists issues resolved in EJBCA 6.15.2.6.</p>
+    <div class="section section-2" id="src-85921005_id-.EJBCA6.15.2.6ReleaseNotesv6.15.2.6-IssuesResolvedin6.15.2.6">
+        <h2 class="heading "><span>Issues Resolved in 6.15.2.6 </span></h2>
+<p   
+>Released March 2020</p>
+<p   
+></p>
+<ul class="toc-indentation "></ul>    <div class="section section-3" id="src-85921005_id-.EJBCA6.15.2.6ReleaseNotesv6.15.2.6-Improvements">
+        <h3 class="heading "><span>Improvements</span></h3>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8775">ECA-8775</a> - Improve output format in CertDistServlet listcerts command</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8793">ECA-8793</a> - Add new HTTP security headers</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8809">ECA-8809</a> - Fix formating in CertStoreServletTest and CertFetchAndVerify</p>
+    </div>
+    <div class="section section-3" id="src-85921005_id-.EJBCA6.15.2.6ReleaseNotesv6.15.2.6-Tasks">
+        <h3 class="heading "><span>Tasks</span></h3>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8790">ECA-8790</a> - Perform upgrade testing</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8806">ECA-8806</a> - Backport external dependency update</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8807">ECA-8807</a> - Change the copyright footer to 2020</p>
+    </div>
+    <div class="section section-3" id="src-85921005_id-.EJBCA6.15.2.6ReleaseNotesv6.15.2.6-BugFixes">
+        <h3 class="heading "><span>Bug Fixes</span></h3>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7153">ECA-7153</a> - Security issue</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8777">ECA-8777</a> - Security issue</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8782">ECA-8782</a> - ServiceSession logs incorrect administrator when editing a service</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8791">ECA-8791</a> - Cannot search by year 2020 in Admin Web</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8802">ECA-8802</a> - Acme failure</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8823">ECA-8823</a> - Bad default CRL parameters when importing CA</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8880">ECA-8880</a> - UpdatePublicKeyBlacklistCommandTest contains empty folder in resources, which fails with GIT</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-8883">ECA-8883</a> - RA fails into an endless loop on load when missing /ra_master/invoke_api access</p>
+<p   
+></p>
+    </div>
+    </div>
+    </div>
+        </div>
+
+    </article>
+
+
+            <nav id="ht-post-nav">
+                <a href="EJBCA_7.3.1.3_Release_Notes.html" class="ht-post-nav-prev">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-prev" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA 7.3.1.3 Release Notes</span>
+        </a>
+                <a href="EJBCA_6.15.2.5_Release_Notes.html" class="ht-post-nav-next">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-next" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA 6.15.2.5 Release Notes</span>
+        </a>
+    </nav>    
+            
+    <footer id="ht-footer">
+    <a href="#" id="ht-jump-top" class="sp-aui-icon-small sp-aui-iconfont-arrows-up"></a>
+</footer></div>
+
+<div>
+    <div id="ht-mq-detect"></div>
+</div>
+
+    <script src="js/lunr.js"></script>
+    <script src="js/lunr-extras.js"></script>
+    <script src="assets/js/scroll-search.js"></script>
+
+</body>
+</html>
