@@ -65,6 +65,23 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
         
-    
-        
+    - name: Publish EAR
+      uses: actions/upload-artifact@v2
+      with:
+        name: ejbca-ear
+        path: ejbca-ear/target/*.ear
+
+    - name: Publish ws-cli
+      uses: actions/upload-artifact@v2
+      with:
+        name: ejbca-ws-cli
+        path: ejbca-ws-cli/target/*dependencies.jar
+
+    - name: Publish ejb-cli
+      uses: actions/upload-artifact@v2
+      with:
+        name: ejbca-ejb-cli
+        path: ejbca-ejb-cli/target/*dependencies.jar
+
+       
   
