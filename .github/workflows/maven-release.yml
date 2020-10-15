@@ -75,13 +75,13 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ejbca-ws-cli
-        path: ejbca-ws-cli/target/*dependencies.jar
+        path: ejbca-ws-cli/target/*executable.jar
 
     - name: Publish ejb-cli
       uses: actions/upload-artifact@v2
       with:
         name: ejbca-ejb-cli
-        path: ejbca-ejb-cli/target/*dependencies.jar
+        path: ejbca-ejb-cli/target/*executable.jar
 
        
   

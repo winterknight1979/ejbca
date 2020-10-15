@@ -157,9 +157,9 @@
 									<mainClass>org.ejbca.core.protocol.ws.client.ejbcawsracli</mainClass>
 								</manifest>
 							</archive>
-							<descriptorRefs>
-								<descriptorRef>jar-with-dependencies</descriptorRef>
-							</descriptorRefs>
+							<descriptors>
+								<descriptor>${project.build.directory}/maven-shared-archive-resource/assembly.xml</descriptor>
+							</descriptors>
 						</configuration>
 					</execution>
 				</executions>
