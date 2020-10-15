@@ -32,7 +32,8 @@ import org.cesecore.util.ValueExtractor;
  */
 public abstract class BaseCertificateDataSessionBean {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateDataSessionBean.class);
 
   /**
@@ -151,8 +152,8 @@ public abstract class BaseCertificateDataSessionBean {
       if (incompleteCertificateDatas.size() == 0) {
         break;
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Read batch of "
                 + incompleteCertificateDatas.size()
                 + " RevokedCertInfo.");

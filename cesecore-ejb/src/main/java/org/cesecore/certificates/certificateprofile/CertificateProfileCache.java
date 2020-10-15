@@ -43,9 +43,12 @@ import org.cesecore.config.CesecoreConfiguration;
  *     $
  */
 public enum CertificateProfileCache {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
-  private final Logger LOG = Logger.getLogger(CertificateProfileCache.class);
+    /** Logger. */
+  private static final Logger LOG =
+          Logger.getLogger(CertificateProfileCache.class);
 
   /*
    * Cache of profiles, with Id as keys. This cache may be
@@ -53,24 +56,28 @@ public enum CertificateProfileCache {
    * threads in the same VM. Set volatile to make it thread friendly.
    */
 
-  /** Cache of mappings between profileId and profileName */
+  /** Cache of mappings between profileId and profileName.*/
   private volatile Map<Integer, String> idNameMapCache = null;
-  /** Cache of mappings between profileName and profileId */
+  /** Cache of mappings between profileName and profileId. */
   private volatile Map<String, Integer> nameIdMapCache = null;
-  /** Cache of certificate profiles, with Id as keys */
+  /** Cache of certificate profiles, with Id as keys. */
   private volatile Map<Integer, CertificateProfile> profileCache = null;
 
+  /** Time. */
   private volatile long lastUpdate = 0;
 
   /* Create template maps with all static constants */
+  /** Cache. */
   private final HashMap<Integer, String> idNameMapCacheTemplate =
       new HashMap<Integer, String>();
+  /** Cache. */
   private final HashMap<String, Integer> nameIdMapCacheTemplate =
       new HashMap<String, Integer>();
 
+  /** Lock. */
   private final ReentrantLock lock = new ReentrantLock(false);
 
-  private CertificateProfileCache() {
+  CertificateProfileCache() {
     idNameMapCacheTemplate.put(
         Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER),
         CertificateProfile.ENDUSERPROFILENAME);

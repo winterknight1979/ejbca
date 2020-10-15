@@ -48,17 +48,21 @@ public class SecurityEventsLoggerSessionBean
     implements SecurityEventsLoggerSessionLocal,
         SecurityEventsLoggerSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(SecurityEventsLoggerSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** Logger. */
   @EJB
   private InternalSecurityEventsLoggerSessionLocal
       internalSecurityEventsLoggerSession;
 
+  /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Time. */
   @EJB private TrustedTimeWatcherSessionLocal trustedTimeWatcherSession;
 
   @Override
@@ -97,7 +101,7 @@ public class SecurityEventsLoggerSessionBean
     if (!authorizationSession.isAuthorized(
         authToken, AuditLogRules.LOG.resource())) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "authorization.notauthorizedtoresource",
               AuditLogRules.LOG.resource(),
               null);
@@ -154,8 +158,8 @@ public class SecurityEventsLoggerSessionBean
       final String searchDetail2,
       final Map<String, Object> additionalDetails)
       throws AuditRecordStorageException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           String.format(
               ">log:%s:%s:%s:%s:%s:%s:%s:%s:%s",
               eventType,
@@ -182,11 +186,11 @@ public class SecurityEventsLoggerSessionBean
           searchDetail2,
           additionalDetails);
     } catch (TrustedTimeProviderException e) {
-      log.error(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
       throw new AuditRecordStorageException(e.getMessage(), e);
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace("<log");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<log");
       }
     }
   }

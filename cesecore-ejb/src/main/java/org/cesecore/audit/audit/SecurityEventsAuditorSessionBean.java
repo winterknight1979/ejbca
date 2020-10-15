@@ -53,15 +53,19 @@ public class SecurityEventsAuditorSessionBean
     implements SecurityEventsAuditorSessionLocal,
         SecurityEventsAuditorSessionRemote {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(SecurityEventsAuditorSessionBean.class);
 
+  /** Auth session. */
   @EJB private AuthorizationSessionLocal authorizationSession;
 
+  /** Auditor session. */
   @EJB
   private IntegrityProtectedAuditorSessionLocal
       integrityProtectedAuditorSession;
 
+  /** Auditor session. */
   @EJB private QueuedAuditorSessionLocal queuedAuditorSession;
 
   @Override

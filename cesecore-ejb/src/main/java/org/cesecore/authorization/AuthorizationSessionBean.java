@@ -68,25 +68,35 @@ import org.cesecore.time.providers.TrustedTimeProviderException;
 public class AuthorizationSessionBean
     implements AuthorizationSessionLocal, AuthorizationSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AuthorizationSessionBean.class);
 
+  /** Access. */
   @EJB private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+  /** Roles. */
   @EJB private RoleDataSessionLocal roleDataSession;
+  /** Role members. */
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
 
+  /** Log session. */
   @EJB
   private InternalSecurityEventsLoggerSessionLocal
       internalSecurityEventsLoggerSession;
 
+  /** Watcher. */
   @EJB private TrustedTimeWatcherSessionLocal trustedTimeWatcherSession;
 
+  /** Context. */
   @Resource private SessionContext sessionContext;
+  /** Timer. */
   private TimerService
       timerService; // When the sessionContext is injected, the timerService
                     // should be looked up.
+  /** Session. */
   private AuthorizationSessionLocal authorizationSession;
 
+  /** Setup. */
   @PostConstruct
   public void postConstruct() {
     timerService = sessionContext.getTimerService();
@@ -114,7 +124,7 @@ public class AuthorizationSessionBean
       timerService.createSingleActionTimer(
           interval, new TimerConfig("AuthorizationSessionTimer", false));
     } else {
-      log.debug("Authorization cache disabled (-1), not creating new timer.");
+      LOG.debug("Authorization cache disabled (-1), not creating new timer.");
     }
   }
 
@@ -160,15 +170,15 @@ public class AuthorizationSessionBean
           // don't want to construct the string at all (to save time and
           // objects) for debug logging, therefore code copied.
           if (doLogging) {
-            log.info(
+            LOG.info(
                 "Authorization failed for "
                     + authenticationToken.toString()
                     + " of type "
                     + authenticationToken.getClass().getSimpleName()
                     + " for resource "
                     + resource);
-          } else if (log.isDebugEnabled()) {
-            log.debug(
+          } else if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Authorization failed for "
                     + authenticationToken.toString()
                     + " of type "
@@ -222,8 +232,8 @@ public class AuthorizationSessionBean
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public void forceCacheExpire() {
-    if (log.isTraceEnabled()) {
-      log.trace("forceCacheExpire");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("forceCacheExpire");
     }
     AuthorizationCache.INSTANCE.clear(
         accessTreeUpdateSession.getAccessTreeUpdateNumber());
@@ -235,8 +245,8 @@ public class AuthorizationSessionBean
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public void refreshAuthorizationCache() {
-    if (log.isTraceEnabled()) {
-      log.trace("updateCache");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("updateCache");
     }
     AuthorizationCache.INSTANCE.refresh(
         authorizationCacheCallback,
@@ -252,7 +262,7 @@ public class AuthorizationSessionBean
         authenticationToken, authorizationCacheCallback);
   }
 
-  /** Callback for loading cache misses */
+  /** Callback for loading cache misses. */
   private final AuthorizationCacheCallback authorizationCacheCallback =
       new AuthorizationCacheCallback() {
         @Override
@@ -265,8 +275,8 @@ public class AuthorizationSessionBean
             final List<NestableAuthenticationToken> nestedAuthenticatonTokens =
                 ((NestableAuthenticationToken) authenticationToken)
                     .getNestedAuthenticationTokens();
-            for (final NestableAuthenticationToken nestableAuthenticationToken :
-                nestedAuthenticatonTokens) {
+            for (final NestableAuthenticationToken nestableAuthenticationToken
+               : nestedAuthenticatonTokens) {
               final HashMap<String, Boolean> accessRulesForNestedToken =
                   getAccessAvailableToSingleToken(nestableAuthenticationToken);
               accessRules =
@@ -274,7 +284,7 @@ public class AuthorizationSessionBean
                       accessRules, accessRulesForNestedToken);
             }
           }
-          if (log.isDebugEnabled()) {
+          if (LOG.isDebugEnabled()) {
             debugLogAccessRules(authenticationToken, accessRules);
           }
           return new AuthorizationResult(
@@ -313,7 +323,7 @@ public class AuthorizationSessionBean
       }
       sb.append(resource).append('\n');
     }
-    log.debug(sb);
+    LOG.debug(sb);
   }
 
   /**
@@ -335,13 +345,13 @@ public class AuthorizationSessionBean
             accessRules.put("/", Boolean.TRUE);
           }
         } catch (AuthenticationFailedException e) {
-          log.debug(e.getMessage(), e);
+          LOG.debug(e.getMessage(), e);
         }
       } else {
         if (accessTreeUpdateSession.isNewAuthorizationPatternMarkerPresent()) {
           // This is the new 6.8.0+ behavior (combine access of matched rules)
-          for (final int matchingRoleId :
-              roleMemberDataSession.getRoleIdsMatchingAuthenticationTokenOrFail(
+          for (final int matchingRoleId
+            : roleMemberDataSession.getRoleIdsMatchingAuthenticationTokenOrFail(
                   authenticationToken)) {
             accessRules =
                 AccessRulesHelper.getAccessRulesUnion(
@@ -360,8 +370,8 @@ public class AuthorizationSessionBean
           final Map<Integer, Integer> keepMap = new HashMap<>();
           // 1. Find highest tokenMatchKey number and keep these entries
           int highest = 0;
-          for (final Entry<Integer, Integer> entry :
-              roleIdToTokenMatchKeyMap.entrySet()) {
+          for (final Entry<Integer, Integer> entry
+              : roleIdToTokenMatchKeyMap.entrySet()) {
             final int current = entry.getValue();
             if (highest < current) {
               keepMap.clear();
@@ -395,7 +405,7 @@ public class AuthorizationSessionBean
     try {
       return trustedTimeWatcherSession.getTrustedTime(false);
     } catch (TrustedTimeProviderException e) {
-      log.error(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
       throw new AuditRecordStorageException(e.getMessage(), e);
     }
   }

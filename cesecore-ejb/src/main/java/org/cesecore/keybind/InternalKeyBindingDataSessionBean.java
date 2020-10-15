@@ -42,19 +42,25 @@ import org.cesecore.util.QueryResultWrapper;
 public class InternalKeyBindingDataSessionBean
     implements InternalKeyBindingDataSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(InternalKeyBindingDataSessionBean.class);
-  private static final InternalResources intres =
+  /** tesource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
-  private static final Random rnd = new SecureRandom();
+  /** Random. */
+  private static final Random RND = new SecureRandom();
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
-  // Myself needs to be looked up in postConstruct
+  /** Myself needs to be looked up in postConstruct. */
   @Resource private SessionContext sessionContext;
+  /** Session. */
   private InternalKeyBindingDataSessionLocal keyBindSession;
 
+  /** Init. */
   @PostConstruct
   public void postConstruct() {
     // We lookup the reference to our-self in PostConstruct, since we cannot
@@ -73,8 +79,8 @@ public class InternalKeyBindingDataSessionBean
   @Override
   public void flushCache() {
     InternalKeyBindingCache.INSTANCE.flush();
-    if (log.isDebugEnabled()) {
-      log.debug("Flushed " + InternalKeyBindingCache.class.getSimpleName());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Flushed " + InternalKeyBindingCache.class.getSimpleName());
     }
   }
 
@@ -84,16 +90,16 @@ public class InternalKeyBindingDataSessionBean
     // 1. Check (new) InternalKeyBindingCache if it is time to sync-up with
     // database
     if (InternalKeyBindingCache.INSTANCE.shouldCheckForUpdates(id)) {
-      if (log.isDebugEnabled()) {
-        log.debug("Object with ID " + id + " will be checked for updates.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Object with ID " + id + " will be checked for updates.");
       }
       // 2. If cache is expired or missing, first thread to discover this
       // reloads item from database and sends it to the cache
       final InternalKeyBindingData internalKeyBindingData =
           keyBindSession.readData(id);
       if (internalKeyBindingData == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Requested object did not exist in database and will be purged"
                   + " from cache if present: "
                   + id);
@@ -158,10 +164,12 @@ public class InternalKeyBindingDataSessionBean
   }
 
   @Override
-  public int mergeInternalKeyBinding(InternalKeyBinding internalKeyBinding)
+  public int mergeInternalKeyBinding(
+          final InternalKeyBinding ointernalKeyBinding)
       throws InternalKeyBindingNameInUseException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+      InternalKeyBinding internalKeyBinding = ointernalKeyBinding;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           ">mergeInternalKeyBinding "
               + internalKeyBinding.getName()
               + " "
@@ -183,8 +191,9 @@ public class InternalKeyBindingDataSessionBean
     if (internalKeyBindingId == 0) {
       final List<Integer> allUsedIds = getIds(null);
       Integer allocatedId = null;
-      for (int i = 0; i < 100; i++) {
-        final int current = Integer.valueOf(rnd.nextInt());
+      final int max = 100;
+      for (int i = 0; i < max; i++) {
+        final int current = Integer.valueOf(RND.nextInt());
         if (!allUsedIds.contains(current)) {
           allocatedId = current;
           break;
@@ -207,8 +216,8 @@ public class InternalKeyBindingDataSessionBean
               cryptoTokenId,
               keyPairAlias,
               dataMap);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Allocated a new internalKeyBindingId: " + internalKeyBindingId);
       }
     } else {
@@ -222,11 +231,11 @@ public class InternalKeyBindingDataSessionBean
       // The InternalKeyBinding does not exist in the database, before we add it
       // we want to check that the name is not in use
       if (isNameUsed(name)) {
-        if (log.isDebugEnabled()) {
-          log.debug("isNameUsed(" + name + ")");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("isNameUsed(" + name + ")");
         }
         throw new InternalKeyBindingNameInUseException(
-            intres.getLocalizedMessage("internalkeybinding.nameisinuse", name));
+            INTRES.getLocalizedMessage("internalkeybinding.nameisinuse", name));
       }
       internalKeyBindingData =
           new InternalKeyBindingData(
@@ -241,8 +250,8 @@ public class InternalKeyBindingDataSessionBean
     } else {
       if (!isNameUsedByIdOnly(
           internalKeyBindingData.getName(), internalKeyBindingId)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "!isNameUsedByIdOnly("
                   + name
                   + ", "
@@ -250,7 +259,7 @@ public class InternalKeyBindingDataSessionBean
                   + ")");
         }
         throw new InternalKeyBindingNameInUseException(
-            intres.getLocalizedMessage("internalkeybinding.nameisinuse", name));
+            INTRES.getLocalizedMessage("internalkeybinding.nameisinuse", name));
       }
       // It might be the case that the calling transaction has already loaded a
       // reference to this token
@@ -274,8 +283,8 @@ public class InternalKeyBindingDataSessionBean
         internalKeyBindingData.getProtectString(0).hashCode(),
         name,
         internalKeyBinding);
-    if (log.isDebugEnabled()) {
-      log.debug("<mergeInternalKeyBinding " + internalKeyBinding.getName());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("<mergeInternalKeyBinding " + internalKeyBinding.getName());
     }
     return internalKeyBindingId; // tokenId
   }
@@ -313,8 +322,8 @@ public class InternalKeyBindingDataSessionBean
     @SuppressWarnings("unchecked")
     final List<InternalKeyBindingData> internalKeyBindingDatas =
         query.getResultList();
-    for (final InternalKeyBindingData internalKeyBindingData :
-        internalKeyBindingDatas) {
+    for (final InternalKeyBindingData internalKeyBindingData
+        : internalKeyBindingDatas) {
       if (internalKeyBindingData.getId() != id) {
         return false;
       }

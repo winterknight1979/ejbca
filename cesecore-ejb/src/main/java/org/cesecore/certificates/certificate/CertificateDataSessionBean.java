@@ -36,7 +36,7 @@ import org.cesecore.util.ValidityDate;
 import org.cesecore.util.ValueExtractor;
 
 /**
- * Low level CRUD functions to access CertificateData
+ * Low level CRUD functions to access CertificateData.
  *
  * @version $Id: CertificateDataSessionBean.java 28981 2018-05-21 14:10:49Z
  *     jekaterina_b_helmes $
@@ -47,9 +47,11 @@ import org.cesecore.util.ValueExtractor;
 public class CertificateDataSessionBean extends BaseCertificateDataSessionBean
     implements CertificateDataSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateDataSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -319,8 +321,8 @@ public class CertificateDataSessionBean extends BaseCertificateDataSessionBean
   @Override
   public Collection<RevokedCertInfo> getRevokedCertInfos(
       final String issuerDN, final long lastbasecrldate) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Quering for revoked certificates. IssuerDN: '"
               + issuerDN
               + "', Last Base CRL Date: "

@@ -25,7 +25,7 @@ import org.bouncycastle.cert.ocsp.CertificateID;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 
 /**
- * Class used to encapsulate the data that goes into a OCSP response
+ * Class used to encapsulate the data that goes into a OCSP response.
  *
  * @version $Id: OCSPResponseItem.java 28881 2018-05-08 18:18:11Z anatom $
  */
@@ -38,57 +38,89 @@ public class OCSPResponseItem implements Serializable {
    */
   public static final int OCSP_GOOD = 0;
 
+  /** Tevoked. */
   public static final int OCSP_REVOKED = 1;
+  /** Inknown. */
   public static final int OCSP_UNKNOWN = 2;
 
   private static final long serialVersionUID = 8520379864183774863L;
 
+  /** ID. */
   private final CertificateID certID;
+  /** Status. */
   private final CertificateStatus certStatus;
-  /* RFC 2560 2.4: The time at which the status being indicated is known to be correct. */
+  /** RFC 2560 2.4: The time at which the status being
+   * indicated is known to be correct. */
   private final Date thisUpdate;
-  /*
-   * RFC 2560 2.4: The time at or before which newer information will be available about the status of the certificate. If nextUpdate is not set,
-   * the responder is indicating that newer revocation information is available all the time.
+  /**
+   * RFC 2560 2.4: The time at or before which newer information
+   *  will be available about the status of the certificate.
+   *   If nextUpdate is not set,
+   * the responder is indicating that newer revocation
+   * information is available all the time.
    */
   private Date nextUpdate = null;
 
+  /** Extensions. */
   private final Map<ASN1ObjectIdentifier, Extension> singleExtensions =
       new HashMap<ASN1ObjectIdentifier, Extension>();
 
+  /**
+   * @param aCertID ID
+   * @param aCertStatus Status
+   * @param untilNextUpdate Time
+   */
   public OCSPResponseItem(
-      final CertificateID certID,
-      final CertificateStatus certStatus,
+      final CertificateID aCertID,
+      final CertificateStatus aCertStatus,
       final long untilNextUpdate) {
-    this.certID = certID;
-    this.certStatus = certStatus;
+    this.certID = aCertID;
+    this.certStatus = aCertStatus;
     this.thisUpdate = new Date();
     if (untilNextUpdate > 0) {
       this.nextUpdate = new Date(this.thisUpdate.getTime() + untilNextUpdate);
     }
   }
 
+  /**
+   * @return ID
+   */
   public CertificateID getCertID() {
     return certID;
   }
 
+  /**
+   * @return status
+   */
   public CertificateStatus getCertStatus() {
     return certStatus;
   }
 
+  /**
+   * @return date
+   */
   public Date getThisUpdate() {
     return thisUpdate;
   }
 
+  /**
+   * @return date
+   */
   public Date getNextUpdate() {
     return nextUpdate;
   }
 
+  /**
+   * @param extensions extensions
+   */
   public void addExtensions(
       final Map<ASN1ObjectIdentifier, Extension> extensions) {
     singleExtensions.putAll(extensions);
   }
 
+  /**
+   * @return extensions
+   */
   public Extensions buildExtensions() {
     Collection<Extension> extensionValues = singleExtensions.values();
     Extension[] extensions =

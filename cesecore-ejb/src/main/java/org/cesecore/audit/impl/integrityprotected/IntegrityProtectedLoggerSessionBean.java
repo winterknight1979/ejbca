@@ -47,12 +47,15 @@ import org.cesecore.util.QueryResultWrapper;
 public class IntegrityProtectedLoggerSessionBean
     implements IntegrityProtectedLoggerSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(IntegrityProtectedLoggerSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
+  /** Setup. */
   @PostConstruct
   public void postConstruct() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
@@ -107,8 +110,8 @@ public class IntegrityProtectedLoggerSessionBean
       final Map<String, Object> additionalDetails,
       final Properties properties)
       throws AuditRecordStorageException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           String.format(
               ">log:%s:%s:%s:%s:%s:%s",
               eventType,
@@ -142,11 +145,11 @@ public class IntegrityProtectedLoggerSessionBean
               additionalDetails);
       entityManager.persist(auditRecordData);
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
       throw new AuditRecordStorageException(e.getMessage(), e);
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace("<log");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<log");
       }
     }
   }

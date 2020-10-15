@@ -28,7 +28,7 @@ import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.util.ValidityDate;
 
 /**
- * Low level CRUD functions to access NoConflictCertificateData
+ * Low level CRUD functions to access NoConflictCertificateData.
  *
  * @version $Id: NoConflictCertificateDataSessionBean.java 28792 2018-04-27
  *     16:03:01Z samuellb $
@@ -39,9 +39,12 @@ public class NoConflictCertificateDataSessionBean
     extends BaseCertificateDataSessionBean
     implements NoConflictCertificateDataSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(NoConflictCertificateDataSessionBean.class);
 
+  /**
+   * EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -68,8 +71,8 @@ public class NoConflictCertificateDataSessionBean
             NoConflictCertificateData.class);
     query.setParameter("fingerprint", fingerprint);
     final List<NoConflictCertificateData> result = query.getResultList();
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "findByFingerprint("
               + fingerprint
               + ") yielded "
@@ -89,8 +92,8 @@ public class NoConflictCertificateDataSessionBean
             NoConflictCertificateData.class);
     query.setParameter("serialNumber", serialNumber);
     final List<NoConflictCertificateData> result = query.getResultList();
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "findBySerialNumber("
               + serialNumber
               + ") yielded "
@@ -111,8 +114,8 @@ public class NoConflictCertificateDataSessionBean
     query.setParameter("issuerDN", issuerDN);
     query.setParameter("serialNumber", serialNumber);
     final List<NoConflictCertificateData> result = query.getResultList();
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "findByIssuerDNSerialNumber("
               + issuerDN
               + ", "
@@ -127,8 +130,8 @@ public class NoConflictCertificateDataSessionBean
   @Override
   public Collection<RevokedCertInfo> getRevokedCertInfosWithDuplicates(
       final String issuerDN, final long lastbasecrldate) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Quering for revoked certificates in append-only table. IssuerDN: '"
               + issuerDN
               + "', Last Base CRL Date: "

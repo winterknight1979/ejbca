@@ -64,17 +64,22 @@ import org.cesecore.util.ProfileID;
 public class CertificateProfileSessionBean
     implements CertificateProfileSessionLocal, CertificateProfileSessionRemote {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(CertificateProfileSessionBean.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
+  /** CA. */
   @EJB private CaSessionLocal caSession;
+  /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Log. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
 
   @Override
@@ -354,8 +359,8 @@ public class CertificateProfileSessionBean
     final boolean rootAccess =
         authorizationSession.isAuthorizedNoLogging(
             admin, StandardRules.ROLE_ROOT.resource());
-    for (final Entry<Integer, CertificateProfile> cpEntry :
-        CertificateProfileCache.INSTANCE
+    for (final Entry<Integer, CertificateProfile> cpEntry
+        : CertificateProfileCache.INSTANCE
             .getProfileCache(entityManager)
             .entrySet()) {
       final CertificateProfile profile = cpEntry.getValue();
@@ -397,8 +402,8 @@ public class CertificateProfileSessionBean
     final HashSet<Integer> allcaids =
         new HashSet<Integer>(caSession.getAllCaIds());
     allcaids.add(CertificateProfile.ANYCA);
-    for (final Entry<Integer, CertificateProfile> cpEntry :
-        CertificateProfileCache.INSTANCE
+    for (final Entry<Integer, CertificateProfile> cpEntry
+        : CertificateProfileCache.INSTANCE
             .getProfileCache(entityManager)
             .entrySet()) {
       final CertificateProfile profile = cpEntry.getValue();
@@ -515,8 +520,10 @@ public class CertificateProfileSessionBean
   }
 
   /*
-   * This method will read all Certificate Profiles and as a side-effect upgrade them if the version if changed for upgrade.
-   * Can have a side-effect of upgrading a profile, therefore the Required transaction setting.
+   * This method will read all Certificate Profiles and as a
+   * side-effect upgrade them if the version if changed for upgrade.
+   * Can have a side-effect of upgrading a profile, therefore the
+   * Required transaction setting.
    */
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -644,8 +651,8 @@ public class CertificateProfileSessionBean
 
   @Override
   public boolean existsCAIdInCertificateProfiles(final int caid) {
-    for (final Entry<Integer, CertificateProfile> cpEntry :
-        CertificateProfileCache.INSTANCE
+    for (final Entry<Integer, CertificateProfile> cpEntry
+       : CertificateProfileCache.INSTANCE
             .getProfileCache(entityManager)
             .entrySet()) {
       final CertificateProfile certProfile = cpEntry.getValue();
@@ -667,12 +674,12 @@ public class CertificateProfileSessionBean
 
   @Override
   public boolean existsPublisherIdInCertificateProfiles(final int publisherid) {
-    for (final Entry<Integer, CertificateProfile> cpEntry :
-        CertificateProfileCache.INSTANCE
+    for (final Entry<Integer, CertificateProfile> cpEntry
+        : CertificateProfileCache.INSTANCE
             .getProfileCache(entityManager)
             .entrySet()) {
-      for (Integer availablePublisherId :
-          cpEntry.getValue().getPublisherList()) {
+      for (Integer availablePublisherId
+          : cpEntry.getValue().getPublisherList()) {
         if (availablePublisherId.intValue() == publisherid) {
           if (LOG.isDebugEnabled()) {
             LOG.debug(

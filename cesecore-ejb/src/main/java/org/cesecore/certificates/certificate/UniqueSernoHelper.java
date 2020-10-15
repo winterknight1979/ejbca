@@ -31,9 +31,10 @@ import java.security.cert.X509Certificate;
  * @version $Id: UniqueSernoHelper.java 20863 2015-03-09 12:03:37Z jeklund $
  */
 public final class UniqueSernoHelper {
-
+/** Bool. */
   private static Boolean isUniqueCertificateSerialNumberIndex = null;
 
+  /** Cert 1. */
   private static final String TEST_CERTIFICATE_B64_1 =
       "MIIB8zCCAVygAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADApMScwJQYDVQQDDB5D"
           + "QSBmb3IgRUpCQ0EgdGVzdCBjZXJ0aWZpY2F0ZXMwHhcNMTAwNjI2MDU0OTM2WhcN"
@@ -46,6 +47,7 @@ public final class UniqueSernoHelper {
           + "q/fzPQlRMCQDoM5EgVwJYQu1S+wns/mKPI/bDv9s5nybKoro70LKpqLb1+f2TaD+"
           + "W2Ro+ni8zYm5+H6okXRIc5Kd4LlD3tjsOF7bS7fixvMCSCUgLxQOt2creOqfDVjm"
           + "i6MA48AhotWmx/rlzQXhnvuKnMI3m54=";
+  /** Cert 2. */
   private static final String TEST_CERTIFICATE_B64_2 =
       "MIIB8zCCAVygAwIBAgIESZYC0jANBgkqhkiG9w0BAQUFADApMScwJQYDVQQDDB5D"
           + "QSBmb3IgRUpCQ0EgdGVzdCBjZXJ0aWZpY2F0ZXMwHhcNMTAwNjI2MDU1MDA4WhcN"
@@ -58,11 +60,16 @@ public final class UniqueSernoHelper {
           + "e9TLmwcmhwqevPrfea9jdiNafHCyb+JVppoLVHqAZjPs3Lvlxdt2d75au5+QcJ/Z"
           + "9RgakF8Vq29Tz3xrYYIQe9VtlaUzw/dgsDfZi6V8W57uHLpU65fe5afwfi+5XDZk"
           + "TaTsNgFz8NorE2f7ILSm2FcfIpC+GPI=";
-
+  /**
+   * @return Cert
+   */
   public static X509Certificate getTestCertificate1() {
     return getTestCertificate(TEST_CERTIFICATE_B64_1);
   }
 
+  /**
+   * @return Cert
+   */
   public static X509Certificate getTestCertificate2() {
     return getTestCertificate(TEST_CERTIFICATE_B64_2);
   }
@@ -70,7 +77,7 @@ public final class UniqueSernoHelper {
   private static X509Certificate getTestCertificate(
       final String base64EncodedCertificate) {
     final X509Certificate ret;
-    final byte certEncoded1[];
+    final byte[] certEncoded1;
     certEncoded1 =
         org.bouncycastle.util.encoders.Base64.decode(base64EncodedCertificate);
     try {
@@ -93,9 +100,9 @@ public final class UniqueSernoHelper {
     return ret;
   }
 
-  /** Don't create any of this */
-  private UniqueSernoHelper() {}
-  ;
+  /** Don't create any of this. */
+  private UniqueSernoHelper() { }
+
 
   /**
    * @return isUniqueCertificateSerialNumberIndex, can be null which should be
@@ -107,13 +114,13 @@ public final class UniqueSernoHelper {
 
   /**
    * Sets isUniqueCertificateSerialNumberIndex, can set to null which should be
-   * interpreted as uninitialized
+   * interpreted as uninitialized.
    *
-   * @param isUniqueCertificateSerialNumberIndex boolean
+   * @param lisUniqueCertificateSerialNumberIndex boolean
    */
   public static void setIsUniqueCertificateSerialNumberIndex(
-      final Boolean isUniqueCertificateSerialNumberIndex) {
+      final Boolean lisUniqueCertificateSerialNumberIndex) {
     UniqueSernoHelper.isUniqueCertificateSerialNumberIndex =
-        isUniqueCertificateSerialNumberIndex;
+        lisUniqueCertificateSerialNumberIndex;
   }
 }

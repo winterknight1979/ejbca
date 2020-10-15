@@ -43,14 +43,18 @@ import org.cesecore.util.QueryResultWrapper;
 public class CryptoTokenSessionBean
     implements CryptoTokenSessionLocal, CryptoTokenSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenSessionBean.class);
-  private static final InternalResources intres =
+  /** Resource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
+  /** Setup. */
   @PostConstruct
   public void postConstruct() {
     CryptoProviderTools.installBCProviderIfNotAvailable();
@@ -60,8 +64,8 @@ public class CryptoTokenSessionBean
   @Override
   public void flushCache() {
     CryptoTokenCache.INSTANCE.flush();
-    if (log.isDebugEnabled()) {
-      log.debug("Flushed CryptoToken cache.");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Flushed CryptoToken cache.");
     }
   }
 
@@ -69,8 +73,8 @@ public class CryptoTokenSessionBean
   @Override
   public void flushExcludingIDs(final List<Integer> ids) {
     CryptoTokenCache.INSTANCE.replaceCacheWith(ids);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Flushed CryptoToken cache except for "
               + ids.size()
               + " specific entries.");
@@ -82,8 +86,8 @@ public class CryptoTokenSessionBean
   public CryptoToken getCryptoToken(final int cryptoTokenId) {
     // 1. Check (new) CryptoTokenCache if it is time to sync-up with database
     if (CryptoTokenCache.INSTANCE.shouldCheckForUpdates(cryptoTokenId)) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "CryptoToken with ID "
                 + cryptoTokenId
                 + " will be checked for updates.");
@@ -93,8 +97,8 @@ public class CryptoTokenSessionBean
       final CryptoTokenData cryptoTokenData =
           readCryptoTokenData(cryptoTokenId);
       if (cryptoTokenData == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Requested cryptoTokenId did not exist in database and will be"
                   + " purged from cache if present: "
                   + cryptoTokenId);
@@ -144,8 +148,8 @@ public class CryptoTokenSessionBean
   @Override
   public String getClassNameForType(final String tokenType) {
     String inClassname = null;
-    for (final AvailableCryptoToken act :
-        CryptoTokenFactory.instance().getAvailableCryptoTokens()) {
+    for (final AvailableCryptoToken act
+        : CryptoTokenFactory.instance().getAvailableCryptoTokens()) {
       if (act.getClassPath().endsWith(tokenType)) {
         // We found a available token with the same Class.getSimpleName() as the
         // CryptoToken's type, so use it!
@@ -160,8 +164,8 @@ public class CryptoTokenSessionBean
   @Override
   public int mergeCryptoToken(final CryptoToken cryptoToken)
       throws CryptoTokenNameInUseException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addCryptoToken "
               + cryptoToken.getTokenName()
               + " "
@@ -170,8 +174,8 @@ public class CryptoTokenSessionBean
     final int cryptoTokenId = cryptoToken.getId();
     final String tokenName = cryptoToken.getTokenName();
     String tokenType = "null";
-    for (final AvailableCryptoToken act :
-        CryptoTokenFactory.instance().getAvailableCryptoTokens()) {
+    for (final AvailableCryptoToken act
+        : CryptoTokenFactory.instance().getAvailableCryptoTokens()) {
       if (cryptoToken.getClass().getName().equals(act.getClassPath())) {
         tokenType = cryptoToken.getClass().getSimpleName();
         break;
@@ -187,7 +191,7 @@ public class CryptoTokenSessionBean
       // want to check that the name is not in use
       if (isCryptoTokenNameUsed(tokenName)) {
         throw new CryptoTokenNameInUseException(
-            intres.getLocalizedMessage("token.nameisinuse", tokenName));
+            INTRES.getLocalizedMessage("token.nameisinuse", tokenName));
       }
       cryptoTokenData =
           new CryptoTokenData(
@@ -200,7 +204,7 @@ public class CryptoTokenSessionBean
     } else {
       if (!isCryptoTokenNameUsedByIdOnly(tokenName, cryptoTokenId)) {
         throw new CryptoTokenNameInUseException(
-            intres.getLocalizedMessage("token.nameisinuse", tokenName));
+            INTRES.getLocalizedMessage("token.nameisinuse", tokenName));
       }
       // It might be the case that the calling transaction has already loaded a
       // reference to this token
@@ -221,8 +225,8 @@ public class CryptoTokenSessionBean
         cryptoTokenData.getProtectString(0).hashCode(),
         tokenName,
         cryptoToken);
-    if (log.isTraceEnabled()) {
-      log.trace("<addCryptoToken " + cryptoToken.getTokenName());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addCryptoToken " + cryptoToken.getTokenName());
     }
     return cryptoTokenId; // tokenId
   }
@@ -307,8 +311,8 @@ public class CryptoTokenSessionBean
   @Override
   public Map<Integer, String> getCryptoTokenIdToNameMap() {
     final Map<Integer, String> ret = new HashMap<>();
-    for (final CryptoTokenData cryptoTokenData :
-        entityManager
+    for (final CryptoTokenData cryptoTokenData
+        : entityManager
             .createQuery(
                 "SELECT a FROM CryptoTokenData a", CryptoTokenData.class)
             .getResultList()) {

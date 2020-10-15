@@ -24,8 +24,11 @@ import org.cesecore.internal.CommonCacheBase;
  * @version $Id: CryptoTokenCache.java 28332 2018-02-20 14:40:52Z anatom $
  */
 public enum CryptoTokenCache implements CommonCache<CryptoToken> {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /**
+     * Cache. */
   private final CommonCache<CryptoToken> cryptoTokenCache =
       new CommonCacheBase<CryptoToken>() {
         @Override
@@ -43,7 +46,7 @@ public enum CryptoTokenCache implements CommonCache<CryptoToken> {
           // missing object.
           return 0;
         }
-        ;
+
       };
 
   @Override

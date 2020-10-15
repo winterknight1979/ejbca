@@ -110,20 +110,29 @@ import org.cesecore.util.CryptoProviderTools;
 public class CertificateCreateSessionBean
     implements CertificateCreateSessionLocal, CertificateCreateSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateCreateSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** CA. */
   @EJB private CaSessionLocal caSession;
+  /** Store. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** Profile. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** Validator. */
   @EJB private KeyValidatorSessionLocal keyValidatorSession;
+  /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Logger. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
+  /** Management. */
   @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** Confoig. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
 
   /** Default create for SessionBean without any creation Arguments. */
@@ -149,8 +158,8 @@ public class CertificateCreateSessionBean
           AuthorizationDeniedException, IllegalValidityException,
           CAOfflineException, InvalidAlgorithmException,
           CertificateExtensionException {
-    if (log.isTraceEnabled()) {
-      log.trace(">createCertificate(IRequestMessage, CA)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">createCertificate(IRequestMessage, CA)");
     }
     CertificateResponseMessage ret = null;
     try {
@@ -186,12 +195,12 @@ public class CertificateCreateSessionBean
       try {
         if (!requestMessage.verify()) {
           throw new SignRequestSignatureException(
-              intres.getLocalizedMessage("createcert.popverificationfailed"));
+              INTRES.getLocalizedMessage("createcert.popverificationfailed"));
         }
         reqpk = requestMessage.getRequestPublicKey();
         if (reqpk == null) {
           final String msg =
-              intres.getLocalizedMessage("createcert.nokeyinrequest");
+              INTRES.getLocalizedMessage("createcert.nokeyinrequest");
           throw new InvalidKeyException(msg);
         }
       } catch (InvalidKeyException e) {
@@ -213,8 +222,8 @@ public class CertificateCreateSessionBean
               .getRequestExtensions(); // Optionally requested extensions
       int keyusage = -1;
       if (exts != null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "we have extensions, see if we can override KeyUsage by looking"
                   + " for a KeyUsage extension in request");
         }
@@ -223,8 +232,8 @@ public class CertificateCreateSessionBean
           final DERBitString bitString =
               (DERBitString) keyUsage.toASN1Primitive();
           keyusage = bitString.intValue();
-          if (log.isDebugEnabled()) {
-            log.debug("We have a key usage request extension: " + keyusage);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("We have a key usage request extension: " + keyusage);
           }
         }
       }
@@ -301,8 +310,8 @@ public class CertificateCreateSessionBean
           ErrorCode.CERT_COULD_NOT_BE_PARSED, e);
     }
 
-    if (log.isTraceEnabled()) {
-      log.trace("<createCertificate(IRequestMessage, CA)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<createCertificate(IRequestMessage, CA)");
     }
     return ret;
   }
@@ -341,8 +350,8 @@ public class CertificateCreateSessionBean
           CertificateRevokeException, CertificateSerialNumberException,
           IllegalValidityException, CAOfflineException,
           InvalidAlgorithmException, CertificateExtensionException {
-    if (log.isTraceEnabled()) {
-      log.trace(">createCertificate(IRequestMessage)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">createCertificate(IRequestMessage)");
     }
     final CA ca;
     // First find the CA, this checks authorization and that the CA exists
@@ -353,8 +362,8 @@ public class CertificateCreateSessionBean
       ca = caSession.getCA(admin, userData.getCAId());
     }
 
-    if (log.isTraceEnabled()) {
-      log.trace("<createCertificate(IRequestMessage)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<createCertificate(IRequestMessage)");
     }
     return createCertificate(
         admin, userData, ca, req, responseClass, certGenParams, updateTime);
@@ -377,8 +386,8 @@ public class CertificateCreateSessionBean
     if (req.getIssuerDN() != null) {
       String dn = certificateStoreSession.getCADnFromRequest(req);
       ca = caSession.getCA(admin, dn.hashCode());
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Using CA (from issuerDN) with id: "
                 + ca.getCAId()
                 + " and DN: "
@@ -386,7 +395,7 @@ public class CertificateCreateSessionBean
       }
     } else {
       throw new CADoesntExistsException(
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcert.canotfoundissuerusername",
               req.getIssuerDN(),
               req.getUsername()));
@@ -394,7 +403,7 @@ public class CertificateCreateSessionBean
 
     if (ca.getStatus() != CAConstants.CA_ACTIVE) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcert.canotactive", ca.getSubjectDN());
       throw new EJBException(msg);
     }
@@ -421,8 +430,8 @@ public class CertificateCreateSessionBean
           CryptoTokenOfflineException, IllegalKeyException,
           CertificateExtensionException, IllegalValidityException,
           CAOfflineException, InvalidAlgorithmException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
               + " notBefore, notAfter, extesions, sequence)");
     }
@@ -437,7 +446,7 @@ public class CertificateCreateSessionBean
         StandardRules.CREATECERT.resource(),
         StandardRules.CAACCESS.resource() + ca.getCAId())) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcert.notauthorized", admin.toString(), ca.getCAId());
       throw new AuthorizationDeniedException(msg);
     }
@@ -514,7 +523,7 @@ public class CertificateCreateSessionBean
       // the mask)
       if (endEntityInformation.getType().isType(EndEntityTypes.INVALID)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcert.usertypeinvalid",
                 endEntityInformation.getUsername());
         throw new CertificateCreateException(ErrorCode.INTERNAL_ERROR, msg);
@@ -532,27 +541,27 @@ public class CertificateCreateSessionBean
       Certificate cert = null;
       String cafingerprint = null;
       final boolean useCustomSN;
-      {
-        final ExtendedInformation ei =
+
+       ExtendedInformation ei =
             endEntityInformation.getExtendedInformation();
         useCustomSN = ei != null && ei.certificateSerialNumber() != null;
-      }
+
       final int maxRetrys;
       if (useCustomSN) {
         if (ca.isUseCertificateStorage()
             && !isUniqueCertificateSerialNumberIndex()) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "createcert.not_unique_certserialnumberindex");
-          log.error(msg);
+          LOG.error(msg);
           throw new CustomCertificateSerialNumberException(msg);
         }
         if (!certProfile.getAllowCertSerialNumberOverride()) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "createcert.certprof_not_allowing_cert_sn_override",
                   Integer.valueOf(certProfileId));
-          log.info(msg);
+          LOG.info(msg);
           throw new CustomCertificateSerialNumberException(msg);
         }
         maxRetrys = 1;
@@ -575,8 +584,8 @@ public class CertificateCreateSessionBean
                     CertificateConstants.CERT_INACTIVE,
                     CertificateConstants.CERT_ROLLOVERPENDING,
                     CertificateConstants.CERT_UNASSIGNED));
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "SingleActiveCertificateConstraint, found "
                   + cdws.size()
                   + " old (non expired, active) certificates.");
@@ -614,8 +623,8 @@ public class CertificateCreateSessionBean
                 ca.getCAToken().getCryptoTokenId());
         if (cryptoToken == null) {
           final String msg =
-              intres.getLocalizedMessage("error.catokenoffline", ca.getCAId());
-          log.info(msg);
+              INTRES.getLocalizedMessage("error.catokenoffline", ca.getCAId());
+          LOG.info(msg);
           CryptoTokenOfflineException exception =
               new CryptoTokenOfflineException("CA's CryptoToken not found.");
           auditFailure(
@@ -699,7 +708,7 @@ public class CertificateCreateSessionBean
           if (!isOcspSigner) {
             break; // We have our cert and we don't need to store it.. Move on..
           }
-          log.debug(
+          LOG.debug(
               "Storing certificate even though storage is disabled since OCSP"
                   + " signer EKU is used.");
         }
@@ -733,7 +742,7 @@ public class CertificateCreateSessionBean
           // certificate with the same serialNumber
           // as one already existing certificate.
           if (retrycounter + 1 < maxRetrys) {
-            log.info(
+            LOG.info(
                 "Can not store certificate with serNo ("
                     + serialNo
                     + "), will retry (retrycounter="
@@ -747,13 +756,13 @@ public class CertificateCreateSessionBean
       if (storeEx != null) {
         if (useCustomSN) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "createcert.cert_serial_number_already_in_database",
                   serialNo);
-          log.info(msg);
+          LOG.info(msg);
           throw new CustomCertificateSerialNumberException(msg);
         }
-        log.error(
+        LOG.error(
             "Can not store certificate in database in 5 tries, aborting: ",
             storeEx);
         throw storeEx;
@@ -762,8 +771,7 @@ public class CertificateCreateSessionBean
       // Finally we check if this certificate should not be issued as active,
       // but revoked directly upon issuance
       int revreason = RevokedCertInfo.NOT_REVOKED;
-      final ExtendedInformation ei =
-          endEntityInformation.getExtendedInformation();
+      ei = endEntityInformation.getExtendedInformation();
       if (ei != null) {
         revreason = ei.getIssuanceRevocationReason();
         if (revreason != RevokedCertInfo.NOT_REVOKED) {
@@ -775,22 +783,22 @@ public class CertificateCreateSessionBean
             certificateStoreSession.setRevokeStatus(
                 admin, result, new Date(), revreason);
           } else {
-            log.warn(
+            LOG.warn(
                 "CA configured to revoke issued certificates directly, but not"
                     + " to store issued the certificates. Revocation will be"
                     + " ignored. Please verify your configuration.");
           }
         }
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Generated certificate with SerialNumber '"
                 + serialNo
                 + "' for user '"
                 + endEntityInformation.getUsername()
                 + "', with revocation reason="
                 + revreason);
-        log.debug(cert.toString());
+        LOG.debug(cert.toString());
       }
 
       // Audit log that we issued the certificate
@@ -818,8 +826,8 @@ public class CertificateCreateSessionBean
           endEntityInformation.getUsername(),
           issuedetails);
 
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<createCertificate(EndEntityInformation, CA, X500Name, pk, ku,"
                 + " notBefore, notAfter, extesions, sequence)");
       }
@@ -827,7 +835,7 @@ public class CertificateCreateSessionBean
       // We need to catch and re-throw all of these exception just because we
       // need to audit log all failures
     } catch (CustomCertificateSerialNumberException e) {
-      log.info(e.getMessage());
+      LOG.info(e.getMessage());
       auditFailure(
           admin,
           e,
@@ -838,7 +846,7 @@ public class CertificateCreateSessionBean
           endEntityInformation.getUsername());
       throw e;
     } catch (AuthorizationDeniedException e) {
-      log.info(e.getMessage());
+      LOG.info(e.getMessage());
       auditFailure(
           admin,
           e,
@@ -849,7 +857,7 @@ public class CertificateCreateSessionBean
           endEntityInformation.getUsername());
       throw e;
     } catch (CertificateCreateException e) {
-      log.info(e.getMessage());
+      LOG.info(e.getMessage());
       auditFailure(
           admin,
           e,
@@ -862,8 +870,8 @@ public class CertificateCreateSessionBean
       throw e;
     } catch (CryptoTokenOfflineException e) {
       final String msg =
-          intres.getLocalizedMessage("error.catokenoffline", ca.getCAId());
-      log.info(msg);
+          INTRES.getLocalizedMessage("error.catokenoffline", ca.getCAId());
+      LOG.info(msg);
       auditFailure(
           admin,
           e,
@@ -874,7 +882,7 @@ public class CertificateCreateSessionBean
           endEntityInformation.getUsername());
       throw e;
     } catch (CAOfflineException e) {
-      log.error("Error creating certificate", e);
+      LOG.error("Error creating certificate", e);
       auditFailure(
           admin,
           e,
@@ -885,7 +893,7 @@ public class CertificateCreateSessionBean
           endEntityInformation.getUsername());
       throw e;
     } catch (InvalidAlgorithmException e) {
-      log.error("Error creating certificate", e);
+      LOG.error("Error creating certificate", e);
       auditFailure(
           admin,
           e,
@@ -896,7 +904,7 @@ public class CertificateCreateSessionBean
           endEntityInformation.getUsername());
       throw e;
     } catch (IllegalValidityException e) {
-      log.error("Error creating certificate", e);
+      LOG.error("Error creating certificate", e);
       auditFailure(
           admin,
           e,
@@ -907,7 +915,7 @@ public class CertificateCreateSessionBean
           endEntityInformation.getUsername());
       throw e;
     } catch (OperatorCreationException e) {
-      log.error("Error creating certificate", e);
+      LOG.error("Error creating certificate", e);
       auditFailure(
           admin,
           e,
@@ -919,7 +927,7 @@ public class CertificateCreateSessionBean
       // Rollback
       throw new CertificateCreateException(e);
     } catch (SignatureException e) {
-      log.error("Error creating certificate", e);
+      LOG.error("Error creating certificate", e);
       auditFailure(
           admin,
           e,
@@ -931,7 +939,7 @@ public class CertificateCreateSessionBean
       // Rollback
       throw new CertificateCreateException(e);
     } catch (CertificateExtensionException e) {
-      log.error("Error creating certificate", e);
+      LOG.error("Error creating certificate", e);
       auditFailure(
           admin,
           e,
@@ -963,7 +971,7 @@ public class CertificateCreateSessionBean
               issuedetails.put("ctprecert", true);
               issuedetails.put(
                   "msg",
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       success
                           ? "createcert.ctlogsubmissionsuccessful"
                           : "createcert.ctlogsubmissionfailed"));
@@ -975,7 +983,7 @@ public class CertificateCreateSessionBean
                     "cert",
                     new String(Base64.encode(precert.getEncoded(), false)));
               } catch (CertificateEncodingException e) {
-                log.warn("Could not encode cert", e);
+                LOG.warn("Could not encode cert", e);
               }
               logSession.log(
                   EventTypes.CERT_CTPRECERT_SUBMISSION,
@@ -1002,7 +1010,7 @@ public class CertificateCreateSessionBean
       if (ca.isUseCertificateStorage()) {
         enforceUniqueDistinguishedName = true;
       } else {
-        log.warn(
+        LOG.warn(
             "CA configured to enforce unique SubjectDN, but not to store"
                 + " issued certificates. Check will be ignored. Please verify"
                 + " your configuration.");
@@ -1026,7 +1034,8 @@ public class CertificateCreateSessionBean
     // code.
     //        if (enforceUniqueDistinguishedName && enforceUniquePublicKeys) {
     //            multipleCheckOk =
-    // certificateStoreSession.isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(issuerDN, subjectKeyId, subjectDN, username);
+    // certificateStoreSession.isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN
+    //        (issuerDN, subjectKeyId, subjectDN, username);
     //        }
 
     // If one of the checks failed, we need to investigate further what went
@@ -1038,13 +1047,13 @@ public class CertificateCreateSessionBean
               ca.getSubjectDN(), subjectDN);
       if (users.size() > 0 && !users.contains(username)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcert.subjectdn_exists_for_another_user",
                 username,
                 listUsers(users));
         throw new CertificateCreateException(
             ErrorCode
-                .CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER,
+              .CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER,
             msg);
       }
     }
@@ -1062,7 +1071,7 @@ public class CertificateCreateSessionBean
       if (ca.isUseCertificateStorage()) {
         enforceUniquePublicKeys = true;
       } else {
-        log.warn(
+        LOG.warn(
             "CA configured to enforce unique entity keys, but not to store"
                 + " issued certificates. Check will be ignored. Please verify"
                 + " your configuration.");
@@ -1082,7 +1091,8 @@ public class CertificateCreateSessionBean
     // See ECA-3309
     //        if (enforceUniqueDistinguishedName && enforceUniquePublicKeys) {
     //            multipleCheckOk =
-    // certificateStoreSession.isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(issuerDN, subjectKeyId, subjectDN, username);
+    // certificateStoreSession.isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN
+    //        (issuerDN, subjectKeyId, subjectDN, username);
     //        }
 
     if (
@@ -1092,9 +1102,9 @@ public class CertificateCreateSessionBean
               ca.getSubjectDN(), subjectKeyId);
       if (users.size() > 0 && !users.contains(username)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcert.key_exists_for_another_user", username);
-        log.info(msg + listUsers(users));
+        LOG.info(msg + listUsers(users));
         throw new CertificateCreateException(
             ErrorCode.CERTIFICATE_FOR_THIS_KEY_ALLREADY_EXISTS_FOR_ANOTHER_USER,
             msg);
@@ -1120,10 +1130,10 @@ public class CertificateCreateSessionBean
       if (certificateStoreSession.existsByIssuerAndSerno(
           caSubjectDN, serialNumber)) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcert.cert_serial_number_already_in_database",
                 serialNumber.toString());
-        log.info(msg);
+        LOG.info(msg);
         throw new CertificateSerialNumberException(msg);
       }
     }
@@ -1137,13 +1147,13 @@ public class CertificateCreateSessionBean
     // What if certProfile == null?
     if (certProfile == null) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcert.errorcertprofilenotfound",
               Integer.valueOf(certProfileId));
       throw new AuthorizationDeniedException(msg);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Using certificate profile with id " + certProfileId);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Using certificate profile with id " + certProfileId);
     }
 
     // Check that CAid is among available CAs
@@ -1157,7 +1167,7 @@ public class CertificateCreateSessionBean
     }
     if (!caauthorized) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcert.errorcertprofilenotauthorized",
               Integer.valueOf(caid),
               Integer.valueOf(certProfileId));
@@ -1167,7 +1177,7 @@ public class CertificateCreateSessionBean
   }
 
   /**
-   * FIXME: Documentation
+   * FIXME: Documentation.
    *
    * @param admin Auth token
    * @param e Excption
@@ -1198,9 +1208,9 @@ public class CertificateCreateSessionBean
         null,
         username,
         details);
-    if (log.isTraceEnabled()) {
+    if (LOG.isTraceEnabled()) {
       if (tracelog != null) {
-        log.trace(tracelog);
+        LOG.trace(tracelog);
       }
     }
   }
@@ -1217,11 +1227,12 @@ public class CertificateCreateSessionBean
   private String listUsers(final Set<String> users) {
     final StringBuilder sb = new StringBuilder();
     int bar = 0; // limit number of displayed users
+    final int max = 9;
     for (final String user : users) {
       if (sb.length() > 0) {
         sb.append(' ');
       }
-      if (bar++ > 9) {
+      if (bar++ > max) {
         sb.append("and ")
             .append(users.size() - bar + 1)
             .append(" users not displayed");

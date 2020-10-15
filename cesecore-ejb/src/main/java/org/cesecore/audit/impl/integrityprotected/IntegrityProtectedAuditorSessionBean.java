@@ -73,18 +73,23 @@ import org.cesecore.util.query.QueryGenerator;
 public class IntegrityProtectedAuditorSessionBean
     implements IntegrityProtectedAuditorSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(IntegrityProtectedAuditorSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
+  /** Context. */
   @Resource private SessionContext sessionContext;
+  /** Logger session. */
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLogger;
-  // Myself needs to be injected in postConstruct
+  /** Myself needs to be injected in postConstruct. */
   private IntegrityProtectedAuditorSessionLocal
       integrityProtectedAuditorSession;
 
+  /** Set up. */
   @PostConstruct
   public void postConstruct() {
     integrityProtectedAuditorSession =
@@ -107,7 +112,7 @@ public class IntegrityProtectedAuditorSessionBean
     try {
       final File exportFile =
           AuditDevicesConfig.getExportFile(properties, timestamp);
-      try (final SigningFileOutputStream signingFileOutputStream =
+      try (SigningFileOutputStream signingFileOutputStream =
           new SigningFileOutputStream(
               exportFile, cryptoToken, signatureDetails)) {
         final AuditExporter auditExporter = c.getConstructor().newInstance();
@@ -118,8 +123,8 @@ public class IntegrityProtectedAuditorSessionBean
             timestamp,
             AuditDevicesConfig.getAuditLogExportFetchSize(properties));
         report.setExportedFile(exportFile.getCanonicalPath());
-        if (log.isDebugEnabled()) {
-          log.debug("Exported " + report.getExportCount() + " rows.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Exported " + report.getExportCount() + " rows.");
         }
         logVerificationResult(report.errors().size(), timestamp, token);
         // Sign the exported file ... it will write the signature on the side
@@ -145,14 +150,14 @@ public class IntegrityProtectedAuditorSessionBean
             details);
         // Delete the exported log entries if requested
         if (deleteAfterExport) {
-          if (log.isDebugEnabled()) {
-            log.debug("deleting exported logs");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("deleting exported logs");
           }
           final int deletedRowCount =
               integrityProtectedAuditorSession.deleteRows(
                   token, timestamp, properties);
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Deleted "
                     + deletedRowCount
                     + " rows from audit log after export.");
@@ -255,8 +260,8 @@ public class IntegrityProtectedAuditorSessionBean
       throws IOException {
     // Get a list of the nodes that have data in the database
     for (final String nodeId : getNodeIds()) {
-      if (log.isDebugEnabled()) {
-        log.debug("exportAuditLogs for nodeId " + nodeId);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("exportAuditLogs for nodeId " + nodeId);
       }
       // Assuming timeStamp is in UTC
       final QueryCriteria queryCriteria =
@@ -414,8 +419,8 @@ public class IntegrityProtectedAuditorSessionBean
       final long currentSeqNumber =
           queryResult.get(i).getSequenceNumber().longValue();
       if (currentSeqNumber != lastSeqNumber.get().longValue() + 1) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Log verification failure for log on node "
                   + nodeId
                   + ". Missing entry. Last sequenceNumber was "
@@ -507,7 +512,7 @@ public class IntegrityProtectedAuditorSessionBean
    * Build a JPA Query from the supplied queryStr and criteria. Optionally using
    * startIndex and resultLimit (used if >0).
    *
-   * @param entityManager EM
+   * @param theEntityManager EM
    * @param queryStr Query
    * @param criteria Criteria
    * @param startIndex Index
@@ -515,19 +520,19 @@ public class IntegrityProtectedAuditorSessionBean
    * @return JPA query
    */
   private Query buildConditionalQuery(
-      final EntityManager entityManager,
+      final EntityManager theEntityManager,
       final String queryStr,
       final QueryCriteria criteria,
       final int startIndex,
       final int resultLimit) {
     Query query = null;
     if (criteria == null) {
-      query = entityManager.createQuery(queryStr);
+      query = theEntityManager.createQuery(queryStr);
     } else {
       QueryGenerator generator =
           QueryGenerator.generator(AuditRecordData.class, criteria, "a");
       final String conditions = generator.generate();
-      query = entityManager.createQuery(queryStr + conditions);
+      query = theEntityManager.createQuery(queryStr + conditions);
       for (final String key : generator.getParameterKeys()) {
         final Object param = generator.getParameterValue(key);
         query.setParameter(key, param);
@@ -548,14 +553,18 @@ public class IntegrityProtectedAuditorSessionBean
    * @param <T> Type
    */
   private class Holder<T> {
+      /** Object. */
     private T object;
 
-    Holder(final T object) {
-      set(object);
+    Holder(final T anObject) {
+      set(anObject);
     }
 
-    public void set(final T object) {
-      this.object = object;
+    /**
+     * @param anObject object
+     */
+    public void set(final T anObject) {
+      this.object = anObject;
     }
 
     public T get() {

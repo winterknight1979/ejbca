@@ -26,15 +26,17 @@ import org.cesecore.internal.CommonCacheBase;
  * @version $Id: CaCache.java 28332 2018-02-20 14:40:52Z anatom $
  */
 public enum CaCache implements CommonCache<CA> {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /** Cache. **/
   private final CommonCache<CA> caCache =
       new CommonCacheBase<CA>() {
         @Override
         protected long getCacheTime() {
           return CesecoreConfiguration.getCacheCaTimeInCaSession();
         }
-        ;
+
 
         @Override
         protected long getMaxCacheLifeTime() {
@@ -42,7 +44,7 @@ public enum CaCache implements CommonCache<CA> {
           // it
           return 0L;
         }
-        ;
+
       };
 
   @Override

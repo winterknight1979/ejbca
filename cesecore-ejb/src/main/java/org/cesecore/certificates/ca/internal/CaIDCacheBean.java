@@ -50,8 +50,10 @@ import org.cesecore.config.CesecoreConfiguration;
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class CaIDCacheBean {
 
-  private final Logger LOG = Logger.getLogger(CaIDCacheBean.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CaIDCacheBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -61,13 +63,16 @@ public class CaIDCacheBean {
    * threads in the same VM. Set volatile to make it thread friendly.
    */
 
-  /** Cache of CA IDs */
+  /** Cache of CA IDs. */
   private volatile List<Integer> idCache = null;
 
+  /** Update. */
   private volatile long lastUpdate = 0;
 
+  /** Lock. */
   private ReentrantLock lock;
 
+  /** Setup. */
   @PostConstruct
   public void initialize() {
     idCache = new ArrayList<Integer>();

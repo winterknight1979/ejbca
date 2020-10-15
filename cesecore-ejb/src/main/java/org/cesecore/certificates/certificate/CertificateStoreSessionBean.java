@@ -90,26 +90,34 @@ import org.ejbca.cvc.PublicKeyEC;
 public class CertificateStoreSessionBean
     implements CertificateStoreSessionRemote, CertificateStoreSessionLocal {
 
-  private static final Logger log =
+    /**Log. */
+  private static final Logger LOG =
       Logger.getLogger(CertificateStoreSessionBean.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** ID. */
   private static final int TIMERID_CACERTIFICATECACHE = 1;
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
-
+  /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Profile. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** Data. */
   @EJB private CertificateDataSessionLocal certificateDataSession;
+  /** Config. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** Log. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
-  // Myself needs to be looked up in postConstruct
+  /** Myself needs to be looked up in postConstruct. */
   @Resource private SessionContext sessionContext;
+  /** Local session.*/
   private CertificateStoreSessionLocal certificateStoreSession;
-  /* When the sessionContext is injected, the timerService should be looked up.
+  /** When the sessionContext is injected, the timerService should be looked up.
    * This is due to the Glassfish EJB verifier complaining.
    */
   private TimerService timerService;
@@ -139,7 +147,7 @@ public class CertificateStoreSessionBean
         || CaCertificateCache.INSTANCE.isCacheExpired()) {
       reloadCaCertificateCacheAndSetTimeout();
     } else {
-      log.info(
+      LOG.info(
           "Not initing CaCertificateCache reload timers, there are already"
               + " some.");
     }
@@ -212,7 +220,7 @@ public class CertificateStoreSessionBean
         updateTime);
   }
 
-  /** Local interface only */
+  /** Local interface only. */
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
   public CertificateDataWrapper storeCertificateNoAuth(
@@ -226,8 +234,8 @@ public class CertificateStoreSessionBean
       final int endEntityProfileId,
       final String tag,
       final long updateTime) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">storeCertificateNoAuth("
               + username
               + ", "
@@ -251,8 +259,8 @@ public class CertificateStoreSessionBean
             tag,
             updateTime,
             true);
-    if (log.isTraceEnabled()) {
-      log.trace("<storeCertificateNoAuth()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<storeCertificateNoAuth()");
     }
     return ret;
   }
@@ -358,7 +366,7 @@ public class CertificateStoreSessionBean
     return new CertificateDataWrapper(incert, certificateData, base64CertData);
   }
 
-  /** Local interface only */
+  /** Local interface only. */
   @Override
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
   public CertificateDataWrapper getCertificateData(final String fingerprint) {
@@ -379,14 +387,15 @@ public class CertificateStoreSessionBean
 
   /**
    * We need special handling here of CVC certificate with EC keys, because they
-   * lack EC parameters in all certs except the Root certificate (CVCA)
+   * lack EC parameters in all certs except the Root certificate (CVCA).
    *
    * @param pubk key
    * @param cafp FP
    * @return enriched key
    */
   private PublicKey enrichEcPublicKey(final PublicKey pubk, final String cafp) {
-    PublicKey ret = pubk;
+    final int max = 5;
+      PublicKey ret = pubk;
     if ((pubk instanceof PublicKeyEC)) {
       PublicKeyEC pkec = (PublicKeyEC) pubk;
       // The public key of IS and DV certificate (CVC) do not have any
@@ -407,7 +416,7 @@ public class CertificateStoreSessionBean
                      // we
               // never get stuck here
               while ((!StringUtils.equals(cafingerp, nextcafp))
-                  && (bar++ < 5)) {
+                  && (bar++ < max)) {
                 cacert = certificateDataSession.findByFingerprint(cafp);
                 if (cacert == null) {
                   break;
@@ -424,8 +433,8 @@ public class CertificateStoreSessionBean
             }
           }
         } catch (InvalidKeySpecException e) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Can not enrich EC public key with missing parameters: ", e);
           }
         }
@@ -456,7 +465,7 @@ public class CertificateStoreSessionBean
         certificateData.setBase64Cert(
             new String(Base64.encode(certificate.getEncoded())));
       } catch (CertificateEncodingException e) {
-        log.error(
+        LOG.error(
             "Failed to encode certificate for fingerprint " + fingerprint, e);
         return false;
       }
@@ -490,8 +499,8 @@ public class CertificateStoreSessionBean
 
   @Override
   public Collection<String> listAllCertificates(final String issuerdn) {
-    if (log.isTraceEnabled()) {
-      log.trace(">listAllCertificates()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">listAllCertificates()");
     }
     // This method was only used from CertificateDataTest and it didn't care
     // about the expireDate, so it will only select fingerprints now.
@@ -502,8 +511,8 @@ public class CertificateStoreSessionBean
   @Override
   public Collection<RevokedCertInfo> listRevokedCertInfo(
       final String issuerdn, final long lastbasecrldate) {
-    if (log.isTraceEnabled()) {
-      log.trace(">listRevokedCertInfo()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">listRevokedCertInfo()");
     }
     return certificateDataSession.getRevokedCertInfos(
         CertTools.stringToBCDNString(StringTools.strip(issuerdn)),
@@ -519,8 +528,8 @@ public class CertificateStoreSessionBean
   @Override
   public List<Certificate> findCertificatesBySubjectAndIssuer(
       final String subjectDN, final String issuerDN, final boolean onlyActive) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findCertificatesBySubjectAndIssuer(), dn='"
               + subjectDN
               + "' and issuer='"
@@ -528,13 +537,13 @@ public class CertificateStoreSessionBean
               + "'");
     }
     final List<Certificate> ret = new ArrayList<>();
-    for (final CertificateDataWrapper cdw :
-        getCertificateDatasBySubjectAndIssuer(
+    for (final CertificateDataWrapper cdw
+        : getCertificateDatasBySubjectAndIssuer(
             subjectDN, issuerDN, onlyActive)) {
       ret.add(cdw.getCertificate());
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findCertificatesBySubjectAndIssuer(), dn='"
               + subjectDN
               + "' and issuer='"
@@ -552,8 +561,8 @@ public class CertificateStoreSessionBean
         CertTools.stringToBCDNString(StringTools.strip(subjectDN));
     final String issuerdn =
         CertTools.stringToBCDNString(StringTools.strip(issuerDN));
-    if (log.isDebugEnabled()) {
-      log.debug("Looking for cert with (transformed)DN: " + dn);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking for cert with (transformed)DN: " + dn);
     }
     final List<CertificateDataWrapper> ret = new ArrayList<>();
     final Query query;
@@ -595,8 +604,8 @@ public class CertificateStoreSessionBean
   @Override
   public Set<String> findUsernamesByIssuerDNAndSubjectDN(
       final String issuerDN, final String subjectDN) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findUsernamesByIssuerDNAndSubjectDN(), issuer='" + issuerDN + "'");
     }
     // First make a DN in our well-known format
@@ -604,8 +613,8 @@ public class CertificateStoreSessionBean
         CertTools.stringToBCDNString(StringTools.strip(issuerDN));
     final String transformedSubjectDN =
         CertTools.stringToBCDNString(StringTools.strip(subjectDN));
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Looking for user with a certificate with issuer DN(transformed) '"
               + transformedIssuerDN
               + "' and subject DN(transformed) '"
@@ -616,8 +625,8 @@ public class CertificateStoreSessionBean
       return certificateDataSession.findUsernamesBySubjectDNAndIssuerDN(
           transformedSubjectDN, transformedIssuerDN);
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<findUsernamesByIssuerDNAndSubjectDN(), issuer='"
                 + issuerDN
                 + "'");
@@ -628,8 +637,8 @@ public class CertificateStoreSessionBean
   @Override
   public Set<String> findUsernamesByIssuerDNAndSubjectKeyId(
       final String issuerDN, final byte[] subjectKeyId) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findUsernamesByIssuerDNAndSubjectKeyId(), issuer='"
               + issuerDN
               + "'");
@@ -638,8 +647,8 @@ public class CertificateStoreSessionBean
     final String transformedIssuerDN =
         CertTools.stringToBCDNString(StringTools.strip(issuerDN));
     final String sSubjectKeyId = new String(Base64.encode(subjectKeyId, false));
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Looking for user with a certificate with issuer DN(transformed) '"
               + transformedIssuerDN
               + "' and SubjectKeyId '"
@@ -650,8 +659,8 @@ public class CertificateStoreSessionBean
       return certificateDataSession.findUsernamesByIssuerDNAndSubjectKeyId(
           transformedIssuerDN, sSubjectKeyId);
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<findUsernamesByIssuerDNAndSubjectKeyId(), issuer='"
                 + issuerDN
                 + "'");
@@ -686,11 +695,11 @@ public class CertificateStoreSessionBean
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public boolean isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(
       final String issuerDN,
-      final byte subjectKeyId[],
+      final byte[] subjectKeyId,
       final String subjectDN,
       final String username) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(), issuer='"
               + issuerDN
               + "'");
@@ -701,8 +710,8 @@ public class CertificateStoreSessionBean
     final String sSubjectKeyId = new String(Base64.encode(subjectKeyId, false));
     final String transformedSubjectDN =
         CertTools.stringToBCDNString(StringTools.strip(subjectDN));
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Looking for user with a certificate with issuer DN(transformed) '"
               + transformedIssuerDN
               + "' and SubjectKeyId '"
@@ -718,8 +727,8 @@ public class CertificateStoreSessionBean
       return usernames.size() == 0
           || (usernames.size() == 1 && usernames.contains(username));
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(), issuer='"
                 + issuerDN
                 + "'");
@@ -729,17 +738,17 @@ public class CertificateStoreSessionBean
 
   @Override
   public List<Certificate> findCertificatesBySubject(final String subjectDN) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificatesBySubject(), dn='" + subjectDN + "'");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificatesBySubject(), dn='" + subjectDN + "'");
     }
     // First make a DN in our well-known format
     final List<Certificate> ret = new ArrayList<>();
-    for (final CertificateDataWrapper cdw :
-        getCertificateDatasBySubject(subjectDN)) {
+    for (final CertificateDataWrapper cdw
+        : getCertificateDatasBySubject(subjectDN)) {
       ret.add(cdw.getCertificate());
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findCertificatesBySubject(), dn='"
               + subjectDN
               + "': "
@@ -754,12 +763,12 @@ public class CertificateStoreSessionBean
     // First make a DN in our well-known format
     final String dn =
         CertTools.stringToBCDNString(StringTools.strip(subjectDN));
-    if (log.isDebugEnabled()) {
-      log.debug("Looking for cert with (transformed) DN: " + dn);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking for cert with (transformed) DN: " + dn);
     }
     final List<CertificateDataWrapper> ret = new ArrayList<>();
-    for (final CertificateData certificateData :
-        certificateDataSession.findBySubjectDN(dn)) {
+    for (final CertificateData certificateData
+       : certificateDataSession.findBySubjectDN(dn)) {
       ret.add(
           new CertificateDataWrapper(
               certificateData,
@@ -823,10 +832,10 @@ public class CertificateStoreSessionBean
           final boolean isRollover =
               signedByRolloverCAKey && eeCertValidUnderCaValidity;
           if (isRollover != findRollover) {
-            if (log.isTraceEnabled()) {
+            if (LOG.isTraceEnabled()) {
               final String fingerprint =
                   CertTools.getFingerprintAsString(x509Certificate);
-              log.trace(
+              LOG.trace(
                   "Certificate with fingerprint '"
                       + fingerprint
                       + "' is not considered a rollover certificate."
@@ -854,19 +863,19 @@ public class CertificateStoreSessionBean
   @Override
   public Collection<CertificateWrapper> findCertificatesByExpireTimeWithLimit(
       final Date expireTime) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificatesByExpireTimeWithLimit(), time=" + expireTime);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificatesByExpireTimeWithLimit(), time=" + expireTime);
     }
     // First make expire time in well know format
-    if (log.isDebugEnabled()) {
-      log.debug("Looking for certs that expire before: " + expireTime);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking for certs that expire before: " + expireTime);
     }
     final List<CertificateData> certificateDatas =
         certificateDataSession.findByExpireDateWithLimit(
             expireTime.getTime(),
             getGlobalCesecoreConfiguration().getMaximumQueryCount());
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Found "
               + certificateDatas.size()
               + " certificates that expire before "
@@ -877,8 +886,8 @@ public class CertificateStoreSessionBean
       final Certificate certificate =
           certificateData.getCertificate(entityManager);
       if (certificate == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Skipping CertificateData with fingerprint '"
                   + certificateData.getFingerprint()
                   + "' since it has no stored certificate.");
@@ -887,8 +896,8 @@ public class CertificateStoreSessionBean
         ret.add(certificate);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificatesByExpireTimeWithLimit(), time=" + expireTime);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificatesByExpireTimeWithLimit(), time=" + expireTime);
     }
     return EJBTools.wrapCertCollection(ret);
   }
@@ -896,21 +905,21 @@ public class CertificateStoreSessionBean
   @Override
   public List<Certificate> findCertificatesByExpireTimeWithLimit(
       final Date expireTime, final int maxNumberOfResults) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findCertificatesByExpireTimeWithLimit(), time="
               + expireTime
               + " - maxNumberOfResults="
               + maxNumberOfResults);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Looking for certs that expire before: " + expireTime);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking for certs that expire before: " + expireTime);
     }
     List<CertificateData> certificateDatas =
         certificateDataSession.findByExpireDateWithLimit(
             expireTime.getTime(), maxNumberOfResults);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Found "
               + certificateDatas.size()
               + " certificates that expire before "
@@ -921,8 +930,8 @@ public class CertificateStoreSessionBean
       final Certificate certificate =
           certificateData.getCertificate(entityManager);
       if (certificate == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Skipping CertificateData with fingerprint '"
                   + certificateData.getFingerprint()
                   + "' since it has no stored certificate.");
@@ -931,8 +940,8 @@ public class CertificateStoreSessionBean
         ret.add(certificate);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findCertificatesByExpireTimeWithLimit(), time="
               + expireTime
               + " - maxNumberOfResults="
@@ -951,18 +960,18 @@ public class CertificateStoreSessionBean
       final Date expirationDate,
       final int maxNumberOfResults,
       final int offset) {
-    log.trace(
+    LOG.trace(
         ">findExpiringCertificates(), time="
             + expirationDate
             + " - maxNumberOfResults="
             + maxNumberOfResults
             + " - offset="
             + offset);
-    log.debug("Looking for certs that expire before: " + expirationDate);
+    LOG.debug("Looking for certs that expire before: " + expirationDate);
     List<CertificateData> certificateDatas =
         certificateDataSession.findByExpireDateWithLimitAndOffset(
             expirationDate.getTime(), maxNumberOfResults, offset);
-    log.debug(
+    LOG.debug(
         "Found "
             + certificateDatas.size()
             + " certificates that expire before "
@@ -972,7 +981,7 @@ public class CertificateStoreSessionBean
       final Certificate certificate =
           certificateData.getCertificate(entityManager);
       if (certificate == null) {
-        log.debug(
+        LOG.debug(
             "Skipping CertificateData with fingerprint '"
                 + certificateData.getFingerprint()
                 + "' since it has no stored certificate.");
@@ -980,7 +989,7 @@ public class CertificateStoreSessionBean
         ret.add(certificate);
       }
     }
-    log.trace(
+    LOG.trace(
         "<findExpiringCertificates(), time="
             + expirationDate
             + " - maxNumberOfResults="
@@ -995,8 +1004,8 @@ public class CertificateStoreSessionBean
       final Date expireTime,
       final String issuerDN,
       final int maxNumberOfResults) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findCertificatesByExpireTimeWithLimit(), time="
               + expireTime
               + "  - issuerDN="
@@ -1004,14 +1013,14 @@ public class CertificateStoreSessionBean
               + "  - maxNumberOfResults="
               + maxNumberOfResults);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Looking for certs that expire before: " + expireTime);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking for certs that expire before: " + expireTime);
     }
     List<CertificateData> coll =
         certificateDataSession.findByExpireDateAndIssuerWithLimit(
             expireTime.getTime(), issuerDN, maxNumberOfResults);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Found "
               + coll.size()
               + " certificates that expire before "
@@ -1023,8 +1032,8 @@ public class CertificateStoreSessionBean
     for (CertificateData certData : coll) {
       ret.add(certData.getCertificate(entityManager));
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findCertificatesByExpireTimeWithLimit(), time="
               + expireTime
               + "  issuerDN="
@@ -1040,8 +1049,8 @@ public class CertificateStoreSessionBean
       final Date expireTime,
       final int certificateType,
       final int maxNumberOfResults) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findCertificatesByExpireTimeAndTypeWithLimit(), time="
               + expireTime
               + "  - type="
@@ -1049,8 +1058,8 @@ public class CertificateStoreSessionBean
               + "  - maxNumberOfResults="
               + maxNumberOfResults);
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Looking for certs that expire before "
               + expireTime
               + " and of type "
@@ -1059,8 +1068,8 @@ public class CertificateStoreSessionBean
     List<CertificateData> coll =
         certificateDataSession.findByExpireDateAndTypeWithLimit(
             expireTime.getTime(), certificateType, maxNumberOfResults);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Found "
               + coll.size()
               + " certificates that expire before "
@@ -1072,8 +1081,8 @@ public class CertificateStoreSessionBean
     for (CertificateData certData : coll) {
       ret.add(certData.getCertificate(entityManager));
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findCertificatesByExpireTimeAndTypeWithLimit(), time="
               + expireTime
               + "  - type="
@@ -1087,8 +1096,8 @@ public class CertificateStoreSessionBean
   @Override
   public Collection<String> findUsernamesByExpireTimeWithLimit(
       final Date expiretime) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificatesByExpireTimeWithLimit: " + expiretime);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificatesByExpireTimeWithLimit: " + expiretime);
     }
     return certificateDataSession.findUsernamesByExpireTimeWithLimit(
         new Date().getTime(),
@@ -1099,8 +1108,8 @@ public class CertificateStoreSessionBean
   @Override
   public boolean existsByIssuerAndSerno(
       final String issuerDN, final BigInteger serno) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">existsByIssuerAndSerno(), dn:"
               + issuerDN
               + ", serno="
@@ -1116,8 +1125,8 @@ public class CertificateStoreSessionBean
         "issuerDN", CertTools.stringToBCDNString(StringTools.strip(issuerDN)));
     query.setParameter("serialNumber", serno.toString());
     final boolean ret = query.getResultList().size() > 0;
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<existsByIssuerAndSerno(), dn:"
               + issuerDN
               + ", serno="
@@ -1131,8 +1140,8 @@ public class CertificateStoreSessionBean
   @Override
   public Certificate findCertificateByIssuerAndSerno(
       final String issuerDN, final BigInteger serno) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findCertificateByIssuerAndSerno(), dn:"
               + issuerDN
               + ", serno="
@@ -1140,8 +1149,8 @@ public class CertificateStoreSessionBean
     }
     // First make a DN in our well-known format
     String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));
-    if (log.isDebugEnabled()) {
-      log.debug("Looking for cert with (transformed)DN: " + dn);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Looking for cert with (transformed)DN: " + dn);
     }
     Collection<CertificateData> coll =
         certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());
@@ -1150,7 +1159,7 @@ public class CertificateStoreSessionBean
       String msg =
           INTRES.getLocalizedMessage(
               "store.errorseveralissuerserno", issuerDN, serno.toString(16));
-      log.error(msg);
+      LOG.error(msg);
     }
     Certificate cert = null;
     // There are several certs, we will try to find the latest issued one
@@ -1165,8 +1174,8 @@ public class CertificateStoreSessionBean
         ret = cert;
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findCertificateByIssuerAndSerno(), dn:"
               + issuerDN
               + ", serno="
@@ -1182,8 +1191,8 @@ public class CertificateStoreSessionBean
     final String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));
     final List<CertificateData> certs =
         certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Found "
               + certs.size()
               + " cert(s) with (transformed) DN: "
@@ -1192,7 +1201,7 @@ public class CertificateStoreSessionBean
               + serno.toString());
     }
     if (certs.size() > 1) {
-      log.error(
+      LOG.error(
           INTRES.getLocalizedMessage(
               "store.errorseveralissuerserno", issuerDN, serno.toString(16)));
     }
@@ -1244,8 +1253,8 @@ public class CertificateStoreSessionBean
   @Override
   public Collection<Certificate> findCertificatesByIssuerAndSernos(
       final String issuerDN, final Collection<BigInteger> sernos) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificateByIssuerAndSernos()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificateByIssuerAndSernos()");
     }
     List<Certificate> ret = null;
     if (null == issuerDN
@@ -1255,15 +1264,15 @@ public class CertificateStoreSessionBean
       ret = new ArrayList<>();
     } else {
       String dn = CertTools.stringToBCDNString(issuerDN);
-      if (log.isDebugEnabled()) {
-        log.debug("Looking for cert with (transformed)DN: " + dn);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Looking for cert with (transformed)DN: " + dn);
       }
       ret =
           certificateDataSession.findCertificatesByIssuerDnAndSerialNumbers(
               dn, sernos);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificateByIssuerAndSernos()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificateByIssuerAndSernos()");
     }
     return ret;
   }
@@ -1271,8 +1280,8 @@ public class CertificateStoreSessionBean
   @Override
   public List<CertificateDataWrapper> getCertificateDataBySerno(
       final BigInteger serno) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificatesBySerno(),  serno=" + serno);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificatesBySerno(),  serno=" + serno);
     }
     final List<CertificateDataWrapper> ret = new ArrayList<>();
     final List<CertificateData> coll =
@@ -1284,8 +1293,8 @@ public class CertificateStoreSessionBean
               Base64CertData.findByFingerprint(
                   entityManager, certificateData.getFingerprint())));
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificatesBySerno(), serno=" + serno);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificatesBySerno(), serno=" + serno);
     }
     return ret;
   }
@@ -1293,8 +1302,8 @@ public class CertificateStoreSessionBean
   @Override
   public String findUsernameByCertSerno(
       final BigInteger serno, final String issuerdn) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findUsernameByCertSerno(), serno: "
               + serno.toString(16)
               + ", issuerdn: "
@@ -1303,8 +1312,8 @@ public class CertificateStoreSessionBean
     final String ret =
         certificateDataSession.findLastUsernameByIssuerDNSerialNumber(
             CertTools.stringToBCDNString(issuerdn), serno.toString());
-    if (log.isTraceEnabled()) {
-      log.trace("<findUsernameByCertSerno(), ret=" + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findUsernameByCertSerno(), ret=" + ret);
     }
     return ret;
   }
@@ -1371,16 +1380,16 @@ public class CertificateStoreSessionBean
   @Override
   public Collection<CertificateWrapper> findCertificatesByUsername(
       final String username) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificatesByUsername(),  username=" + username);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificatesByUsername(),  username=" + username);
     }
     // This method on the entity bean does the ordering in the database
     final List<CertificateData> certificateDatas =
         certificateDataSession.findByUsernameOrdered(username);
     final List<Certificate> ret =
         getAsCertificateListWithoutNulls(certificateDatas);
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificatesByUsername(), username=" + username);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificatesByUsername(), username=" + username);
     }
     return EJBTools.wrapCertCollection(ret);
   }
@@ -1388,8 +1397,8 @@ public class CertificateStoreSessionBean
   @Override
   public Collection<Certificate> findCertificatesByUsernameAndStatus(
       final String username, final int status) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findCertificatesByUsernameAndStatus(),  username=" + username);
     }
     // This method on the entity bean does the ordering in the database
@@ -1397,8 +1406,8 @@ public class CertificateStoreSessionBean
         certificateDataSession.findByUsernameAndStatus(username, status);
     final List<Certificate> ret =
         getAsCertificateListWithoutNulls(certificateDatas);
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificatesByUsernameAndStatus(), username=" + username);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificatesByUsernameAndStatus(), username=" + username);
     }
     return ret;
   }
@@ -1407,8 +1416,8 @@ public class CertificateStoreSessionBean
   public Collection<Certificate>
       findCertificatesByUsernameAndStatusAfterExpireDate(
           final String username, final int status, final long afterExpireDate) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">findCertificatesByUsernameAndStatusAfterExpireDate(),  username="
               + username);
     }
@@ -1418,8 +1427,8 @@ public class CertificateStoreSessionBean
             username, status, afterExpireDate);
     final List<Certificate> ret =
         getAsCertificateListWithoutNulls(certificateDatas);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<findCertificatesByUsernameAndStatusAfterExpireDate(), username="
               + username);
     }
@@ -1428,7 +1437,7 @@ public class CertificateStoreSessionBean
 
   /**
    * Fetch the actual certificate is stored in a separate table and filter out
-   * entries where we don't store base64CertData at all
+   * entries where we don't store base64CertData at all.
    *
    * @param certificateDatas Data
    * @return Certs
@@ -1448,8 +1457,8 @@ public class CertificateStoreSessionBean
 
   @Override
   public CertificateInfo getCertificateInfo(final String fingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCertificateInfo(): " + fingerprint);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getCertificateInfo(): " + fingerprint);
     }
     if (fingerprint == null) {
       return null;
@@ -1459,8 +1468,8 @@ public class CertificateStoreSessionBean
 
   @Override
   public Certificate findCertificateByFingerprint(final String fingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificateByFingerprint()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificateByFingerprint()");
     }
     Certificate ret = null;
     try {
@@ -1470,11 +1479,11 @@ public class CertificateStoreSessionBean
         ret = res.getCertificate(this.entityManager);
       }
     } catch (Exception e) {
-      log.error("Error finding certificate with fp: " + fingerprint);
+      LOG.error("Error finding certificate with fp: " + fingerprint);
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificateByFingerprint()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificateByFingerprint()");
     }
     return ret;
   }
@@ -1482,13 +1491,13 @@ public class CertificateStoreSessionBean
   @Override
   public CertificateWrapper findCertificateByFingerprintRemote(
       final String fingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificateByFingerprintRemote()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificateByFingerprintRemote()");
     }
     final CertificateWrapper ret =
         EJBTools.wrap(findCertificateByFingerprint(fingerprint));
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificateByFingerprintRemote()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificateByFingerprintRemote()");
     }
     return ret;
   }
@@ -1505,8 +1514,8 @@ public class CertificateStoreSessionBean
         "subjectKeyId", new String(Base64.encode(subjectKeyId, false)));
 
     Collection<Certificate> result = new ArrayList<>();
-    for (CertificateData certificateData :
-        (Collection<CertificateData>) query.getResultList()) {
+    for (CertificateData certificateData
+        : (Collection<CertificateData>) query.getResultList()) {
       result.add(certificateData.getCertificate(this.entityManager));
     }
     return result;
@@ -1515,8 +1524,8 @@ public class CertificateStoreSessionBean
   @Override
   public Collection<CertificateWrapper> findCertificatesByType(
       final int type, final String issuerDN) throws IllegalArgumentException {
-    if (log.isTraceEnabled()) {
-      log.trace(">findCertificatesByType()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">findCertificatesByType()");
     }
     if (type <= 0
         || type
@@ -1545,8 +1554,8 @@ public class CertificateStoreSessionBean
     } else {
       ret = certificateDataSession.findActiveCertificatesByType(ctypes);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<findCertificatesByType()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<findCertificatesByType()");
     }
     return EJBTools.wrapCertCollection(ret);
   }
@@ -1694,7 +1703,7 @@ public class CertificateStoreSessionBean
               serialNumber,
               Integer.valueOf(certificateData.getStatus()),
               Integer.valueOf(reason));
-      log.info(msg);
+      LOG.info(msg);
       returnVal = false; // we did _not_ change status in the database
     }
     if (returnVal) {
@@ -1705,8 +1714,8 @@ public class CertificateStoreSessionBean
         entityManager.merge(certificateData);
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<private setRevokeStatusNoAuth(), issuerdn="
               + issuerDn
               + ", serno="
@@ -1768,7 +1777,7 @@ public class CertificateStoreSessionBean
     } catch (Exception e) {
       final String msg =
           INTRES.getLocalizedMessage("store.errorrevokeallbyca", issuerdn);
-      log.info(msg);
+      LOG.info(msg);
       throw new EJBException(e);
     }
   }
@@ -1798,8 +1807,8 @@ public class CertificateStoreSessionBean
 
   @Override
   public boolean isRevoked(final String issuerDN, final BigInteger serno) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">isRevoked(), dn:" + issuerDN + ", serno=" + serno.toString(16));
     }
     // First make a DN in our well-known format
@@ -1816,7 +1825,7 @@ public class CertificateStoreSessionBean
                   "store.errorseveralissuerserno",
                   issuerDN,
                   serno.toString(16));
-          log.error(msg);
+          LOG.error(msg);
         }
         Iterator<CertificateData> iter = coll.iterator();
         while (iter.hasNext()) {
@@ -1831,8 +1840,8 @@ public class CertificateStoreSessionBean
         // If there are no certificates with this serial number, return true
         // (=revoked). Better safe than sorry!
         ret = true;
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "isRevoked() did not find certificate with dn "
                   + dn
                   + " and serno "
@@ -1842,8 +1851,8 @@ public class CertificateStoreSessionBean
     } catch (Exception e) {
       throw new EJBException(e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<isRevoked() returned " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<isRevoked() returned " + ret);
     }
     return ret;
   }
@@ -1851,8 +1860,8 @@ public class CertificateStoreSessionBean
   @Override
   public CertificateStatus getStatus(
       final String issuerDN, final BigInteger serno) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getStatus(), dn:" + issuerDN + ", serno=" + serno.toString(16));
     }
     // First make a DN in our well-known format
@@ -1867,14 +1876,14 @@ public class CertificateStoreSessionBean
         final String msg =
             INTRES.getLocalizedMessage(
                 "store.errorseveralissuerserno", issuerDN, serno.toString(16));
-        log.error(msg);
+        LOG.error(msg);
       }
 
       for (CertificateData data : coll) {
         final CertificateStatus result =
             CertificateStatusHelper.getCertificateStatus(data);
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "<getStatus() returned "
                   + result
                   + " for cert number "
@@ -1882,8 +1891,8 @@ public class CertificateStoreSessionBean
         }
         return result;
       }
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<getStatus() did not find certificate with dn "
                 + dn
                 + " and serno "
@@ -1898,8 +1907,8 @@ public class CertificateStoreSessionBean
   @Override
   public CertificateStatusHolder getCertificateAndStatus(
       final String issuerDN, final BigInteger serno) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getCertificateAndStatus(), dn:"
               + issuerDN
               + ", serno="
@@ -1913,13 +1922,13 @@ public class CertificateStoreSessionBean
       final String msg =
           INTRES.getLocalizedMessage(
               "store.errorseveralissuerserno", issuerDN, serno.toString(16));
-      log.error(msg);
+      LOG.error(msg);
     }
     for (CertificateData data : collection) {
       final CertificateStatus result =
           CertificateStatusHelper.getCertificateStatus(data);
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<getStatus() returned "
                 + result
                 + " for cert number "
@@ -1928,8 +1937,8 @@ public class CertificateStoreSessionBean
       return new CertificateStatusHolder(
           data.getCertificate(entityManager), result);
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<getCertificateAndStatus() did not find certificate with dn "
               + dn
               + " and serno "
@@ -1958,8 +1967,8 @@ public class CertificateStoreSessionBean
       final CertificateData certificateData,
       final int status)
       throws AuthorizationDeniedException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Set status "
               + status
               + " for certificate with fp: "
@@ -2024,11 +2033,11 @@ public class CertificateStoreSessionBean
     if (certificateData != null) {
       changeStatus(admin, certificateData, status);
     } else {
-      if (log.isDebugEnabled()) {
+      if (LOG.isDebugEnabled()) {
         final String msg =
             INTRES.getLocalizedMessage(
                 "store.setstatusfailed", fingerprint, status);
-        log.debug(msg);
+        LOG.debug(msg);
       }
     }
     return (certificateData != null);
@@ -2079,7 +2088,7 @@ public class CertificateStoreSessionBean
     Certificate certificate = null;
     final String subjectKeyIdString =
         new String(Base64.encode(subjectKeyId, false));
-    log.debug("Searching for subjectKeyIdString " + subjectKeyIdString);
+    LOG.debug("Searching for subjectKeyIdString " + subjectKeyIdString);
     final Query query =
         this.entityManager.createQuery(
             "SELECT a FROM CertificateData a WHERE"
@@ -2092,8 +2101,8 @@ public class CertificateStoreSessionBean
     final List<CertificateData> resultList = query.getResultList();
     if (resultList.size() == 1) {
       certificate = resultList.get(0).getCertificate(this.entityManager);
-      if (certificate == null && log.isDebugEnabled()) {
-        log.debug(
+      if (certificate == null && LOG.isDebugEnabled()) {
+        LOG.debug(
             "Reference to an issued certificate with subjectKeyId "
                 + subjectKeyId
                 + " found, but the certificate is not stored in the database.");
@@ -2105,8 +2114,8 @@ public class CertificateStoreSessionBean
   @Override
   public String getCADnFromRequest(final RequestMessage req) {
     String dn = req.getIssuerDN();
-    if (log.isDebugEnabled()) {
-      log.debug("Got an issuerDN: " + dn);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Got an issuerDN: " + dn);
     }
     // If we have issuer and serialNo, we must find the CA certificate, to get
     // the CAs subject name
@@ -2114,8 +2123,8 @@ public class CertificateStoreSessionBean
     // the subjectDN (for example a RootCA)
     final BigInteger serno = req.getSerialNo();
     if (serno != null) {
-      if (log.isDebugEnabled()) {
-        log.debug("Got a serialNumber: " + serno.toString(16));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Got a serialNumber: " + serno.toString(16));
       }
 
       final Certificate cert = findCertificateByIssuerAndSerno(dn, serno);
@@ -2123,8 +2132,8 @@ public class CertificateStoreSessionBean
         dn = CertTools.getSubjectDN(cert);
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Using DN: " + dn);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Using DN: " + dn);
     }
     return dn;
   }
@@ -2138,13 +2147,13 @@ public class CertificateStoreSessionBean
 
   @Override
   public void resetUniqueCertificateSerialNumberIndex() {
-    log.info("Resetting isUniqueCertificateSerialNumberIndex to null.");
+    LOG.info("Resetting isUniqueCertificateSerialNumberIndex to null.");
     UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(null);
   }
 
   @Override
   public void setUniqueCertificateSerialNumberIndex(final Boolean value) {
-    log.info("Setting isUniqueCertificateSerialNumberIndex to: " + value);
+    LOG.info("Setting isUniqueCertificateSerialNumberIndex to: " + value);
     UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(value);
   }
 
@@ -2233,12 +2242,13 @@ public class CertificateStoreSessionBean
                   new Date().getTime());
         } catch (
             Throwable e) { // NOPMD, we really need to catch all, never crash
-          log.info(
-              "certificateStoreSession.checkForUniqueCertificateSerialNumberIndexInTransaction"
+          LOG.info(
+              "certificateStoreSession."
+              + "checkForUniqueCertificateSerialNumberIndexInTransaction"
                   + " threw Throwable (normal if there is a unique"
                   + " issuerDN/serialNumber index): "
                   + e.getMessage());
-          log.info(
+          LOG.info(
               "Unique index in CertificateData table for certificate serial"
                   + " number");
           // Exception is thrown when unique index is working and a certificate
@@ -2251,7 +2261,7 @@ public class CertificateStoreSessionBean
           .booleanValue()) {
         // It was possible to store a second certificate with same serial
         // number. Unique number not working.
-        log.info(
+        LOG.info(
             INTRES.getLocalizedMessage(
                 "createcert.not_unique_certserialnumberindex"));
       }
@@ -2260,11 +2270,11 @@ public class CertificateStoreSessionBean
       try {
         certificateStoreSession
             .removeUniqueCertificateSerialNumberTestCertificates();
-        log.info(
+        LOG.info(
             "Removed rows used during test for unique certificate serial"
                 + " number database constraint.");
       } catch (Throwable e) { // NOPMD, we really need to catch all, never crash
-        log.debug(
+        LOG.debug(
             "Unable to clean up database rows used during test for unique"
                 + " certificate serial number. This is expected if DELETE is"
                 + " not granted to the EJBCA database user.",
@@ -2411,7 +2421,7 @@ public class CertificateStoreSessionBean
         limitedCertificateData.setUpdateTime(
             Long.valueOf(System.currentTimeMillis()));
         limitedCertificateData.setCaFingerprint(caFingerprint);
-        log.info(
+        LOG.info(
             "Adding limited CertificateData entry with fingerprint="
                 + limitedFingerprint
                 + ", serialNumber="
@@ -2431,7 +2441,7 @@ public class CertificateStoreSessionBean
                 != revocationDate.getTime()
             || cdw.getCertificateData().getRevocationReason() != reasonCode) {
           // Update the limited entry
-          log.info(
+          LOG.info(
               "Updating limited CertificateData entry with fingerprint="
                   + limitedFingerprint
                   + ", serialNumber="
@@ -2446,8 +2456,8 @@ public class CertificateStoreSessionBean
               Long.valueOf(System.currentTimeMillis()));
           entityManager.merge(limitedCertificateData);
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Limited CertificateData entry with fingerprint="
                     + limitedFingerprint
                     + ", serialNumber="
@@ -2468,7 +2478,7 @@ public class CertificateStoreSessionBean
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public void reloadCaCertificateCache() {
-    log.info("Reloading CA certificate cache.");
+    LOG.info("Reloading CA certificate cache.");
     Collection<Certificate> certs =
         EJBTools.unwrapCertCollection(
             certificateStoreSession.findCertificatesByType(
@@ -2476,7 +2486,7 @@ public class CertificateStoreSessionBean
                     + CertificateConstants.CERTTYPE_ROOTCA,
                 null));
     CaCertificateCache.INSTANCE.loadCertificates(certs);
-    log.info(
+    LOG.info(
         "Reloaded CA certificate cache with " + certs.size() + " certificates");
   }
 
@@ -2490,13 +2500,15 @@ public class CertificateStoreSessionBean
    */
   @Timeout
   /* Glassfish 2.1.1:
-   * "Timeout method ....timeoutHandler(javax.ejb.Timer)must have TX attribute of TX_REQUIRES_NEW or TX_REQUIRED or TX_NOT_SUPPORTED"
-   * JBoss 5.1.0.GA: We cannot mix timer updates with our EJBCA DataSource transactions.
+   * "Timeout method ....timeoutHandler(javax.ejb.Timer)must have TX
+   *  attribute of TX_REQUIRES_NEW or TX_REQUIRED or TX_NOT_SUPPORTED"
+   * JBoss 5.1.0.GA: We cannot mix timer updates with our EJBCA DataSource
+   * transactions.
    */
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   public void timeoutHandler(final Timer timer) {
-    if (log.isTraceEnabled()) {
-      log.trace(">timeoutHandler: " + timer.getInfo().toString());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">timeoutHandler: " + timer.getInfo().toString());
     }
     if (timer.getInfo() instanceof Integer) {
       final int currentTimerId = ((Integer) timer.getInfo()).intValue();
@@ -2504,16 +2516,16 @@ public class CertificateStoreSessionBean
         reloadCaCertificateCacheAndSetTimeout();
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<timeoutHandler");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<timeoutHandler");
     }
   }
 
   @Override
   @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
   public void reloadCaCertificateCacheAndSetTimeout() {
-    if (log.isTraceEnabled()) {
-      log.trace(">timeOutReloadCaCertificateCache");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">timeOutReloadCaCertificateCache");
     }
     // Cancel any waiting timers of this type
     final Collection<Timer> timers = timerService.getTimers();
@@ -2546,8 +2558,8 @@ public class CertificateStoreSessionBean
    *     specified value
    */
   private int getTimerCount(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getTimerCount");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getTimerCount");
     }
     int count = 0;
     final Collection<Timer> timers = timerService.getTimers();
@@ -2559,8 +2571,8 @@ public class CertificateStoreSessionBean
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getTimerCount, timers: " + count);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getTimerCount, timers: " + count);
     }
     return count;
   }
@@ -2579,13 +2591,13 @@ public class CertificateStoreSessionBean
 
   /**
    * Remove limited CertificateData by fingerprint (and ensures that this is not
-   * a full entry by making sure that subjectKeyId is NULL
+   * a full entry by making sure that subjectKeyId is NULL.
    *
    * @param fingerprint FP
    * @return success
    */
   private boolean deleteLimitedCertificateData(final String fingerprint) {
-    log.info(
+    LOG.info(
         "Removing CertificateData entry with fingerprint="
             + fingerprint
             + " and no subjectKeyId is defined.");
@@ -2595,8 +2607,8 @@ public class CertificateStoreSessionBean
                 + " AND subjectKeyId IS NULL");
     query.setParameter("fingerprint", fingerprint);
     final int deletedRows = query.executeUpdate();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Deleted " + deletedRows + " rows with fingerprint " + fingerprint);
     }
     return deletedRows == 1;

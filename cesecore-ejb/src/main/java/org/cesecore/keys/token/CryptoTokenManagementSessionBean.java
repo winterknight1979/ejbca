@@ -72,17 +72,21 @@ import org.cesecore.util.StringTools;
 public class CryptoTokenManagementSessionBean
     implements CryptoTokenManagementSessionLocal,
         CryptoTokenManagementSessionRemote {
-
-  private static final Logger log =
+/** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CryptoTokenManagementSessionBean.class);
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalResources INTRES =
       InternalResources.getInstance();
 
-  private static final Random rnd = new SecureRandom();
+  /** Random. */
+  private static final Random RND = new SecureRandom();
 
+  /** Session. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Session. */
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
+  /** Session. */
   @EJB private CryptoTokenSessionLocal cryptoTokenSession;
 
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -169,8 +173,8 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException, CryptoTokenNameInUseException,
           CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException,
           NoSuchSlotException {
-    if (log.isTraceEnabled()) {
-      log.trace(">isCryptoTokenUsed: " + tokenName + ", " + className);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">isCryptoTokenUsed: " + tokenName + ", " + className);
     }
     if (CryptoTokenFactory.instance().getAvailableCryptoToken(className)
         == null) {
@@ -187,8 +191,8 @@ public class CryptoTokenManagementSessionBean
         properties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY);
     final String providerNameToCheck =
         createProviderName(tokenName, className, properties);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "isCryptoTokenUsed: Provider name to check for: "
               + providerNameToCheck);
     }
@@ -222,15 +226,15 @@ public class CryptoTokenManagementSessionBean
       if (installedProviders != null) {
         for (int i = 0; i < installedProviders.length; i++) {
           final String installedProviderName = installedProviders[i].getName();
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "isCryptoTokenUsed: Checking installed provider: "
                     + installedProviderName);
           }
           if (StringUtils.equals(providerNameToCheck, installedProviderName)) {
             // We found a match, but don't add duplicates
             if (!providers.contains(installedProviderName)) {
-              log.debug(
+              LOG.debug(
                   "isCryptoTokenUsed: Found a match between "
                       + providerNameToCheck
                       + " and installed provider "
@@ -243,8 +247,8 @@ public class CryptoTokenManagementSessionBean
         }
       }
     }
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<isCryptoTokenUsed: "
               + tokenName
               + ", "
@@ -271,11 +275,11 @@ public class CryptoTokenManagementSessionBean
         // different things (slotID, slotName, p11Config)
         // it is really hard to check easily, we need to create the provider and
         // see if the provider name is the same
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "isCryptoTokenUsed: Provider for token we check for: "
                   + providerNameToCheck);
-          log.debug(
+          LOG.debug(
               "isCryptoTokenUsed Provider for existing token: "
                   + ctiProviderName);
         }
@@ -305,8 +309,8 @@ public class CryptoTokenManagementSessionBean
         CryptoTokenFactory.createCryptoToken(
             className, properties, null, -1, tokenName, false);
     final String providerName = cryptoToken.getSignProviderName();
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "isCryptoTokenUsed: Created provider (without installing) to check"
               + " for collisions: "
               + providerName);
@@ -326,8 +330,8 @@ public class CryptoTokenManagementSessionBean
       throws AuthorizationDeniedException, CryptoTokenNameInUseException,
           CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException,
           NoSuchSlotException {
-    if (log.isTraceEnabled()) {
-      log.trace(">createCryptoToken: " + tokenName + ", " + className);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">createCryptoToken: " + tokenName + ", " + className);
     }
     assertAuthorizedToModifyCryptoTokens(authenticationToken);
     if (CryptoTokenFactory.instance().getAvailableCryptoToken(className)
@@ -346,8 +350,8 @@ public class CryptoTokenManagementSessionBean
             tokenName,
             false);
     if (authenticationCode != null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Activating new crypto token using supplied authentication code.");
       }
       cryptoToken.activate(authenticationCode);
@@ -373,8 +377,8 @@ public class CryptoTokenManagementSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<createCryptoToken: " + tokenName + ", " + className);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<createCryptoToken: " + tokenName + ", " + className);
     }
   }
 
@@ -393,8 +397,9 @@ public class CryptoTokenManagementSessionBean
     final List<Integer> allCryptoTokenIds =
         cryptoTokenSession.getCryptoTokenIds();
     Integer cryptoTokenId = null;
-    for (int i = 0; i < 100; i++) {
-      final int current = Integer.valueOf(rnd.nextInt());
+    final int max = 100;
+    for (int i = 0; i < max; i++) {
+      final int current = Integer.valueOf(RND.nextInt());
       if (!allCryptoTokenIds.contains(current)) {
         cryptoTokenId = current;
         break;
@@ -416,7 +421,7 @@ public class CryptoTokenManagementSessionBean
   }
 
   /**
-   * Asserts if an authentication token is authorized to modify crypto tokens
+   * Asserts if an authentication token is authorized to modify crypto tokens.
    *
    * @param authenticationToken the authentication token to check
    * @throws AuthorizationDeniedException thrown if authorization was denied.
@@ -441,12 +446,13 @@ public class CryptoTokenManagementSessionBean
       final int cryptoTokenId,
       final String tokenName,
       final Properties properties,
-      char[] authenticationCode)
+      final char[] oauthenticationCode)
       throws AuthorizationDeniedException, CryptoTokenOfflineException,
           CryptoTokenAuthenticationFailedException,
           CryptoTokenNameInUseException, NoSuchSlotException {
-    if (log.isTraceEnabled()) {
-      log.trace(">saveCryptoToken: " + tokenName + ", " + cryptoTokenId);
+      char[] authenticationCode = oauthenticationCode;
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">saveCryptoToken: " + tokenName + ", " + cryptoTokenId);
     }
     // Note that an admin that is authorized to modify a token could gain access
     // to another HSM slot etc..
@@ -512,7 +518,7 @@ public class CryptoTokenManagementSessionBean
       // If the crypto token can not be initialized, we have a problem and can
       // not even disable auto-activation.
       // Go ahead and ignore this
-      log.info(
+      LOG.info(
           "CryptoTokenOfflineException getting new crypto token for saving,"
               + " ignoring this error and saving anyway: ",
           e);
@@ -552,8 +558,8 @@ public class CryptoTokenManagementSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<saveCryptoToken: " + tokenName + ", " + cryptoTokenId);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<saveCryptoToken: " + tokenName + ", " + cryptoTokenId);
     }
   }
 
@@ -564,8 +570,8 @@ public class CryptoTokenManagementSessionBean
       final String newName,
       final String newPlaceholders)
       throws AuthorizationDeniedException, CryptoTokenNameInUseException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">saveCryptoToken: cryptoTokenId="
               + cryptoTokenId
               + ", newName="
@@ -611,8 +617,8 @@ public class CryptoTokenManagementSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<saveCryptoToken: cryptoTokenId="
               + cryptoTokenId
               + ", newName="
@@ -641,8 +647,8 @@ public class CryptoTokenManagementSessionBean
           null,
           null,
           "Deleted CryptoToken with id " + cryptoTokenId);
-    } else if (log.isDebugEnabled()) {
-      log.debug(
+    } else if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Crypto token with id "
               + cryptoTokenId
               + " does not exist and can not be deleted.");
@@ -803,7 +809,7 @@ public class CryptoTokenManagementSessionBean
             currentAuthenticationCode);
       } catch (Exception e) {
         final String msg = "Failed to use supplied current PIN." + " " + e;
-        log.info(msg);
+        LOG.info(msg);
         throw new CryptoTokenAuthenticationFailedException(msg);
       }
       if (newAuthenticationCode == null) {
@@ -823,7 +829,7 @@ public class CryptoTokenManagementSessionBean
             BaseCryptoToken.setAutoActivatePin(
                 cryptoTokenProperties, new String(newAuthenticationCode), true);
           } else {
-            log.debug(
+            LOG.debug(
                 "Auto-activation will not be used. Only changing pin for soft"
                     + " CryptoToken keystore.");
           }
@@ -835,7 +841,7 @@ public class CryptoTokenManagementSessionBean
                   cryptoTokenId,
                   cryptoToken.getTokenName());
         } catch (Exception e) {
-          log.info("Unable to store soft keystore with new PIN: " + e);
+          LOG.info("Unable to store soft keystore with new PIN: " + e);
           throw new CryptoTokenAuthenticationFailedException(
               "Unable to store soft keystore with new PIN");
         }
@@ -847,10 +853,10 @@ public class CryptoTokenManagementSessionBean
         if (!oldAutoActivationPin.equals(
             new String(currentAuthenticationCode))) {
           final String msg = "Supplied PIN did not match auto-activation PIN.";
-          log.info(msg);
+          LOG.info(msg);
           throw new CryptoTokenAuthenticationFailedException(msg);
         } else {
-          log.debug(
+          LOG.debug(
               "Successfully verified the PIN for non-soft CryptoToken by"
                   + " comparing supplied PIN to auto-activation PIN.");
         }
@@ -976,8 +982,8 @@ public class CryptoTokenManagementSessionBean
     Integer cryptoTokenId = cachedNameToIdMap.get(cryptoTokenName);
     if (cryptoTokenId == null) {
       // Ok.. so it's not in the cache.. look for it the hard way..
-      for (final Integer currentCryptoTokenId :
-          cryptoTokenSession.getCryptoTokenIds()) {
+      for (final Integer currentCryptoTokenId
+          : cryptoTokenSession.getCryptoTokenIds()) {
         // Don't lookup CryptoTokens we already have in the id to name cache
         if (!cachedNameToIdMap.values().contains(currentCryptoTokenId)) {
           final CryptoToken currentCryptoToken =
@@ -1023,8 +1029,8 @@ public class CryptoTokenManagementSessionBean
             keyPairAliases.add(currentAlias);
           }
         } catch (CryptoTokenOfflineException ignored) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "Ignord key alias '"
                     + currentAlias
                     + "' in crypto token '"
@@ -1215,7 +1221,7 @@ public class CryptoTokenManagementSessionBean
       throw new InvalidKeyException(e);
     }
     assertAliasNotInUse(cryptoToken, alias);
-    log.debug("cryptoTokenSession.mergeCryptoToken");
+    LOG.debug("cryptoTokenSession.mergeCryptoToken");
     // Merge is important for soft tokens where the data is persisted in the
     // database, but will also update lastUpdate
     try {
@@ -1371,7 +1377,7 @@ public class CryptoTokenManagementSessionBean
   }
 
   /**
-   * Helper method for audit logging changes
+   * Helper method for audit logging changes.
    *
    * @param oldProperties Old Props
    * @param newProperties New Props
@@ -1398,7 +1404,7 @@ public class CryptoTokenManagementSessionBean
   }
 
   /**
-   * Helper method for audit logging changes
+   * Helper method for audit logging changes.
    *
    * @param key Key
    * @param oldValue Old value

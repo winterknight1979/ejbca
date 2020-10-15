@@ -36,9 +36,11 @@ import org.cesecore.internal.InternalResources;
 public class AccessTreeUpdateSessionBean
     implements AccessTreeUpdateSessionLocal {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(AccessTreeUpdateSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -112,8 +114,10 @@ public class AccessTreeUpdateSessionBean
   @TransactionAttribute(TransactionAttributeType.REQUIRED)
   public void setNewAuthorizationPatternMarker() {
     /*
-     * Use a row in this table as a marker, since it is already a dependency from AuthorizationSessionBean.
-     * (Otherwise we would have to depend on reading configuration which in turn depends back on authorization.)
+     * Use a row in this table as a marker, since it is already
+     * a dependency from AuthorizationSessionBean.
+     * (Otherwise we would have to depend on reading configuration
+     * which in turn depends back on authorization.)
      */
     if (!isNewAuthorizationPatternMarkerPresent()) {
       final AccessTreeUpdateData marker = new AccessTreeUpdateData();

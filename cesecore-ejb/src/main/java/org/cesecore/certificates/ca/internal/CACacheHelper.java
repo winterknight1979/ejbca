@@ -26,18 +26,27 @@ import java.util.Map;
  */
 public final class CACacheHelper {
 
-  /** Caching of CA IDs with CA cert DN hash as ID */
+  /** Caching of CA IDs with CA cert DN hash as ID. */
   protected static volatile Map<Integer, Integer> caIdToCaCertHash =
       new HashMap<Integer, Integer>();
 
+  /** null constructor. */
   private CACacheHelper() {
     // Do nothing
   }
 
+  /**
+   * @param caid ID
+   * @return Hash
+   */
   public static Integer getCaCertHash(final Integer caid) {
     return caIdToCaCertHash.get(Integer.valueOf(caid));
   }
 
+  /**
+   * @param caid ID
+   * @param caCertHash Hash
+   */
   public static void putCaCertHash(
       final Integer caid, final Integer caCertHash) {
     caIdToCaCertHash.put(caid, caCertHash);

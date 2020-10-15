@@ -53,17 +53,23 @@ import org.cesecore.util.CryptoProviderTools;
 public class CrlCreateSessionBean
     implements CrlCreateSessionLocal, CrlCreateSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CrlCreateSessionBean.class);
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** CRL. */
   @EJB private CrlStoreSessionLocal crlSession;
+  /** Crypto. */
   @EJB private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+  /** Log. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
 
+  /** Setup. */
   @PostConstruct
   public void postConstruct() {
     // Install BouncyCastle provider if not available
@@ -76,10 +82,11 @@ public class CrlCreateSessionBean
       final CA ca,
       final Collection<RevokedCertInfo> certs,
       final int basecrlnumber,
-      int nextCrlNumber)
+      final int onextCrlNumber)
       throws CryptoTokenOfflineException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">createCRL(Collection)");
+      int nextCrlNumber = onextCrlNumber;
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">createCRL(Collection)");
     }
     byte[] crlBytes = null; // return value
 
@@ -93,7 +100,7 @@ public class CrlCreateSessionBean
       if ((ca.getStatus() != CAConstants.CA_ACTIVE)
           && (ca.getStatus() != CAConstants.CA_WAITING_CERTIFICATE_RESPONSE)) {
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcert.canotactive", ca.getSubjectDN());
         throw new CryptoTokenOfflineException(msg);
       }
@@ -124,17 +131,17 @@ public class CrlCreateSessionBean
         // Store CRL in the database, this can still fail so the whole thing is
         // rolled back
         String cafp = CertTools.getFingerprintAsString(ca.getCACertificate());
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Encoding CRL to byte array. Free memory="
                   + Runtime.getRuntime().freeMemory());
         }
         byte[] tmpcrlBytes = crl.getEncoded();
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Finished encoding CRL to byte array. Free memory="
                   + Runtime.getRuntime().freeMemory());
-          log.debug("Storing CRL in certificate store.");
+          LOG.debug("Storing CRL in certificate store.");
         }
         crlSession.storeCRL(
             admin,
@@ -146,7 +153,7 @@ public class CrlCreateSessionBean
             crl.toASN1Structure().getNextUpdate().getDate(),
             (deltaCRL ? 1 : -1));
         String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "createcrl.createdcrl",
                 Integer.valueOf(nextCrlNumber),
                 ca.getName(),
@@ -169,10 +176,10 @@ public class CrlCreateSessionBean
       }
     } catch (CryptoTokenOfflineException ctoe) {
       String msg =
-          intres.getLocalizedMessage("error.catokenoffline", ca.getSubjectDN());
-      log.info(msg, ctoe);
+          INTRES.getLocalizedMessage("error.catokenoffline", ca.getSubjectDN());
+      LOG.info(msg, ctoe);
       String auditmsg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcrl.errorcreate", ca.getName(), ctoe.getMessage());
       Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", auditmsg);
@@ -188,9 +195,9 @@ public class CrlCreateSessionBean
           details);
       throw ctoe;
     } catch (Exception e) {
-      log.info("Error generating CRL: ", e);
+      LOG.info("Error generating CRL: ", e);
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcrl.errorcreate", ca.getName(), e.getMessage());
       Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", msg);
@@ -209,8 +216,8 @@ public class CrlCreateSessionBean
       }
       throw new EJBException(msg, e);
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<createCRL(Collection)");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<createCRL(Collection)");
     }
     return crlBytes;
   }
@@ -221,7 +228,7 @@ public class CrlCreateSessionBean
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.CREATECRL.resource())) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "createcrl.notauthorized", admin.toString(), caid);
       throw new AuthorizationDeniedException(msg);
     }

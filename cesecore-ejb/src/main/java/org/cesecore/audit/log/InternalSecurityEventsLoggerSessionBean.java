@@ -46,11 +46,14 @@ import org.cesecore.time.TrustedTime;
 public class InternalSecurityEventsLoggerSessionBean
     implements InternalSecurityEventsLoggerSessionLocal {
 
+    /** Logger. */
   private static final Logger LOG =
       Logger.getLogger(InternalSecurityEventsLoggerSessionBean.class);
 
+  /** Logger session. */
   @EJB private QueuedLoggerSessionLocal queuedLoggerSession;
 
+  /** Local session. */
   @EJB
   private IntegrityProtectedLoggerSessionLocal integrityProtectedLoggerSession;
 

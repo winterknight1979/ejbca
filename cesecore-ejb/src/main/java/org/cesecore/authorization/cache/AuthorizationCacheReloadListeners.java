@@ -25,27 +25,30 @@ import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
  *     08:08:34Z anatom $
  */
 public enum AuthorizationCacheReloadListeners {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /** Events. */
   private final Set<AuthorizationCacheReloadListener> authCacheReloadEvent =
       new HashSet<>();
+  /** Logger. */
   private final Logger log =
       Logger.getLogger(AuthorizationCacheReloadListeners.class);
 
   /**
-   * Broadcast the specified event to all registered listeners
+   * Broadcast the specified event to all registered listeners.
    *
    * @param event Event
    */
   public void onReload(final AuthorizationCacheReload event) {
-    for (final AuthorizationCacheReloadListener observer :
-        authCacheReloadEvent) {
+    for (final AuthorizationCacheReloadListener observer
+        : authCacheReloadEvent) {
       observer.onReload(event);
     }
   }
 
   /**
-   * Subscribe the listener to AuthorizationCacheReload events
+   * Subscribe the listener to AuthorizationCacheReload events.
    *
    * @param authorizationCacheReloadListener Listener
    */

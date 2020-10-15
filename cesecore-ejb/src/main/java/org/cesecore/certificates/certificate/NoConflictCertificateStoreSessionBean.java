@@ -73,22 +73,30 @@ public class NoConflictCertificateStoreSessionBean
     implements NoConflictCertificateStoreSessionRemote,
         NoConflictCertificateStoreSessionLocal {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(NoConflictCertificateStoreSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  private static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
+  /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** CA. */
   @EJB private CaSessionLocal caSession;
+  /** Profile. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** Store. */
   @EJB private CertificateStoreSessionLocal certificateStoreSession;
+  /** Log. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
 
+  /** Session. */
   @EJB
   private NoConflictCertificateDataSessionLocal
       noConflictCertificateDataSession;
@@ -98,7 +106,7 @@ public class NoConflictCertificateStoreSessionBean
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "caadmin.notauthorizedtoca", admin.toString(), caid);
       throw new AuthorizationDeniedException(msg);
     }
@@ -134,8 +142,8 @@ public class NoConflictCertificateStoreSessionBean
     // make sense to have mixed locations? it would make CRL generation more
     // complex!
     if (cainfo.isUseCertificateStorage()) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "CA '"
                 + cainfo.getName()
                 + "' is misconfigured. Revocation of non-existing certificates"
@@ -162,8 +170,8 @@ public class NoConflictCertificateStoreSessionBean
         CertTools.stringToBCDNString(StringTools.strip(issuerdn)).hashCode();
     final CAInfo cainfo = caSession.getCAInfoInternal(caid);
     if (!canRevokeNonExisting(cainfo, issuerdn)) {
-      if (cainfo == null && log.isDebugEnabled()) {
-        log.debug(
+      if (cainfo == null && LOG.isDebugEnabled()) {
+        LOG.debug(
             "Tried to look up certificate "
                 + certserno.toString(16)
                 + ", but neither certificate nor CA was found. CA Id: "
@@ -189,8 +197,8 @@ public class NoConflictCertificateStoreSessionBean
   @Override
   public CertificateStatus getStatus(
       final String issuerDN, final BigInteger serno) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getStatus(), dn:" + issuerDN + ", serno=" + serno.toString(16));
     }
     // First, try to look up in CertificateData
@@ -199,15 +207,15 @@ public class NoConflictCertificateStoreSessionBean
         certificateStoreSession.getStatus(issuerDN, serno);
     if (!canRevokeNonExisting(issuerDN)
         || status != CertificateStatus.NOT_AVAILABLE) {
-      log.trace("<getStatus()");
+      LOG.trace("<getStatus()");
       return status;
     }
     // If not found, take most recent certificate from NoConflictCertificateData
     final NoConflictCertificateData noConflictCert =
         findMostRecentCertData(dn, serno);
     if (noConflictCert == null) {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "<getStatus() did not find certificate with dn "
                 + dn
                 + " and serno "
@@ -218,8 +226,8 @@ public class NoConflictCertificateStoreSessionBean
       return CertificateStatus.OK;
     }
     status = CertificateStatusHelper.getCertificateStatus(noConflictCert);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "<getStatus() returned "
               + status
               + " for cert number "
@@ -245,8 +253,8 @@ public class NoConflictCertificateStoreSessionBean
   @Override
   public Collection<RevokedCertInfo> listRevokedCertInfo(
       final String issuerdn, final long lastbasecrldate) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">listRevokedCertInfo('" + issuerdn + "', " + lastbasecrldate + ")");
     }
     final Collection<RevokedCertInfo> revokedInCertData =
@@ -254,8 +262,8 @@ public class NoConflictCertificateStoreSessionBean
     final Collection<RevokedCertInfo> revokedInNoConflictData =
         noConflictCertificateDataSession.getRevokedCertInfosWithDuplicates(
             issuerdn, lastbasecrldate);
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "listRevokedCertInfo: Got "
               + revokedInCertData.size()
               + " entries from CertificateData and "
@@ -296,7 +304,7 @@ public class NoConflictCertificateStoreSessionBean
   private NoConflictCertificateData filterMostRecentCertData(
       final Collection<NoConflictCertificateData> certDatas) {
     if (CollectionUtils.isEmpty(certDatas)) {
-      log.trace("<findMostRecentCertData(): no certificates found");
+      LOG.trace("<findMostRecentCertData(): no certificates found");
       return null;
     }
     NoConflictCertificateData mostRecentData = null;
@@ -377,8 +385,8 @@ public class NoConflictCertificateStoreSessionBean
       final NoConflictCertificateData certificateData,
       final int status)
       throws AuthorizationDeniedException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Set status "
               + status
               + " for certificate with serial: "
@@ -399,7 +407,7 @@ public class NoConflictCertificateStoreSessionBean
 
     final String serialNo = certificateData.getSerialNumberHex();
     final String msg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "store.setstatus",
             certificateData.getUsername(),
             certificateData.getFingerprint(),
@@ -488,7 +496,7 @@ public class NoConflictCertificateStoreSessionBean
     final CertificateProfile certProf =
         certificateProfileSession.getCertificateProfile(certProfId);
     if (certProf == null) {
-      log.info("Missing certificate profile ID: " + certProfId);
+      LOG.info("Missing certificate profile ID: " + certProfId);
     } else {
       final String encodedValidity = certProf.getEncodedValidity();
       final Date expireDate = ValidityDate.getDate(encodedValidity, new Date());

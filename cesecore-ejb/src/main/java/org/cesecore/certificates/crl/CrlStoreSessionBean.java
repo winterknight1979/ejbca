@@ -49,16 +49,20 @@ import org.cesecore.util.CertTools;
 public class CrlStoreSessionBean
     implements CrlStoreSessionLocal, CrlStoreSessionRemote {
 
-  private static final Logger log = Logger.getLogger(CrlStoreSessionBean.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CrlStoreSessionBean.class);
 
-  /** Internal localization of logs and errors */
-  protected static final InternalResources intres =
+  /** Internal localization of logs and errors. */
+  protected static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** EM.  */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
-  EntityManager entityManager;
+  private EntityManager entityManager;
 
+  /** Auth. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Log. */
   @EJB private SecurityEventsLoggerSessionLocal logSession;
 
   @Override
@@ -72,8 +76,8 @@ public class CrlStoreSessionBean
       final Date nextUpdate,
       final int deltaCRLIndicator)
       throws CrlStoreException, AuthorizationDeniedException {
-    if (log.isTraceEnabled()) {
-      log.trace(">storeCRL(" + cafp + ", " + number + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">storeCRL(" + cafp + ", " + number + ")");
     }
     // Check that user is authorized to the CA that issued this CRL
     String bcdn = CertTools.stringToBCDNString(issuerDN);
@@ -87,7 +91,7 @@ public class CrlStoreSessionBean
         // There is already a CRL with this number, or a later one stored. Don't
         // create duplicates
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "store.errorstorecrlwrongnumber",
                 Integer.valueOf(number),
                 Integer.valueOf(lastNo),
@@ -105,7 +109,7 @@ public class CrlStoreSessionBean
               deltaCRLIndicator);
       this.entityManager.persist(data);
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "store.storecrl",
               Integer.valueOf(number),
               data.getFingerprint(),
@@ -124,21 +128,21 @@ public class CrlStoreSessionBean
           details);
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "store.errorstorecrl", Integer.valueOf(number), issuerDN);
-      log.error(msg, e);
+      LOG.error(msg, e);
       throw new CrlStoreException(e); // will rollback etc
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<storeCRL()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<storeCRL()");
     }
   }
 
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public byte[] getLastCRL(final String issuerdn, final boolean deltaCRL) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getLastCRL(" + issuerdn + ", " + deltaCRL + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getLastCRL(" + issuerdn + ", " + deltaCRL + ")");
     }
     int maxnumber = 0;
     try {
@@ -151,24 +155,24 @@ public class CrlStoreSessionBean
         crlbytes = data.getCRLBytes();
         if (crlbytes != null) {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "store.getcrl", issuerdn, Integer.valueOf(maxnumber));
-          log.info(msg);
+          LOG.info(msg);
           return crlbytes;
         }
       }
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage("store.errorgetcrl", issuerdn);
-      log.info(msg);
+          INTRES.getLocalizedMessage("store.errorgetcrl", issuerdn);
+      LOG.info(msg);
       throw new EJBException(e);
     }
     final String msg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "store.errorgetcrl", issuerdn, Integer.valueOf(maxnumber));
-    log.info(msg);
-    if (log.isTraceEnabled()) {
-      log.trace("<getLastCRL()");
+    LOG.info(msg);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getLastCRL()");
     }
     return null;
   }
@@ -176,8 +180,8 @@ public class CrlStoreSessionBean
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public byte[] getCRL(final String issuerdn, final int crlNumber) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCRL(" + issuerdn + ", " + crlNumber + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getCRL(" + issuerdn + ", " + crlNumber + ")");
     }
     byte[] crlbytes = null;
     final CRLData data =
@@ -186,18 +190,18 @@ public class CrlStoreSessionBean
       crlbytes = data.getCRLBytes();
       if (crlbytes != null) {
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "store.getcrl", issuerdn, Integer.valueOf(crlNumber));
-        log.info(msg);
+        LOG.info(msg);
         return crlbytes;
       }
     }
     final String msg =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "store.errorgetcrl", issuerdn, Integer.valueOf(crlNumber));
-    log.info(msg);
-    if (log.isTraceEnabled()) {
-      log.trace("<getCRL()");
+    LOG.info(msg);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getCRL()");
     }
     return null;
   }
@@ -205,8 +209,8 @@ public class CrlStoreSessionBean
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public CRLInfo getLastCRLInfo(final String issuerdn, final boolean deltaCRL) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getLastCRLInfo(" + issuerdn + ", " + deltaCRL + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getLastCRLInfo(" + issuerdn + ", " + deltaCRL + ")");
     }
     int crlnumber = 0;
     try {
@@ -224,28 +228,28 @@ public class CrlStoreSessionBean
                 data.getNextUpdate());
       } else {
         if (deltaCRL && (crlnumber == 0)) {
-          if (log.isDebugEnabled()) {
-            log.debug("No delta CRL exists for CA with dn '" + issuerdn + "'");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("No delta CRL exists for CA with dn '" + issuerdn + "'");
           }
         } else if (crlnumber == 0) {
-          if (log.isDebugEnabled()) {
-            log.debug("No CRL exists for CA with dn '" + issuerdn + "'");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("No CRL exists for CA with dn '" + issuerdn + "'");
           }
         } else {
           final String msg =
-              intres.getLocalizedMessage(
+              INTRES.getLocalizedMessage(
                   "store.errorgetcrl", issuerdn, Integer.valueOf(crlnumber));
-          log.error(msg);
+          LOG.error(msg);
         }
       }
-      if (log.isTraceEnabled()) {
-        log.trace("<getLastCRLInfo()");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<getLastCRLInfo()");
       }
       return crlinfo;
     } catch (Exception e) {
       final String msg =
-          intres.getLocalizedMessage("store.errorgetcrlinfo", issuerdn);
-      log.info(msg);
+          INTRES.getLocalizedMessage("store.errorgetcrlinfo", issuerdn);
+      LOG.info(msg);
       throw new EJBException(e);
     }
   }
@@ -253,8 +257,8 @@ public class CrlStoreSessionBean
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public CRLInfo getCRLInfo(final String fingerprint) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getCRLInfo(" + fingerprint + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getCRLInfo(" + fingerprint + ")");
     }
     try {
       CRLInfo crlinfo = null;
@@ -268,22 +272,22 @@ public class CrlStoreSessionBean
                 data.getThisUpdate(),
                 data.getNextUpdate());
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug("No CRL exists with fingerprint '" + fingerprint + "'");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("No CRL exists with fingerprint '" + fingerprint + "'");
         }
         final String msg =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "store.errorgetcrl", fingerprint, Integer.valueOf(0));
-        log.info(msg);
+        LOG.info(msg);
       }
-      if (log.isTraceEnabled()) {
-        log.trace("<getCRLInfo()");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<getCRLInfo()");
       }
       return crlinfo;
     } catch (Exception e) {
       String msg =
-          intres.getLocalizedMessage("store.errorgetcrlinfo", fingerprint);
-      log.info(msg);
+          INTRES.getLocalizedMessage("store.errorgetcrlinfo", fingerprint);
+      LOG.info(msg);
       throw new EJBException(e);
     }
   }
@@ -291,8 +295,8 @@ public class CrlStoreSessionBean
   @Override
   @TransactionAttribute(TransactionAttributeType.SUPPORTS)
   public int getLastCRLNumber(final String issuerdn, final boolean deltaCRL) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getLastCRLNumber(" + issuerdn + ", " + deltaCRL + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getLastCRLNumber(" + issuerdn + ", " + deltaCRL + ")");
     }
     int maxnumber = 0;
     Integer result =
@@ -300,8 +304,8 @@ public class CrlStoreSessionBean
     if (result != null) {
       maxnumber = result.intValue();
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getLastCRLNumber(" + maxnumber + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getLastCRLNumber(" + maxnumber + ")");
     }
     return maxnumber;
   }
@@ -311,7 +315,7 @@ public class CrlStoreSessionBean
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.CAACCESS.resource() + caid)) {
       final String msg =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "caadmin.notauthorizedtoca", admin.toString(), caid);
       throw new AuthorizationDeniedException(msg);
     }
