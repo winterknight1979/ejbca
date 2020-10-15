@@ -14,14 +14,12 @@ package org.cesecore.certificates.ocsp;
 
 import javax.ejb.Remote;
 
-
 /**
- * Remote interface for OcspResponseGeneratorSession
- * 
- * @version $Id: OcspResponseGeneratorSessionRemote.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Remote interface for OcspResponseGeneratorSession.
  *
+ * @version $Id: OcspResponseGeneratorSessionRemote.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 @Remote
-public interface OcspResponseGeneratorSessionRemote extends OcspResponseGeneratorSession {
-   
-}
+public interface OcspResponseGeneratorSessionRemote
+    extends OcspResponseGeneratorSession { }

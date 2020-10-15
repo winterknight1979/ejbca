@@ -13,24 +13,28 @@
 package org.cesecore.audit.audit;
 
 import javax.ejb.Local;
-
 import org.cesecore.audit.log.AuditLogResetException;
 
 /**
- * Local interface for the SecurityEventsAuditor
- * 
+ * Local interface for the SecurityEventsAuditor.
+ *
  * @see SecurityEventsAuditorSession
- * 
- * @version $Id: SecurityEventsAuditorSessionLocal.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: SecurityEventsAuditorSessionLocal.java 17625 2013-09-20
+ *     07:12:06Z netmackan $
  */
 @Local
-public interface SecurityEventsAuditorSessionLocal extends SecurityEventsAuditorSession {
+public interface SecurityEventsAuditorSessionLocal
+    extends SecurityEventsAuditorSession {
 
-    /** @throws AuditLogResetException on fail
-     * @see org.cesecore.audit.AuditLogDevice#prepareReset() */
-    void prepareReset() throws AuditLogResetException;
+  /**
+   * @throws AuditLogResetException on fail
+   * @see org.cesecore.audit.AuditLogDevice#prepareReset()
+   */
+  void prepareReset() throws AuditLogResetException;
 
-    /** @throws AuditLogResetException on fail
-     * @see org.cesecore.audit.AuditLogDevice#reset() */
-    void reset() throws AuditLogResetException;
+  /**
+   * @throws AuditLogResetException on fail
+   * @see org.cesecore.audit.AuditLogDevice#reset()
+   */
+  void reset() throws AuditLogResetException;
 }

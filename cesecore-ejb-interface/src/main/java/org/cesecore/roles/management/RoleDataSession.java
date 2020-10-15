@@ -14,13 +14,11 @@ package org.cesecore.roles.management;
 
 /**
  * Interface for low level Role operations.
- * 
+ *
  * @version $Id: RoleDataSession.java 26449 2017-08-28 20:05:53Z mikekushner $
  */
 public interface RoleDataSession {
 
-    /**
-     * Forces the RoleMemberData and AuthorizationToken caches to expire
-     */
-    void forceCacheExpire();
+  /** Forces the RoleMemberData and AuthorizationToken caches to expire. */
+  void forceCacheExpire();
 }

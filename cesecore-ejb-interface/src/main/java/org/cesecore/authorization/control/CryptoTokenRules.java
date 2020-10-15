@@ -14,33 +14,50 @@ package org.cesecore.authorization.control;
 
 /**
  * CryptoToken related access rules.
- * 
+ *
  * @version $Id: CryptoTokenRules.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public enum CryptoTokenRules {
-    BASE("/cryptotoken"),
-    MODIFY_CRYPTOTOKEN(BASE.resource() + "/modify"),
-    DELETE_CRYPTOTOKEN(BASE.resource() + "/delete"),
-    VIEW(BASE.resource() + "/view"),
-    USE(BASE.resource() + "/use"),
-    ACTIVATE(BASE.resource() + "/activate"),
-    DEACTIVATE(BASE.resource() + "/deactivate"),
-    GENERATE_KEYS(BASE.resource() + "/keys/generate"),
-    REMOVE_KEYS(BASE.resource() + "/keys/remove"),
-    TEST_KEYS(BASE.resource() + "/keys/test"),
-    ;
+    /** Base. */
+  BASE("/cryptotoken"),
+  /** Modify. */
+  MODIFY_CRYPTOTOKEN(BASE.resource() + "/modify"),
+  /** Delete. */
+  DELETE_CRYPTOTOKEN(BASE.resource() + "/delete"),
+  /** View. */
+  VIEW(BASE.resource() + "/view"),
+  /** Use. */
+  USE(BASE.resource() + "/use"),
+  /** Activate. */
+  ACTIVATE(BASE.resource() + "/activate"),
+  /** Deactivate. */
+  DEACTIVATE(BASE.resource() + "/deactivate"),
+  /** Keys. */
+  GENERATE_KEYS(BASE.resource() + "/keys/generate"),
+  /** Keys. */
+  REMOVE_KEYS(BASE.resource() + "/keys/remove"),
+  /** Keys. */
+  TEST_KEYS(BASE.resource() + "/keys/test");
 
-    private final String resource;
-    
-    private CryptoTokenRules(String resource) {
-        this.resource = resource;
-    }
+  /** Tesource. */
+  private final String resource;
 
-    public String resource() {
-        return this.resource;
-    }
+  /**
+   * @param aResource resource
+   */
+  CryptoTokenRules(final String aResource) {
+    this.resource = aResource;
+  }
 
-    public String toString() {
-        return this.resource;
-    }
+  /**
+   * @return resource
+   */
+  public String resource() {
+    return this.resource;
+  }
+
+  @Override
+  public String toString() {
+    return this.resource;
+  }
 }

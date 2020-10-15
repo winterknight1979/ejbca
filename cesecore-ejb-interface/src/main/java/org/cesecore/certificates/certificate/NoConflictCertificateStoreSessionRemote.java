@@ -16,10 +16,10 @@ import javax.ejb.Remote;
 
 /**
  * Remote interface for {@link NoConflictCertificateStoreSession}.
- * 
- * @version $Id: NoConflictCertificateStoreSessionRemote.java 28700 2018-04-13 06:47:48Z samuellb $
+ *
+ * @version $Id: NoConflictCertificateStoreSessionRemote.java 28700 2018-04-13
+ *     06:47:48Z samuellb $
  */
 @Remote
-public interface NoConflictCertificateStoreSessionRemote extends NoConflictCertificateStoreSession {
-
-}
+public interface NoConflictCertificateStoreSessionRemote
+    extends NoConflictCertificateStoreSession { }

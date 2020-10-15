@@ -17,29 +17,42 @@ import java.util.List;
 
 /**
  * POJO containing the results of importing a zip file of key validators.
- * 
- * @version $Id: ValidatorImportResult.java 26144 2017-07-10 07:15:34Z mikekushner $
  *
+ * @version $Id: ValidatorImportResult.java 26144 2017-07-10 07:15:34Z
+ *     mikekushner $
  */
 public class ValidatorImportResult implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    
-    private final List<Validator> importedValidators;
-    private final List<String> ignoredValidators;
+  private static final long serialVersionUID = 1L;
 
-    public ValidatorImportResult(List<Validator> importedValidators, List<String> ignoredValidators) {
-        super();
-        this.importedValidators = importedValidators;
-        this.ignoredValidators = ignoredValidators;
-    }
-    
-    public List<Validator> getImportedValidators() {
-        return importedValidators;
-    }
+  /** Validators. */
+  private final List<Validator> importedValidators;
+  /** Validators. */
+  private final List<String> ignoredValidators;
 
-    public List<String> getIgnoredValidators() {
-        return ignoredValidators;
-    }
-    
+  /**
+   * @param theimportedValidators validators
+   * @param theignoredValidators validators
+   */
+  public ValidatorImportResult(
+      final List<Validator> theimportedValidators,
+      final List<String> theignoredValidators) {
+    super();
+    this.importedValidators = theimportedValidators;
+    this.ignoredValidators = theignoredValidators;
+  }
+
+  /**
+   * @return validators
+   */
+  public List<Validator> getImportedValidators() {
+    return importedValidators;
+  }
+
+  /**
+   * @return Validators
+   */
+  public List<String> getIgnoredValidators() {
+    return ignoredValidators;
+  }
 }

@@ -14,39 +14,29 @@ package org.cesecore.roles;
 
 /**
  * @version $Id: RoleExistsException.java 17625 2013-09-20 07:12:06Z netmackan $
- *
  */
 public class RoleExistsException extends Exception {
 
+  private static final long serialVersionUID = -8498629513600190809L;
 
-    private static final long serialVersionUID = -8498629513600190809L;
+  /** */
+  public RoleExistsException() { }
 
-    /**
-     * 
-     */
-    public RoleExistsException() {
-    }
+  /** @param message message */
+  public RoleExistsException(final String message) {
+    super(message);
+  }
 
-    /**
-     * @param message message
-     */
-    public RoleExistsException(String message) {
-        super(message);
-    }
+  /** @param cause cause */
+  public RoleExistsException(final Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @param cause cause
-     */
-    public RoleExistsException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message message
-     * @param cause cause
-     */
-    public RoleExistsException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public RoleExistsException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

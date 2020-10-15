@@ -13,31 +13,34 @@
 package org.cesecore.certificates.certificate;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 
-/** Thrown if there is an error revoking a certificate, causes rollback.
- *  
- * @version $Id: CertificateRevokeException.java 17625 2013-09-20 07:12:06Z netmackan $
+/**
+ * Thrown if there is an error revoking a certificate, causes rollback.
+ *
+ * @version $Id: CertificateRevokeException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
-@ApplicationException(rollback=true)  
+@ApplicationException(rollback = true)
 public class CertificateRevokeException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
-    /**
-     * Constructor used to create exception with an errormessage. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human redable error message, can not be NULL.
-     */
-    public CertificateRevokeException(String message) {
-        super(message);
-    }
-    /**
-     * Constructs an instance of <code>IllegalKeyException</code> with the specified cause.
-     * @param e the detail message.
-     */
-    public CertificateRevokeException(Exception e) {
-        super(e);
-    }
+  private static final long serialVersionUID = 1L;
+  /**
+   * Constructor used to create exception with an errormessage. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human redable error message, can not be NULL.
+   */
+  public CertificateRevokeException(final String message) {
+    super(message);
+  }
+  /**
+   * Constructs an instance of <code>IllegalKeyException</code> with the
+   * specified cause.
+   *
+   * @param e the detail message.
+   */
+  public CertificateRevokeException(final Exception e) {
+    super(e);
+  }
 }

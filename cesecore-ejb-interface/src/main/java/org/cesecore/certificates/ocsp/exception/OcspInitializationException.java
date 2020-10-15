@@ -13,29 +13,39 @@
 package org.cesecore.certificates.ocsp.exception;
 
 /**
- * Thrown when an error is encountered while starting OCSP.  
- * 
- * @version $Id: OcspInitializationException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * Thrown when an error is encountered while starting OCSP.
  *
+ * @version $Id: OcspInitializationException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class OcspInitializationException extends RuntimeException {
 
-    private static final long serialVersionUID = -7920696456058508107L;
+  private static final long serialVersionUID = -7920696456058508107L;
+ /** Null constructor. */
+  public OcspInitializationException() {
+    super();
+  }
 
-    public OcspInitializationException() {
-        super();
-    }
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
+  public OcspInitializationException(
+      final String message, final Throwable cause) {
+    super(message, cause);
+  }
 
-    public OcspInitializationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message Message
+   */
+  public OcspInitializationException(final String message) {
+    super(message);
+  }
 
-    public OcspInitializationException(String message) {
-        super(message);
-    }
-
-    public OcspInitializationException(Throwable cause) {
-        super(cause);
-    }
-
+  /**
+   * @param cause Cause
+   */
+  public OcspInitializationException(final Throwable cause) {
+    super(cause);
+  }
 }

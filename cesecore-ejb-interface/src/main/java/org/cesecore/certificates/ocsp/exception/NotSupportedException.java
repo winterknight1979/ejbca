@@ -15,30 +15,30 @@ package org.cesecore.certificates.ocsp.exception;
 
 /**
  * Error due to some part of the request is not supported.
- * 
+ *
  * @version $Id: NotSupportedException.java 19902 2014-09-30 14:32:24Z anatom $
  */
-public class NotSupportedException extends Exception  {
- 
-    private static final long serialVersionUID = -3185825591813094581L;
+public class NotSupportedException extends Exception {
 
-    /**
-     * Constructor used to create exception with an errormessage. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human redable error message, can not be NULL.
-     */
-    public NotSupportedException(String message) {
-        super(message);
-    }
+  private static final long serialVersionUID = -3185825591813094581L;
 
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass <code>Exception</code>.
-     *
-     * @param exception exception to be embedded.
-     */
-    public NotSupportedException(Exception exception) {
-        super(exception);
-    }
+  /**
+   * Constructor used to create exception with an errormessage. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human redable error message, can not be NULL.
+   */
+  public NotSupportedException(final String message) {
+    super(message);
+  }
+
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass <code>Exception</code>.
+   *
+   * @param exception exception to be embedded.
+   */
+  public NotSupportedException(final Exception exception) {
+    super(exception);
+  }
 }

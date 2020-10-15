@@ -9,41 +9,45 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.ca;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
-
 /**
- * An exception thrown when someone tries to change or create a CA that doesn't already exits
+ * An exception thrown when someone tries to change or create a CA that doesn't
+ * already exits.
  *
  * @version $Id: CAExistsException.java 26048 2017-06-20 09:26:30Z anatom $
  */
 public class CAExistsException extends CesecoreException {
-    
-    private static final long serialVersionUID = 1212559890080635864L;
 
+  private static final long serialVersionUID = 1212559890080635864L;
 
-    /**
-     * Creates a new instance of <code>CAExistsException</code> without detail message.
-     */
-    public CAExistsException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>CAExistsException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CAExistsException(String msg) {
-        super(ErrorCode.CA_ALREADY_EXISTS, msg);
-    }
+  /**
+   * Creates a new instance of <code>CAExistsException</code> without detail
+   * message.
+   */
+  public CAExistsException() {
+    super();
+  }
 
+  /**
+   * Constructs an instance of <code>CAExistsException</code> with the specified
+   * detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CAExistsException(final String msg) {
+    super(ErrorCode.CA_ALREADY_EXISTS, msg);
+  }
 
-    public CAExistsException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * @param message message
+   * @param cause cause
+   */
+  public CAExistsException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
 }

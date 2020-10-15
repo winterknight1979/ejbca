@@ -1,4 +1,4 @@
- /*************************************************************************
+/*************************************************************************
  *                                                                       *
  *  CESeCore: CE Security Core                                           *
  *                                                                       *
@@ -13,12 +13,11 @@
 package org.cesecore.audit.impl.queued;
 
 import javax.ejb.Local;
-
 import org.cesecore.audit.AuditLogger;
 
 /**
- * @version $Id: QueuedLoggerSessionLocal.java 17625 2013-09-20 07:12:06Z netmackan $
- */  
+ * @version $Id: QueuedLoggerSessionLocal.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
+ */
 @Local
-public interface QueuedLoggerSessionLocal extends AuditLogger {
-}
+public interface QueuedLoggerSessionLocal extends AuditLogger { }

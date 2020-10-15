@@ -9,54 +9,71 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.certificate.request;
 
 import java.security.cert.Certificate;
 import java.util.List;
-
 import org.cesecore.certificates.certificate.Base64CertData;
 import org.cesecore.certificates.certificate.CertificateData;
 
 /**
  * Interface extending ResponseMessage to add certificate functionality.
- * 
- * @version $Id: CertificateResponseMessage.java 28201 2018-02-07 08:33:29Z andresjakobs $
  *
+ * @version $Id: CertificateResponseMessage.java 28201 2018-02-07 08:33:29Z
+ *     andresjakobs $
  */
 public interface CertificateResponseMessage extends ResponseMessage {
 
-    /**
-     * Gets the complete certificate in the response message.
-     *
-     * @return certificate in the response message.
-     */
-    Certificate getCertificate();
-    
-    /**
-     * Sets the complete certificate in the response message.
-     *
-     * @param cert certificate in the response message.
-     */
-    void setCertificate(Certificate cert);
-    
-    CertificateData getCertificateData();
+  /**
+   * Gets the complete certificate in the response message.
+   *
+   * @return certificate in the response message.
+   */
+  Certificate getCertificate();
 
-    void setCertificateData(CertificateData certificateData);
-    
-    Base64CertData getBase64CertData();
-    
-    void setBase64CertData(final Base64CertData base64CertData);
+  /**
+   * Sets the complete certificate in the response message.
+   *
+   * @param cert certificate in the response message.
+   */
+  void setCertificate(Certificate cert);
 
-    /**
-     * Adds a list of additional CA certificates to be appended to the user certificates CA certificate returned in the CMP response message caPubs field.
-     * @param certificates the CA certificates to add.
-     */
-    void addAdditionalCaCertificates(final List<Certificate> certificates);
-    
-    /**
-     * Adds a list of additional CA certificates to be appended to the outer PKI message signing CA in its extraCerts field).
-     * @param certificates the CA certificates to add.
-     */
-    void addAdditionalResponseExtraCertsCertificates(final List<Certificate> certificates);
+  /**
+   * @return data
+   */
+  CertificateData getCertificateData();
+
+  /**
+   * @param certificateData data
+   */
+  void setCertificateData(CertificateData certificateData);
+
+  /**
+   * @return Data
+   */
+  Base64CertData getBase64CertData();
+
+  /**
+   * @param base64CertData Data
+   */
+  void setBase64CertData(Base64CertData base64CertData);
+
+  /**
+   * Adds a list of additional CA certificates to be appended to the user
+   * certificates CA certificate returned in the CMP response message caPubs
+   * field.
+   *
+   * @param certificates the CA certificates to add.
+   */
+  void addAdditionalCaCertificates(List<Certificate> certificates);
+
+  /**
+   * Adds a list of additional CA certificates to be appended to the outer PKI
+   * message signing CA in its extraCerts field).
+   *
+   * @param certificates the CA certificates to add.
+   */
+  void addAdditionalResponseExtraCertsCertificates(
+       List<Certificate> certificates);
 }

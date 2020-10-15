@@ -9,51 +9,60 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.keys.token;
 
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to create a CryptoToken with an existing name.
+ * An exception thrown when someone tries to create a CryptoToken with an
+ * existing name.
  *
- * @version $Id: CryptoTokenNameInUseException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: CryptoTokenNameInUseException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class CryptoTokenNameInUseException extends CesecoreException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Creates a new instance of <code>CryptoTokenNameInUseException</code> without detail message.
-     */
-    public CryptoTokenNameInUseException() {
-        super();
-        super.setErrorCode(ErrorCode.CRYPTOTOKEN_NAME_IN_USE);
-    }
+  /**
+   * Creates a new instance of <code>CryptoTokenNameInUseException</code>
+   * without detail message.
+   */
+  public CryptoTokenNameInUseException() {
+    super();
+    super.setErrorCode(ErrorCode.CRYPTOTOKEN_NAME_IN_USE);
+  }
 
-    /**
-     * Constructs an instance of <code>CryptoTokenNameInUseException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public CryptoTokenNameInUseException(String msg) {
-        super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg);
-    }
+  /**
+   * Constructs an instance of <code>CryptoTokenNameInUseException</code> with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public CryptoTokenNameInUseException(final String msg) {
+    super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg);
+  }
 
-    /**
-     * Constructs an instance of <code>CryptoTokenNameInUseException</code> with the specified detail message.
-     * @param exception the exception that caused this
-     */
-    public CryptoTokenNameInUseException(Exception exception) {
-        super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, exception);
-    }
+  /**
+   * Constructs an instance of <code>CryptoTokenNameInUseException</code> with
+   * the specified detail message.
+   *
+   * @param exception the exception that caused this
+   */
+  public CryptoTokenNameInUseException(final Exception exception) {
+    super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, exception);
+  }
 
-    /**
-     * Constructs an instance of <code>CryptoTokenNameInUseException</code> with the specified detail message.
-     * @param msg the detail message.
-     * @param e the exception that caused this
-     */
-    public CryptoTokenNameInUseException(String msg, Exception e) {
-        super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg, e);
-    }
+  /**
+   * Constructs an instance of <code>CryptoTokenNameInUseException</code> with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   * @param e the exception that caused this
+   */
+  public CryptoTokenNameInUseException(final String msg, final Exception e) {
+    super(ErrorCode.CRYPTOTOKEN_NAME_IN_USE, msg, e);
+  }
 }

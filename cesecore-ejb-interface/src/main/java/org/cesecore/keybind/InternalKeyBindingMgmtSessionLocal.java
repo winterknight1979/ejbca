@@ -16,71 +16,88 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 import javax.ejb.Local;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
 
 /**
  * @see InternalKeyBindingMgmtSession
- * @version $Id: InternalKeyBindingMgmtSessionLocal.java 28216 2018-02-08 12:19:01Z henriks $
+ * @version $Id: InternalKeyBindingMgmtSessionLocal.java 28216 2018-02-08
+ *     12:19:01Z henriks $
  */
 @Local
-public interface InternalKeyBindingMgmtSessionLocal extends InternalKeyBindingMgmtSession {
-       
-    /**
-     * Returns a list of all internal key bindings of a certain type, as {@link InternalKeyBindingInfo}s
-     * 
-     * @param internalKeyBindingType the key binding type
-     * @return a list of all internal key bindings of that type, as {@link InternalKeyBindingInfo}s
-     */
-    List<InternalKeyBindingInfo> getAllInternalKeyBindingInfos(String internalKeyBindingType);
-    
-    /**
-     * Internal (local only) method to get keybinding info without logging the authorization check
-     * (the auth check is performed though).
-     * @param authenticationToken Token
-     * @param internalKeyBindingId Binding
-     * @return Binding Info
-     * @throws AuthorizationDeniedException if access denied
-     * 
-     * @see #getInternalKeyBindingInfo
-     */
-    InternalKeyBindingInfo getInternalKeyBindingInfoNoLog(AuthenticationToken authenticationToken, int internalKeyBindingId) throws AuthorizationDeniedException;
+public interface InternalKeyBindingMgmtSessionLocal
+    extends InternalKeyBindingMgmtSession {
 
-    /**
-     * Get a reference to a cached InternalKeyBinding object that MAY NOT be modified.
-     * 
-     * @param authenticationToken is the authentication token
-     * @param internalKeyBindingId is the identifier of the InternalKeyBinding
-     * @return the InternalKeyBinding for the requested Id or null if none was found
-     * @throws AuthorizationDeniedException if the authentication token was not authorized to fetch the requested InternalKeyBinding
-     */
-    InternalKeyBinding getInternalKeyBindingReference(AuthenticationToken authenticationToken, int internalKeyBindingId) throws AuthorizationDeniedException;
+  /**
+   * Returns a list of all internal key bindings of a certain type, as {@link
+   * InternalKeyBindingInfo}s.
+   *
+   * @param internalKeyBindingType the key binding type
+   * @return a list of all internal key bindings of that type, as {@link
+   *     InternalKeyBindingInfo}s
+   */
+  List<InternalKeyBindingInfo> getAllInternalKeyBindingInfos(
+      String internalKeyBindingType);
 
-    /**
-     * Returns a collection of the trusted certificates defined in internalKeyBinding along with their issuers' certificate chains.
-     * 
-     * - If the list of trusted certificates in internalKeyBinding contains certificate serial number(s), only the certificates with these specific serial numbers
-     *   are trusted
-     * - If only trusted CAs are specified in internalKeyBinding, all certificates issued by the specified CAs will be trusted.
-     * - If the list of trusted certificates in internalKeyBinding is empty, all certificates issued by all CAs known to this instance of EJBCA are trusted
-     * - If the list of trusted certificates in internalKeyBinding is null, no certificates will be trusted.
-     *
-     * 
-     * @param internalKeyBinding Binding
-     * @return a collection of the trusted certificates along with their issuers' certificate chains or null if no trusted certificates or CAs are specified
-     * @throws CADoesntExistsException IF CA not found
-     */
-    List< Collection<X509Certificate> > getListOfTrustedCertificates(InternalKeyBinding internalKeyBinding) throws CADoesntExistsException;
+  /**
+   * Internal (local only) method to get keybinding info without logging the
+   * authorization check (the auth check is performed though).
+   *
+   * @param authenticationToken Token
+   * @param internalKeyBindingId Binding
+   * @return Binding Info
+   * @throws AuthorizationDeniedException if access denied
+   * @see #getInternalKeyBindingInfo
+   */
+  InternalKeyBindingInfo getInternalKeyBindingInfoNoLog(
+      AuthenticationToken authenticationToken, int internalKeyBindingId)
+      throws AuthorizationDeniedException;
 
-    /**
-     * Returns a id-to-name map of all internal key bindings of the given type 
-     * 
-     * @param internalKeyBindingType null for all types
-     * @return id-name map of internal key bindings
-     */
-    Map<Integer, String> getAllInternalKeyBindingIdNameMap(String internalKeyBindingType);
+  /**
+   * Get a reference to a cached InternalKeyBinding object that MAY NOT be
+   * modified.
+   *
+   * @param authenticationToken is the authentication token
+   * @param internalKeyBindingId is the identifier of the InternalKeyBinding
+   * @return the InternalKeyBinding for the requested Id or null if none was
+   *     found
+   * @throws AuthorizationDeniedException if the authentication token was not
+   *     authorized to fetch the requested InternalKeyBinding
+   */
+  InternalKeyBinding getInternalKeyBindingReference(
+      AuthenticationToken authenticationToken, int internalKeyBindingId)
+      throws AuthorizationDeniedException;
+
+  /**
+   * Returns a collection of the trusted certificates defined in
+   * internalKeyBinding along with their issuers' certificate chains.
+   *
+   * <p>- If the list of trusted certificates in internalKeyBinding contains
+   * certificate serial number(s), only the certificates with these specific
+   * serial numbers are trusted - If only trusted CAs are specified in
+   * internalKeyBinding, all certificates issued by the specified CAs will be
+   * trusted. - If the list of trusted certificates in internalKeyBinding is
+   * empty, all certificates issued by all CAs known to this instance of EJBCA
+   * are trusted - If the list of trusted certificates in internalKeyBinding is
+   * null, no certificates will be trusted.
+   *
+   * @param internalKeyBinding Binding
+   * @return a collection of the trusted certificates along with their issuers'
+   *     certificate chains or null if no trusted certificates or CAs are
+   *     specified
+   * @throws CADoesntExistsException IF CA not found
+   */
+  List<Collection<X509Certificate>> getListOfTrustedCertificates(
+      InternalKeyBinding internalKeyBinding) throws CADoesntExistsException;
+
+  /**
+   * Returns a id-to-name map of all internal key bindings of the given type.
+   *
+   * @param internalKeyBindingType null for all types
+   * @return id-name map of internal key bindings
+   */
+  Map<Integer, String> getAllInternalKeyBindingIdNameMap(
+      String internalKeyBindingType);
 }

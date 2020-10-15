@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
-
+ *
  *  CESeCore: CE Security Core                                           *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
@@ -14,41 +14,46 @@
 package org.cesecore.authorization.cache;
 
 import javax.ejb.Local;
-
 import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
 
 /**
- * @version $Id: AccessTreeUpdateSessionLocal.java 25311 2017-02-21 19:07:00Z jeklund $
+ * @version $Id: AccessTreeUpdateSessionLocal.java 25311 2017-02-21 19:07:00Z
+ *     jeklund $
  */
 @Local
 public interface AccessTreeUpdateSessionLocal {
 
-    /**
-     * Method incrementing the authorization tree update number and thereby
-     * signaling to other beans that they should reconstruct their access trees.
-     */
-    void signalForAccessTreeUpdate();
-    
-    /**
-     * Method returning the newest authorizationtreeupdatenumber.
-     * Should be checked when the access tree cache has expired to avoid rebuilding the tree if there are no database changes. 
-     * @return int
-     */
-    int getAccessTreeUpdateNumber();
-    
+  /**
+   * Method incrementing the authorization tree update number and thereby
+   * signaling to other beans that they should reconstruct their access trees.
+   */
+  void signalForAccessTreeUpdate();
 
-    /**
-     * Adds a method to be triggered when the authorization cache should be reloaded.
-     * The event is called synchronously.
-     * <p>
-     * This is a workaround until we can use JEE Events.
-     * @param listener listener
-     */
-    void addReloadEvent(AuthorizationCacheReloadListener listener);
+  /**
+   * Method returning the newest authorizationtreeupdatenumber. Should be
+   * checked when the access tree cache has expired to avoid rebuilding the tree
+   * if there are no database changes.
+   *
+   * @return int
+   */
+  int getAccessTreeUpdateNumber();
 
-    /** @return true after EJBCA 6.8.0 post upgrade has completed where we now combine multiple matched roles' access rules */
-    boolean isNewAuthorizationPatternMarkerPresent();
+  /**
+   * Adds a method to be triggered when the authorization cache should be
+   * reloaded. The event is called synchronously.
+   *
+   * <p>This is a workaround until we can use JEE Events.
+   *
+   * @param listener listener
+   */
+  void addReloadEvent(AuthorizationCacheReloadListener listener);
 
-    /** @see #isNewAuthorizationPatternMarkerPresent() */
-    void setNewAuthorizationPatternMarker();
+  /**
+   * @return true after EJBCA 6.8.0 post upgrade has completed where we now
+   *     combine multiple matched roles' access rules
+   */
+  boolean isNewAuthorizationPatternMarkerPresent();
+
+  /** @see #isNewAuthorizationPatternMarkerPresent() */
+  void setNewAuthorizationPatternMarker();
 }

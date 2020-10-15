@@ -17,49 +17,66 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Test of LogServiceState.  
- * 
+ * Test of LogServiceState.
+ *
  * @version $Id: LogServiceStateTest.java 16148 2013-01-19 17:04:56Z anatom $
  */
 public class LogServiceStateTest {
 
-	private static final String MSG_NOT_DISABLED = "LogServiceState was not disabled as expected.";
-	private static final String MSG_NOT_ENABLED = "LogServiceState was not enabled as expected.";
-	private static final String MSG_SAME_TWICE = "No Exception when state was set to the same twice.";
+      /** mESSAGE. */
+  private static final String MSG_NOT_DISABLED =
+      "LogServiceState was not disabled as expected.";
+  /** mESSAGE. */
+  private static final String MSG_NOT_ENABLED =
+      "LogServiceState was not enabled as expected.";
+  /** mESSAGE. */
+  private static final String MSG_SAME_TWICE =
+      "No Exception when state was set to the same twice.";
+  /**
+   * Test.
+   * @throws AuditLogResetException fail
+   */
+  @Test
+  public void testStateChanges() throws AuditLogResetException {
+    // We want to run this test twice to toggle it back and forth..
+    stateChangesInternalTest();
+    stateChangesInternalTest();
+  }
 
-	@Test
-	public void testStateChanges() throws AuditLogResetException {
-		// We want to run this test twice to toggle it back and forth..
-	    stateChangesInternalTest();
-	    stateChangesInternalTest();
-	}
-
-	public void stateChangesInternalTest() throws AuditLogResetException {
-		// Since it is a singleton, we go with the state it happens to be in.
-		final boolean originalStateDisabled = LogServiceState.INSTANCE.isDisabled();
-		// Toggle the state once and verify that it changed.
-		if (originalStateDisabled) {
-			LogServiceState.INSTANCE.enable();
-			Assert.assertFalse(MSG_NOT_ENABLED, LogServiceState.INSTANCE.isDisabled());
-		} else {
-			LogServiceState.INSTANCE.disable();
-			Assert.assertTrue(MSG_NOT_DISABLED, LogServiceState.INSTANCE.isDisabled());
-		}
-		// Toggle the state a second time, verify that this results in a Exception and that the state is the same.
-		if (originalStateDisabled) {
-			try {
-				LogServiceState.INSTANCE.enable();
-				Assert.fail(MSG_SAME_TWICE);
-			} catch (AuditLogResetException e) {
-				Assert.assertFalse(MSG_NOT_ENABLED, LogServiceState.INSTANCE.isDisabled());
-			}
-		} else {
-			try {
-				LogServiceState.INSTANCE.disable();
-				Assert.fail(MSG_SAME_TWICE);
-			} catch (AuditLogResetException e) {
-				Assert.assertTrue(MSG_NOT_DISABLED, LogServiceState.INSTANCE.isDisabled());
-			}
-		}
-	}
+  /**
+   * @throws AuditLogResetException FAIL
+   */
+  public void stateChangesInternalTest() throws AuditLogResetException {
+    // Since it is a singleton, we go with the state it happens to be in.
+    final boolean originalStateDisabled = LogServiceState.INSTANCE.isDisabled();
+    // Toggle the state once and verify that it changed.
+    if (originalStateDisabled) {
+      LogServiceState.INSTANCE.enable();
+      Assert.assertFalse(
+          MSG_NOT_ENABLED, LogServiceState.INSTANCE.isDisabled());
+    } else {
+      LogServiceState.INSTANCE.disable();
+      Assert.assertTrue(
+          MSG_NOT_DISABLED, LogServiceState.INSTANCE.isDisabled());
+    }
+    // Toggle the state a second time, verify that this results in a Exception
+    // and that the state is the same.
+    if (originalStateDisabled) {
+      try {
+        LogServiceState.INSTANCE.enable();
+        Assert.fail(MSG_SAME_TWICE);
+      } catch (AuditLogResetException e) {
+        Assert.assertFalse(
+            MSG_NOT_ENABLED, LogServiceState.INSTANCE.isDisabled());
+      }
+    } else {
+      try {
+        LogServiceState.INSTANCE.disable();
+        Assert.fail(MSG_SAME_TWICE);
+      } catch (AuditLogResetException e) {
+        Assert.assertTrue(
+            MSG_NOT_DISABLED, LogServiceState.INSTANCE.isDisabled());
+      }
+    }
+  }
 }

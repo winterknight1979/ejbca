@@ -16,20 +16,27 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * Exception used in order to catch the error that we're trying to create a certificate that already exists.
- * 
- * @version $Id: CertificateSerialNumberException.java 26057 2017-06-22 08:08:34Z anatom $
+ * Exception used in order to catch the error that we're trying to create a
+ * certificate that already exists.
+ *
+ * @version $Id: CertificateSerialNumberException.java 26057 2017-06-22
+ *     08:08:34Z anatom $
  */
 public class CertificateSerialNumberException extends CesecoreException {
 
-    private static final long serialVersionUID = -2969078756967846634L;
+  private static final long serialVersionUID = -2969078756967846634L;
 
-    public CertificateSerialNumberException(String message) {
-        super(ErrorCode.SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS, message);
-    }
+  /**
+   * @param message Message
+   */
+  public CertificateSerialNumberException(final String message) {
+    super(ErrorCode.SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS, message);
+  }
 
-    public CertificateSerialNumberException(Exception e) {
-        super(ErrorCode.SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS, e);
-    }
-
+  /**
+   * @param e Cause
+   */
+  public CertificateSerialNumberException(final Exception e) {
+    super(ErrorCode.SUBJECTDN_SERIALNUMBER_ALREADY_EXISTS, e);
+  }
 }

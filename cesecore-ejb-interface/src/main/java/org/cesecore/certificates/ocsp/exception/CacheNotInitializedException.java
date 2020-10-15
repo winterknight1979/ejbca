@@ -13,30 +13,42 @@
 package org.cesecore.certificates.ocsp.exception;
 
 /**
- * This exception is thrown in the case that a cache is accessed before it is initialized.  
- * 
- * @version $Id: CacheNotInitializedException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * This exception is thrown in the case that a cache is accessed before it is
+ * initialized.
  *
+ * @version $Id: CacheNotInitializedException.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 public class CacheNotInitializedException extends RuntimeException {
 
-    private static final long serialVersionUID = -2298500892023694050L;
-    
-    public CacheNotInitializedException() {
-        super();
-    }
+  private static final long serialVersionUID = -2298500892023694050L;
 
-    public CacheNotInitializedException(String arg0, Throwable arg1) {
-        super(arg0, arg1);
-    }
+  /**
+   * Blank.
+   */
+  public CacheNotInitializedException() {
+    super();
+  }
 
-    public CacheNotInitializedException(String arg0) {
-        super(arg0);
-    }
+  /**
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
+  public CacheNotInitializedException(final String arg0, final Throwable arg1) {
+    super(arg0, arg1);
+  }
 
-    public CacheNotInitializedException(Throwable arg0) {
-        super(arg0);
-    }
+  /**
+   * @param arg0 Message
+   */
+  public CacheNotInitializedException(final String arg0) {
+    super(arg0);
+  }
 
-    
+  /**
+   * @param arg0 Cause
+   */
+  public CacheNotInitializedException(final Throwable arg0) {
+    super(arg0);
+  }
 }

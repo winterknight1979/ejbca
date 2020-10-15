@@ -12,16 +12,14 @@
  *************************************************************************/
 package org.cesecore.roles.member;
 
-
 /**
- * CRUD session bean for managing RoleMemberData objects
- * 
- * @version $Id: RoleMemberDataSession.java 26449 2017-08-28 20:05:53Z mikekushner $
+ * CRUD session bean for managing RoleMemberData objects.
+ *
+ * @version $Id: RoleMemberDataSession.java 26449 2017-08-28 20:05:53Z
+ *     mikekushner $
  */
 public interface RoleMemberDataSession {
-    
-    /**
-     * Forces the RoleData cache to expire
-     */
-    void forceCacheExpire();
+
+  /** Forces the RoleData cache to expire. */
+  void forceCacheExpire();
 }

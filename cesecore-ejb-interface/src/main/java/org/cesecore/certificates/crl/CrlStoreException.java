@@ -9,54 +9,52 @@
  *                                                                       *
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
- *************************************************************************/ 
+ *************************************************************************/
 package org.cesecore.certificates.crl;
 
 import javax.ejb.ApplicationException;
-
 import org.cesecore.CesecoreException;
 
-
 /**
- * An exception thrown when an error happens trying to add CRLs to the CRL store. 
- * If this happens any transaction depending on this should be rolled back.
- * 
+ * An exception thrown when an error happens trying to add CRLs to the CRL
+ * store. If this happens any transaction depending on this should be rolled
+ * back.
  *
  * @version $Id: CrlStoreException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-@ApplicationException(rollback=true)  
+@ApplicationException(rollback = true)
 public class CrlStoreException extends CesecoreException {
-    
-    private static final long serialVersionUID = -642610825885468919L;
 
+  private static final long serialVersionUID = -642610825885468919L;
 
-    /**
-     * Creates a new instance of exception without detail message.
-     * Marked as rollback=true
-     * @see CrlStoreException
-     */
-    public CrlStoreException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of exception with the specified detail message.
-     * Marked as rollback=true
-     * @see CrlStoreException
-     * @param msg the detail message.
-     */
-    public CrlStoreException(String msg) {
-        super(msg);
-    }
+  /**
+   * Creates a new instance of exception without detail message. Marked as
+   * rollback=true
+   *
+   * @see CrlStoreException
+   */
+  public CrlStoreException() {
+    super();
+  }
 
-    /** 
-     * Marked as rollback=true
-     * @see CrlStoreException
-     * @param e causing exception that will be wrapped
-     */
-    public CrlStoreException(Exception e) {
-        super(e);
-    }
+  /**
+   * Constructs an instance of exception with the specified detail message.
+   * Marked as rollback=true
+   *
+   * @see CrlStoreException
+   * @param msg the detail message.
+   */
+  public CrlStoreException(final String msg) {
+    super(msg);
+  }
 
+  /**
+   * Marked as rollback=true.
+   *
+   * @see CrlStoreException
+   * @param e causing exception that will be wrapped
+   */
+  public CrlStoreException(final Exception e) {
+    super(e);
+  }
 }

@@ -13,37 +13,41 @@
 package org.cesecore.audit.impl.queued;
 
 import java.util.Date;
-
 import javax.ejb.Local;
-
 import org.cesecore.audit.Auditable;
 import org.cesecore.audit.log.AuditLogResetException;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
- * @version $Id: QueuedAuditorSessionLocal.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: QueuedAuditorSessionLocal.java 17625 2013-09-20 07:12:06Z
+ *     netmackan $
  */
 @Local
 public interface QueuedAuditorSessionLocal extends Auditable {
 
-    /**
-     * Prepares the secure audit log mechanism for reset.
-     * This method will block till all audit log processes are completed. 
-     * Should be used with caution because once called audit log will not be operational. 
-     * Any attempt to log will result in an exception.
-     * @throws AuditLogResetException On fail
-     */
-    void prepareReset() throws AuditLogResetException;
+  /**
+   * Prepares the secure audit log mechanism for reset. This method will block
+   * till all audit log processes are completed. Should be used with caution
+   * because once called audit log will not be operational. Any attempt to log
+   * will result in an exception.
+   *
+   * @throws AuditLogResetException On fail
+   */
+  void prepareReset() throws AuditLogResetException;
 
-    /**
-     * Resets all security audit events logger internal state.
-     * Once this method finishes the audit log will be available again.
-     * This method should be used with caution.
-     * @throws AuditLogResetException On fail
-     */
-    void reset() throws AuditLogResetException;
-    
-    
-    void delete(AuthenticationToken token, Date timestamp);
+  /**
+   * Resets all security audit events logger internal state. Once this method
+   * finishes the audit log will be available again. This method should be used
+   * with caution.
+   *
+   * @throws AuditLogResetException On fail
+   */
+  void reset() throws AuditLogResetException;
 
+  /**
+   * Delete.
+   * @param token token
+   * @param timestamp time
+   */
+  void delete(AuthenticationToken token, Date timestamp);
 }
