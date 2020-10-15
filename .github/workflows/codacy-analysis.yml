@@ -30,6 +30,10 @@ jobs:
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
+      - name: cleanup working tree
+        run: |
+               git config --global user.name "GitHub Actions" && git config --global user.email "actions@users.noreply.github.com"
+               git commit -am 'cleanup'
       - name: setup env
         run: echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
       - name: Build
