@@ -23,8 +23,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
      
-      - name: Build
-        - run: |
+      
+      - run: |
           echo 'APPSRV_HOME=~' >> $GITHUB_ENV 
           @mvn -fn -B -Pjboss -DskipTests=true clean verify
      
