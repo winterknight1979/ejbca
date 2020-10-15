@@ -31,42 +31,55 @@ public class CertificateDataWrapper
         Serializable {
 
   private static final long serialVersionUID = 1L;
-
+/** Data. */
   private final BaseCertificateData certificateData;
+  /** Dara. */
   private final Base64CertData base64CertData;
+  /** Bytes. */
   private final byte[] certificateBytes;
+  /**
+   * Cert. */
   private transient Certificate certificate = null;
 
+  /**
+   * @param theCertificate Cert
+   * @param theCertificateData Data
+   * @param theBase64CertData B64
+   */
   public CertificateDataWrapper(
-      final Certificate certificate,
-      final CertificateData certificateData,
-      final Base64CertData base64CertData) {
-    this.certificate = certificate;
-    if (certificate == null) {
+      final Certificate theCertificate,
+      final CertificateData theCertificateData,
+      final Base64CertData theBase64CertData) {
+    this.certificate = theCertificate;
+    if (theCertificate == null) {
       this.certificateBytes = null;
     } else {
       try {
-        this.certificateBytes = certificate.getEncoded();
+        this.certificateBytes = theCertificate.getEncoded();
       } catch (CertificateEncodingException e) {
         throw new IllegalStateException(e);
       }
     }
-    if (certificateData != null) {
-      this.certificateData = new CertificateData(certificateData);
+    if (theCertificateData != null) {
+      this.certificateData = new CertificateData(theCertificateData);
     } else {
       this.certificateData = null;
     }
-    if (base64CertData != null) {
-      this.base64CertData = new Base64CertData(base64CertData);
+    if (theBase64CertData != null) {
+      this.base64CertData = new Base64CertData(theBase64CertData);
     } else {
       this.base64CertData = null;
     }
   }
 
+  /**
+   * @param theCertificateData Data
+   * @param theBase64CertData Data
+   */
   public CertificateDataWrapper(
-      final CertificateData certificateData,
-      final Base64CertData base64CertData) {
-    this.certificate = certificateData.getCertificate(base64CertData);
+      final CertificateData theCertificateData,
+      final Base64CertData theBase64CertData) {
+    this.certificate = theCertificateData.getCertificate(theBase64CertData);
     if (certificate == null) {
       this.certificateBytes = null;
     } else {
@@ -76,14 +89,17 @@ public class CertificateDataWrapper
         throw new IllegalStateException(e);
       }
     }
-    this.certificateData = new CertificateData(certificateData);
-    if (base64CertData != null) {
-      this.base64CertData = new Base64CertData(base64CertData);
+    this.certificateData = new CertificateData(theCertificateData);
+    if (theBase64CertData != null) {
+      this.base64CertData = new Base64CertData(theBase64CertData);
     } else {
       this.base64CertData = null;
     }
   }
 
+  /**
+   * @param noConflictCertData Data
+   */
   public CertificateDataWrapper(
       final NoConflictCertificateData noConflictCertData) {
     this.certificateData = noConflictCertData;
@@ -103,7 +119,7 @@ public class CertificateDataWrapper
 
   /**
    * Returns the CertificateData entity object, or throws if the certificate is
-   * stored in NoConflictCertificateData
+   * stored in NoConflictCertificateData.
    *
    * @return CertificateData object. Do not modify the returned object!
    *     Modifications might not be written back to the database.
@@ -131,6 +147,9 @@ public class CertificateDataWrapper
     }
   }
 
+  /**
+   * @return Data
+   */
   public Base64CertData getBase64CertData() {
     return base64CertData;
   }

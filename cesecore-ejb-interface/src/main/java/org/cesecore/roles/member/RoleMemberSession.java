@@ -82,7 +82,7 @@ public interface RoleMemberSession {
    * @throws AuthorizationDeniedException if access denied
    */
   boolean remove(
-      final AuthenticationToken authenticationToken, final int roleMemberId)
+      AuthenticationToken authenticationToken, int roleMemberId)
       throws AuthorizationDeniedException;
 
   /**

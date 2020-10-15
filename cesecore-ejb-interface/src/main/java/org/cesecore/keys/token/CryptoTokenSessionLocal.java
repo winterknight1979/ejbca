@@ -33,7 +33,7 @@ public interface CryptoTokenSessionLocal extends CryptoTokenSession {
 
   /**
    * Add the specified CryptoToken to the database and return the id used to
-   * store it
+   * store it.
    *
    * @param cryptoToken Token
    * @return Merged token
@@ -49,7 +49,7 @@ public interface CryptoTokenSessionLocal extends CryptoTokenSession {
    * @return true if crypto token exists and is deleted, false if crypto token
    *     with given id does not exist
    */
-  boolean removeCryptoToken(final int cryptoTokenId);
+  boolean removeCryptoToken(int cryptoTokenId);
 
   /** @return a list of all CryptoToken identifiers in the database. */
   List<Integer> getCryptoTokenIds();
@@ -68,7 +68,7 @@ public interface CryptoTokenSessionLocal extends CryptoTokenSession {
 
   /**
    * Clears the CryptoToken cache except for the cache entries specified in
-   * excludeIDs
+   * excludeIDs.
    *
    * @param excludeIDs IDs to exclude
    */

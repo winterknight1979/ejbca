@@ -20,4 +20,4 @@ import org.cesecore.audit.AuditLogger;
  *     07:12:06Z netmackan $
  */
 @Local
-public interface IntegrityProtectedLoggerSessionLocal extends AuditLogger {}
+public interface IntegrityProtectedLoggerSessionLocal extends AuditLogger { }

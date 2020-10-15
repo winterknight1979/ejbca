@@ -22,18 +22,30 @@ public class RoleNotFoundException extends Exception {
 
   private static final long serialVersionUID = 3905530918766837916L;
 
+  /** Null.
+   */
   public RoleNotFoundException() {
     super();
   }
 
+  /**
+   * @param arg0 message
+   * @param arg1 cause
+   */
   public RoleNotFoundException(final String arg0, final Throwable arg1) {
     super(arg0, arg1);
   }
 
+  /**
+   * @param arg0 Message.
+   */
   public RoleNotFoundException(final String arg0) {
     super(arg0);
   }
 
+  /**
+   * @param arg0 cause
+   */
   public RoleNotFoundException(final Throwable arg0) {
     super(arg0);
   }

@@ -30,25 +30,29 @@ import org.junit.Test;
  */
 public class AuditExporterXmlTest {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(AuditExporterXmlTest.class);
-
+  /**
+   * Test.
+   * @throws IOException fail
+   */
   @Test
   public void testExportAndParse() throws IOException {
-    final String KEY1 = "key1";
-    final String KEY2 = "key2";
-    final Long VALUE1 = Long.MIN_VALUE;
-    final String VALUE2 = "ĞİŞğışÅÄÖåäözxcvbnm;<>&!;&lt;&amp;";
+    final String key1 = "key1";
+    final String key2 = "key2";
+    final Long value1 = Long.MIN_VALUE;
+    final String value2 = "ĞİŞğışÅÄÖåäözxcvbnm;<>&!;&lt;&amp;";
     final AuditExporter auditExporter = new AuditExporterXml();
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     auditExporter.setOutputStream(baos);
     auditExporter.writeStartObject();
-    auditExporter.writeField(KEY1, VALUE1);
-    auditExporter.writeField(KEY2, VALUE2);
+    auditExporter.writeField(key1, value1);
+    auditExporter.writeField(key2, value2);
     auditExporter.writeEndObject();
     auditExporter.close();
     final String result = baos.toString("UTF8");
-    log.info(result);
+    LOG.info(result);
     // Verify that we can parse the "export"
     final LinkedHashMap<?, ?> parsed;
     try (SecureXMLDecoder decoder =
@@ -57,9 +61,9 @@ public class AuditExporterXmlTest {
                 result.getBytes(StandardCharsets.UTF_8)))) {
       parsed = (LinkedHashMap<?, ?>) decoder.readObject();
     }
-    log.info(KEY1 + "=" + parsed.get(KEY1));
-    Assert.assertEquals(VALUE1, parsed.get(KEY1));
-    log.info(KEY2 + "=" + parsed.get(KEY2));
-    Assert.assertEquals(VALUE2, parsed.get(KEY2));
+    LOG.info(key1 + "=" + parsed.get(key1));
+    Assert.assertEquals(value1, parsed.get(key1));
+    LOG.info(key2 + "=" + parsed.get(key2));
+    Assert.assertEquals(value2, parsed.get(key2));
   }
 }

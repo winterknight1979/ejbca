@@ -22,4 +22,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface GlobalConfigurationSessionRemote
-    extends GlobalConfigurationSession {}
+    extends GlobalConfigurationSession { }

@@ -25,21 +25,33 @@ public class ValidatorImportResult implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Validators. */
   private final List<Validator> importedValidators;
+  /** Validators. */
   private final List<String> ignoredValidators;
 
+  /**
+   * @param theimportedValidators validators
+   * @param theignoredValidators validators
+   */
   public ValidatorImportResult(
-      final List<Validator> importedValidators,
-      final List<String> ignoredValidators) {
+      final List<Validator> theimportedValidators,
+      final List<String> theignoredValidators) {
     super();
-    this.importedValidators = importedValidators;
-    this.ignoredValidators = ignoredValidators;
+    this.importedValidators = theimportedValidators;
+    this.ignoredValidators = theignoredValidators;
   }
 
+  /**
+   * @return validators
+   */
   public List<Validator> getImportedValidators() {
     return importedValidators;
   }
 
+  /**
+   * @return Validators
+   */
   public List<String> getIgnoredValidators() {
     return ignoredValidators;
   }

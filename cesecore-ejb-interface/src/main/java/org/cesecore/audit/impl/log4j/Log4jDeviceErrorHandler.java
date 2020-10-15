@@ -26,12 +26,17 @@ import org.apache.log4j.spi.LoggingEvent;
  */
 public class Log4jDeviceErrorHandler implements ErrorHandler {
 
+    /** OK. */
   private boolean ok = true;
 
+  /** Handler. */
   private final ErrorHandler errorHandler;
 
-  public Log4jDeviceErrorHandler(final ErrorHandler errorHandler) {
-    this.errorHandler = errorHandler;
+  /**
+   * @param anErrorHandler Handler.
+   */
+  public Log4jDeviceErrorHandler(final ErrorHandler anErrorHandler) {
+    this.errorHandler = anErrorHandler;
   }
 
   /**

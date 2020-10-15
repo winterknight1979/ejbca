@@ -15,7 +15,7 @@ package org.cesecore.certificates.ocsp;
 import javax.ejb.Local;
 
 /**
- * Local interface for OcspResponseGeneratorSession
+ * Local interface for OcspResponseGeneratorSession.
  *
  * @version $Id: OcspResponseGeneratorSessionLocal.java 22251 2015-11-24
  *     13:40:04Z jeklund $
@@ -24,16 +24,22 @@ import javax.ejb.Local;
 public interface OcspResponseGeneratorSessionLocal
     extends OcspResponseGeneratorSession {
 
+    /**
+     * Init.
+     */
   void initTimers();
 
   /**
    * One-time load and conversion of configured keystores to CryptoTokens and
-   * OcspKeyBindings
+   * OcspKeyBindings.
    *
    * @param activationPassword password
    */
   void adhocUpgradeFromPre60(char[] activationPassword);
 
+  /**
+   * @return check.
+   */
   String healthCheck();
 
   /**

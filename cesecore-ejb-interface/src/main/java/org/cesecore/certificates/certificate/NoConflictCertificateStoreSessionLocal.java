@@ -49,5 +49,5 @@ public interface NoConflictCertificateStoreSessionLocal
    * @return CDW
    * @see CertificateStoreSessionLocal#getCertificateData(String)
    */
-  public CertificateDataWrapper getCertificateData(final String fingerprint);
+  CertificateDataWrapper getCertificateData(String fingerprint);
 }

@@ -44,5 +44,10 @@ public interface QueuedAuditorSessionLocal extends Auditable {
    */
   void reset() throws AuditLogResetException;
 
+  /**
+   * Delete.
+   * @param token token
+   * @param timestamp time
+   */
   void delete(AuthenticationToken token, Date timestamp);
 }

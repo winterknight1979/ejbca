@@ -21,4 +21,4 @@ import javax.ejb.Remote;
  *     mikekushner $
  */
 @Remote
-public interface RoleDataSessionRemote extends RoleDataSession {}
+public interface RoleDataSessionRemote extends RoleDataSession { }

@@ -18,28 +18,45 @@ package org.cesecore.authorization.control;
  * @version $Id: CryptoTokenRules.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public enum CryptoTokenRules {
+    /** Base. */
   BASE("/cryptotoken"),
+  /** Modify. */
   MODIFY_CRYPTOTOKEN(BASE.resource() + "/modify"),
+  /** Delete. */
   DELETE_CRYPTOTOKEN(BASE.resource() + "/delete"),
+  /** View. */
   VIEW(BASE.resource() + "/view"),
+  /** Use. */
   USE(BASE.resource() + "/use"),
+  /** Activate. */
   ACTIVATE(BASE.resource() + "/activate"),
+  /** Deactivate. */
   DEACTIVATE(BASE.resource() + "/deactivate"),
+  /** Keys. */
   GENERATE_KEYS(BASE.resource() + "/keys/generate"),
+  /** Keys. */
   REMOVE_KEYS(BASE.resource() + "/keys/remove"),
-  TEST_KEYS(BASE.resource() + "/keys/test"),
-  ;
+  /** Keys. */
+  TEST_KEYS(BASE.resource() + "/keys/test");
 
+  /** Tesource. */
   private final String resource;
 
-  private CryptoTokenRules(final String resource) {
-    this.resource = resource;
+  /**
+   * @param aResource resource
+   */
+  CryptoTokenRules(final String aResource) {
+    this.resource = aResource;
   }
 
+  /**
+   * @return resource
+   */
   public String resource() {
     return this.resource;
   }
 
+  @Override
   public String toString() {
     return this.resource;
   }

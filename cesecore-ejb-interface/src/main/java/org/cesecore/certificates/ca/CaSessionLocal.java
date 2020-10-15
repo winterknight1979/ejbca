@@ -20,7 +20,7 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 
 /**
- * Local interface for CaSession
+ * Local interface for CaSession.
  *
  * @version $Id: CaSessionLocal.java 29341 2018-06-26 07:19:21Z anatom $
  */
@@ -36,16 +36,16 @@ public interface CaSessionLocal extends CaSession {
    * @return true if the token was authorized.
    */
   boolean authorizedToCANoLogging(
-      final AuthenticationToken admin, final int caid);
+      AuthenticationToken admin, int caid);
 
   /**
-   * Returns true if authorized to a CA
+   * Returns true if authorized to a CA.
    *
    * @param admin the token to check against.
    * @param caid the ID of the CA in question
    * @return true if the token was authorized.
    */
-  boolean authorizedToCA(final AuthenticationToken admin, final int caid);
+  boolean authorizedToCA(AuthenticationToken admin, int caid);
 
   /**
    * @return a list of all CAData objects, or an empty list if none were found.
@@ -56,14 +56,14 @@ public interface CaSessionLocal extends CaSession {
    * @param cAId CA
    * @return the found entity instance or null if the entity does not exist
    */
-  CAData findById(final Integer cAId);
+  CAData findById(Integer cAId);
 
   /**
    * @param cAId CA
    * @throws CADoesntExistsException if the entity does not exist
    * @return the found entity instance
    */
-  CAData findByIdOrThrow(final Integer cAId) throws CADoesntExistsException;
+  CAData findByIdOrThrow(Integer cAId) throws CADoesntExistsException;
 
   /**
    * @param name Name
@@ -71,7 +71,7 @@ public interface CaSessionLocal extends CaSession {
    *     with the name exists
    * @return the found entity instance or null if the entity does not exist
    */
-  CAData findByName(final String name);
+  CAData findByName(String name);
 
   /**
    * @param name Name
@@ -80,7 +80,7 @@ public interface CaSessionLocal extends CaSession {
    *     with the name exists
    * @return the found entity instance
    */
-  CAData findByNameOrThrow(final String name) throws CADoesntExistsException;
+  CAData findByNameOrThrow(String name) throws CADoesntExistsException;
 
   /**
    * Makes sure that no CAs are cached to ensure that we read from database next
@@ -174,7 +174,7 @@ public interface CaSessionLocal extends CaSession {
    * @throws CADoesntExistsException If CA not found
    * @throws AuthorizationDeniedException If access denied
    */
-  void editCA(final AuthenticationToken admin, final CA ca, boolean auditlog)
+  void editCA(AuthenticationToken admin, CA ca, boolean auditlog)
       throws CADoesntExistsException, AuthorizationDeniedException;
 
   /**
@@ -203,7 +203,7 @@ public interface CaSessionLocal extends CaSession {
    * @return HashMap with Integer-&gt;String mappings
    */
   Map<Integer, String> getActiveCAIdToNameMap(
-      final AuthenticationToken authenticationToken);
+      AuthenticationToken authenticationToken);
 
   /**
    * Internal (local only) method for getting CAInfo, to avoid access control
@@ -223,7 +223,7 @@ public interface CaSessionLocal extends CaSession {
    * @return CA value object, or null if it doesn't exist.
    */
   CAInfo getCAInfoInternal(
-      final int caid, final String name, boolean fromCache);
+      int caid, String name, boolean fromCache);
 
   /**
    * Internal (local only) method for getting CAInfo, to avoid access control
@@ -236,7 +236,7 @@ public interface CaSessionLocal extends CaSession {
    *     that we search for
    * @return CA value object, or null if it doesn't exist.
    */
-  CAInfo getCAInfoInternal(final int caid);
+  CAInfo getCAInfoInternal(int caid);
 
   /**
    * Internal (local only) method to get the CA object without logging the

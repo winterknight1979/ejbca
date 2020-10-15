@@ -21,8 +21,8 @@ package org.cesecore.certificates.ocsp.exception;
 public class MalformedRequestException extends Exception {
 
   private static final long serialVersionUID = -6603931681530067622L;
-
-  public MalformedRequestException() {}
+  /** Null constructor. */
+  public MalformedRequestException() { }
 
   /** @param arg0 Message */
   public MalformedRequestException(final String arg0) {

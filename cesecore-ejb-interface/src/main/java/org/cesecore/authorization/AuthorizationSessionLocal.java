@@ -29,13 +29,13 @@ public interface AuthorizationSessionLocal extends AuthorizationSession {
   void refreshAuthorizationCache();
 
   /**
-   * Invoked by background cache refresh timeouts
+   * Invoked by background cache refresh timeouts.
    *
    * @param timer timer
    */
   void timeOut(Timer timer);
 
-  /** Initialize background cache refresh timeouts */
+  /** Initialize background cache refresh timeouts. */
   void scheduleBackgroundRefresh();
 
   /**

@@ -16,7 +16,7 @@ import javax.ejb.Local;
 import org.cesecore.audit.log.AuditLogResetException;
 
 /**
- * Local interface for the SecurityEventsAuditor
+ * Local interface for the SecurityEventsAuditor.
  *
  * @see SecurityEventsAuditorSession
  * @version $Id: SecurityEventsAuditorSessionLocal.java 17625 2013-09-20

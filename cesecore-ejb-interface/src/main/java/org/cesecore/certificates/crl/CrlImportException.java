@@ -29,7 +29,7 @@ public class CrlImportException extends CesecoreException {
 
   /**
    * Creates a new instance of exception without detail message. Marked as
-   * rollback=true
+   * rollback=true.
    *
    * @see CrlImportException
    */
@@ -39,7 +39,7 @@ public class CrlImportException extends CesecoreException {
 
   /**
    * Constructs an instance of exception with the specified detail message.
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CrlImportException
    * @param msg the detail message.
@@ -49,7 +49,7 @@ public class CrlImportException extends CesecoreException {
   }
 
   /**
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CrlImportException
    * @param e causing exception that will be wrapped
@@ -59,7 +59,7 @@ public class CrlImportException extends CesecoreException {
   }
 
   /**
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CrlImportException
    * @param e causing exception that will be wrapped

@@ -40,7 +40,7 @@ public interface SecurityEventsLoggerSession {
    * @throws AuditRecordStorageException On fail
    * @throws AuthorizationDeniedException If access denied
    */
-  public void log(
+  void log(
       AuthenticationToken authToken,
       EventType eventType,
       EventStatus eventStatus,

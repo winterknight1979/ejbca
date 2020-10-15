@@ -48,7 +48,7 @@ public interface CertificateCreateSessionLocal
 
   /**
    * Helper method to check if there is a unique issuerDN/serialNumber index in
-   * the database
+   * the database.
    *
    * @return true if the index exists, false if not
    */
@@ -183,7 +183,7 @@ public interface CertificateCreateSessionLocal
       RequestMessage req,
       Class<? extends ResponseMessage> responseClass,
       CertificateGenerationParams certGenParams,
-      final long updateTime)
+      long updateTime)
       throws AuthorizationDeniedException,
           CustomCertificateSerialNumberException, IllegalKeyException,
           CADoesntExistsException, CertificateCreateException,
@@ -279,7 +279,7 @@ public interface CertificateCreateSessionLocal
           CAOfflineException, InvalidAlgorithmException;
 
   /**
-   * Performs SubjectDN checks
+   * Performs SubjectDN checks.
    *
    * @param caInfo non-sensitive information
    * @param endEntityInformation user data
@@ -290,7 +290,7 @@ public interface CertificateCreateSessionLocal
       throws CertificateCreateException;
 
   /**
-   * Performs SubjectKeyId checks
+   * Performs SubjectKeyId checks.
    *
    * @param caInfo CA non-sensitive information
    * @param endEntityInformation user data

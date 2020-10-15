@@ -75,11 +75,12 @@ import org.cesecore.util.query.QueryCriteria;
  */
 public class IntegrityProtectedDevice implements AuditLogDevice {
 
+    /** EJB's. */
   private Map<Class<?>, ?> ejbs;
 
   @Override
-  public void setEjbs(final Map<Class<?>, ?> ejbs) {
-    this.ejbs = ejbs;
+  public void setEjbs(final Map<Class<?>, ?> theEjbs) {
+    this.ejbs = theEjbs;
   }
 
   @SuppressWarnings("unchecked")
@@ -172,9 +173,12 @@ public class IntegrityProtectedDevice implements AuditLogDevice {
   @Override
   public void reset() throws AuditLogResetException {
     /*
-     * This will not work in a clustered deployment! The only way to get this working would
-     * be to go outside the shared database model. (Reading last available sequenceNumber from
-     * db for each log write would kill performance and make it easier to remove the last log
+     * This will not work in a clustered deployment!
+     *  The only way to get this working would
+     * be to go outside the shared database model.
+     * (Reading last available sequenceNumber from
+     * db for each log write would kill performance
+     * and make it easier to remove the last log
      * entries without it being noticed.)
      */
     NodeSequenceHolder.INSTANCE.reset();

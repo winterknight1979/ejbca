@@ -42,7 +42,7 @@ public interface CertificateProfileSession {
    * @throws AuthorizationDeniedException if admin is not authorized to edit
    *     certificate profile
    */
-  public int addCertificateProfile(
+  int addCertificateProfile(
       AuthenticationToken admin, String name, CertificateProfile profile)
       throws CertificateProfileExistsException, AuthorizationDeniedException;
 
@@ -59,7 +59,7 @@ public interface CertificateProfileSession {
    * @throws AuthorizationDeniedException if admin is not authorized to edit
    *     certificate profile
    */
-  public int addCertificateProfile(
+  int addCertificateProfile(
       AuthenticationToken admin,
       int id,
       String name,
@@ -67,7 +67,7 @@ public interface CertificateProfileSession {
       throws CertificateProfileExistsException, AuthorizationDeniedException;
 
   /**
-   * Updates certificate profile data
+   * Updates certificate profile data.
    *
    * @param admin Administrator performing the operation
    * @param name readable name of new certificate profile
@@ -192,10 +192,10 @@ public interface CertificateProfileSession {
    * certificate profiles. This method will read all Certificate Profiles and as
    * a side-effect upgrade them if the version changed.
    */
-  public void initializeAndUpgradeProfiles();
+  void initializeAndUpgradeProfiles();
 
   /**
-   * Renames a certificate profile
+   * Renames a certificate profile.
    *
    * @param admin Admin
    * @param oldname the name of the certificate profile to rename
@@ -216,7 +216,7 @@ public interface CertificateProfileSession {
    * @param name the name of the certificate profile to remove
    * @throws AuthorizationDeniedException If access denied
    */
-  public void removeCertificateProfile(AuthenticationToken admin, String name)
+  void removeCertificateProfile(AuthenticationToken admin, String name)
       throws AuthorizationDeniedException;
 
   /**
@@ -226,7 +226,7 @@ public interface CertificateProfileSession {
    * @param caid the caid to search for.
    * @return true if ca exists in any of the certificate profiles.
    */
-  public boolean existsCAIdInCertificateProfiles(int caid);
+  boolean existsCAIdInCertificateProfiles(int caid);
 
   /**
    * Method to check if a Publisher id exists in any of the certificate
@@ -235,10 +235,10 @@ public interface CertificateProfileSession {
    * @param publisherid the publisherid to search for.
    * @return true if publisher exists in any of the certificate profiles.
    */
-  public boolean existsPublisherIdInCertificateProfiles(int publisherid);
+  boolean existsPublisherIdInCertificateProfiles(int publisherid);
 
   /**
-   * Returns the given certificate profile in XML format
+   * Returns the given certificate profile in XML format.
    *
    * @param authenticationToken the administrator requesting the action
    * @param profileId the id of the certificate profile
@@ -250,7 +250,7 @@ public interface CertificateProfileSession {
    *     profiles
    */
   byte[] getProfileAsXml(
-      final AuthenticationToken authenticationToken, final int profileId)
+      AuthenticationToken authenticationToken, int profileId)
       throws CertificateProfileDoesNotExistException,
           AuthorizationDeniedException;
 }

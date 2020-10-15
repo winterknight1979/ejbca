@@ -119,13 +119,13 @@ public interface SecurityEventsAuditorSession {
    * @throws AuthorizationDeniedException If non-admin user
    */
   AuditLogExportReport exportAuditLogs(
-      final AuthenticationToken token,
-      final CryptoToken cryptoToken,
-      final Date timestamp,
-      final boolean deleteAfterExport,
-      final String keyAlias,
-      final String algorithm,
-      final Certificate certificate,
+      AuthenticationToken token,
+      CryptoToken cryptoToken,
+      Date timestamp,
+      boolean deleteAfterExport,
+      String keyAlias,
+      String algorithm,
+      Certificate certificate,
       String logDeviceId)
       throws AuditLogExporterException, AuthorizationDeniedException;
 

@@ -119,7 +119,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    * @return the sought certificate, or null if no data for the specified
    *     fingerprint exists
    */
-  CertificateDataWrapper getCertificateData(final String fingerprint);
+  CertificateDataWrapper getCertificateData(String fingerprint);
 
   /**
    * Update the base64cert column if the database row exists, but the column is
@@ -133,7 +133,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
       AuthenticationToken authenticationToken, Certificate certificate);
 
   /**
-   * Fetch a List of all certificate fingerprints and corresponding username
+   * Fetch a List of all certificate fingerprints and corresponding username.
    *
    * @param cas A list of CAs that the sought certificates should be issued from
    * @param certificateProfiles A list if certificateprofiles to sort from. Will
@@ -167,7 +167,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
       String issuerDN, byte[] subjectKeyId, String subjectDN, String username);
 
   /**
-   * Find the most recently issued/updated certificate for a public key
+   * Find the most recently issued/updated certificate for a public key.
    *
    * @param subjectKeyId Is the ASN.1 SubjectKeyIdentifier of the public key as
    *     a byte array
@@ -217,7 +217,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    *
    * @param value index
    */
-  void setUniqueCertificateSerialNumberIndex(final Boolean value);
+  void setUniqueCertificateSerialNumberIndex(Boolean value);
 
   /**
    * Checks for present certificate serial number unique index in a new
@@ -312,19 +312,19 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
    * @throws AuthorizationDeniedException If access denied
    */
   void updateLimitedCertificateDataStatus(
-      final AuthenticationToken admin,
-      final int caId,
-      final String issuerDn,
-      final String subjectDn,
-      final String username,
-      final BigInteger serialNumber,
-      final int status,
-      final Date revocationDate,
-      final int reasonCode,
-      final String caFingerprint)
+      AuthenticationToken admin,
+      int caId,
+      String issuerDn,
+      String subjectDn,
+      String username,
+      BigInteger serialNumber,
+      int status,
+      Date revocationDate,
+      int reasonCode,
+      String caFingerprint)
       throws AuthorizationDeniedException;
 
-  /** Reloads the cache containing CA certificates */
+  /** Reloads the cache containing CA certificates. */
   void reloadCaCertificateCache();
 
   /**
@@ -414,7 +414,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
       throws AuthorizationDeniedException;
 
   /**
-   * Method for speedy checks if a certificate exists for issuerDN, serno
+   * Method for speedy checks if a certificate exists for issuerDN, serno.
    *
    * @param issuerDN issuer DN of the desired certificate.
    * @param serno serial number of the desired certificate!

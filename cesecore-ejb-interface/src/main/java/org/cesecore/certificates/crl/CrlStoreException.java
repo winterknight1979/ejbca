@@ -49,7 +49,7 @@ public class CrlStoreException extends CesecoreException {
   }
 
   /**
-   * Marked as rollback=true
+   * Marked as rollback=true.
    *
    * @see CrlStoreException
    * @param e causing exception that will be wrapped

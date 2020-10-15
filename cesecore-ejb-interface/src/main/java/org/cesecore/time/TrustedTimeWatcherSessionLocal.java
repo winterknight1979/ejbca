@@ -15,11 +15,11 @@ package org.cesecore.time;
 import javax.ejb.Local;
 
 /**
- * Local interface for the TrustedTime
+ * Local interface for the TrustedTime.
  *
  * @version $Id: TrustedTimeWatcherSessionLocal.java 17625 2013-09-20 07:12:06Z
  *     netmackan $
  */
 @Local
 public interface TrustedTimeWatcherSessionLocal
-    extends TrustedTimeWatcherSession {}
+    extends TrustedTimeWatcherSession { }

@@ -17,7 +17,7 @@ import org.cesecore.ErrorCode;
 
 /**
  * An exception thrown when someone tries to change or create a CA that doesn't
- * already exits
+ * already exits.
  *
  * @version $Id: CAExistsException.java 26048 2017-06-20 09:26:30Z anatom $
  */
@@ -43,6 +43,10 @@ public class CAExistsException extends CesecoreException {
     super(ErrorCode.CA_ALREADY_EXISTS, msg);
   }
 
+  /**
+   * @param message message
+   * @param cause cause
+   */
   public CAExistsException(final String message, final Throwable cause) {
     super(message, cause);
   }

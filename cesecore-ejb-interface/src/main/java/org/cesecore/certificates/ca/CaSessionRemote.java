@@ -15,9 +15,9 @@ package org.cesecore.certificates.ca;
 import javax.ejb.Remote;
 
 /**
- * Remote interface for CaSession
+ * Remote interface for CaSession.
  *
  * @version $Id: CaSessionRemote.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 @Remote
-public interface CaSessionRemote extends CaSession {}
+public interface CaSessionRemote extends CaSession { }

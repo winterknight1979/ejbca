@@ -28,8 +28,10 @@ import org.junit.Test;
 /** @version $Id: AccessSetTest.java 25832 2017-05-10 14:13:58Z mikekushner $ */
 public final class AccessSetTest {
 
-  private static final Logger log = Logger.getLogger(AccessSetTest.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AccessSetTest.class);
 
+  /** Set. */
   @SuppressWarnings("deprecation")
   private final AccessSet as =
       makeLegacyAccessSet(
@@ -48,42 +50,50 @@ public final class AccessSetTest {
           "/twelve/-123456",
           "/thirteen/" + AccessSet.WILDCARD_SOME + "/subres",
           "/thirteen/98765/subres");
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testSimpleAllowed() {
-    log.trace(">testSimpleAllowed");
+    LOG.trace(">testSimpleAllowed");
     assertTrue(as.isAuthorized("/test"));
     assertTrue(as.isAuthorized("/three"));
-    log.trace("<testSimpleAllowed");
+    LOG.trace("<testSimpleAllowed");
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testSimpleDenied() {
-    log.trace(">testSimpleDenied");
+    LOG.trace(">testSimpleDenied");
     assertFalse(as.isAuthorized("/"));
     assertFalse(as.isAuthorized("/nonexistent"));
-    log.trace("<testSimpleDenied");
+    LOG.trace("<testSimpleDenied");
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testNested() {
-    log.trace(">testNested");
+    LOG.trace(">testNested");
     assertTrue(as.isAuthorized("/one/two"));
     assertTrue(as.isAuthorized("/three/four"));
     assertTrue(as.isAuthorized("/three/four/five"));
     assertFalse(as.isAuthorized("/one/notgranted"));
     assertFalse(as.isAuthorized("/three/five"));
     assertFalse(as.isAuthorized("/three/four/nine"));
-    log.trace("<testNested");
+    LOG.trace("<testNested");
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testRecursive() {
-    log.trace(">testRecursive");
+    LOG.trace(">testRecursive");
     assertTrue(as.isAuthorized("/six"));
     assertTrue(as.isAuthorized("/six/blabla"));
     assertTrue(as.isAuthorized("/six/-9876"));
@@ -93,38 +103,44 @@ public final class AccessSetTest {
     assertTrue(as.isAuthorized("/seven/eight"));
     assertTrue(as.isAuthorized("/seven/eight/test"));
     assertTrue(as.isAuthorized("/seven/eight/test/bla/bla/bla"));
-    log.trace("<testRecursive");
+    LOG.trace("<testRecursive");
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testSlashRecurisve() {
-    log.trace(">testSlashRecurisve");
+    LOG.trace(">testSlashRecurisve");
     final AccessSet sr =
         makeLegacyAccessSet("/" + AccessSet.WILDCARD_RECURSIVE);
     assertTrue(sr.isAuthorized("/"));
     assertTrue(sr.isAuthorized("/one"));
     assertTrue(sr.isAuthorized("/one/two/three"));
     assertTrue(sr.isAuthorized("/one/-1234/three"));
-    log.trace("<testSlashRecurisve");
+    LOG.trace("<testSlashRecurisve");
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testSomeWilcard() {
-    log.trace(">testSomeWilcard");
+    LOG.trace(">testSomeWilcard");
     assertTrue(as.isAuthorized("/twelve/" + AccessSet.WILDCARD_SOME));
     assertTrue(
         as.isAuthorized("/thirteen/" + AccessSet.WILDCARD_SOME + "/subres"));
     assertFalse(as.isAuthorized("/twelve/-11111"));
     assertFalse(as.isAuthorized("/thirteen/22222/subres"));
-    log.trace("<testAllWilcard");
+    LOG.trace("<testAllWilcard");
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testBadResources() {
-    log.trace(">testBadResources");
+    LOG.trace(">testBadResources");
     // The correct syntax is /bla/blabla
     try {
       as.isAuthorized("bla/blabla");
@@ -138,13 +154,15 @@ public final class AccessSetTest {
     } catch (IllegalArgumentException e) {
       // NOPMD expected
     }
-    log.trace("<testBadResources");
+    LOG.trace("<testBadResources");
   }
-
+  /**
+   * Test.
+   */
   @SuppressWarnings("deprecation")
   @Test
   public void testConvertAndMerge() {
-    log.trace(">testConvertAndMerge");
+    LOG.trace(">testConvertAndMerge");
     final AccessSet asNew = makeNewAccessSet();
     // Merge with an old AccessSet to force downgrade
     final AccessSet asOld =
@@ -164,11 +182,11 @@ public final class AccessSetTest {
         merged.isAuthorized(
             "/nonexistentold")); // this rule comes from the old AccessSet, so
                                  // it's left untouched
-    log.trace("<testConvertAndMerge");
+    LOG.trace("<testConvertAndMerge");
   }
 
   /**
-   * Creates an AccessSet with the legacy representation of access rules
+   * Creates an AccessSet with the legacy representation of access rules.
    *
    * @param resources resources
    * @return access set

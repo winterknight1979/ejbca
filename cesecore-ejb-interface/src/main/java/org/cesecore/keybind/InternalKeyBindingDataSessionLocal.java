@@ -41,7 +41,7 @@ public interface InternalKeyBindingDataSessionLocal {
 
   /**
    * Add the specified InternalKeyBinding to the database and return the id used
-   * to store it
+   * to store it.
    *
    * @param internalKeyBinding binding
    * @return merged binding

@@ -50,14 +50,19 @@ import org.cesecore.util.query.QueryCriteria;
  * @version $Id: Log4jDevice.java 18374 2014-01-16 13:13:34Z anatom $
  */
 public class Log4jDevice implements AuditLogDevice {
-
+ /** Logger. */
   private static final Logger LOG = Logger.getLogger(Log4jDevice.class);
+  /** Unsupported. */
   private static final String UNSUPPORTED =
       Log4jDevice.class.getSimpleName()
           + " does not support query, verification or export operations.";
+  /** Handlers.*/
   private final List<Log4jDeviceErrorHandler> errorHandlers =
       new ArrayList<Log4jDeviceErrorHandler>();
 
+  /**
+   * Constructor.
+   */
   public Log4jDevice() {
     @SuppressWarnings("unchecked")
     final Enumeration<Appender> enumeration = LOG.getAllAppenders();

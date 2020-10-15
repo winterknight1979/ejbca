@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     $
  */
 @Remote
-public interface CryptoTokenSessionRemote extends CryptoTokenSession {}
+public interface CryptoTokenSessionRemote extends CryptoTokenSession { }

@@ -27,10 +27,16 @@ public class CustomCertificateSerialNumberException extends CesecoreException {
 
   private static final long serialVersionUID = -2969078756967846634L;
 
+  /**
+   * @param message Message
+   */
   public CustomCertificateSerialNumberException(final String message) {
     super(message);
   }
 
+  /**
+   * @param e cause
+   */
   public CustomCertificateSerialNumberException(final Exception e) {
     super(e);
   }

@@ -32,7 +32,7 @@ public interface InternalKeyBindingMgmtSessionLocal
 
   /**
    * Returns a list of all internal key bindings of a certain type, as {@link
-   * InternalKeyBindingInfo}s
+   * InternalKeyBindingInfo}s.
    *
    * @param internalKeyBindingType the key binding type
    * @return a list of all internal key bindings of that type, as {@link
@@ -93,7 +93,7 @@ public interface InternalKeyBindingMgmtSessionLocal
       InternalKeyBinding internalKeyBinding) throws CADoesntExistsException;
 
   /**
-   * Returns a id-to-name map of all internal key bindings of the given type
+   * Returns a id-to-name map of all internal key bindings of the given type.
    *
    * @param internalKeyBindingType null for all types
    * @return id-name map of internal key bindings

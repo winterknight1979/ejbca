@@ -23,13 +23,19 @@ import org.junit.Test;
  */
 public class LogServiceStateTest {
 
+      /** mESSAGE. */
   private static final String MSG_NOT_DISABLED =
       "LogServiceState was not disabled as expected.";
+  /** mESSAGE. */
   private static final String MSG_NOT_ENABLED =
       "LogServiceState was not enabled as expected.";
+  /** mESSAGE. */
   private static final String MSG_SAME_TWICE =
       "No Exception when state was set to the same twice.";
-
+  /**
+   * Test.
+   * @throws AuditLogResetException fail
+   */
   @Test
   public void testStateChanges() throws AuditLogResetException {
     // We want to run this test twice to toggle it back and forth..
@@ -37,6 +43,9 @@ public class LogServiceStateTest {
     stateChangesInternalTest();
   }
 
+  /**
+   * @throws AuditLogResetException FAIL
+   */
   public void stateChangesInternalTest() throws AuditLogResetException {
     // Since it is a singleton, we go with the state it happens to be in.
     final boolean originalStateDisabled = LogServiceState.INSTANCE.isDisabled();

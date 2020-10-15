@@ -39,13 +39,25 @@ public interface CertificateResponseMessage extends ResponseMessage {
    */
   void setCertificate(Certificate cert);
 
+  /**
+   * @return data
+   */
   CertificateData getCertificateData();
 
+  /**
+   * @param certificateData data
+   */
   void setCertificateData(CertificateData certificateData);
 
+  /**
+   * @return Data
+   */
   Base64CertData getBase64CertData();
 
-  void setBase64CertData(final Base64CertData base64CertData);
+  /**
+   * @param base64CertData Data
+   */
+  void setBase64CertData(Base64CertData base64CertData);
 
   /**
    * Adds a list of additional CA certificates to be appended to the user
@@ -54,7 +66,7 @@ public interface CertificateResponseMessage extends ResponseMessage {
    *
    * @param certificates the CA certificates to add.
    */
-  void addAdditionalCaCertificates(final List<Certificate> certificates);
+  void addAdditionalCaCertificates(List<Certificate> certificates);
 
   /**
    * Adds a list of additional CA certificates to be appended to the outer PKI
@@ -63,5 +75,5 @@ public interface CertificateResponseMessage extends ResponseMessage {
    * @param certificates the CA certificates to add.
    */
   void addAdditionalResponseExtraCertsCertificates(
-      final List<Certificate> certificates);
+       List<Certificate> certificates);
 }

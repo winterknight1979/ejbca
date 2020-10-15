@@ -44,7 +44,7 @@ public interface RoleDataSessionLocal extends RoleDataSession {
   Role getRole(String roleName, String nameSpace);
 
   /**
-   * Delete a role from the database (currently not affecting any role members)
+   * Delete a role from the database (currently not affecting any role members).
    *
    * @param roleId ole
    * @return true if a change was made to the database (the row was deleted)

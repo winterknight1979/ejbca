@@ -14,9 +14,9 @@ package org.cesecore.certificates.certificate;
 
 /**
  * Interface for basic CRUD operations related to CertificateData (local-only
- * interface)
+ * interface).
  *
  * @version $Id: CertificateDataSession.java 28759 2018-04-20 13:50:37Z samuellb
  *     $
  */
-public interface CertificateDataSession {}
+public interface CertificateDataSession { }

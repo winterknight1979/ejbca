@@ -145,7 +145,7 @@ public interface InternalKeyBindingMgmtSession {
           InternalKeyBindingNameInUseException, InvalidAlgorithmException;
 
   /**
-   * A createInternalKeyBinding() with allowMissingKeyPair=false
+   * A createInternalKeyBinding() with allowMissingKeyPair=false.
    *
    * @param authenticationToken is the authentication token
    * @param type is the alias of the registered InternalKeyBinding's type

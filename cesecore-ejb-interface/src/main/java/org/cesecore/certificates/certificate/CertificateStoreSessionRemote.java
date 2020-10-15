@@ -61,7 +61,7 @@ public interface CertificateStoreSessionRemote extends CertificateStoreSession {
 
   /**
    * Finds a certificate by fingerprint (remote EJB interface, supports unnamed
-   * ECC and Brainpool)
+   * ECC and Brainpool).
    *
    * @param fingerprint Fingerprint of certificate
    * @return Wrapped certificate, or null if no certificate was found. Use

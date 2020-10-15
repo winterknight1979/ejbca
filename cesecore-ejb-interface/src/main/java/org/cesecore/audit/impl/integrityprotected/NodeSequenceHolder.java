@@ -25,13 +25,17 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version $Id: NodeSequenceHolder.java 24598 2016-10-31 11:34:40Z jeklund $
  */
 public enum NodeSequenceHolder {
+    /** INSTANCE. */
   INSTANCE;
 
   // We only want to use this from IntegrityProtectedDevice
-  private NodeSequenceHolder() {}
+  NodeSequenceHolder() { }
 
+  /** Sequence. */
   private final AtomicLong lastSequenceNumberAtomic = new AtomicLong(-1);
+  /** Update. */
   private final ReentrantLock lockDataBaseUpdate = new ReentrantLock();
+  /** ID. */
   private String nodeId = null;
 
   /** Interface for callback of methods that is invoked once. */

@@ -21,20 +21,30 @@ package org.cesecore.certificates.ocsp.exception;
 public class OcspInitializationException extends RuntimeException {
 
   private static final long serialVersionUID = -7920696456058508107L;
-
+ /** Null constructor. */
   public OcspInitializationException() {
     super();
   }
 
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
   public OcspInitializationException(
       final String message, final Throwable cause) {
     super(message, cause);
   }
 
+  /**
+   * @param message Message
+   */
   public OcspInitializationException(final String message) {
     super(message);
   }
 
+  /**
+   * @param cause Cause
+   */
   public OcspInitializationException(final Throwable cause) {
     super(cause);
   }

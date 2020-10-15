@@ -19,6 +19,6 @@ package org.cesecore.roles.management;
  */
 public interface RoleDataSession {
 
-  /** Forces the RoleMemberData and AuthorizationToken caches to expire */
+  /** Forces the RoleMemberData and AuthorizationToken caches to expire. */
   void forceCacheExpire();
 }

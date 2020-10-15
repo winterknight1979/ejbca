@@ -23,34 +23,56 @@ import java.util.Date;
 public class CRLInfo implements Serializable {
 
   private static final long serialVersionUID = 4942836797714142516L;
+  /** DN. */
   protected String subjectdn;
+  /** Number. */
   protected int lastcrlnumber;
+  /** Date. */
   protected Date thisupdate;
+  /** Date. */
   protected Date nextupdate;
 
+  /**
+   * @param aSubjectdn DN
+   * @param theLastcrlnumber Number
+   * @param theLastupdate Date
+   * @param theNextupdate Date
+   */
   public CRLInfo(
-      final String subjectdn,
-      final int lastcrlnumber,
-      final long thisupdate,
-      final long nextupdate) {
-    this.subjectdn = subjectdn;
-    this.lastcrlnumber = lastcrlnumber;
-    this.thisupdate = new Date(thisupdate);
-    this.nextupdate = new Date(nextupdate);
+      final String aSubjectdn,
+      final int theLastcrlnumber,
+      final long theLastupdate,
+      final long theNextupdate) {
+    this.subjectdn = aSubjectdn;
+    this.lastcrlnumber = theLastcrlnumber;
+    this.thisupdate = new Date(theLastupdate);
+    this.nextupdate = new Date(theNextupdate);
   }
 
+  /**
+   * @return DN
+   */
   public String getSubjectDN() {
     return subjectdn;
   }
 
+  /**
+   * @return Number
+   */
   public int getLastCRLNumber() {
     return lastcrlnumber;
   }
 
+  /**
+   * @return Date
+   */
   public Date getCreateDate() {
     return thisupdate;
   }
 
+  /**
+   * @return Date
+   */
   public Date getExpireDate() {
     return nextupdate;
   }

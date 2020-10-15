@@ -15,10 +15,10 @@ package org.cesecore.certificates.crl;
 import javax.ejb.Remote;
 
 /**
- * Remote interface for CrlCreateSession
+ * Remote interface for CrlCreateSession.
  *
  * @version $Id: CrlCreateSessionRemote.java 17625 2013-09-20 07:12:06Z
  *     netmackan $
  */
 @Remote
-public interface CrlCreateSessionRemote extends CrlCreateSession {}
+public interface CrlCreateSessionRemote extends CrlCreateSession { }

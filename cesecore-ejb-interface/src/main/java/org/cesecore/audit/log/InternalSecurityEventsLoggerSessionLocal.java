@@ -66,5 +66,5 @@ public interface InternalSecurityEventsLoggerSessionLocal {
    * @return true if database protection is enabled and a test of the crypto
    *     token was performed, false if database protection is disabled
    */
-  boolean auditLogCryptoTest(final String protectThis);
+  boolean auditLogCryptoTest(String protectThis);
 }

@@ -26,7 +26,9 @@ import org.cesecore.audit.audit.AuditExporter;
  */
 public class AuditExporterXml implements AuditExporter {
 
+    /** Encoder. */
   private XMLEncoder encoder;
+  /** Object. */
   private LinkedHashMap<String, Object> currentObject;
 
   @Override
@@ -65,8 +67,8 @@ public class AuditExporterXml implements AuditExporter {
   }
 
   @Override
-  public void startObjectLabel(final String label) throws IOException {}
+  public void startObjectLabel(final String label) throws IOException { }
 
   @Override
-  public void endObjectLabel() throws IOException {}
+  public void endObjectLabel() throws IOException { }
 }

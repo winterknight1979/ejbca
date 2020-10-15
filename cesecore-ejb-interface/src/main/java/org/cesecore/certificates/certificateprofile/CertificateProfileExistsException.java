@@ -15,7 +15,7 @@ package org.cesecore.certificates.certificateprofile;
 
 /**
  * An exception thrown when someone tries to add a certificate profile that
- * already exits
+ * already exits.
  *
  * @version $Id: CertificateProfileExistsException.java 17625 2013-09-20
  *     07:12:06Z netmackan $

@@ -57,7 +57,7 @@ signature
 public interface CaSession {
 
   /**
-   * Adds a CA to the database
+   * Adds a CA to the database.
    *
    * @param admin AuthenticationToken of admin
    * @param ca the CA to add
@@ -81,7 +81,7 @@ public interface CaSession {
    * @throws CADoesntExistsException If CA not found
    * @throws AuthorizationDeniedException If access denied
    */
-  void editCA(final AuthenticationToken admin, final CAInfo cainfo)
+  void editCA(AuthenticationToken admin, CAInfo cainfo)
       throws CADoesntExistsException, AuthorizationDeniedException;
 
   /**
@@ -173,7 +173,7 @@ public interface CaSession {
    * @param admin AuthenticationToken of admin
    * @return a List&lt;String&gt; of available CA names
    */
-  List<String> getActiveCANames(final AuthenticationToken admin);
+  List<String> getActiveCANames(AuthenticationToken admin);
 
   /**
    * Returns a value object containing non-sensitive information about a CA give
@@ -255,7 +255,7 @@ public interface CaSession {
           AuthorizationDeniedException;
 
   /**
-   * Check if a CA with given ID exists
+   * Check if a CA with given ID exists.
    *
    * @param caId the CA ID
    * @return true if a CA with the given ID exists
@@ -263,7 +263,7 @@ public interface CaSession {
   boolean existsCa(int caId);
 
   /**
-   * Check if a CA with given name exists
+   * Check if a CA with given name exists.
    *
    * @param name the CA name
    * @return true if a CA with the given name exists

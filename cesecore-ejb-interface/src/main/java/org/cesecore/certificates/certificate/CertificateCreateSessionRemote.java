@@ -22,4 +22,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface CertificateCreateSessionRemote
-    extends CertificateCreateSession {}
+    extends CertificateCreateSession { }

@@ -43,12 +43,13 @@ public class X509ResponseMessage implements CertificateResponseMessage {
    */
   static final long serialVersionUID = -2157072605987735913L;
 
+  /** Logger. */
   private static Logger log = Logger.getLogger(X509ResponseMessage.class);
 
-  /** Certificate to be in response message, */
+  /** Certificate to be in response message. */
   private byte[] certbytes = null;
 
-  /** status for the response */
+  /** status for the response. */
   private ResponseStatus status = ResponseStatus.SUCCESS;
 
   /** Possible fail information in the response. Defaults to null. */
@@ -58,9 +59,11 @@ public class X509ResponseMessage implements CertificateResponseMessage {
    * Possible clear text error information in the response. Defaults to null.
    */
   private String failText = null;
-
+  /** Cert. */
   private transient Certificate certificate;
+  /** Data. */
   private transient CertificateData certificateData;
+  /** Data. */
   private transient Base64CertData base64CertData;
 
   @Override
@@ -69,9 +72,9 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setCertificateData(final CertificateData certificateData) {
-    if (certificateData != null) {
-      this.certificateData = new CertificateData(certificateData);
+  public void setCertificateData(final CertificateData theCertificateData) {
+    if (theCertificateData != null) {
+      this.certificateData = new CertificateData(theCertificateData);
     } else {
       this.certificateData = null;
     }
@@ -83,9 +86,9 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setBase64CertData(final Base64CertData base64CertData) {
-    if (base64CertData != null) {
-      this.base64CertData = new Base64CertData(base64CertData);
+  public void setBase64CertData(final Base64CertData theBase64CertData) {
+    if (theBase64CertData != null) {
+      this.base64CertData = new Base64CertData(theBase64CertData);
     } else {
       this.base64CertData = null;
     }
@@ -94,13 +97,13 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   /**
    * Sets the complete certificate in the response message.
    *
-   * @param certificate certificate in the response message.
+   * @param aCertificate certificate in the response message.
    */
   @Override
-  public void setCertificate(final Certificate certificate) {
-    this.certificate = certificate;
+  public void setCertificate(final Certificate aCertificate) {
+    this.certificate = aCertificate;
     try {
-      this.certbytes = certificate.getEncoded();
+      this.certbytes = aCertificate.getEncoded();
     } catch (CertificateEncodingException e) {
       throw new Error(
           "Could not encode certificate. This should not happen", e);
@@ -118,7 +121,7 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setCACert(final Certificate cACert) {}
+  public void setCACert(final Certificate cACert) { }
 
   @Override
   public Certificate getCertificate() {
@@ -146,11 +149,11 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   /**
    * Sets the status of the response message.
    *
-   * @param status status of the response.
+   * @param theStatus status of the response.
    */
   @Override
-  public void setStatus(final ResponseStatus status) {
-    this.status = status;
+  public void setStatus(final ResponseStatus theStatus) {
+    this.status = theStatus;
   }
 
   /**
@@ -166,11 +169,11 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   /**
    * Sets info about reason for failure.
    *
-   * @param failInfo reason for failure.
+   * @param theFailInfo reason for failure.
    */
   @Override
-  public void setFailInfo(final FailInfo failInfo) {
-    this.failInfo = failInfo;
+  public void setFailInfo(final FailInfo theFailInfo) {
+    this.failInfo = theFailInfo;
   }
 
   /**
@@ -184,8 +187,8 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   }
 
   @Override
-  public void setFailText(final String failText) {
-    this.failText = failText;
+  public void setFailText(final String theFailText) {
+    this.failText = theFailText;
   }
 
   @Override
@@ -240,31 +243,31 @@ public class X509ResponseMessage implements CertificateResponseMessage {
   public void setSignKeyInfo(
       final Collection<Certificate> certs,
       final PrivateKey key,
-      final String provider) {}
+      final String provider) { }
 
   @Override
-  public void setSenderNonce(final String senderNonce) {}
+  public void setSenderNonce(final String senderNonce) { }
 
   @Override
-  public void setRecipientNonce(final String recipientNonce) {}
+  public void setRecipientNonce(final String recipientNonce) { }
 
   @Override
-  public void setTransactionId(final String transactionId) {}
+  public void setTransactionId(final String transactionId) { }
 
   @Override
-  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) {}
+  public void setRecipientKeyInfo(final byte[] recipientKeyInfo) { }
 
   @Override
-  public void setPreferredDigestAlg(final String digest) {}
+  public void setPreferredDigestAlg(final String digest) { }
 
   @Override
-  public void setRequestType(final int reqtype) {}
+  public void setRequestType(final int reqtype) { }
 
   @Override
-  public void setRequestId(final int reqid) {}
+  public void setRequestId(final int reqid) { }
 
   @Override
-  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) {}
+  public void setProtectionParamsFromRequest(final RequestMessage reqMsg) { }
 
   @Override
   public void addAdditionalCaCertificates(

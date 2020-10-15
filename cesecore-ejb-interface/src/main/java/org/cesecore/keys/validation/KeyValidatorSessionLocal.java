@@ -77,7 +77,7 @@ public interface KeyValidatorSessionLocal
    * @return a list of ids for conflicting validators, or an empty list if there
    *     are no conflicts
    */
-  List<Integer> getConflictingKeyValidatorIds(final Validator validator);
+  List<Integer> getConflictingKeyValidatorIds(Validator validator);
 
   /**
    * Adds a key validator to the database. Used for importing and exporting
@@ -104,9 +104,9 @@ public interface KeyValidatorSessionLocal
    * @throws KeyValidatorExistsException if key validator already exists.
    */
   void cloneKeyValidator(
-      final AuthenticationToken admin,
-      final int validatorId,
-      final String newName)
+      AuthenticationToken admin,
+      int validatorId,
+      String newName)
       throws AuthorizationDeniedException, KeyValidatorDoesntExistsException,
           KeyValidatorExistsException;
 
@@ -122,9 +122,9 @@ public interface KeyValidatorSessionLocal
    * @throws KeyValidatorExistsException if key validator already exists.
    */
   void cloneKeyValidator(
-      final AuthenticationToken admin,
-      final Validator validator,
-      final String newName)
+      AuthenticationToken admin,
+      Validator validator,
+      String newName)
       throws AuthorizationDeniedException, KeyValidatorDoesntExistsException,
           KeyValidatorExistsException;
 
@@ -140,7 +140,7 @@ public interface KeyValidatorSessionLocal
    * @throws KeyValidatorExistsException if key validator already exists.
    */
   void renameKeyValidator(
-      AuthenticationToken admin, final int validatorId, String newName)
+      AuthenticationToken admin, int validatorId, String newName)
       throws AuthorizationDeniedException, KeyValidatorDoesntExistsException,
           KeyValidatorExistsException;
 
@@ -156,8 +156,8 @@ public interface KeyValidatorSessionLocal
    * @throws KeyValidatorExistsException if key validator already exists.
    */
   void renameKeyValidator(
-      final AuthenticationToken admin,
-      final Validator validator,
+      AuthenticationToken admin,
+      Validator validator,
       String newName)
       throws AuthorizationDeniedException, KeyValidatorDoesntExistsException,
           KeyValidatorExistsException;
@@ -173,7 +173,7 @@ public interface KeyValidatorSessionLocal
    * @return Collection of end key validator id:s (Integer)
    */
   Collection<Integer> getAuthorizedKeyValidatorIds(
-      final AuthenticationToken admin, String keyValidatorAccessRule);
+      AuthenticationToken admin, String keyValidatorAccessRule);
 
   /**
    * Validates a key against the key validators which match the filter criteria
@@ -202,7 +202,7 @@ public interface KeyValidatorSessionLocal
    */
   boolean validatePublicKey(
       AuthenticationToken admin,
-      final CA ca,
+      CA ca,
       EndEntityInformation endEntityInformation,
       CertificateProfile certificateProfile,
       Date notBefore,
@@ -222,10 +222,10 @@ public interface KeyValidatorSessionLocal
    * @throws ValidationException if validation failed
    */
   void validateDnsNames(
-      final AuthenticationToken authenticationToken,
-      final CA ca,
-      final EndEntityInformation endEntityInformation,
-      final RequestMessage requestMessage)
+      AuthenticationToken authenticationToken,
+      CA ca,
+      EndEntityInformation endEntityInformation,
+      RequestMessage requestMessage)
       throws ValidationException;
 
   /**
@@ -244,11 +244,11 @@ public interface KeyValidatorSessionLocal
    *     stored in the cause, and message is null.
    */
   void validateCertificate(
-      final AuthenticationToken authenticationToken,
-      final IssuancePhase phase,
-      final CA ca,
-      final EndEntityInformation endEntityInformation,
-      final X509Certificate certificate)
+      AuthenticationToken authenticationToken,
+      IssuancePhase phase,
+      CA ca,
+      EndEntityInformation endEntityInformation,
+      X509Certificate certificate)
       throws ValidationException;
 
   /**

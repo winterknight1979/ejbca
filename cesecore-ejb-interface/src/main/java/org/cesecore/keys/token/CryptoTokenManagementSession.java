@@ -34,7 +34,7 @@ public interface CryptoTokenManagementSession {
    * Indicate that we would like to keep the current auto-activation PIN (if
    * present) when save a CryptoToken.
    */
-  public final String KEEP_AUTO_ACTIVATION_PIN = "keepAutoActivationPin";
+  String KEEP_AUTO_ACTIVATION_PIN = "keepAutoActivationPin";
 
   /**
    * @param authenticationToken Token
@@ -127,7 +127,7 @@ public interface CryptoTokenManagementSession {
    * @throws CryptoTokenAuthenticationFailedException If auth fails
    * @throws NoSuchSlotException If slot does not exist
    */
-  public List<String> isCryptoTokenSlotUsed(
+  List<String> isCryptoTokenSlotUsed(
       AuthenticationToken authenticationToken,
       String tokenName,
       String className,
@@ -325,8 +325,8 @@ public interface CryptoTokenManagementSession {
    * @see #createKeyPair(AuthenticationToken, int, String, String)
    */
   void createKeyPairWithSameKeySpec(
-      final AuthenticationToken authenticationToken,
-      final int cryptoTokenId,
+      AuthenticationToken authenticationToken,
+      int cryptoTokenId,
       String currentSignKeyAlias,
       String nextSignKeyAlias)
       throws AuthorizationDeniedException, CryptoTokenOfflineException,
@@ -460,7 +460,7 @@ public interface CryptoTokenManagementSession {
           CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException;
 
   /**
-   * Returns true if the alias is in use by the crypto token
+   * Returns true if the alias is in use by the crypto token.
    *
    * @param cryptoTokenId id of the crypto token
    * @param alias the alias in question

@@ -241,7 +241,7 @@ public interface CertificateStoreSession {
       String issuerDN, BigInteger serno);
 
   /**
-   * Find a certificate by its subject key ID
+   * Find a certificate by its subject key ID.
    *
    * @param subjectKeyId subject key ID of the sought certificate
    * @return the list Certificates if found, or an empty list (never null)

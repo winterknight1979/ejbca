@@ -15,7 +15,7 @@ package org.cesecore.audit.audit;
 import javax.ejb.Remote;
 
 /**
- * Remote interface for the SecurityEventsAuditor
+ * Remote interface for the SecurityEventsAuditor.
  *
  * @see SecurityEventsAuditorSession
  * @version $Id: SecurityEventsAuditorSessionRemote.java 17625 2013-09-20
@@ -23,4 +23,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface SecurityEventsAuditorSessionRemote
-    extends SecurityEventsAuditorSession {}
+    extends SecurityEventsAuditorSession { }

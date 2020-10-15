@@ -20,7 +20,7 @@ import org.cesecore.audit.enums.ModuleType;
 import org.cesecore.audit.enums.ServiceType;
 
 /**
- * Local interface for the SecurityEventsLogger
+ * Local interface for the SecurityEventsLogger.
  *
  * @version $Id: SecurityEventsLoggerSessionLocal.java 17625 2013-09-20
  *     07:12:06Z netmackan $
@@ -30,7 +30,7 @@ public interface SecurityEventsLoggerSessionLocal
     extends SecurityEventsLoggerSession {
 
   /**
-   * Gets trusted time, then calls log
+   * Gets trusted time, then calls log.
    *
    * @param eventType The event log type.
    * @param eventStatus The status of the operation to log.
@@ -59,7 +59,7 @@ public interface SecurityEventsLoggerSessionLocal
       throws AuditRecordStorageException;
 
   /**
-   * Gets trusted time, then calls log
+   * Gets trusted time, then calls log.
    *
    * @param eventType The event log type.
    * @param eventStatus The status of the operation to log.

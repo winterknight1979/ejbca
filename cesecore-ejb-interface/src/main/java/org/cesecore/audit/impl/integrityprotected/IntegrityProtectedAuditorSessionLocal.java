@@ -32,7 +32,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 public interface IntegrityProtectedAuditorSessionLocal extends Auditable {
 
   /**
-   * Delete all log entries up to the specified time
+   * Delete all log entries up to the specified time.
    *
    * @param token Token
    * @param timestamp Time

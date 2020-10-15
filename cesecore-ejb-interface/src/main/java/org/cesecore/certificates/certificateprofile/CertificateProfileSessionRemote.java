@@ -20,4 +20,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface CertificateProfileSessionRemote
-    extends CertificateProfileSession {}
+    extends CertificateProfileSession { }

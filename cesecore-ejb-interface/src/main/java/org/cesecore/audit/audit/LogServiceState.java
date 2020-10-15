@@ -21,8 +21,10 @@ import org.cesecore.audit.log.AuditLogResetException;
  * @version $Id: LogServiceState.java 17625 2013-09-20 07:12:06Z netmackan $
  */
 public enum LogServiceState {
+    /** Singleton. */
   INSTANCE;
 
+    /** True if disabled. */
   private final AtomicBoolean disabled = new AtomicBoolean(false);
 
   /** @return true if security audit logging has been disabled. */

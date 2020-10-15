@@ -20,7 +20,7 @@ public class RoleExistsException extends Exception {
   private static final long serialVersionUID = -8498629513600190809L;
 
   /** */
-  public RoleExistsException() {}
+  public RoleExistsException() { }
 
   /** @param message message */
   public RoleExistsException(final String message) {

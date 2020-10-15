@@ -19,4 +19,4 @@ import javax.ejb.Remote;
  *     jeklund $
  */
 @Remote
-public interface AuthorizationSessionRemote extends AuthorizationSession {}
+public interface AuthorizationSessionRemote extends AuthorizationSession { }

@@ -109,6 +109,11 @@ public interface CertificateDataSessionLocal extends CertificateDataSession {
   Set<String> findUsernamesByIssuerDNAndSubjectKeyId(
       String issuerDN, String subjectKeyId);
 
+  /**
+   * @param issuerDn DN
+   * @param serialNumber Serial
+   * @return User
+   */
   String findUsernameByIssuerDnAndSerialNumber(
       String issuerDn, String serialNumber);
 
@@ -176,6 +181,12 @@ public interface CertificateDataSessionLocal extends CertificateDataSession {
   List<CertificateData> findByExpireDateAndTypeWithLimit(
       long expireDate, int certificateType, int maxNumberOfResults);
 
+  /**
+   * @param minExpireTime min
+   * @param maxExpireTime max
+   * @param maxResults results
+   * @return users
+   */
   List<String> findUsernamesByExpireTimeWithLimit(
       long minExpireTime, long maxExpireTime, int maxResults);
 
@@ -186,10 +197,15 @@ public interface CertificateDataSessionLocal extends CertificateDataSession {
    * @param cdl data
    * @return The resulting list.
    */
-  List<Certificate> getCertificateList(final List<CertificateData> cdl);
+  List<Certificate> getCertificateList(List<CertificateData> cdl);
 
+  /**
+   * @param issuerDN DN
+   * @param serialNumbers Serials
+   * @return Certs
+   */
   List<Certificate> findCertificatesByIssuerDnAndSerialNumbers(
-      final String issuerDN, final Collection<BigInteger> serialNumbers);
+      String issuerDN, Collection<BigInteger> serialNumbers);
 
   /**
    * @param fingerprint FP

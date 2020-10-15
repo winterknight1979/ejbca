@@ -18,7 +18,7 @@ import java.util.List;
 import javax.ejb.Local;
 
 /**
- * Local interface for ProfileSession
+ * Local interface for ProfileSession.
  *
  * @version $Id: ProfileSessionLocal.java 26117 2017-07-03 13:56:15Z mikekushner
  *     $
@@ -27,7 +27,7 @@ import javax.ejb.Local;
 public interface ProfileSessionLocal {
 
   /**
-   * Adds a profile to the database
+   * Adds a profile to the database.
    *
    * @param profile a Profile object
    * @return the ID of the added profile
@@ -41,49 +41,49 @@ public interface ProfileSessionLocal {
   ProfileData findById(int id);
 
   /**
-   * Retrieves a list of ProfileData objects
+   * Retrieves a list of ProfileData objects.
    *
    * @param identifiers a list of identifiers
    * @return the list of objects specified. Returns an empty list if none where
    *     found.
    */
-  List<ProfileData> findByIds(final Collection<Integer> identifiers);
+  List<ProfileData> findByIds(Collection<Integer> identifiers);
 
   /**
-   * Updates profile data
+   * Updates profile data.
    *
    * @param profile the updated profile
    */
-  void changeProfile(final Profile profile);
+  void changeProfile(Profile profile);
 
   /**
    * Removes the given approval profile.
    *
    * @param profileData a profile data object
    */
-  void removeProfile(final ProfileData profileData);
+  void removeProfile(ProfileData profileData);
 
   /**
-   * Renames an approval profile
+   * Renames an approval profile.
    *
    * @param profile the profile to rename
    * @param newname the new name of the approval profile
    * @throws ProfileDoesNotExistException if the profile given as a parameter
    *     does not exist
    */
-  void renameProfile(final Profile profile, final String newname)
+  void renameProfile(Profile profile, String newname)
       throws ProfileDoesNotExistException;
 
   /**
    * @param profileType the profile type
    * @return return all approval profiles as a List.
    */
-  List<ProfileData> findAllProfiles(final String profileType);
+  List<ProfileData> findAllProfiles(String profileType);
 
   /**
    * @param name the name of the sought profile
    * @param type the type identifier of the sought profile
    * @return the found entity instances or an empty list.
    */
-  List<ProfileData> findByNameAndType(final String name, final String type);
+  List<ProfileData> findByNameAndType(String name, String type);
 }

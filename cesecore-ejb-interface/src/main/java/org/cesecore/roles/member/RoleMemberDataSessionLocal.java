@@ -20,7 +20,7 @@ import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
- * CRUD session bean for managing RoleMemberData objects
+ * CRUD session bean for managing RoleMemberData objects.
  *
  * @version $Id: RoleMemberDataSessionLocal.java 26449 2017-08-28 20:05:53Z
  *     mikekushner $
@@ -43,7 +43,7 @@ public interface RoleMemberDataSessionLocal extends RoleMemberDataSession {
    * @param primaryKey Primary key of the sought instance.
    * @return the sought RoleMember, otherwise null. .
    */
-  RoleMemberData find(final int primaryKey);
+  RoleMemberData find(int primaryKey);
 
   /**
    * Removes an RoleMemberData from the database.
@@ -52,7 +52,7 @@ public interface RoleMemberDataSessionLocal extends RoleMemberDataSession {
    * @return true if removal was successful, false if no such role member was
    *     found
    */
-  boolean remove(final int primaryKey);
+  boolean remove(int primaryKey);
 
   /**
    * @param roleId the ID of a role
@@ -66,7 +66,7 @@ public interface RoleMemberDataSessionLocal extends RoleMemberDataSession {
    * @param primaryKey Primary key of the sought instance.
    * @return the sought RoleMember, otherwise null. .
    */
-  RoleMember findRoleMember(final int primaryKey);
+  RoleMember findRoleMember(int primaryKey);
 
   /**
    * Finds all role members belonging to a specific role.

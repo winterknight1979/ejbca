@@ -17,4 +17,4 @@ import javax.ejb.Remote;
 
 /** Remote interface for key validator operations. */
 @Remote
-public interface KeyValidatorSessionRemote extends KeyValidatorSession {}
+public interface KeyValidatorSessionRemote extends KeyValidatorSession { }

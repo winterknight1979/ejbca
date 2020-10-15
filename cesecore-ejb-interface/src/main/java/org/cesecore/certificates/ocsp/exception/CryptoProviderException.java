@@ -22,18 +22,29 @@ public class CryptoProviderException extends RuntimeException {
 
   private static final long serialVersionUID = -3334600937753128052L;
 
+  /** Null constructor. */
   public CryptoProviderException() {
     super();
   }
 
+  /**
+   * @param msg message
+   * @param t cause
+   */
   public CryptoProviderException(final String msg, final Throwable t) {
     super(msg, t);
   }
 
+  /**
+   * @param msg message
+   */
   public CryptoProviderException(final String msg) {
     super(msg);
   }
 
+  /**
+   * @param msg Cause
+   */
   public CryptoProviderException(final Throwable msg) {
     super(msg);
   }

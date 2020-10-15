@@ -39,57 +39,77 @@ import org.cesecore.certificates.ocsp.exception.OcspFailureException;
 public class OcspResponseInformation implements Serializable {
 
   private static final long serialVersionUID = -4177593916232755218L;
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(OcspResponseInformation.class);
+  /** Response.*/
   private final byte[] ocspResponse;
+  /** age. */
   private final long maxAge;
+  /** boolean. */
   private boolean addCacheHeaders = true;
+  /** boolean. */
   private boolean explicitNoCache = false;
+  /** Update. */
   private Long nextUpdate = null;
+  /** Update. */
   private Long thisUpdate = null;
+  /** Header. */
   private String responseHeader = null;
+  /** Cert. */
   private X509Certificate signerCert = null;
 
+  /**
+   * @param anOcspResponse Resp
+   * @param theMaxAge Age
+   * @param aSignerCert Cert
+   * @throws OCSPException Fail
+   */
   public OcspResponseInformation(
-      final OCSPResp ocspResponse,
-      final long maxAge,
-      final X509Certificate signerCert)
+      final OCSPResp anOcspResponse,
+      final long theMaxAge,
+      final X509Certificate aSignerCert)
       throws OCSPException {
     try {
-      this.ocspResponse = ocspResponse.getEncoded();
+      this.ocspResponse = anOcspResponse.getEncoded();
     } catch (IOException e) {
       throw new IllegalStateException(
           "Unexpected IOException caught when encoding ocsp response.", e);
     }
-    this.maxAge = maxAge;
-    this.signerCert = signerCert;
+    this.maxAge = theMaxAge;
+    this.signerCert = aSignerCert;
     /*
-     * This may seem like a somewhat odd place to perform the below operations (instead of in the end servlet which demanded
-     * this object), but BouncyCastle (up to 1.47) is  a bit shy about making their classes serializable. This means that
-     * OCSPResp can't be transmitted, neither can many of the objects it contains such as SingleResp. Luckily we only need
-     * these classes for the diagnostic operations performed below, so we can sum up the result in the boolean member
-     * addCacheHeaders.  If BC choose to change their policy, the below code can med moved to a more logical location.
+     * This may seem like a somewhat odd place to perform the
+     * below operations (instead of in the end servlet which demanded
+     * this object), but BouncyCastle (up to 1.47) is  a bit shy
+     *  about making their classes serializable. This means that
+     * OCSPResp can't be transmitted, neither can many of the objects
+     * it contains such as SingleResp. Luckily we only need
+     * these classes for the diagnostic operations performed below,
+     * so we can sum up the result in the boolean member
+     * addCacheHeaders.  If BC choose to change their policy, the
+     *  below code can med moved to a more logical location.
      *  -mikek
      */
-    if (ocspResponse.getResponseObject() == null) {
-      if (log.isDebugEnabled()) {
-        log.debug("Will not add cache headers for response to bad request.");
+    if (anOcspResponse.getResponseObject() == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Will not add cache headers for response to bad request.");
       }
       addCacheHeaders = false;
     } else {
       final BasicOCSPResp basicOCSPResp =
-          (BasicOCSPResp) ocspResponse.getResponseObject();
+          (BasicOCSPResp) anOcspResponse.getResponseObject();
       final SingleResp[] singleRespones = basicOCSPResp.getResponses();
       if (singleRespones.length != 1) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Will not add RFC 5019 cache headers: reponse contains multiple"
                   + " embedded responses.");
         }
         addCacheHeaders = false;
       } else if (singleRespones[0].getNextUpdate() == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Will not add RFC 5019 cache headers: nextUpdate isn't set.");
         }
         addCacheHeaders = false;
@@ -97,8 +117,8 @@ public class OcspResponseInformation implements Serializable {
           && basicOCSPResp.getExtension(
                   OCSPObjectIdentifiers.id_pkix_ocsp_nonce)
               != null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Will not add RFC 5019 cache headers: response contains a"
                   + " nonce.");
         }
@@ -128,6 +148,9 @@ public class OcspResponseInformation implements Serializable {
     }
   }
 
+  /**
+   * @return response
+   */
   public byte[] getOcspResponse() {
     return ocspResponse;
   }
@@ -139,6 +162,9 @@ public class OcspResponseInformation implements Serializable {
     return maxAge;
   }
 
+  /**
+   * @return bool
+   */
   public boolean shouldAddCacheHeaders() {
     return addCacheHeaders;
   }
@@ -153,6 +179,9 @@ public class OcspResponseInformation implements Serializable {
     return thisUpdate;
   }
 
+  /**
+   * @return header
+   */
   public String getResponseHeader() {
     return responseHeader;
   }
@@ -165,6 +194,9 @@ public class OcspResponseInformation implements Serializable {
     return explicitNoCache;
   }
 
+  /**
+   * @return Cert
+   */
   public X509Certificate getSignerCert() {
     return signerCert;
   }

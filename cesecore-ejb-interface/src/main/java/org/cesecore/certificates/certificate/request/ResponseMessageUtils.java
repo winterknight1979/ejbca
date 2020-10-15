@@ -26,9 +26,19 @@ import org.cesecore.util.Base64;
  */
 public abstract class ResponseMessageUtils {
 
-  private static final Logger log =
+    /**Logger.
+     */
+  private static final Logger LOG =
       Logger.getLogger(ResponseMessageUtils.class);
 
+  /**
+   * @param responseClass Class
+   * @param req Request
+   * @param certs Certificates
+   * @param signPriv Private key
+   * @param provider Provider
+   * @return Message
+   */
   public static CertificateResponseMessage createResponseMessage(
       final Class<? extends ResponseMessage> responseClass,
       final RequestMessage req,
@@ -45,10 +55,10 @@ public abstract class ResponseMessageUtils {
         | NoSuchMethodException
         | InvocationTargetException e) {
       // TODO : do something with these exceptions
-      log.error("Error creating response message", e);
+      LOG.error("Error creating response message", e);
       return null;
     } catch (IllegalAccessException e) {
-      log.error("Error creating response message", e);
+      LOG.error("Error creating response message", e);
       return null;
     }
     if (ret.requireSignKeyInfo()) {

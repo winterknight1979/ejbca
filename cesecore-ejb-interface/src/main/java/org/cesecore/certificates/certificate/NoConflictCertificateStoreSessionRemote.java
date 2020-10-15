@@ -22,4 +22,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface NoConflictCertificateStoreSessionRemote
-    extends NoConflictCertificateStoreSession {}
+    extends NoConflictCertificateStoreSession { }

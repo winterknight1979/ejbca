@@ -49,13 +49,19 @@ import org.cesecore.util.Base64;
  */
 public class SigningFileOutputStream extends FileOutputStream {
 
+      /** Config. */
   public static final String EXPORT_SIGN_CERT = "cert";
+  /** Config. */
   public static final String EXPORT_SIGN_ALG = "alg";
+  /** Config. */
   public static final String EXPORT_SIGN_KEYALIAS = "key";
 
-  final Signature signature;
-  final Signature signValidate;
-  final String signatureFilename;
+  /** Sig. */
+  private final Signature signature;
+  /** Validate. */
+  private final Signature signValidate;
+  /** Filename. */
+  private final String signatureFilename;
 
   /**
    * Generates a signature file with the same name as the export file but with
@@ -140,6 +146,12 @@ public class SigningFileOutputStream extends FileOutputStream {
     }
   }
 
+  /**
+   * @return Sig
+   * @throws SignatureException Fail
+   * @throws AuditLogExporterException Fail
+   * @throws IOException Fail
+   */
   public String writeSignature()
       throws SignatureException, AuditLogExporterException, IOException {
     byte[] signedData = signature.sign();

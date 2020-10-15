@@ -41,14 +41,20 @@ import org.cesecore.util.ValidityDate;
  *
  * @version $Id: AuditDevicesConfig.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-public class AuditDevicesConfig {
+public final class AuditDevicesConfig {
 
-  private static final Logger log = Logger.getLogger(AuditDevicesConfig.class);
-  private static final ReentrantLock lock = new ReentrantLock(false);
+    private AuditDevicesConfig() { }
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(AuditDevicesConfig.class);
+  /** Thread lock. */
+  private static final ReentrantLock LOCK = new ReentrantLock(false);
+  /** Loggers. */
   private static Map<String, AuditLogDevice> loggers = null;
-  private static final Map<String, Class<? extends AuditExporter>> exporters =
+  /** Exporters. */
+  private static final Map<String, Class<? extends AuditExporter>> EXPORTERS =
       new HashMap<String, Class<? extends AuditExporter>>();
-  private static final Map<String, Properties> deviceProperties =
+  /** Props. */
+  private static final Map<String, Properties> DEVICE_PROPERTIES =
       new HashMap<String, Properties>();
 
   private static Map<String, AuditLogDevice> getLoggers() {
@@ -59,36 +65,37 @@ public class AuditDevicesConfig {
   @SuppressWarnings("unchecked")
   private static void setup() {
     try {
-      lock.lock();
+      LOCK.lock();
       if (loggers == null) {
         loggers = new HashMap<String, AuditLogDevice>();
         final Configuration conf = ConfigurationHolder.instance();
-        final String DEVICE_CLASS = "securityeventsaudit.implementation.";
-        final String EXPORTER_CLASS = "securityeventsaudit.exporter.";
+        final String deviceClassRoot = "securityeventsaudit.implementation.";
+        final String exporterClassRoot = "securityeventsaudit.exporter.";
         // Extract custom properties configured for any device, to avoid lookup
         // for each device later on..
         // Default devices should not require configuring of 'deviceproperty' in
         // defaultvalues.properties,
         // since the below Iterator does not read from default values.
-        final String DEVICE_PROPERTY =
+        final String deviceProperty =
             "securityeventsaudit\\.deviceproperty\\.(\\d+)\\.(.+)";
         final Map<Integer, Properties> allDeviceProperties =
             new HashMap<Integer, Properties>();
         final Iterator<String> iterator = conf.getKeys();
         while (iterator.hasNext()) {
           final String currentKey = iterator.next();
-          Pattern pattern = Pattern.compile(DEVICE_PROPERTY);
+          Pattern pattern = Pattern.compile(deviceProperty);
           Matcher matcher = pattern.matcher(currentKey);
           if (matcher.matches()) {
             final Integer deviceConfId = Integer.parseInt(matcher.group(1));
-            Properties deviceProperties = allDeviceProperties.get(deviceConfId);
-            if (deviceProperties == null) {
-              deviceProperties = new Properties();
+            Properties thedeviceProperties =
+                    allDeviceProperties.get(deviceConfId);
+            if (thedeviceProperties == null) {
+              thedeviceProperties = new Properties();
             }
             final String devicePropertyName = matcher.group(2);
             final String devicePropertyValue = conf.getString(currentKey);
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "deviceConfId="
                       + deviceConfId.toString()
                       + " "
@@ -96,20 +103,20 @@ public class AuditDevicesConfig {
                       + "="
                       + devicePropertyValue);
             }
-            deviceProperties.put(devicePropertyName, devicePropertyValue);
-            allDeviceProperties.put(deviceConfId, deviceProperties);
+            thedeviceProperties.put(devicePropertyName, devicePropertyValue);
+            allDeviceProperties.put(deviceConfId, thedeviceProperties);
           }
         }
         for (int i = 0; i < 255; i++) {
-          if (!checkNoDuplicateProperties(DEVICE_CLASS + i)) {
+          if (!checkNoDuplicateProperties(deviceClassRoot + i)) {
             continue;
           }
           final String deviceClass =
-              ConfigurationHolder.getString(DEVICE_CLASS + i);
+              ConfigurationHolder.getString(deviceClassRoot + i);
           if ((deviceClass != null)
               && (!"null".equalsIgnoreCase(deviceClass))) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Trying to register audit device using implementation: "
                       + deviceClass);
             }
@@ -121,7 +128,7 @@ public class AuditDevicesConfig {
                   implClass.getConstructor().newInstance();
               final String name = implClass.getSimpleName();
               loggers.put(name, auditLogDevice);
-              log.info(
+              LOG.info(
                   "Registered audit device using implementation: "
                       + deviceClass);
               // Store custom properties for this device, so they are searchable
@@ -129,11 +136,11 @@ public class AuditDevicesConfig {
               if (!allDeviceProperties.containsKey(Integer.valueOf(i))) {
                 allDeviceProperties.put(Integer.valueOf(i), new Properties());
               }
-              deviceProperties.put(
+              DEVICE_PROPERTIES.put(
                   name, allDeviceProperties.get(Integer.valueOf(i)));
               // Setup an exporter for this device
               final String exporterClassName =
-                  ConfigurationHolder.getString(EXPORTER_CLASS + i);
+                  ConfigurationHolder.getString(exporterClassRoot + i);
               Class<? extends AuditExporter> exporterClass =
                   AuditExporterDummy.class;
               if (exporterClassName != null) {
@@ -143,7 +150,7 @@ public class AuditDevicesConfig {
                           Class.forName(exporterClassName);
                 } catch (Exception e) {
                   // ClassCastException, ClassNotFoundException
-                  log.error(
+                  LOG.error(
                       "Could not configure exporter for audit device "
                           + name
                           + " using implementation: "
@@ -151,16 +158,16 @@ public class AuditDevicesConfig {
                       e);
                 }
               }
-              log.info(
+              LOG.info(
                   "Configured exporter "
                       + exporterClass.getSimpleName()
                       + " for device "
                       + name);
-              exporters.put(name, exporterClass);
+              EXPORTERS.put(name, exporterClass);
             } catch (Exception e) {
               // ClassCastException, ClassNotFoundException,
               // InstantiationException, IllegalAccessException
-              log.error(
+              LOG.error(
                   "Could not creating audit device using implementation: "
                       + deviceClass,
                   e);
@@ -168,11 +175,11 @@ public class AuditDevicesConfig {
           }
         }
         if (loggers.isEmpty()) {
-          log.warn("No security event audit devices has been configured.");
+          LOG.warn("No security event audit devices has been configured.");
         }
       }
     } finally {
-      lock.unlock();
+      LOCK.unlock();
     }
   }
 
@@ -185,7 +192,7 @@ public class AuditDevicesConfig {
   private static boolean checkNoDuplicateProperties(final String name) {
     final String[] arr = ConfigurationHolder.instance().getStringArray(name);
     if (arr != null && arr.length > 1) {
-      log.error(
+      LOG.error(
           "Duplicate property definitions of \""
               + name
               + "\". All defintions ("
@@ -215,6 +222,11 @@ public class AuditDevicesConfig {
     return new HashSet<String>(getLoggers().keySet());
   }
 
+  /**
+   * @param ejbs Beans
+   * @param id ID
+   * @return Device
+   */
   public static AuditLogDevice getDevice(
       final Map<Class<?>, ?> ejbs, final String id) {
     final AuditLogDevice auditLogDevice = getLoggers().get(id);
@@ -224,16 +236,25 @@ public class AuditDevicesConfig {
     return auditLogDevice;
   }
 
+  /**
+   * @param id ID
+   * @return Exporter class
+   */
   public static Class<? extends AuditExporter> getExporter(final String id) {
     setup();
-    return exporters.get(id);
+    return EXPORTERS.get(id);
   }
 
+  /**
+   * @param id ID
+   * @return Props
+   */
   public static Properties getProperties(final String id) {
     setup();
-    return deviceProperties.get(id);
+    return DEVICE_PROPERTIES.get(id);
   }
 
+  /** Format. */
   private static final String EXPORTFILE_DATE_FORMAT = "yyyy-MM-dd-HHmmss";
 
   /**
@@ -255,12 +276,15 @@ public class AuditDevicesConfig {
                 .format(exportDate)
             + ".log";
     File ret = new File(dir, file);
-    if (log.isDebugEnabled()) {
-      log.debug("Export file: " + p + file);
-      log.debug("Export file canonical: " + ret.getCanonicalPath());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Export file: " + p + file);
+      LOG.debug("Export file canonical: " + ret.getCanonicalPath());
     }
     return ret;
   }
+
+  /** Size. */
+  private static final int FETCHSIZE = 1000;
 
   /**
    * Parameter to specify the number of logs to be fetched in each validation
@@ -271,7 +295,7 @@ public class AuditDevicesConfig {
    */
   public static int getAuditLogValidationFetchSize(
       final Properties properties) {
-    return getInt(properties, "validate.fetchsize", 1000);
+    return getInt(properties, "validate.fetchsize", FETCHSIZE);
   }
 
   /**
@@ -282,7 +306,7 @@ public class AuditDevicesConfig {
    * @return log size
    */
   public static int getAuditLogExportFetchSize(final Properties properties) {
-    return getInt(properties, "export.fetchsize", 1000);
+    return getInt(properties, "export.fetchsize", FETCHSIZE);
   }
 
   private static int getInt(
@@ -291,7 +315,7 @@ public class AuditDevicesConfig {
     try {
       ret = Integer.valueOf(properties.getProperty(key, String.valueOf(ret)));
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value in "
               + key
               + ", must be decimal number. Using default "

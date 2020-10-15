@@ -21,4 +21,4 @@ import javax.ejb.Remote;
  */
 @Remote
 public interface CryptoTokenManagementSessionRemote
-    extends CryptoTokenManagementSession {}
+    extends CryptoTokenManagementSession { }

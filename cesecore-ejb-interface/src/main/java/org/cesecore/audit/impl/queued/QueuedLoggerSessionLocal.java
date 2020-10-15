@@ -20,4 +20,4 @@ import org.cesecore.audit.AuditLogger;
  *     netmackan $
  */
 @Local
-public interface QueuedLoggerSessionLocal extends AuditLogger {}
+public interface QueuedLoggerSessionLocal extends AuditLogger { }

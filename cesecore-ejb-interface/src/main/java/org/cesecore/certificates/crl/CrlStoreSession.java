@@ -17,7 +17,7 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 
 /**
- * Session bean storing and retrieving CRLs
+ * Session bean storing and retrieving CRLs.
  *
  * @version $Id: CrlStoreSession.java 25229 2017-02-09 12:58:10Z anatom $
  */
@@ -76,7 +76,7 @@ public interface CrlStoreSession {
   int getLastCRLNumber(String issuerdn, boolean deltaCRL);
 
   /**
-   * Stores a CRL
+   * Stores a CRL.
    *
    * @param admin Administrator performing the operation
    * @param incrl The DER coded CRL to be stored.

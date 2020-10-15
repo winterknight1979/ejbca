@@ -27,6 +27,10 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
 public interface NoConflictCertificateDataSessionLocal
     extends NoConflictCertificateDataSession {
 
+    /**
+     * @param fingerprint FP
+   * @return return the query results as a List.
+     */
   List<NoConflictCertificateData> findByFingerprint(String fingerprint);
 
   /**
