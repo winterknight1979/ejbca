@@ -157,7 +157,7 @@ public abstract class BaseWorker implements IWorker {
                 String msg = intres.getLocalizedMessage("services.errorexpireworker.errorconfig", serviceName, "VALUE");
                 throw new ServiceExecutionFailedException(msg);
             }
-            timeBeforeExpire = intvalue * unitval;
+            timeBeforeExpire = (long) intvalue * unitval;
         }
 
         return timeBeforeExpire * 1000;
