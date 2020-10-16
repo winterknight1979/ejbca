@@ -26,8 +26,10 @@ import org.cesecore.internal.CommonCacheBase;
  * @version $Id: ValidatorCache.java 28332 2018-02-20 14:40:52Z anatom $
  */
 public enum ValidatorCache implements CommonCache<Validator> {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /** Cache. */
   private final CommonCache<Validator> cache =
       new CommonCacheBase<Validator>() {
         @Override
@@ -36,7 +38,7 @@ public enum ValidatorCache implements CommonCache<Validator> {
               Math.max(CesecoreConfiguration.getCacheKeyValidatorTime(), -1);
           return time;
         }
-        ;
+
 
         @Override
         protected long getMaxCacheLifeTime() {

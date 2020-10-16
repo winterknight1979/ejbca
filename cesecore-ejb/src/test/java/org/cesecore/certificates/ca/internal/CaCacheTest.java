@@ -37,9 +37,11 @@ import org.junit.Test;
  */
 public class CaCacheTest {
 
-  private static final transient Logger log =
+    /** Logger. */
+  private static final transient Logger LOG =
       Logger.getLogger(CaCacheTest.class);
 
+  /** Setup. */
   @BeforeClass
   public static void beforeClass() {
     ConfigurationHolder.instance();
@@ -52,7 +54,7 @@ public class CaCacheTest {
    */
   @Test
   public void disabledCacheBehavior() {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     ConfigurationHolder.updateConfiguration("cainfo.cachetime", "-1");
     final String name1 = CaCacheTest.class.getSimpleName() + " CA1";
     final String name2 = CaCacheTest.class.getSimpleName() + " CA2";
@@ -136,7 +138,7 @@ public class CaCacheTest {
     assertTrue(
         "Cache indicated that non-existing object is valid.",
         CaCache.INSTANCE.shouldCheckForUpdates(ca3.getCAId()));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   /**
@@ -146,7 +148,7 @@ public class CaCacheTest {
    */
   @Test
   public void enabledCacheBehavior() {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     ConfigurationHolder.updateConfiguration("cainfo.cachetime", "3000");
     final String name1 = CaCacheTest.class.getSimpleName() + " CA1";
     final String name2 = CaCacheTest.class.getSimpleName() + " CA2";
@@ -273,7 +275,7 @@ public class CaCacheTest {
     assertTrue(
         "Cache indicated that non-existing object is valid.",
         CaCache.INSTANCE.shouldCheckForUpdates(ca3.getCAId()));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   /**
@@ -285,7 +287,7 @@ public class CaCacheTest {
    */
   @Test
   public void cacheExpiration() throws InterruptedException {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     ConfigurationHolder.updateConfiguration("cainfo.cachetime", "2000");
     final String name1 = CaCacheTest.class.getSimpleName() + " CA1";
     final String name2 = CaCacheTest.class.getSimpleName() + " CA2";
@@ -423,7 +425,7 @@ public class CaCacheTest {
     assertTrue(
         "Cache indicated that non-existing object is valid.",
         CaCache.INSTANCE.shouldCheckForUpdates(ca3.getCAId()));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   private CA getNewCa(final String cadn) {

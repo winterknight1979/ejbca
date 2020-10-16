@@ -27,8 +27,10 @@ import org.cesecore.internal.CommonCacheBase;
  * @version $Id: RoleMemberCache.java 28332 2018-02-20 14:40:52Z anatom $
  */
 public enum RoleMemberCache implements CommonCache<RoleMember> {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /** Cache. */
   private final CommonCacheBase<RoleMember> cache =
       new CommonCacheBase<RoleMember>() {
         @Override
@@ -42,7 +44,7 @@ public enum RoleMemberCache implements CommonCache<RoleMember> {
           // object.
           return 0;
         }
-        ;
+
       };
 
   @Override
@@ -100,6 +102,9 @@ public enum RoleMemberCache implements CommonCache<RoleMember> {
     cache.replaceCacheWith(keys);
   }
 
+  /**
+   * @return values
+   */
   public Set<RoleMember> getAllValues() {
     return cache.getAllEntries();
   }

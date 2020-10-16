@@ -43,11 +43,15 @@ import org.cesecore.util.QueryResultWrapper;
 public class RoleDataSessionBean
     implements RoleDataSessionLocal, RoleDataSessionRemote {
 
-  private static final Logger log = Logger.getLogger(RoleDataSessionBean.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(RoleDataSessionBean.class);
 
+  /** Session. */
   @EJB private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+  /** Session. */
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -115,15 +119,15 @@ public class RoleDataSessionBean
     }
     // 1. Check cache if it is time to sync-up with database
     if (RoleCache.INSTANCE.shouldCheckForUpdates(roleId)) {
-      if (log.isDebugEnabled()) {
-        log.debug("Object with ID " + roleId + " will be checked for updates.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Object with ID " + roleId + " will be checked for updates.");
       }
       // 2. If cache is expired or missing, first thread to discover this
       // reloads item from database and sends it to the cache
       final RoleData roleData = getRoleData(roleId);
       if (roleData == null) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Requested object did not exist in database and will be purged"
                   + " from cache if present: "
                   + roleId);

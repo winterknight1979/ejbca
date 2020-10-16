@@ -32,9 +32,10 @@ import org.junit.Test;
 public class KeyValidatorCacheTest {
 
   /** Class logger. */
-  private static final transient Logger log =
+  private static final transient Logger LOG =
       Logger.getLogger(KeyValidatorCacheTest.class);
 
+  /** Setup. */
   @BeforeClass
   public static void beforeClass() {
     ConfigurationHolder.instance();
@@ -47,7 +48,7 @@ public class KeyValidatorCacheTest {
    */
   @Test
   public void disabledCacheBehavior() {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     ConfigurationHolder.updateConfiguration("validator.cachetime", "-1");
     final String name1 = KeyValidatorCacheTest.class.getSimpleName() + " Publ1";
     final String name2 = KeyValidatorCacheTest.class.getSimpleName() + " Publ2";
@@ -159,7 +160,7 @@ public class KeyValidatorCacheTest {
     assertNull(
         "Empty cache returned a name anyway",
         ValidatorCache.INSTANCE.getName(3));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   /**
@@ -169,7 +170,7 @@ public class KeyValidatorCacheTest {
    */
   @Test
   public void enabledCacheBehavior() {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     ConfigurationHolder.updateConfiguration("validator.cachetime", "3000");
     final String name1 = KeyValidatorCacheTest.class.getSimpleName() + " Publ1";
     final String name2 = KeyValidatorCacheTest.class.getSimpleName() + " Publ2";
@@ -326,7 +327,7 @@ public class KeyValidatorCacheTest {
     assertNull(
         "Empty cache returned a name anyway",
         ValidatorCache.INSTANCE.getName(3));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   /**
@@ -338,7 +339,7 @@ public class KeyValidatorCacheTest {
    */
   @Test
   public void cacheExpiration() throws InterruptedException {
-    log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());
     ConfigurationHolder.updateConfiguration("validator.cachetime", "2000");
     final String name1 = KeyValidatorCacheTest.class.getSimpleName() + " CA1";
     final String name2 = KeyValidatorCacheTest.class.getSimpleName() + " CA2";
@@ -506,7 +507,7 @@ public class KeyValidatorCacheTest {
     assertNull(
         "Empty cache returned a name anyway",
         ValidatorCache.INSTANCE.getName(3));
-    log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
+    LOG.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
   }
 
   private ValidatorBase getNewKeyValidator(final String name) {

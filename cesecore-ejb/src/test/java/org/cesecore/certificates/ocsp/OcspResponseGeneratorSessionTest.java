@@ -34,17 +34,26 @@ import org.junit.Test;
  */
 public class OcspResponseGeneratorSessionTest {
 
+    /** Setup.
+     * @throws Exception fail
+     * */
   @Before
-  public void setUp() throws Exception {}
+  public void setUp() throws Exception { }
 
+  /** Test.
+   *
+   * @throws AuthorizationDeniedException fail
+   * @throws OCSPException fail
+   * @throws IOException fail
+   */
   @Test
   public void testWithRandomBytes()
       throws AuthorizationDeniedException, OCSPException, IOException {
-    final int MAX_REQUEST_SIZE = 100000;
+    final int maxReqSize = 100000;
     TestOcspResponseGeneratorSessionBean ocspResponseGeneratorSession =
         new TestOcspResponseGeneratorSessionBean();
     SecureRandom random = new SecureRandom();
-    byte[] fakeRequest = new byte[MAX_REQUEST_SIZE + 1];
+    byte[] fakeRequest = new byte[maxReqSize + 1];
     random.nextBytes(fakeRequest);
     boolean caught = false;
     final int localTransactionId =
@@ -70,5 +79,5 @@ public class OcspResponseGeneratorSessionTest {
   }
 
   private class TestOcspResponseGeneratorSessionBean
-      extends OcspResponseGeneratorSessionBean {}
+      extends OcspResponseGeneratorSessionBean { }
 }

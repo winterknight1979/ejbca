@@ -74,24 +74,30 @@ import org.cesecore.util.CertTools;
 public class KeyValidatorSessionBean
     implements KeyValidatorSessionLocal, KeyValidatorSessionRemote {
 
-  // NOTE: Should be replaced by a ManagedExecutorService when we drop support
-  // for JEE 6
-  private static final ExecutorService executorService =
+  /** NOTE: Should be replaced by a ManagedExecutorService when we drop support
+   * for JEE 6. */
+  private static final ExecutorService EXECUTOR_SERVICE =
       Executors.newFixedThreadPool(64);
 
   /** Class logger. */
-  private static final Logger log =
+  private static final Logger LOG =
       Logger.getLogger(KeyValidatorSessionBean.class);
 
   /** Internal localization of logs and errors. */
-  private static final InternalResources intres =
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** Session. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Session. */
   @EJB private GlobalConfigurationSessionLocal globalConfigurationSession;
+  /** Session. */
   @EJB private CaSessionLocal caSession;
+  /** Session. */
   @EJB private CertificateProfileSessionLocal certificateProfileSession;
+  /** Session. */
   @EJB private ProfileSessionLocal profileSession;
+  /** Session. */
   @EJB private SecurityEventsLoggerSessionLocal auditSession;
 
   @Override
@@ -101,16 +107,16 @@ public class KeyValidatorSessionBean
 
   @Override
   public String getKeyValidatorName(final int id) {
-    if (log.isTraceEnabled()) {
-      log.trace(">getKeyValidatorName(id: " + id + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">getKeyValidatorName(id: " + id + ")");
     }
     final Validator entity = getValidatorInternal(id, true);
     String result = null;
     if (null != entity) {
       result = entity.getProfileName();
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<getKeyValidatorName(): " + result);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getKeyValidatorName(): " + result);
     }
     return result;
   }
@@ -119,8 +125,8 @@ public class KeyValidatorSessionBean
   public void importValidator(
       final AuthenticationToken admin, final Validator validator)
       throws AuthorizationDeniedException, KeyValidatorExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">addKeyValidator(name: "
               + validator.getProfileName()
               + ", id: "
@@ -129,7 +135,7 @@ public class KeyValidatorSessionBean
     }
     addValidatorInternal(admin, validator);
     final String message =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "validator.added_validator", validator.getProfileName());
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", message);
@@ -143,8 +149,8 @@ public class KeyValidatorSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<addKeyValidator()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<addKeyValidator()");
     }
   }
 
@@ -161,7 +167,7 @@ public class KeyValidatorSessionBean
       // Since loading a KeyValidator is quite complex, we simple purge the
       // cache here.
       ValidatorCache.INSTANCE.removeEntry(data.getId());
-      message = intres.getLocalizedMessage("validator.changed_validator", name);
+      message = INTRES.getLocalizedMessage("validator.changed_validator", name);
       final Map<String, Object> details = new LinkedHashMap<String, Object>();
       details.put("msg", message);
       // TODO: Include a diff in the changelog
@@ -180,8 +186,8 @@ public class KeyValidatorSessionBean
           details);
     } else {
       message =
-          intres.getLocalizedMessage("validator.error.change_validator", name);
-      log.info(message);
+          INTRES.getLocalizedMessage("validator.error.change_validator", name);
+      LOG.info(message);
       throw new KeyValidatorDoesntExistsException(
           "Validator by ID "
               + validator.getProfileId()
@@ -193,16 +199,16 @@ public class KeyValidatorSessionBean
   public void removeKeyValidator(
       final AuthenticationToken admin, final int validatorId)
       throws AuthorizationDeniedException, CouldNotRemoveKeyValidatorException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeKeyValidator(id: " + validatorId + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeKeyValidator(id: " + validatorId + ")");
     }
     assertIsAuthorizedToEditValidators(admin);
     String message;
 
     ProfileData data = profileSession.findById(validatorId);
     if (data == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Trying to remove a key validator that does not exist with ID: "
                 + validatorId);
       }
@@ -217,7 +223,7 @@ public class KeyValidatorSessionBean
     // Purge the cache here.
     ValidatorCache.INSTANCE.removeEntry(data.getId());
     message =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "validator.removed_validator", data.getProfileName());
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", message);
@@ -231,8 +237,8 @@ public class KeyValidatorSessionBean
         null,
         null,
         details);
-    if (log.isTraceEnabled()) {
-      log.trace("<removeKeyValidator()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<removeKeyValidator()");
     }
   }
 
@@ -240,8 +246,8 @@ public class KeyValidatorSessionBean
   public void removeKeyValidator(
       final AuthenticationToken admin, final String validatorName)
       throws AuthorizationDeniedException, CouldNotRemoveKeyValidatorException {
-    if (log.isTraceEnabled()) {
-      log.trace(">removeKeyValidator(id: " + validatorName + ")");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(">removeKeyValidator(id: " + validatorName + ")");
     }
     assertIsAuthorizedToEditValidators(admin);
     String message;
@@ -249,8 +255,8 @@ public class KeyValidatorSessionBean
     List<ProfileData> datas =
         profileSession.findByNameAndType(validatorName, Validator.TYPE_NAME);
     if (datas == null) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Trying to remove a key validator that does not exist with name: "
                 + validatorName);
       }
@@ -264,7 +270,7 @@ public class KeyValidatorSessionBean
         // Purge the cache here.
         ValidatorCache.INSTANCE.removeEntry(data.getId());
         message =
-            intres.getLocalizedMessage(
+            INTRES.getLocalizedMessage(
                 "validator.removed_validator", data.getProfileName());
         final Map<String, Object> details = new LinkedHashMap<String, Object>();
         details.put("msg", message);
@@ -281,16 +287,16 @@ public class KeyValidatorSessionBean
       }
     }
 
-    if (log.isTraceEnabled()) {
-      log.trace("<removeKeyValidator()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<removeKeyValidator()");
     }
   }
 
   @Override
   public void flushKeyValidatorCache() {
     ValidatorCache.INSTANCE.flush();
-    if (log.isDebugEnabled()) {
-      log.debug("Flushed KeyValidator cache.");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Flushed KeyValidator cache.");
     }
   }
 
@@ -300,7 +306,7 @@ public class KeyValidatorSessionBean
       throws AuthorizationDeniedException, KeyValidatorExistsException {
     final int id = addValidatorInternal(admin, validator);
     final String message =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "validator.added_validator", validator.getProfileName());
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", message);
@@ -345,7 +351,7 @@ public class KeyValidatorSessionBean
     try {
       addValidatorInternal(admin, validatorClone);
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "validator.cloned_validator",
               newName,
               validator.getProfileName());
@@ -363,11 +369,11 @@ public class KeyValidatorSessionBean
           details);
     } catch (KeyValidatorExistsException e) {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "validator.error.clone_validator",
               newName,
               validator.getProfileName());
-      log.info(message);
+      LOG.info(message);
       throw e;
     }
   }
@@ -389,8 +395,8 @@ public class KeyValidatorSessionBean
       final String newName)
       throws AuthorizationDeniedException, KeyValidatorDoesntExistsException,
           KeyValidatorExistsException {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">renameKeyValidator(from "
               + validator.getProfileName()
               + " to "
@@ -413,7 +419,7 @@ public class KeyValidatorSessionBean
     }
     if (success) {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "validator.renamed_validator",
               validator.getProfileName(),
               newName);
@@ -431,15 +437,15 @@ public class KeyValidatorSessionBean
           details);
     } else {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "validator.errorrenamekeyvalidator",
               validator.getProfileName(),
               newName);
-      log.info(message);
+      LOG.info(message);
       throw new KeyValidatorExistsException();
     }
-    if (log.isTraceEnabled()) {
-      log.trace("<renameKeyValidator()");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<renameKeyValidator()");
     }
   }
 
@@ -455,8 +461,8 @@ public class KeyValidatorSessionBean
     for (ProfileData data : keyValidators) {
       if (!enabled
           && data.getProfile() instanceof ExternalCommandCertificateValidator) {
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "Skip "
                   + data.getProfileType()
                   + " with name "
@@ -473,9 +479,9 @@ public class KeyValidatorSessionBean
         // NOPMD: Implementation not available in this version if EJBCA
       }
     }
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       for (Integer id : result.keySet()) {
-        log.debug(
+        LOG.debug(
             "Key validators found in datastore: "
                 + id
                 + ":"
@@ -495,9 +501,9 @@ public class KeyValidatorSessionBean
     for (ProfileData data : keyValidators) {
       result.put(data.getId(), (Validator) data.getProfile());
     }
-    if (log.isDebugEnabled()) {
+    if (LOG.isDebugEnabled()) {
       for (Integer id : result.keySet()) {
-        log.debug(
+        LOG.debug(
             "Key validators found in datastore: "
                 + id
                 + ":"
@@ -525,8 +531,8 @@ public class KeyValidatorSessionBean
         result.put(data.getKey(), data.getValue().getProfileName());
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Found validators for applicable CAs "
               + applicableCa
               + ": "
@@ -598,7 +604,7 @@ public class KeyValidatorSessionBean
 
           Entry<Boolean, List<String>> result =
               validator.validate(
-                  executorService,
+                  EXECUTOR_SERVICE,
                   dnsNames.toArray(new String[dnsNames.size()]));
 
           final String validatorName = validator.getProfileName();
@@ -608,12 +614,12 @@ public class KeyValidatorSessionBean
             // break issuance and not cause anything important to happen.
             // We want thorough logging in order to trouble shoot though
             final String message =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "validator.caa.validation_failed",
                     validatorName,
                     validator.getIssuer(),
                     messages);
-            log.info(
+            LOG.info(
                 EventTypes.VALIDATOR_VALIDATION_FAILED
                     + ";"
                     + EventStatus.FAILURE
@@ -630,7 +636,7 @@ public class KeyValidatorSessionBean
             // event because CAs may be asked to present this as evidence to an
             // auditor
             final String message =
-                intres.getLocalizedMessage(
+                INTRES.getLocalizedMessage(
                     "validator.caa.validation_successful",
                     validatorName,
                     validator.getIssuer(),
@@ -652,8 +658,8 @@ public class KeyValidatorSessionBean
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "No validators configured for CA "
                 + ca.getName()
                 + " (ID="
@@ -688,16 +694,16 @@ public class KeyValidatorSessionBean
               ca.getCACertificate(),
               false,
               false);
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Validate "
                 + publicKey.getAlgorithm()
                 + " public key with "
                 + publicKey.getFormat()
                 + " format.");
-        log.debug(
+        LOG.debug(
             "Certificate 'notBefore' " + certificateValidity.getNotBefore());
-        log.debug(
+        LOG.debug(
             "Certificate 'notAfter' " + certificateValidity.getNotAfter());
       }
       Validator baseValidator;
@@ -709,8 +715,8 @@ public class KeyValidatorSessionBean
             && baseValidator.getValidatorSubType().equals(KeyValidator.class)) {
           validator = (KeyValidator) baseValidator;
           name = validator.getProfileName();
-          if (log.isTraceEnabled()) {
-            log.trace(
+          if (LOG.isTraceEnabled()) {
+            LOG.trace(
                 "Try to apply key validator: " + validator.toDisplayString());
           }
           try {
@@ -730,8 +736,8 @@ public class KeyValidatorSessionBean
             }
             final String fingerprint =
                 CertTools.createPublicKeyFingerprint(publicKey, "SHA-256");
-            log.info(
-                intres.getLocalizedMessage(
+            LOG.info(
+                INTRES.getLocalizedMessage(
                     "validator.key.isbeingprocessed",
                     name,
                     endEntityInformation.getUsername(),
@@ -742,7 +748,7 @@ public class KeyValidatorSessionBean
               result = false;
               final int index = validator.getFailedAction();
               final String message =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "validator.key.validation_failed", name, messages);
               final Map<String, Object> details =
                   new LinkedHashMap<String, Object>();
@@ -765,11 +771,11 @@ public class KeyValidatorSessionBean
                       ? new String(Base64.encode(keyBytes))
                       : "null");
               final String message =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "validator.key.validation_successful",
                       name,
                       publicKeyEncoded);
-              log.info(message);
+              LOG.info(message);
               final Map<String, Object> details =
                   new LinkedHashMap<String, Object>();
               details.put("msg", message);
@@ -797,8 +803,8 @@ public class KeyValidatorSessionBean
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "No key validator configured for CA "
                 + ca.getName()
                 + " (ID="
@@ -817,8 +823,8 @@ public class KeyValidatorSessionBean
       final EndEntityInformation endEntityInformation,
       final X509Certificate certificate)
       throws ValidationException {
-    if (log.isDebugEnabled()) {
-      log.debug("Validate certificate for phase " + phase);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Validate certificate for phase " + phase);
     }
     if (ca != null && !CollectionUtils.isEmpty(ca.getValidators())) {
       Validator baseValidator;
@@ -851,8 +857,8 @@ public class KeyValidatorSessionBean
             final String fingerprint =
                 CertTools.createPublicKeyFingerprint(
                     certificate.getPublicKey(), "SHA-256");
-            log.info(
-                intres.getLocalizedMessage(
+            LOG.info(
+                INTRES.getLocalizedMessage(
                     "validator.certificate.isbeingprocessed",
                     name,
                     phase,
@@ -870,7 +876,7 @@ public class KeyValidatorSessionBean
                 validator.validate(ca, certificate, externalScriptsWhitelist);
             if (messages.size() > 0) { // Evaluation has failed.
               final String message =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "validator.certificate.validation_failed",
                       name,
                       messages);
@@ -891,11 +897,11 @@ public class KeyValidatorSessionBean
                   validator.getFailedAction(), message);
             } else {
               final String message =
-                  intres.getLocalizedMessage(
+                  INTRES.getLocalizedMessage(
                       "validator.certificate.validation_successful",
                       name,
                       fingerprint);
-              log.info(message);
+              LOG.info(message);
               final Map<String, Object> details =
                   new LinkedHashMap<String, Object>();
               details.put("msg", message);
@@ -928,7 +934,14 @@ public class KeyValidatorSessionBean
     }
   }
 
-  // Method is never called.
+  /** Method is never called.
+   *
+   * @param admin Asmin
+   * @param profile Prof
+   * @param logging Log
+   * @param resources Resource
+   * @return bool
+   */
   public boolean authorizedToKeyValidatorWithResource(
       final AuthenticationToken admin,
       final CertificateProfile profile,
@@ -973,8 +986,8 @@ public class KeyValidatorSessionBean
         Validator val = getValidator(entry.getKey());
         boolean allexists = true;
         for (final Integer nextcpid : val.getCertificateProfileIds()) {
-          if (log.isTraceEnabled()) {
-            log.trace(
+          if (LOG.isTraceEnabled()) {
+            LOG.trace(
                 "Validator '"
                     + val.getProfileName()
                     + "' has "
@@ -984,8 +997,8 @@ public class KeyValidatorSessionBean
           // If any CP is selected, it's access to all (only authorized will be
           // displayed)
           if (nextcpid.intValue() == -1) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Validator is applicable to all certificate profiles, not"
                       + " limiting access based on CPs");
             }
@@ -994,8 +1007,8 @@ public class KeyValidatorSessionBean
           }
           // superadmin should be able to access profiles with missing CA Ids
           if (!authorizedCPIDs.contains(nextcpid) && (!rootAccess)) {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Validator have certificate profile "
                       + nextcpid
                       + " selected which admin is not authorized to:"
@@ -1042,7 +1055,7 @@ public class KeyValidatorSessionBean
     ValidatorCache.INSTANCE.flush();
 
     final String auditMessage =
-        intres.getLocalizedMessage(
+        INTRES.getLocalizedMessage(
             "validator.changed_validator", validatorToUpdate.getProfileName());
     final Map<String, Object> details = new LinkedHashMap<String, Object>();
     details.put("msg", auditMessage);
@@ -1086,8 +1099,8 @@ public class KeyValidatorSessionBean
       final ProfileData data = profileSession.findById(id);
       if (data != null) {
         result = (Validator) data.getProfile();
-        if (log.isDebugEnabled()) {
-          log.debug("Load validator: " + result.getDataMap());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Load validator: " + result.getDataMap());
         }
         final int digest = data.getProtectString(0).hashCode();
         // The cache compares the database data with what is in the cache
@@ -1100,7 +1113,7 @@ public class KeyValidatorSessionBean
       }
     }
     if (result == null) {
-      log.warn("Validator with id " + id + " didn't return any validator");
+      LOG.warn("Validator with id " + id + " didn't return any validator");
     }
     // We need to clone the validator, otherwise the cache contents will be
     // modifiable from the outside
@@ -1129,9 +1142,9 @@ public class KeyValidatorSessionBean
       return profileSession.addProfile(keyValidator);
     } else {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "validator.error.add_validator", keyValidator.getProfileName());
-      log.info(message);
+      LOG.info(message);
       throw new KeyValidatorExistsException();
     }
   }
@@ -1148,7 +1161,7 @@ public class KeyValidatorSessionBean
     if (!authorizationSession.isAuthorized(
         admin, StandardRules.VALIDATOREDIT.resource())) {
       final String message =
-          intres.getLocalizedMessage(
+          INTRES.getLocalizedMessage(
               "store.editkeyvalidatornotauthorized", admin.toString());
       throw new AuthorizationDeniedException(message);
     }
@@ -1167,8 +1180,8 @@ public class KeyValidatorSessionBean
       final ValidityAwareValidator validator,
       final Date certificateNotBefore,
       final Date certificateNotAfter) {
-    if (log.isTraceEnabled()) {
-      log.trace("Try to apply validity aware validator: " + validator);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Try to apply validity aware validator: " + validator);
     }
     final String name = validator.getProfileName();
     boolean result = true;
@@ -1176,9 +1189,9 @@ public class KeyValidatorSessionBean
         validator.getNotBefore(),
         certificateNotBefore,
         validator.getNotBeforeCondition())) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.filterconditiondoesnotmatch", name, "notBefore"));
       }
       result = false;
@@ -1187,9 +1200,9 @@ public class KeyValidatorSessionBean
         validator.getNotAfter(),
         certificateNotAfter,
         validator.getNotAfterCondition())) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.filterconditiondoesnotmatch", name, "notAfter"));
       }
       result = false;
@@ -1207,17 +1220,17 @@ public class KeyValidatorSessionBean
   private boolean filterCertificateProfileAwareValidator(
       final CertificateProfileAwareValidator validator,
       final int certificateProfileId) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Try to apply certificate profile aware validator: " + validator);
     }
     boolean result = true;
     final List<Integer> ids = validator.getCertificateProfileIds();
     final boolean isAll = validator.isAllCertificateProfileIds();
     if (!isAll && null != ids && !ids.contains(certificateProfileId)) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            intres.getLocalizedMessage(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            INTRES.getLocalizedMessage(
                 "validator.filterconditiondoesnotmatch",
                 validator.getProfileName(),
                 "applicableCertificateProfiles"));
@@ -1254,22 +1267,22 @@ public class KeyValidatorSessionBean
   private void performValidationFailedActions(
       final int failedAction, final String message, final String shortMessage)
       throws ValidationException {
-    if (log.isDebugEnabled()) {
-      log.debug("Perform post action " + failedAction + " - " + message);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Perform post action " + failedAction + " - " + message);
     }
     if (KeyValidationFailedActions.LOG_INFO.getIndex() == failedAction) {
-      log.info(message);
+      LOG.info(message);
     } else if (KeyValidationFailedActions.LOG_WARN.getIndex() == failedAction) {
-      log.warn(message);
+      LOG.warn(message);
     } else if (KeyValidationFailedActions.LOG_ERROR.getIndex()
         == failedAction) {
-      log.error(message);
+      LOG.error(message);
     } else if (KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex()
         == failedAction) {
       throw new ValidationException(shortMessage);
     } else {
       // NOOP
-      log.debug(message);
+      LOG.debug(message);
     }
   }
 
@@ -1283,7 +1296,7 @@ public class KeyValidatorSessionBean
    */
   @SuppressWarnings("unchecked")
   // profileType does not change here!
-  private final List<ProfileData> findAllProfiles(final String profileType) {
+  private List<ProfileData> findAllProfiles(final String profileType) {
     final List<ProfileData> profiles =
         profileSession.findAllProfiles(profileType);
     final boolean enabled =
@@ -1296,10 +1309,10 @@ public class KeyValidatorSessionBean
       final List<ProfileData> result = new ArrayList<ProfileData>();
       Class<? extends Serializable> profileClass;
       for (ProfileData profile : profiles) {
-        if ((profileClass =
-                    (Class<? extends Serializable>)
-                        profile.getProfile().getDataMap().get("profile.type"))
-                == null
+          profileClass =
+                  (Class<? extends Serializable>)
+                      profile.getProfile().getDataMap().get("profile.type");
+        if (profileClass == null
             || !ExternalCommandCertificateValidator.class
                 .getName()
                 .equals(profileClass.getName())) {

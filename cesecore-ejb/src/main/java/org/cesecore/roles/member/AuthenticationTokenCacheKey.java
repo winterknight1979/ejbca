@@ -23,11 +23,17 @@ import org.cesecore.authorization.user.AccessMatchType;
  *     mikekushner $
  */
 public class AuthenticationTokenCacheKey {
+    /** Type. */
   private final String tokenType;
+  /** Key. */
   private final int preferredMatchKey;
+  /** Op. */
   private final int preferredOperator;
+  /** Value. */
   private final String preferredTokenMatchValue;
-
+/**
+ * @param authenticationToken token.
+ */
   public AuthenticationTokenCacheKey(
       final AuthenticationToken authenticationToken) {
     tokenType = authenticationToken.getMetaData().getTokenType();
@@ -50,7 +56,7 @@ public class AuthenticationTokenCacheKey {
   }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param authenticationTokenCacheKey on fail
    */

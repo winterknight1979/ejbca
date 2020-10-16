@@ -59,11 +59,16 @@ import org.cesecore.roles.member.RoleMemberDataSessionLocal;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
 
-  private static final Logger log = Logger.getLogger(RoleSessionBean.class);
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(RoleSessionBean.class);
 
+  /** Session. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Session. */
   @EJB private RoleDataSessionLocal roleDataSession;
+  /** Session. */
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
+  /** Session. */
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
 
   @Override
@@ -111,8 +116,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
   public List<Role> getRolesAuthenticationTokenIsMemberOf(
       final AuthenticationToken authenticationToken) {
     final List<Role> roles = new ArrayList<>();
-    for (final int roleId :
-        roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(
+    for (final int roleId
+        : roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(
             authenticationToken)) {
       roles.add(roleDataSession.getRole(roleId));
     }
@@ -120,8 +125,10 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
   }
 
   /*
-   * NOTE: This separate method for remote EJB calls exists for a good reason: If this is invoked as a part of a
-   * local transaction, the LocalJvmOnlyAuthenticationToken will be valid for subsequent authentication calls.
+   * NOTE: This separate method for remote EJB calls exists for a good
+   * reason: If this is invoked as a part of a
+   * local transaction, the LocalJvmOnlyAuthenticationToken will
+   * be valid for subsequent authentication calls.
    */
   @Override
   public List<Role> getRolesAuthenticationTokenIsMemberOfRemote(
@@ -165,8 +172,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
       // Verify that the caller is authorized to role's namespace
       if (!isAuthorizedToNameSpace(
           authenticationToken, role, roleIdsCallerBelongsTo)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "'"
                   + authenticationToken.toString()
                   + "' is not authorized to the namespace '"
@@ -178,8 +185,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
       // Verify that the caller is authorized to all access rules in this role
       if (!isAuthorizedToAllAccessRules(
           authenticationToken, role, roleIdsCallerBelongsTo)) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "'"
                   + authenticationToken.toString()
                   + "' is not authorized to all access rules in role '"
@@ -192,8 +199,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
       // members in this role
       if (!isAuthorizedToAllRoleMembersIssuers(
           authenticationToken, role.getRoleId())) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "'"
                   + authenticationToken.toString()
                   + "' is not authorized to all members in role '"
@@ -485,7 +492,7 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
 
   /**
    * Like {@link #assertAuthorizedToEditRoles(AuthenticationToken)}, but check
-   * for view access
+   * for view access.
    *
    * @param authenticationToken Token
    * @throws AuthorizationDeniedException if denied
@@ -535,8 +542,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
       final Set<Integer> roleIdsCallerBelongsTo) {
     // Verify that authenticationToken has access to every single added allow
     // access rule
-    for (final Entry<String, Boolean> entry :
-        role.getAccessRules().entrySet()) {
+    for (final Entry<String, Boolean> entry
+        : role.getAccessRules().entrySet()) {
       if (entry.getValue().booleanValue()) {
         if (!authorizationSession.isAuthorizedNoLogging(
             authenticationToken, entry.getKey())) {
@@ -600,8 +607,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
     // Verify that the caller is authorized to all CAs that are issuers of
     // members in this role
     final Set<String> tokenIssuerAccessRules = new HashSet<>();
-    for (final RoleMemberData roleMemberData :
-        roleMemberDataSession.findByRoleId(roleId)) {
+    for (final RoleMemberData roleMemberData
+        : roleMemberDataSession.findByRoleId(roleId)) {
       final AuthenticationTokenMetaData metaData =
           AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(
               roleMemberData.getTokenType());
@@ -647,8 +654,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
       // Check that authenticationToken is not about to lock itself out by
       // modifying its own role
       if (roleIdsCallerBelongsTo.contains(role.getRoleId())) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "'"
                   + authenticationToken
                   + "' relies on match from Role with id "
@@ -689,8 +696,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
               "Granted namespace access of the current administrator would be"
                   + " affected by this change.");
         }
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Access granted to '"
                   + authenticationToken
                   + "' would not be affected by not being a member of Role"
@@ -699,8 +706,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
                   + ".");
         }
       } else {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "'"
                   + authenticationToken
                   + "' does not rely on match from Role with id "
@@ -740,8 +747,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
   public List<String> getAuthorizedNamespaces(
       final AuthenticationToken authenticationToken) {
     final Set<String> namespaces = new HashSet<>();
-    for (final int current :
-        roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(
+    for (final int current
+        : roleMemberDataSession.getRoleIdsMatchingAuthenticationToken(
             authenticationToken)) {
       namespaces.add(roleDataSession.getRole(current).getNameSpace());
     }
@@ -779,8 +786,8 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
         hasChangedAnything = true;
       }
       if (updateRoleMembers) {
-        for (final RoleMember roleMember :
-            roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {
+        for (final RoleMember roleMember
+            : roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {
           if (roleMember.getTokenIssuerId() == caIdOld) {
             // Do more expensive checks if it is a potential match
             final AccessMatchValue accessMatchValue =

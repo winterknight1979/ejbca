@@ -46,11 +46,14 @@ import org.cesecore.util.ProfileID;
 public class RoleMemberDataSessionBean
     implements RoleMemberDataSessionLocal, RoleMemberDataSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RoleMemberDataSessionBean.class);
 
+  /** Session. */
   @EJB private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
 
+  /** Em. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
@@ -172,7 +175,7 @@ public class RoleMemberDataSessionBean
     try {
       return getRoleIdsMatchingAuthenticationTokenOrFail(authenticationToken);
     } catch (AuthenticationFailedException e) {
-      log.debug(e.getMessage(), e);
+      LOG.debug(e.getMessage(), e);
       return new HashSet<>();
     }
   }
@@ -282,8 +285,8 @@ public class RoleMemberDataSessionBean
       throws AuthenticationFailedException {
     final Set<Integer> ret = new HashSet<>();
     if (authenticationToken != null) {
-      for (final RoleMember roleMemberData :
-          getRoleMembersForAuthenticationToken(authenticationToken)) {
+      for (final RoleMember roleMemberData
+          : getRoleMembersForAuthenticationToken(authenticationToken)) {
         if (authenticationToken.matches(
             convertToAccessUserAspect(roleMemberData))) {
           ret.add(roleMemberData.getRoleId());
@@ -299,15 +302,15 @@ public class RoleMemberDataSessionBean
       final AuthenticationToken authenticationToken) {
     final Set<RoleMember> ret = new HashSet<>();
     if (authenticationToken != null) {
-      for (final RoleMember roleMember :
-          getRoleMembersForAuthenticationToken(authenticationToken)) {
+      for (final RoleMember roleMember
+          : getRoleMembersForAuthenticationToken(authenticationToken)) {
         try {
           if (authenticationToken.matches(
               convertToAccessUserAspect(roleMember))) {
             ret.add(roleMember);
           }
         } catch (AuthenticationFailedException e) {
-          log.debug(e.getMessage(), e);
+          LOG.debug(e.getMessage(), e);
         }
       }
     }
@@ -322,8 +325,8 @@ public class RoleMemberDataSessionBean
           final AuthenticationToken authenticationToken)
           throws AuthenticationFailedException {
     final Map<Integer, Integer> ret = new HashMap<>();
-    for (final RoleMember roleMember :
-        getRoleMembersForAuthenticationToken(authenticationToken)) {
+    for (final RoleMember roleMember
+        : getRoleMembersForAuthenticationToken(authenticationToken)) {
       if (authenticationToken.matches(convertToAccessUserAspect(roleMember))) {
         ret.put(roleMember.getRoleId(), roleMember.getTokenMatchKey());
       }
@@ -343,7 +346,7 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchWith(final Integer matchWith) {}
+      public void setMatchWith(final Integer matchWith) { }
 
       @Override
       public int getMatchType() {
@@ -351,7 +354,7 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchType(final Integer matchType) {}
+      public void setMatchType(final Integer matchType) { }
 
       @Override
       public AccessMatchType getMatchTypeAsType() {
@@ -360,7 +363,7 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchTypeAsValue(final AccessMatchType matchType) {}
+      public void setMatchTypeAsValue(final AccessMatchType matchType)  { }
 
       @Override
       public String getMatchValue() {
@@ -368,7 +371,7 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setMatchValue(final String matchValue) {}
+      public void setMatchValue(final String matchValue) { }
 
       @Override
       public Integer getCaId() {
@@ -376,7 +379,7 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setCaId(final Integer caId) {}
+      public void setCaId(final Integer caId) { }
 
       @Override
       public String getTokenType() {
@@ -384,7 +387,7 @@ public class RoleMemberDataSessionBean
       }
 
       @Override
-      public void setTokenType(final String tokenType) {}
+      public void setTokenType(final String tokenType) { }
     };
   }
 

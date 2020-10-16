@@ -27,4 +27,6 @@
  	<suppress checks="LineLengthCheck" files="OcspResponseGeneratorSessionBean.java" lines="2340"/> <!-- URL in comment -->
  	<suppress checks="ParameterNumberCheck" files="InternalKeyBindingMgmtSessionBean.java" lines="456,486,619"/>
  	<suppress checks="MethodLengthCheck" files="InternalKeyBindingMgmtSessionBean.java" lines="1018,1243"/>
+ 	
+ 	<suppress checks="MethodLengthCheck" files="KeyValidatorCacheTest.java" lines="171,340"/>
  </suppressions>

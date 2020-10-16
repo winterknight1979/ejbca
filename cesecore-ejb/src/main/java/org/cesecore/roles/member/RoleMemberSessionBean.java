@@ -54,13 +54,19 @@ import org.cesecore.roles.management.RoleSessionLocal;
 public class RoleMemberSessionBean
     implements RoleMemberSessionLocal, RoleMemberSessionRemote {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(RoleMemberSessionBean.class);
 
+  /** Session. */
   @EJB private AuthorizationSessionLocal authorizationSession;
+  /** Session. */
   @EJB private RoleSessionLocal roleSession;
+  /** Session. */
   @EJB private RoleDataSessionLocal roleDataSession;
+  /** Session. */
   @EJB private RoleMemberDataSessionLocal roleMemberDataSession;
+  /** Session. */
   @EJB private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
 
   /**
@@ -142,8 +148,8 @@ public class RoleMemberSessionBean
         lookupRoleAndCheckAuthorization(authenticationToken, oldRoleMember);
       }
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Persisting a role member with ID "
               + roleMember.getId()
               + " and match value '"
@@ -300,8 +306,8 @@ public class RoleMemberSessionBean
     }
     final List<RoleMember> ret = new ArrayList<>();
     final Set<String> requiredCaAccessResources = new HashSet<>();
-    for (final RoleMemberData roleMemberData :
-        roleMemberDataSession.findByRoleId(roleId)) {
+    for (final RoleMemberData roleMemberData
+        : roleMemberDataSession.findByRoleId(roleId)) {
       final RoleMember roleMember = roleMemberData.asValueObject();
       final AuthenticationTokenMetaData metaData =
           AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(
@@ -354,8 +360,8 @@ public class RoleMemberSessionBean
     }
     // If there are no duplicate matches for this RoleMember...
     if (count < 2) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "No RoleMember provides the same match as the one with id "
                 + roleMember.getId()
                 + ". count="
@@ -363,12 +369,12 @@ public class RoleMemberSessionBean
       }
       // ...and the caller relies on this match for access the access granted by
       // this Role...
-      for (final RoleMember current :
-          roleMemberDataSession.getRoleMembersMatchingAuthenticationToken(
+      for (final RoleMember current
+         : roleMemberDataSession.getRoleMembersMatchingAuthenticationToken(
               authenticationToken)) {
         if (roleMember.getId() == current.getId()) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(
                 "'"
                     + authenticationToken
                     + "' relies on match from RoleMember with id "
@@ -382,8 +388,8 @@ public class RoleMemberSessionBean
         }
       }
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "RoleMembers provides the same match as the one with id "
                 + roleMember.getId()
                 + ". count="

@@ -30,8 +30,10 @@ import org.cesecore.internal.CommonCacheBase;
  */
 public enum AuthenticationTokenCache
     implements CommonCache<AuthenticationTokenCacheKey> {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /** Cache. */
   private final CommonCacheBase<AuthenticationTokenCacheKey> cache =
       new CommonCacheBase<AuthenticationTokenCacheKey>() {
         @Override
@@ -45,7 +47,7 @@ public enum AuthenticationTokenCache
           // object.
           return 0;
         }
-        ;
+
       };
 
   /**
@@ -118,6 +120,9 @@ public enum AuthenticationTokenCache
         "Operation not applicable for this subtype of cache");
   }
 
+  /**
+   * @return values
+   */
   public Set<AuthenticationTokenCacheKey> getAllValues() {
     return cache.getAllEntries();
   }

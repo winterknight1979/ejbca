@@ -26,7 +26,7 @@ import org.cesecore.internal.InternalResources;
 import org.cesecore.util.ProfileID;
 
 /**
- * Basic CRUD bean for ProfileData objects
+ * Basic CRUD bean for ProfileData objects.
  *
  * @version $Id: ProfileSessionBean.java 26289 2017-08-14 08:31:09Z mikekushner
  *     $
@@ -35,12 +35,14 @@ import org.cesecore.util.ProfileID;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class ProfileSessionBean implements ProfileSessionLocal {
 
-  private static final Logger log = Logger.getLogger(ProfileSessionBean.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ProfileSessionBean.class);
 
+  /** EM. */
   @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
   private EntityManager entityManager;
 
-  /** Internal localization of logs and errors */
+  /** Internal localization of logs and errors. */
   private static final InternalResources INTRES =
       InternalResources.getInstance();
 
@@ -89,7 +91,7 @@ public class ProfileSessionBean implements ProfileSessionLocal {
       String msg =
           INTRES.getLocalizedMessage(
               "profile.store.error.profile_not_found", name);
-      log.info(msg);
+      LOG.info(msg);
     } else {
       // Do the actual change
       profileData.setProfile(profile);
