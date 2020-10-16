@@ -67,18 +67,21 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         
     - name: Publish EAR
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: ejbca-ear
         path: ejbca-ear/target/*.ear
 
     - name: Publish ws-cli
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: ejbca-ws-cli
         path: ejbca-ws-cli/target/*executable.jar
 
     - name: Publish ejb-cli
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: ejbca-ejb-cli
