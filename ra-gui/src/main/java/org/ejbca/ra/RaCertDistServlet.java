@@ -249,11 +249,16 @@ public class RaCertDistServlet extends HttpServlet {
             httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unable to request parameters.");
         }
     }
+    
+    private static String removeSpecial(String str) {
+		return str.replaceAll("[^a-zA-Z ]", "");
+	}
 
     private void writeResponseBytes(final HttpServletResponse httpServletResponse, final String filename, final String contentType, final byte[] response) throws IOException {
         ServletUtils.removeCacheHeaders(httpServletResponse);
         if (filename!=null) {
-            httpServletResponse.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        	String name = removeSpecial(filename);
+            httpServletResponse.setHeader("Content-Disposition", "attachment; filename=\"" + name + "\"");
         }
         httpServletResponse.setContentType(contentType);
         httpServletResponse.setContentLength(response.length);
