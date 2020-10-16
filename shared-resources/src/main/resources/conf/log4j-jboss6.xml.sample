@@ -49,8 +49,8 @@
         </layout>           
      </appender>
      
-    <!-- Sample loggers using SaferDailyRollingFileAppender. Replace the above with these if using. 
-	<appender name="OcspTransactionLogger" class="org.cesecore.util.log.SaferDailyRollingFileAppender">
+    <!-- Sample loggers using DailyRollingFileAppender. Replace the above with these if using. 
+	<appender name="OcspTransactionLogger" class="org.cesecore.util.log.DailyRollingFileAppender">
      	<errorHandler class="org.cesecore.util.log.ProbableErrorHandler" />
 		<param name="File" value="${jboss.server.log.dir}/transaction.log" />
 		<param name="Append" value="true" />
@@ -61,7 +61,7 @@
 		</layout>
 	</appender>
 
-	<appender name="OcspAuditLogger" class="org.cesecore.util.log.SaferDailyRollingFileAppender">
+	<appender name="OcspAuditLogger" class="org.cesecore.util.log.DailyRollingFileAppender">
 		<errorHandler class="org.cesecore.util.log.ProbableErrorHandler" />
         <param name="File" value="${jboss.server.log.dir}/audit.log" />
         <param name="Append" value="true" />
