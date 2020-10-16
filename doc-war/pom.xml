@@ -5,7 +5,7 @@
   <parent>
     <groupId>goldeneyes.ejbca</groupId>
     <artifactId>ejbca</artifactId>
-    <version>${revision}</version>
+    <version>1.0.1-beta-1</version>
   </parent>
 
   <artifactId>doc-war</artifactId>

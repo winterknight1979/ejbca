@@ -4,11 +4,11 @@
 
 	<groupId>goldeneyes.ejbca</groupId>
 	<artifactId>ejbca</artifactId>
-	<version>${revision}</version>
+	<version>1.0.1-beta-1</version>
 	<packaging>pom</packaging>
 
 	<name>EJB-CA</name>
-	<description>&quot;New&quot; EJB CA for Java 11 and modern app servers
+	<description>"New" EJB CA for Java 11 and modern app servers
 
 Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 	<url>https://github.com/winterknight1979/ejbca</url>
@@ -92,7 +92,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<connection>scm:git:https://github.com/winterknight1979/ejbca.git</connection>
 		<developerConnection>scm:git:git@github.com:winterknight1979/ejbca.git</developerConnection>
 		<url>https://github.com/winterknight1979/ejbca</url>
-	</scm>
+	  <tag>ejbca-1.0.1-beta-1</tag>
+  </scm>
 	<ciManagement>
 		<system>Github Actions</system>
 		<url>https://github.com/winterknight1979/ejbca/actions</url>
@@ -713,7 +714,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				    <dependency>
   <groupId>goldeneyes.ejbca</groupId>
   <artifactId>build-config</artifactId>
-  <version>1.0</version>
+  <version>1.0.1-beta-1</version>
 				    </dependency>
 				</dependencies>
 				<configuration>
@@ -937,7 +938,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 												</goals>
 											</pluginExecutionFilter>
 											<action>
-												<ignore></ignore>
+												<ignore />
 											</action>
 										</pluginExecution>
 									</pluginExecutions>

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
-		<version>${revision}</version>
+		<version>1.0.1-beta-1</version>
 	</parent>
 
 	<artifactId>ejbca-ws-cli</artifactId>
@@ -126,14 +126,10 @@
 
 						<configuration>
 							<target>
-								<property name="gen_classpath"
-									refid="maven.compile.classpath" />
-								<property name="inpath"
-									value="${project.build.directory}/ws-objects" />
-								<property name="outpath"
-									value="${project.build.directory}/generated-sources/wsimport" />
-								<ant antfile="${project.basedir}/compare.xml"
-									target="generate" />
+								<property name="gen_classpath" refid="maven.compile.classpath" />
+								<property name="inpath" value="${project.build.directory}/ws-objects" />
+								<property name="outpath" value="${project.build.directory}/generated-sources/wsimport" />
+								<ant antfile="${project.basedir}/compare.xml" target="generate" />
 							</target>
 						</configuration>
 					</execution>
