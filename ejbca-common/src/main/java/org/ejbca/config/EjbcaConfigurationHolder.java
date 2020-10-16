@@ -44,10 +44,13 @@ import org.cesecore.config.ConfigurationHolder;
  */
 public final class EjbcaConfigurationHolder {
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(EjbcaConfigurationHolder.class);
 
+  /** Config. */
   private static CompositeConfiguration config = null;
+  /** backup. */
   private static CompositeConfiguration configBackup = null;
 
   /**
@@ -77,11 +80,11 @@ public final class EjbcaConfigurationHolder {
       "allow.external-dynamic.configuration";
 
   /**
-   * This is a singleton so it's not allowed to create an instance explicitly
+   * This is a singleton so it's not allowed to create an instance explicitly.
    */
-  private EjbcaConfigurationHolder() {}
+  private EjbcaConfigurationHolder() { }
 
-  /**
+  /*
    * Use static code block to instantiate the instance at class load and prevent
    * the thread synchronization issues. This solution takes advantage of the
    * Java memory model's guarantees about class initialization to ensure thread
@@ -92,7 +95,7 @@ public final class EjbcaConfigurationHolder {
   }
 
   /**
-   * Method used to retrieve the singleton Configuration instance
+   * Method used to retrieve the singleton Configuration instance.
    *
    * @return instance
    */
@@ -113,11 +116,11 @@ public final class EjbcaConfigurationHolder {
         allowexternal =
             "true".equalsIgnoreCase(pc.getString(CONFIGALLOWEXTERNAL, "false"));
         if (allowexternal) {
-          log.info("Allow external re-configuration: " + allowexternal);
+          LOG.info("Allow external re-configuration: " + allowexternal);
         }
       }
     } catch (ConfigurationException e) {
-      log.error("Error intializing configuration: ", e);
+      LOG.error("Error intializing configuration: ", e);
     }
     config = new CompositeConfiguration();
 
@@ -126,7 +129,7 @@ public final class EjbcaConfigurationHolder {
       // Override with system properties, this is prio 1 if it exists (java
       // -Dscep.test=foo)
       config.addConfiguration(new SystemConfiguration());
-      log.info(
+      LOG.info(
           "Added system properties to configuration source (java"
               + " -Dfoo.prop=bar).");
 
@@ -139,10 +142,10 @@ public final class EjbcaConfigurationHolder {
           final PropertiesConfiguration pc = new PropertiesConfiguration(f);
           pc.setReloadingStrategy(new FileChangedReloadingStrategy());
           config.addConfiguration(pc);
-          log.info(
+          LOG.info(
               "Added file to configuration source: " + f.getAbsolutePath());
         } catch (ConfigurationException e) {
-          log.error(
+          LOG.error(
               "Failed to load configuration from file " + f.getAbsolutePath());
         }
       }
@@ -154,10 +157,10 @@ public final class EjbcaConfigurationHolder {
           final PropertiesConfiguration pc = new PropertiesConfiguration(f);
           pc.setReloadingStrategy(new FileChangedReloadingStrategy());
           config.addConfiguration(pc);
-          log.info(
+          LOG.info(
               "Added file to configuration source: " + f.getAbsolutePath());
         } catch (ConfigurationException e) {
-          log.error(
+          LOG.error(
               "Failed to load configuration from file " + f.getAbsolutePath());
         }
       }
@@ -175,10 +178,10 @@ public final class EjbcaConfigurationHolder {
       if (url != null) {
         final PropertiesConfiguration pc = new PropertiesConfiguration(url);
         config.addConfiguration(pc);
-        log.debug("Added url to configuration source: " + url);
+        LOG.debug("Added url to configuration source: " + url);
       }
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from resource internal.properties", e);
     }
     return config;
@@ -200,15 +203,15 @@ public final class EjbcaConfigurationHolder {
       final PropertiesConfiguration pc = new PropertiesConfiguration(f);
       pc.setReloadingStrategy(new FileChangedReloadingStrategy());
       config.addConfiguration(pc);
-      log.info("Added file to configuration source: " + f.getAbsolutePath());
+      LOG.info("Added file to configuration source: " + f.getAbsolutePath());
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from file " + f.getAbsolutePath());
     }
   }
 
   /**
-   * Add built in config file
+   * Add built in config file.
    *
    * @param resourcename resource
    */
@@ -221,10 +224,10 @@ public final class EjbcaConfigurationHolder {
       if (url != null) {
         final PropertiesConfiguration pc = new PropertiesConfiguration(url);
         config.addConfiguration(pc);
-        log.debug("Added url to configuration source: " + url);
+        LOG.debug("Added url to configuration source: " + url);
       }
     } catch (ConfigurationException e) {
-      log.error(
+      LOG.error(
           "Failed to load configuration from resource "
               + "/conf/"
               + resourcename,
@@ -254,7 +257,7 @@ public final class EjbcaConfigurationHolder {
     // Strings, but we need the whole String for example SubjectDNs.
     String ret = null;
     final StringBuilder str = new StringBuilder();
-    String rets[] = instance().getStringArray(property);
+    String[] rets = instance().getStringArray(property);
     if (rets.length == 0) {
       rets = ConfigurationHolder.getDefaultValueArray(property);
     }
@@ -291,8 +294,8 @@ public final class EjbcaConfigurationHolder {
   }
 
   private static String interpolate(final String orderString) {
-    final Pattern PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
-    final Matcher m = PATTERN.matcher(orderString);
+    final Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
+    final Matcher m = pattern.matcher(orderString);
     final StringBuffer sb = new StringBuffer(orderString.length());
     m.reset();
     while (m.find()) {

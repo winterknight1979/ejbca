@@ -14,19 +14,21 @@
 package org.ejbca.config;
 
 /**
- * This file handles configuration from internal.properties
+ * This file handles configuration from internal.properties.
  *
  * @version $Id: InternalConfiguration.java 22117 2015-10-29 10:53:42Z
  *     mikekushner $
  */
 public class InternalConfiguration {
 
+      /**Config key. */
   public static final String CONFIG_APPNAME_CAPITAL = "app.name.capital";
+  /**Config key. */
   public static final String CONFIG_DATASOURCENAMEPREFIX =
       "datasource.jndi-name-prefix";
 
   /**
-   * Lower case application name
+   * Lower case application name.
    *
    * @return String
    */
@@ -35,7 +37,7 @@ public class InternalConfiguration {
   }
 
   /**
-   * Dynamic version of getAppNameLower() for use from JSP/JSF
+   * Dynamic version of getAppNameLower() for use from JSP/JSF.
    *
    * @return String
    */
@@ -44,7 +46,7 @@ public class InternalConfiguration {
   }
 
   /**
-   * Upper case application name
+   * Upper case application name.
    *
    * @return String
    */
@@ -53,7 +55,7 @@ public class InternalConfiguration {
   }
 
   /**
-   * Application version number
+   * Application version number.
    *
    * @return String
    */
@@ -62,7 +64,7 @@ public class InternalConfiguration {
   }
 
   /**
-   * SVN revision
+   * SVN revision.
    *
    * @return String
    */
@@ -71,7 +73,7 @@ public class InternalConfiguration {
   }
 
   /**
-   * Full application version
+   * Full application version.
    *
    * @return String
    */
@@ -79,6 +81,9 @@ public class InternalConfiguration {
     return EjbcaConfigurationHolder.getExpandedString("app.version");
   }
 
+  /**
+   * @return JNDI prefix
+   */
   public static String getDataSourceJndiNamePrefix() {
     return EjbcaConfigurationHolder.getString(
         CONFIG_DATASOURCENAMEPREFIX); // We need to return an empty string for

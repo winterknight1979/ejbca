@@ -33,18 +33,25 @@ public class ScepConfiguration extends ConfigurationBase
 
   private static final long serialVersionUID = -2051789798029184421L;
 
-  private static final Logger log = Logger.getLogger(ScepConfiguration.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ScepConfiguration.class);
 
   public enum Mode {
+      /** CA. */
     CA("CA"),
+    /** RA. */
     RA("RA");
 
+      /** resource. */
     private final String resource;
 
-    private Mode(final String resource) {
-      this.resource = resource;
+    Mode(final String aresource) {
+      this.resource = aresource;
     }
 
+    /**
+     * @return resource
+     */
     public String getResource() {
       return resource;
     }
@@ -56,64 +63,98 @@ public class ScepConfiguration extends ConfigurationBase
   }
 
   // Constants: Configuration keys
+  /** Config. */
   public static final String SCEP_PREFIX = "scep.";
+  /** Config. */
   public static final String SCEP_RAMODE_OLD = "ra.createOrEditUser";
+  /** Config. */
   public static final String SCEP_OPERATIONMODE = "operationmode";
+  /** Config. */
   public static final String SCEP_INCLUDE_CA = "includeca";
+  /** Config. */
   public static final String SCEP_RA_CERTPROFILE = "ra.certificateProfile";
+  /** Config. */
   public static final String SCEP_RA_ENTITYPROFILE = "ra.entityProfile";
+  /** Config. */
   public static final String SCEP_RA_AUTHPWD = "ra.authPwd";
+  /** Config. */
   public static final String SCEP_RA_DEFAULTCA = "ra.defaultCA";
+  /** Config. */
   public static final String SCEP_RA_NAME_GENERATION_SCHEME =
       "ra.namegenerationscheme";
+  /** Config. */
   public static final String SCEP_RA_NAME_GENERATION_PARAMETERS =
       "ra.namegenerationparameters";
+  /** Config. */
   public static final String SCEP_RA_NAME_GENERATION_PREFIX =
       "ra.namegenerationprefix";
+  /** Config. */
   public static final String SCEP_RA_NAME_GENERATION_POSTFIX =
       "ra.namegenerationpostfix";
+  /** Config. */
   public static final String SCEP_CLIENT_CERTIFICATE_RENEWAL =
       "clientCertificateRenewal";
+  /** Config. */
   public static final String SCEP_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY =
       "clientCertificateRenewalWithOldKey";
 
-  // This List is used in the command line handling of updating a config value
-  // to insure a correct value.
+  /** This List is used in the command line handling of updating a config value
+   * to insure a correct value. */
   public static final List<String> SCEP_BOOLEAN_KEYS =
       Arrays.asList(SCEP_INCLUDE_CA);
 
+  /** Config. */
   public static final String SCEP_CONFIGURATION_ID = "2";
 
-  private final String ALIAS_LIST = "aliaslist";
+  /** Config. */
+  private final String aliasList = "aliaslist";
 
   // Default Values
+  /** Config. */
   public static final float LATEST_VERSION = 3f;
+  /** Config. */
   public static final String EJBCA_VERSION =
       InternalConfiguration.getAppVersion();
 
+  /** Config. */
   public static final Set<String> DEFAULT_ALIAS_LIST =
       new LinkedHashSet<String>();
+  /** Config. */
   public static final String DEFAULT_OPERATION_MODE = Mode.CA.getResource();
+  /** Config. */
   public static final String DEFAULT_INCLUDE_CA = Boolean.TRUE.toString();
+  /** Config. */
   public static final String DEFAULT_CLIENT_CERTIFICATE_RENEWAL =
       Boolean.FALSE.toString();
+  /** Config. */
   public static final String
       DEFAULT_ALLOW_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY =
           Boolean.FALSE.toString();
+  /** Config. */
   public static final String DEFAULT_RA_CERTPROFILE = "ENDUSER";
+  /** Config. */
   public static final String DEFAULT_RA_ENTITYPROFILE = "EMPTY";
+  /** Config. */
   public static final String DEFAULT_RA_DEFAULTCA = "";
+  /** Config. */
   public static final String DEFAULT_RA_AUTHPWD = "";
+  /** Config. */
   public static final String DEFAULT_RA_NAME_GENERATION_SCHEME = "DN";
+  /** Config. */
   public static final String DEFAULT_RA_NAME_GENERATION_PARAMETERS = "CN";
+  /** Config. */
   public static final String DEFAULT_RA_NAME_GENERATION_PREFIX = "";
+  /** Config. */
   public static final String DEFAULT_RA_NAME_GENERATION_POSTFIX = "";
 
-  /** Creates a new instance of ScepConfiguration */
+  /** Creates a new instance of ScepConfiguration. */
   public ScepConfiguration() {
     super();
   }
 
+  /**
+   * @param dataobj object
+   */
   public ScepConfiguration(final Serializable dataobj) {
     @SuppressWarnings("unchecked")
     LinkedHashMap<Object, Object> d = (LinkedHashMap<Object, Object>) dataobj;
@@ -123,10 +164,10 @@ public class ScepConfiguration extends ConfigurationBase
   /**
    * Initializes a new scep configuration with default values.
    *
-   * @param alias Alias
+   * @param oalias Alias
    */
-  public void initialize(String alias) {
-    alias += ".";
+  public void initialize(final String oalias) {
+    String alias = oalias + ".";
     if (StringUtils.isNotEmpty(alias)) {
       data.put(alias + SCEP_OPERATIONMODE, DEFAULT_OPERATION_MODE);
       data.put(alias + SCEP_INCLUDE_CA, DEFAULT_INCLUDE_CA);
@@ -155,9 +196,13 @@ public class ScepConfiguration extends ConfigurationBase
     }
   }
 
-  // return all the key with an alias
-  public static Set<String> getAllAliasKeys(String alias) {
-    alias += ".";
+  /**return all the key with an alias.
+   *
+   * @param oalias alias
+   * @return keys
+   */
+  public static Set<String> getAllAliasKeys(final String oalias) {
+    String alias =  oalias + ".";
     Set<String> keys = new LinkedHashSet<String>();
     keys.add(alias + SCEP_OPERATIONMODE);
     keys.add(alias + SCEP_INCLUDE_CA);
@@ -255,128 +300,214 @@ public class ScepConfiguration extends ConfigurationBase
     return StringUtils.equalsIgnoreCase(value, Mode.RA.getResource());
   }
 
+  /**
+   * @param alias alias
+   * @param ramode bool
+   */
   public void setRAMode(final String alias, final boolean ramode) {
     String key = alias + "." + SCEP_OPERATIONMODE;
     setValue(
         key, ramode ? Mode.RA.getResource() : Mode.CA.getResource(), alias);
   }
 
+  /**
+   * @param alias alias
+   * @return bool
+   */
   public boolean getIncludeCA(final String alias) {
     String key = alias + "." + SCEP_INCLUDE_CA;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias alias
+   * @param includeca bool
+   */
   public void setIncludeCA(final String alias, final boolean includeca) {
     String key = alias + "." + SCEP_INCLUDE_CA;
     setValue(key, Boolean.toString(includeca), alias);
   }
 
+  /**
+   * @param alias alias
+   * @return profile
+   */
   public String getRACertProfile(final String alias) {
     String key = alias + "." + SCEP_RA_CERTPROFILE;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param cp profile
+   */
   public void setRACertProfile(final String alias, final String cp) {
     String key = alias + "." + SCEP_RA_CERTPROFILE;
     setValue(key, cp, alias);
   }
 
+  /**
+   * @param alias alias
+   * @return profile
+   */
   public String getRAEndEntityProfile(final String alias) {
     String key = alias + "." + SCEP_RA_ENTITYPROFILE;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param eep Profile
+   */
   public void setRAEndEntityProfile(final String alias, final String eep) {
     String key = alias + "." + SCEP_RA_ENTITYPROFILE;
     setValue(key, eep, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return CA
+   */
   public String getRADefaultCA(final String alias) {
     String key = alias + "." + SCEP_RA_DEFAULTCA;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param ca CA
+   */
   public void setRADefaultCA(final String alias, final String ca) {
     String key = alias + "." + SCEP_RA_DEFAULTCA;
     setValue(key, ca, alias);
   }
 
+  /**
+   * @param alias alias
+   * @return password
+   */
   public String getRAAuthPassword(final String alias) {
     String key = alias + "." + SCEP_RA_AUTHPWD;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param pwd password
+   */
   public void setRAAuthpassword(final String alias, final String pwd) {
     String key = alias + "." + SCEP_RA_AUTHPWD;
     setValue(key, pwd, alias);
   }
 
+  /**
+   * @param alias alias
+   * @return scheme
+   */
   public String getRANameGenerationScheme(final String alias) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_SCHEME;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param scheme scheme
+   */
   public void setRANameGenerationScheme(
       final String alias, final String scheme) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_SCHEME;
     setValue(key, scheme, alias);
   }
 
+  /**
+   * @param alias alias
+   * @return params
+   */
   public String getRANameGenerationParameters(final String alias) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_PARAMETERS;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param parameters params
+   */
   public void setRANameGenerationParameters(
       final String alias, final String parameters) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_PARAMETERS;
     setValue(key, parameters, alias);
   }
 
+  /**
+   * @param alias alias
+   * @return prefix
+   */
   public String getRANameGenerationPrefix(final String alias) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_PREFIX;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param prefix prefix
+   */
   public void setRANameGenerationPrefix(
       final String alias, final String prefix) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_PREFIX;
     setValue(key, prefix, alias);
   }
 
+  /**
+   * @param alias alias
+   * @return postfix
+   */
   public String getRANameGenerationPostfix(final String alias) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_POSTFIX;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param postfix postfic
+   */
   public void setRANameGenerationPostfix(
       final String alias, final String postfix) {
     String key = alias + "." + SCEP_RA_NAME_GENERATION_POSTFIX;
     setValue(key, postfix, alias);
   }
 
+  /**
+   * @param key key
+   * @param alias alias
+   * @return value
+   */
   public String getValue(final String key, final String alias) {
     if (aliasExists(alias)) {
       if (data.containsKey(key)) {
         return (String) data.get(key);
       } else {
-        log.error(
+        LOG.error(
             "Could not find key '" + key + "' in the SCEP configuration data");
       }
     } else {
-      log.error("SCEP alias '" + alias + "' does not exist");
+      LOG.error("SCEP alias '" + alias + "' does not exist");
     }
     return null;
   }
 
+  /**
+   * @param key key
+   * @param value value
+   * @param alias alias
+   */
   public void setValue(
       final String key, final String value, final String alias) {
     if (aliasExists(alias)) {
       if (data.containsKey(key)) {
         data.put(key, value);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Added '"
                   + key
                   + "="
@@ -384,24 +515,34 @@ public class ScepConfiguration extends ConfigurationBase
                   + "' to the SCEP configuration data");
         }
       } else {
-        log.error(
+        LOG.error(
             "Key '" + key + "' does not exist in the SCEP configuration data");
       }
     } else {
-      log.error("SCEP alias '" + alias + "' does not exist");
+      LOG.error("SCEP alias '" + alias + "' does not exist");
     }
   }
 
+  /**
+   * @param aliaslist aliases
+   */
   public void setAliasList(final Set<String> aliaslist) {
-    data.put(ALIAS_LIST, aliaslist);
+    data.put(aliasList, aliaslist);
   }
 
+  /**
+   * @return aiases
+   */
   public Set<String> getAliasList() {
     @SuppressWarnings("unchecked")
-    Set<String> ret = (Set<String>) data.get(ALIAS_LIST);
+    Set<String> ret = (Set<String>) data.get(aliasList);
     return (ret == null ? DEFAULT_ALIAS_LIST : ret);
   }
 
+  /**
+   * @param alias alias
+   * @return bool
+   */
   public boolean aliasExists(final String alias) {
     if (StringUtils.isNotEmpty(alias)) {
       Set<String> aliases = getAliasList();
@@ -410,47 +551,53 @@ public class ScepConfiguration extends ConfigurationBase
     return false;
   }
 
+  /**
+   * @param alias alias
+   */
   public void addAlias(final String alias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Adding SCEP alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding SCEP alias: " + alias);
     }
 
     if (StringUtils.isEmpty(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("No alias is added because no alias was provided.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No alias is added because no alias was provided.");
       }
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (aliases.contains(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("SCEP alias '" + alias + "' already exists.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("SCEP alias '" + alias + "' already exists.");
       }
       return;
     }
 
     initialize(alias);
     aliases.add(alias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
+ /**
+  * @param alias alias
+  */
   public void removeAlias(final String alias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Removing SCEP alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Removing SCEP alias: " + alias);
     }
 
     if (StringUtils.isEmpty(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("No alias is removed because no alias was provided.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No alias is removed because no alias was provided.");
       }
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("SCEP alias '" + alias + "' does not exist");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("SCEP alias '" + alias + "' does not exist");
       }
       return;
     }
@@ -462,28 +609,32 @@ public class ScepConfiguration extends ConfigurationBase
       data.remove(key);
     }
     aliases.remove(alias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
+  /**
+   * @param oldAlias old
+   * @param newAlias new
+   */
   public void renameAlias(final String oldAlias, final String newAlias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Renaming SCEP alias '" + oldAlias + "' to '" + newAlias + "'");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Renaming SCEP alias '" + oldAlias + "' to '" + newAlias + "'");
     }
 
     if (StringUtils.isEmpty(oldAlias) || StringUtils.isEmpty(newAlias)) {
-      log.info(
+      LOG.info(
           "No alias is renamed because one or both aliases were not provided.");
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(oldAlias)) {
-      log.info("Cannot rename. SCEP alias '" + oldAlias + "' does not exists.");
+      LOG.info("Cannot rename. SCEP alias '" + oldAlias + "' does not exists.");
       return;
     }
 
     if (aliases.contains(newAlias)) {
-      log.info("Cannot rename. SCEP alias '" + newAlias + "' already exists.");
+      LOG.info("Cannot rename. SCEP alias '" + newAlias + "' already exists.");
       return;
     }
 
@@ -499,30 +650,34 @@ public class ScepConfiguration extends ConfigurationBase
     removeAlias(oldAlias);
     aliases.remove(oldAlias);
     aliases.add(newAlias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
+  /**
+   * @param originAlias old
+   * @param cloneAlias new
+   */
   public void cloneAlias(final String originAlias, final String cloneAlias) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Cloning SCEP alias '" + originAlias + "' to '" + cloneAlias + "'");
     }
 
     if (StringUtils.isEmpty(originAlias) || StringUtils.isEmpty(cloneAlias)) {
-      log.info(
+      LOG.info(
           "No alias is cloned because one or both aliased were not provided");
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(originAlias)) {
-      log.info(
+      LOG.info(
           "Cannot clone. SCEP alias '" + originAlias + "' does not exist.");
       return;
     }
 
     if (aliases.contains(cloneAlias)) {
-      log.info("Cannot clone. SCEP alias '" + cloneAlias + "' already exists.");
+      LOG.info("Cannot clone. SCEP alias '" + cloneAlias + "' already exists.");
       return;
     }
 
@@ -535,7 +690,7 @@ public class ScepConfiguration extends ConfigurationBase
       data.put(cloneKey, value);
     }
     aliases.add(cloneAlias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
   /** @return the configuration as a regular Properties object */
@@ -551,6 +706,10 @@ public class ScepConfiguration extends ConfigurationBase
     return properties;
   }
 
+  /**
+   * @param alias Alias
+   * @return Props
+   */
   public Properties getAsProperties(final String alias) {
     if (aliasExists(alias)) {
       final Properties properties = new Properties();
@@ -565,7 +724,8 @@ public class ScepConfiguration extends ConfigurationBase
     return null;
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion.
+   * @return version*/
   public float getLatestVersion() {
     return LATEST_VERSION;
   }

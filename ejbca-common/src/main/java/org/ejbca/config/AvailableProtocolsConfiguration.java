@@ -20,7 +20,7 @@ import java.util.Map;
 import org.cesecore.configuration.ConfigurationBase;
 
 /**
- * Handles configuration of protocols supporting enable / disable
+ * Handles configuration of protocols supporting enable / disable.
  *
  * @version $Id: AvailableProtocolsConfiguration.java 29241 2018-06-15 15:08:02Z
  *     henriks $
@@ -29,43 +29,60 @@ public class AvailableProtocolsConfiguration extends ConfigurationBase
     implements Serializable {
   private static final long serialVersionUID = 1L;
 
+  /**ID. */
   public static final String CONFIGURATION_ID = "AVAILABLE_PROTOCOLS";
 
-  /** Protocols currently supporting enable/disable configuration by EJBCA */
+  /** Protocols currently supporting enable/disable configuration by EJBCA. */
   public enum AvailableProtocols {
     // If you add a protocol > 6.11.0 it should be disabled by default
+    /** ACME. */
     ACME("ACME", "/ejbca/acme"),
+    /** CERT. */
     CERT_STORE("Certstore", "/certificates"),
+    /** CMP. */
     CMP("CMP", "/ejbca/publicweb/cmp"),
+    /** CRLs. */
     CRL_STORE("CRLstore", "/crls"),
+    /** EST. */
     EST("EST", "/.well-known/est"),
+    /** OCSP. */
     OCSP("OCSP", "/ejbca/publicweb/status/ocsp"),
+    /** Web. */
     PUBLIC_WEB("Public Web", "/ejbca"),
+    /** SCEP. */
     SCEP("SCEP", "/ejbca/publicweb/apply/scep"),
+    /** RA. */
     RA_WEB("RA Web", "/ejbca/ra"),
+    /** REST. */
     REST("REST Certificate Management", "/ejbca/ejbca-rest-api"),
+    /** Dist. */
     WEB_DIST("Webdist", "/ejbca/publicweb/webdist"),
+    /** WS. */
     WS("Web Service", "/ejbca/ejbcaws");
 
+      /** Name. */
     private final String name;
+    /** URL. */
     private final String url;
-    private static final Map<String, String> reverseLookupMap = new HashMap<>();
+    /** Map. */
+    private static final Map<String, String> REVERSE_LOOKUP_MAP =
+            new HashMap<>();
 
     static {
       for (final AvailableProtocols protocol : AvailableProtocols.values()) {
-        reverseLookupMap.put(protocol.getName(), protocol.getUrl());
+        REVERSE_LOOKUP_MAP.put(protocol.getName(), protocol.getUrl());
       }
     }
 
     /**
      * Creates a new instance of an available protocol enum.
      *
-     * @param name the name of the enum, same as the "serviceName" from web.xml
-     * @param url the URL to the servlet
+     * @param aName the name of the enum, same as the "serviceName" from web.xml
+     * @param aUrl the URL to the servlet
      */
-    private AvailableProtocols(final String name, final String url) {
-      this.name = name;
-      this.url = url;
+    AvailableProtocols(final String aName, final String aUrl) {
+      this.name = aName;
+      this.url = aUrl;
     }
 
     /** @return user friendly name of protocol */
@@ -73,22 +90,29 @@ public class AvailableProtocolsConfiguration extends ConfigurationBase
       return name;
     }
 
+    /**
+     * @return URL
+     */
     public String getUrl() {
       return url;
     }
 
+    /**
+     * @param name Name
+     * @return Path
+     */
     public static String getContextPathByName(final String name) {
-      return reverseLookupMap.get(name);
+      return REVERSE_LOOKUP_MAP.get(name);
     }
   };
 
-  /** Initializes the configuration */
+  /** Initializes the configuration. */
   public AvailableProtocolsConfiguration() {
     super();
   }
 
   /**
-   * Checks whether protocol is enabled / disabled locally
+   * Checks whether protocol is enabled / disabled locally.
    *
    * @param protocol to check status of @see {@link AvailableProtocols}
    * @return true if protocol is enabled, false otherwise
@@ -106,6 +130,10 @@ public class AvailableProtocolsConfiguration extends ConfigurationBase
     return ret == null ? true : ret;
   }
 
+  /**
+   * @param protocol Protocol
+   * @param status Status
+   */
   public void setProtocolStatus(final String protocol, final boolean status) {
     data.put(protocol, status);
   }

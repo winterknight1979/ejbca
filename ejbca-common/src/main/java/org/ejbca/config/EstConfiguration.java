@@ -40,48 +40,71 @@ public class EstConfiguration extends ConfigurationBase
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger log = Logger.getLogger(EstConfiguration.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(EstConfiguration.class);
 
   // Constants: Configuration keys
+  /** Config. */
   public static final String CONFIG_DEFAULTCA = "defaultca";
+  /** Config. */
   public static final String CONFIG_CERTPROFILE = "certprofile";
+  /** Config. */
   public static final String CONFIG_EEPROFILE = "eeprofile";
+  /** Config. */
   public static final String CONFIG_REQCERT = "requirecert";
+  /** Config. */
   public static final String CONFIG_REQUSERNAME = "requsername";
+  /** Config. */
   public static final String CONFIG_REQPASSWORD = "reqpassword";
+  /** Config. */
   public static final String CONFIG_ALLOWUPDATEWITHSAMEKEY =
       "allowupdatewithsamekey";
 
-  private final String ALIAS_LIST = "aliaslist";
+  /** Config. */
+  private static final String ALIAS_LIST = "aliaslist";
+  /** Config. */
   public static final String EST_CONFIGURATION_ID = "4";
 
   // Default Values
+  /** Config. */
   public static final float LATEST_VERSION = 3f;
+  /** Config. */
   public static final String EJBCA_VERSION =
       InternalConfiguration.getAppVersion();
 
   // Default values
+  /** Config. */
   private static final Set<String> DEFAULT_ALIAS_LIST = new LinkedHashSet<>();
+  /** Config. */
   private static final String DEFAULT_DEFAULTCA = "";
+  /** Config. */
   public static final String DEFAULT_EEPROFILE =
       String.valueOf(EndEntityConstants.EMPTY_END_ENTITY_PROFILE);
+  /** Config. */
   private static final String DEFAULT_CERTPROFILE =
       String.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);
+  /** Config. */
   private static final String DEFAULT_REQCERT = "true";
+  /** Config. */
   private static final String DEFAULT_REQUSERNAME = "";
+  /** Config. */
   private static final String DEFAULT_REQPASSWORD = "";
+  /** Config. */
   private static final String DEFAULT_ALLOWUPDATEWITHSAMEKEY = "true";
 
-  // This List is used in the command line handling of updating a config value
-  // to ensure a correct value.
+  /** This List is used in the command line handling of updating a config value
+   to ensure a correct value. */
   public static final List<String> EST_BOOLEAN_KEYS =
       Arrays.asList(CONFIG_REQCERT, CONFIG_ALLOWUPDATEWITHSAMEKEY);
 
-  /** Creates a new instance of EstConfiguration */
+  /** Creates a new instance of EstConfiguration. */
   public EstConfiguration() {
     super();
   }
 
+  /**
+   * @param dataobj Object
+   */
   public EstConfiguration(final Serializable dataobj) {
     @SuppressWarnings("unchecked")
     LinkedHashMap<Object, Object> d = (LinkedHashMap<Object, Object>) dataobj;
@@ -89,7 +112,7 @@ public class EstConfiguration extends ConfigurationBase
   }
 
   /**
-   * Copy constructor for {@link EstConfiguration}
+   * Copy constructor for {@link EstConfiguration}.
    *
    * @param estConfiguration Config
    */
@@ -108,11 +131,11 @@ public class EstConfiguration extends ConfigurationBase
   /**
    * Initializes a new cmp configuration with default values.
    *
-   * @param alias Alias
+   * @param oalias Alias
    */
-  public void initialize(String alias) {
-    if (StringUtils.isNotEmpty(alias)) {
-      alias = alias + ".";
+  public void initialize(final String oalias) {
+    if (StringUtils.isNotEmpty(oalias)) {
+      String alias = oalias + ".";
       data.put(alias + CONFIG_DEFAULTCA, DEFAULT_DEFAULTCA);
       data.put(alias + CONFIG_CERTPROFILE, DEFAULT_CERTPROFILE);
       data.put(alias + CONFIG_EEPROFILE, DEFAULT_EEPROFILE);
@@ -125,9 +148,10 @@ public class EstConfiguration extends ConfigurationBase
     }
   }
 
-  // return all the key with an alias
-  public static Set<String> getAllAliasKeys(String alias) {
-    alias = alias + ".";
+  /** @param oalias Alias
+ * @return all the key with an alias */
+  public static Set<String> getAllAliasKeys(final String oalias) {
+    String alias = oalias + ".";
     Set<String> keys = new LinkedHashSet<>();
     keys.add(alias + CONFIG_DEFAULTCA);
     keys.add(alias + CONFIG_CERTPROFILE);
@@ -149,6 +173,10 @@ public class EstConfiguration extends ConfigurationBase
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias ALias
+   * @param defaultCAID CA
+   */
   public void setDefaultCAID(final String alias, final int defaultCAID) {
     String key = alias + "." + CONFIG_DEFAULTCA;
     setValue(key, String.valueOf(defaultCAID), alias);
@@ -173,13 +201,17 @@ public class EstConfiguration extends ConfigurationBase
     setValue(key, String.valueOf(cprofileID), alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return ID
+   */
   public int getEndEntityProfileID(final String alias) {
     String key = alias + "." + CONFIG_EEPROFILE;
     try {
       Integer id = Integer.valueOf(getValue(key, alias));
       return id;
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid End Entity Profile ID stored in EST alias, returning 0: "
               + alias,
           e);
@@ -204,6 +236,10 @@ public class EstConfiguration extends ConfigurationBase
     return StringUtils.equalsIgnoreCase(getValue(key, alias), "true");
   }
 
+  /**
+   * @param alias ALias
+   * @param reqCert Cert
+   */
   public void setCert(final String alias, final boolean reqCert) {
     String key = alias + "." + CONFIG_REQCERT;
     setValue(key, Boolean.toString(reqCert), alias);
@@ -218,6 +254,10 @@ public class EstConfiguration extends ConfigurationBase
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param username User
+   */
   public void setUsername(final String alias, final String username) {
     String key = alias + "." + CONFIG_REQUSERNAME;
     setValue(key, username, alias);
@@ -232,6 +272,10 @@ public class EstConfiguration extends ConfigurationBase
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param password PWD
+   */
   public void setPassword(final String alias, final String password) {
     String key = alias + "." + CONFIG_REQPASSWORD;
     setValue(key, password, alias);
@@ -247,33 +291,47 @@ public class EstConfiguration extends ConfigurationBase
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias Alias
+   * @param allowSameKey Bool
+   */
   public void setKurAllowSameKey(
       final String alias, final boolean allowSameKey) {
     String key = alias + "." + CONFIG_ALLOWUPDATEWITHSAMEKEY;
     setValue(key, Boolean.toString(allowSameKey), alias);
   }
 
+  /**
+   * @param key Key
+   * @param alias Alias
+   * @return Value
+   */
   public String getValue(final String key, final String alias) {
     if (aliasExists(alias)) {
       if (data.containsKey(key)) {
         return (String) data.get(key);
       } else {
-        log.info(
+        LOG.info(
             "Could not find key '" + key + "' in the EST configuration data");
       }
     } else {
-      log.info("EST alias '" + alias + "' does not exist");
+      LOG.info("EST alias '" + alias + "' does not exist");
     }
     return null;
   }
 
+  /**
+   * @param key Key
+   * @param value Value
+   * @param alias Alias
+   */
   public void setValue(
       final String key, final String value, final String alias) {
     if (aliasExists(alias)) {
       if (data.containsKey(key)) {
         data.put(key, value);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Added '"
                   + key
                   + "="
@@ -282,8 +340,8 @@ public class EstConfiguration extends ConfigurationBase
         }
       } else {
         data.put(key, value);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Key '"
                   + key
                   + "' does not exist in the EST configuration data, adding"
@@ -291,14 +349,20 @@ public class EstConfiguration extends ConfigurationBase
         }
       }
     } else {
-      log.info("EST alias '" + alias + "' does not exist");
+      LOG.info("EST alias '" + alias + "' does not exist");
     }
   }
 
+  /**
+   * @param aliaslist Aliases
+   */
   public void setAliasList(final Set<String> aliaslist) {
     data.put(ALIAS_LIST, aliaslist);
   }
 
+  /**
+   * @return Aliases
+   */
   public Set<String> getAliasList() {
     @SuppressWarnings("unchecked")
     Set<String> ret = (Set<String>) data.get(ALIAS_LIST);
@@ -306,6 +370,9 @@ public class EstConfiguration extends ConfigurationBase
     return (ret == null ? DEFAULT_ALIAS_LIST : ret);
   }
 
+  /**
+   * @return List
+   */
   public List<String> getSortedAliasList() {
     List<String> result = new ArrayList<>(getAliasList());
     Collections.sort(
@@ -319,33 +386,40 @@ public class EstConfiguration extends ConfigurationBase
     return result;
   }
 
+  /**
+   * @param alias Alias
+   * @return Bool
+   */
   public boolean aliasExists(final String alias) {
     if (StringUtils.isNotEmpty(alias)) {
       Set<String> aliases = getAliasList();
       return aliases.contains(alias);
     }
-    if (log.isDebugEnabled()) {
-      log.debug("EST alias '" + alias + "' does not exist.");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("EST alias '" + alias + "' does not exist.");
     }
     return false;
   }
 
+  /**
+   * @param alias Alias
+   */
   public void addAlias(final String alias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Adding EST alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding EST alias: " + alias);
     }
 
     if (StringUtils.isEmpty(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("No alias is added because no alias was provided.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No alias is added because no alias was provided.");
       }
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (aliases.contains(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("EST alias '" + alias + "' already exists.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("EST alias '" + alias + "' already exists.");
       }
       return;
     }
@@ -354,22 +428,25 @@ public class EstConfiguration extends ConfigurationBase
     data.put(ALIAS_LIST, aliases);
   }
 
+  /**
+   * @param alias Alias
+   */
   public void removeAlias(final String alias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Removing EST alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Removing EST alias: " + alias);
     }
 
     if (StringUtils.isEmpty(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("No alias is removed because no alias was provided.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No alias is removed because no alias was provided.");
       }
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("EST alias '" + alias + "' does not exist");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("EST alias '" + alias + "' does not exist");
       }
       return;
     }
@@ -381,25 +458,29 @@ public class EstConfiguration extends ConfigurationBase
     data.put(ALIAS_LIST, aliases);
   }
 
+  /**
+   * @param oldAlias Old
+   * @param newAlias New
+   */
   public void renameAlias(final String oldAlias, final String newAlias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Renaming EST alias '" + oldAlias + "' to '" + newAlias + "'");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Renaming EST alias '" + oldAlias + "' to '" + newAlias + "'");
     }
 
     if (StringUtils.isEmpty(oldAlias) || StringUtils.isEmpty(newAlias)) {
-      log.info(
+      LOG.info(
           "No alias is renamed because one or both aliases were not provided.");
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(oldAlias)) {
-      log.info("Cannot rename. EST alias '" + oldAlias + "' does not exists.");
+      LOG.info("Cannot rename. EST alias '" + oldAlias + "' does not exists.");
       return;
     }
 
     if (aliases.contains(newAlias)) {
-      log.info("Cannot rename. EST alias '" + newAlias + "' already exists.");
+      LOG.info("Cannot rename. EST alias '" + newAlias + "' already exists.");
       return;
     }
 
@@ -418,26 +499,30 @@ public class EstConfiguration extends ConfigurationBase
     data.put(ALIAS_LIST, aliases);
   }
 
+  /**
+   * @param originAlias Old
+   * @param cloneAlias New
+   */
   public void cloneAlias(final String originAlias, final String cloneAlias) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Cloning EST alias '" + originAlias + "' to '" + cloneAlias + "'");
     }
 
     if (StringUtils.isEmpty(originAlias) || StringUtils.isEmpty(cloneAlias)) {
-      log.info(
+      LOG.info(
           "No alias is cloned because one or both aliased were not provided");
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(originAlias)) {
-      log.info("Cannot clone. EST alias '" + originAlias + "' does not exist.");
+      LOG.info("Cannot clone. EST alias '" + originAlias + "' does not exist.");
       return;
     }
 
     if (aliases.contains(cloneAlias)) {
-      log.info("Cannot clone. EST alias '" + cloneAlias + "' already exists.");
+      LOG.info("Cannot clone. EST alias '" + cloneAlias + "' already exists.");
       return;
     }
 
@@ -466,6 +551,10 @@ public class EstConfiguration extends ConfigurationBase
     return properties;
   }
 
+  /**
+   * @param alias Alias
+   * @return Props
+   */
   public Properties getAsProperties(final String alias) {
     if (aliasExists(alias)) {
       final Properties properties = new Properties();
@@ -480,7 +569,7 @@ public class EstConfiguration extends ConfigurationBase
     return null;
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
   @Override
   public float getLatestVersion() {
     return LATEST_VERSION;

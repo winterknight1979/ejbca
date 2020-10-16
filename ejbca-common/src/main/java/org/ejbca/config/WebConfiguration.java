@@ -20,21 +20,31 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.ejbca.util.SlotList;
 
-/** This file handles configuration from web.properties */
-public class WebConfiguration {
+/** This file handles configuration from web.properties. */
+public final class WebConfiguration {
 
-  private static final Logger log = Logger.getLogger(WebConfiguration.class);
+    private WebConfiguration() { }
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(WebConfiguration.class);
 
+  /** Config. */
   public static final String CONFIG_HTTPSSERVERHOSTNAME =
       "httpsserver.hostname";
+  /** Config. */
   public static final String CONFIG_HTTPSERVERPUBHTTP = "httpserver.pubhttp";
+  /** Config. */
   public static final String CONFIG_HTTPSERVERPUBHTTPS = "httpserver.pubhttps";
+  /** Config. */
   public static final String CONFIG_HTTPSSERVERPRIVHTTPS =
       "httpserver.privhttps";
+  /** Config. */
   public static final String CONFIG_HTTPSSERVEREXTERNALPRIVHTTPS =
       "httpserver.external.privhttps";
+  /** Config. */
   public static final String CONFIG_DOCBASEURI = "web.docbaseuri";
+  /** Config. */
   public static final String CONFIG_REQCERT = "web.reqcert";
+  /** Config. */
   public static final String CONFIG_REQCERTINDB = "web.reqcertindb";
 
   /** @return The configured server host name */
@@ -48,13 +58,14 @@ public class WebConfiguration {
    *     client authentication
    */
   public static int getPublicHttpPort() {
-    int value = 8080;
+    final int def = 8080;
+    int value = def;
     try {
       value =
           Integer.parseInt(
               EjbcaConfigurationHolder.getString(CONFIG_HTTPSERVERPUBHTTP));
     } catch (NumberFormatException e) {
-      log.warn(
+      LOG.warn(
           "\"httpserver.pubhttp\" is not a decimal number. Using default"
               + " value: "
               + value);
@@ -67,13 +78,14 @@ public class WebConfiguration {
    *     authentication
    */
   public static int getPrivateHttpsPort() {
-    int value = 8443;
+    final int def = 8443;
+    int value = def;
     try {
       value =
           Integer.parseInt(
               EjbcaConfigurationHolder.getString(CONFIG_HTTPSSERVERPRIVHTTPS));
     } catch (NumberFormatException e) {
-      log.warn(
+      LOG.warn(
           "\"httpserver.privhttps\" is not a decimal number. Using default"
               + " value: "
               + value);
@@ -90,7 +102,7 @@ public class WebConfiguration {
               EjbcaConfigurationHolder.getString(
                   CONFIG_HTTPSSERVEREXTERNALPRIVHTTPS));
     } catch (NumberFormatException e) {
-      log.warn(
+      LOG.warn(
           "\"httpserver.external.privhttps\" is not a decimal number. Using"
               + " default value: "
               + value);
@@ -170,12 +182,19 @@ public class WebConfiguration {
         EjbcaConfigurationHolder.getExpandedString("web.renewalenabled"));
   }
 
+  /**
+   * @return bool
+   */
   public static boolean doShowStackTraceOnErrorPage() {
     final String s =
         EjbcaConfigurationHolder.getString("web.errorpage.stacktrace");
     return s == null || s.toLowerCase().indexOf("true") >= 0;
   }
 
+  /**
+   * @param sDefault default
+   * @return Notif.
+   */
   public static String notification(final String sDefault) {
     String result =
         EjbcaConfigurationHolder.getString("web.errorpage.notification");
@@ -241,39 +260,64 @@ public class WebConfiguration {
   }
 
   public static final class P11LibraryInfo {
+      /** Alias. */
     private final String alias;
+    /** List. */
     private final SlotList slotList;
+    /** Key. */
     private final boolean canGenerateKey;
+    /** Message. */
     private final String canGenerateKeyMsg;
 
+    /**
+     * @param anAlias Alias
+     * @param aSlotList list
+     * @param aCanGenerateKey key
+     * @param cangenerateKeyMsg bool
+     */
     public P11LibraryInfo(
-        final String alias,
-        final SlotList slotList,
-        final boolean canGenerateKey,
+        final String anAlias,
+        final SlotList aSlotList,
+        final boolean aCanGenerateKey,
         final String cangenerateKeyMsg) {
-      this.alias = alias;
-      this.slotList = slotList;
-      this.canGenerateKey = canGenerateKey;
+      this.alias = anAlias;
+      this.slotList = aSlotList;
+      this.canGenerateKey = aCanGenerateKey;
       this.canGenerateKeyMsg = cangenerateKeyMsg;
     }
 
+    /**
+     * @return Alias
+     */
     public String getAlias() {
       return alias;
     }
 
+    /**
+     * @return list
+     */
     public SlotList getSlotList() {
       return slotList;
     }
 
+    /**
+     * @return bool
+     */
     public boolean isCanGenerateKey() {
       return canGenerateKey;
     }
 
+    /**
+     * @return message
+     */
     public String getCanGenerateKeyMsg() {
       return canGenerateKeyMsg;
     }
   }
 
+  /**
+   * Map.
+   */
   private static Map<String, P11LibraryInfo> availableP11LibraryToAliasMap =
       null;
   /**
@@ -284,7 +328,8 @@ public class WebConfiguration {
     if (availableP11LibraryToAliasMap == null) {
       final Map<String, P11LibraryInfo> ret =
           new HashMap<String, P11LibraryInfo>();
-      for (int i = 0; i < 256; i++) {
+      final int max = 256;
+      for (int i = 0; i < max; i++) {
         String fileName =
             EjbcaConfigurationHolder.getString(
                 "cryptotoken.p11.lib." + i + ".file");
@@ -312,8 +357,8 @@ public class WebConfiguration {
             String canGenerateKeyMsg =
                 EjbcaConfigurationHolder.getString(
                     "cryptotoken.p11.lib." + i + ".canGenerateKeyMsg");
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "Adding PKCS#11 library "
                       + fileName
                       + " with display name "
@@ -328,8 +373,8 @@ public class WebConfiguration {
                 new P11LibraryInfo(
                     displayName, slotList, canGenerateKey, canGenerateKeyMsg));
           } else {
-            if (log.isDebugEnabled()) {
-              log.debug(
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(
                   "PKCS#11 library "
                       + fileName
                       + " was not detected in file system and will not be"
@@ -343,6 +388,9 @@ public class WebConfiguration {
     return availableP11LibraryToAliasMap;
   }
 
+  /**
+   * Map.
+   */
   private static Map<String, String> availableP11AttributeFiles = null;
   /**
    * @return a (cached) mapping between the PKCS#11 attribute files and their
@@ -351,7 +399,8 @@ public class WebConfiguration {
   public static Map<String, String> getAvailableP11AttributeFiles() {
     if (availableP11AttributeFiles == null) {
       final Map<String, String> ret = new HashMap<String, String>();
-      for (int i = 0; i < 256; i++) {
+      final int max = 256;
+      for (int i = 0; i < max; i++) {
         String fileName =
             EjbcaConfigurationHolder.getString(
                 "cryptotoken.p11.attr." + i + ".file");
@@ -374,6 +423,9 @@ public class WebConfiguration {
     return availableP11AttributeFiles;
   }
 
+  /**
+   * @return Directory
+   */
   public static String getStatedumpTemplatesBasedir() {
     return EjbcaConfigurationHolder.getString("statedump.templatebasedir");
   }

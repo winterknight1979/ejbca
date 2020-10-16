@@ -34,26 +34,35 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
   // private static final Logger log =
   // Logger.getLogger(GlobalAcmeConfiguration.class);
 
+  /** Config. */
   public static final String ACME_CONFIGURATION_ID = "ACME";
 
+  /** Config. */
   private static final String KEY_INITIALIZED = "initialized";
+  /** Config. */
   private static final String KEY_DEFAULT_ACME_CONFIGURATION_ID =
       "defaultAcmeConfigurationId";
+  /** Config. */
   private static final String KEY_ACME_CONFIGURATION_PREFIX =
       "acmeConfiguration_";
+  /** Config. */
   private static final String KEY_REPLAY_NONCE_VALIDITY =
       "replayNonceValiditity";
+  /** Config. */
   private static final String KEY_REPLAY_NONCE_SECRETS_HMAC_WITH_SHA256 =
       "replayNonceSecretsHmacWithSHA256";
 
   @Override
-  public void upgrade() {}
+  public void upgrade() { }
 
   @Override
   public String getConfigurationId() {
     return ACME_CONFIGURATION_ID;
   }
 
+  /**
+   * @return Props
+   */
   public Properties getAsProperties() {
     final Properties properties = new Properties();
     properties.put(KEY_INITIALIZED, isInitialized());
@@ -145,10 +154,14 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
   /** @return the validity period of newly generated nonces */
   public long getReplayNonceValidity() {
     final Long replayNonceValidity = (Long) data.get(KEY_REPLAY_NONCE_VALIDITY);
+    final long tenMins = 10 * 60 * 1000L;
     return replayNonceValidity == null
-        ? 600 * 1000L
+        ? tenMins
         : replayNonceValidity.longValue();
   }
+  /**
+   * @param replayNonceValidity valid
+   */
 
   public void setReplayNonceValidity(final long replayNonceValidity) {
     data.put(KEY_REPLAY_NONCE_VALIDITY, replayNonceValidity);
@@ -200,7 +213,7 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
 
   /**
    * Add a new replay-nonce secret for the specified algorithm to use for all
-   * new generated replay-nonces
+   * new generated replay-nonces.
    *
    * @param hmacOid OID
    * @param secret Secret
@@ -232,6 +245,10 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
     }
   }
 
+  /**
+   * @param configurationId ID
+   * @return bool
+   */
   public boolean aliasExists(final String configurationId) {
     if (StringUtils.isNotEmpty(configurationId)) {
       AcmeConfiguration acmeConfiguration =
@@ -241,6 +258,10 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
     return false;
   }
 
+  /**
+   * @param newConfigId New
+   * @param oldConfigId Old
+   */
   public void renameConfigId(
       final String newConfigId, final String oldConfigId) {
     AcmeConfiguration acmeConfiguration = getAcmeConfiguration(oldConfigId);
@@ -249,6 +270,9 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
     updateAcmeConfiguration(acmeConfiguration);
   }
 
+  /**
+   * @param configId ID
+   */
   public void removeConfigId(final String configId) {
     data.remove(KEY_ACME_CONFIGURATION_PREFIX + configId);
   }

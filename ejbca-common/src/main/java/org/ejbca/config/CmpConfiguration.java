@@ -39,35 +39,52 @@ public class CmpConfiguration extends ConfigurationBase
 
   private static final long serialVersionUID = -2787354158199916828L;
 
-  private static final Logger log = Logger.getLogger(CmpConfiguration.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(CmpConfiguration.class);
 
   // Constants: Authentication modules
+  /** Config. */
   public static final String AUTHMODULE_REG_TOKEN_PWD = "RegTokenPwd";
+  /** Config. */
   public static final String AUTHMODULE_DN_PART_PWD = "DnPartPwd";
+  /** Config. */
   public static final String AUTHMODULE_HMAC = "HMAC";
+  /** Config. */
   public static final String AUTHMODULE_ENDENTITY_CERTIFICATE =
       "EndEntityCertificate";
 
   // Constants: Configuration keys
+  /** Config. */
   public static final String CONFIG_DEFAULTCA = "defaultca";
+  /** Config. */
   public static final String CONFIG_ALLOWRAVERIFYPOPO = "allowraverifypopo";
+  /** Config. */
   public static final String CONFIG_OPERATIONMODE = "operationmode";
+  /** Config. */
   public static final String CONFIG_AUTHENTICATIONMODULE =
       "authenticationmodule";
+  /** Config. */
   public static final String CONFIG_AUTHENTICATIONPARAMETERS =
       "authenticationparameters";
+  /** Config. */
   public static final String CONFIG_EXTRACTUSERNAMECOMPONENT =
       "extractusernamecomponent";
+  /** Config. */
   public static final String CONFIG_RA_ALLOWCUSTOMCERTSERNO =
       "ra.allowcustomcertserno";
+  /** Config. */
   public static final String CONFIG_RA_NAMEGENERATIONSCHEME =
       "ra.namegenerationscheme";
+  /** Config. */
   public static final String CONFIG_RA_NAMEGENERATIONPARAMS =
       "ra.namegenerationparameters";
+  /** Config. */
   public static final String CONFIG_RA_NAMEGENERATIONPREFIX =
       "ra.namegenerationprefix";
+  /** Config. */
   public static final String CONFIG_RA_NAMEGENERATIONPOSTFIX =
       "ra.namegenerationpostfix";
+  /** Config. */
   public static final String CONFIG_RA_PASSWORDGENPARAMS =
       "ra.passwordgenparams";
   /**
@@ -77,27 +94,41 @@ public class CmpConfiguration extends ConfigurationBase
   @Deprecated
   public static final String CONFIG_RA_ENDENTITYPROFILE = "ra.endentityprofile";
 
+  /** Config. */
   public static final String CONFIG_RA_ENDENTITYPROFILEID =
       "ra.endentityprofileid";
+  /** Config. */
   public static final String CONFIG_RA_CERTIFICATEPROFILE =
       "ra.certificateprofile";
+  /** Config. */
   public static final String CONFIG_RESPONSEPROTECTION = "responseprotection";
+  /** Config. */
   public static final String CONFIG_RACANAME = "ra.caname";
+  /** Config. */
   public static final String CONFIG_VENDORCERTIFICATEMODE =
       "vendorcertificatemode";
+  /** Config. */
   public static final String CONFIG_VENDORCA = "vendorca";
+  /** Config. */
   public static final String CONFIG_RESPONSE_CAPUBS_CA = "response.capubsca";
+  /** Config. */
   public static final String CONFIG_RESPONSE_EXTRACERTS_CA =
       "response.extracertsca";
+  /** Config. */
   public static final String CONFIG_RA_OMITVERIFICATIONSINEEC =
       "ra.endentitycertificate.omitverifications";
+  /** Config. */
   public static final String CONFIG_RACERT_PATH = "racertificatepath";
+  /** Config. */
   public static final String CONFIG_ALLOWAUTOMATICKEYUPDATE =
       "allowautomatickeyupdate";
+  /** Config. */
   public static final String CONFIG_ALLOWUPDATEWITHSAMEKEY =
       "allowupdatewithsamekey";
+  /** Config. */
   public static final String CONFIG_ALLOWSERVERGENERATEDKEYS =
       "allowservergenkeys";
+  /** Config. */
   public static final String CONFIG_CERTREQHANDLER_CLASS =
       "certreqhandler.class";
   /**
@@ -107,11 +138,14 @@ public class CmpConfiguration extends ConfigurationBase
   @Deprecated
   public static final String CONFIG_UNIDDATASOURCE = "uniddatasource";
 
+  /** Config. */
   public static final String PROFILE_USE_KEYID = "KeyId";
+  /** Config. */
   public static final String PROFILE_DEFAULT = "ProfileDefault";
 
   // This List is used in the command line handling of updating a config value
   // to ensure a correct value.
+  /** Config. */
   public static final List<String> CMP_BOOLEAN_KEYS =
       Arrays.asList(
           CONFIG_VENDORCERTIFICATEMODE,
@@ -121,52 +155,86 @@ public class CmpConfiguration extends ConfigurationBase
           CONFIG_ALLOWUPDATEWITHSAMEKEY,
           CONFIG_ALLOWSERVERGENERATEDKEYS);
 
-  private final String ALIAS_LIST = "aliaslist";
+  /** Config. */
+  private final String aliasList = "aliaslist";
+  /** Config. */
   public static final String CMP_CONFIGURATION_ID = "1";
 
   // Default Values
+  /** Config. */
   public static final float LATEST_VERSION = 8f;
+  /** Config. */
   public static final String EJBCA_VERSION =
       InternalConfiguration.getAppVersion();
 
   // Default values
+  /** Config. */
   private static final Set<String> DEFAULT_ALIAS_LIST = new LinkedHashSet<>();
+  /** Config. */
   private static final String DEFAULT_DEFAULTCA = "";
+  /** Config. */
   private static final String DEFAULT_OPERATION_MODE = "client";
+  /** Config. */
   private static final String DEFAULT_EXTRACT_USERNAME_COMPONENT = "DN";
+  /** Config. */
   private static final String DEFAULT_VENDOR_MODE = "false";
+  /** Config. */
   private static final String DEFAULT_VENDOR_CA = "";
+  /** Config. */
   private static final String DEFAULT_RESPONSE_CAPUBS_CA = "";
+  /** Config. */
   private static final String DEFAULT_RESPONSE_EXTRACERTS_CA = "";
+  /** Config. */
   private static final String DEFAULT_KUR_ALLOW_AUTOMATIC_KEYUPDATE = "false";
+  /** Config. */
   private static final String DEFAULT_ALLOW_SERVERGENERATED_KEYS = "false";
+  /** Config. */
   private static final String DEFAULT_KUR_ALLOW_SAME_KEY = "true";
+  /** Config. */
   private static final String DEFAULT_RESPONSE_PROTECTION = "signature";
+  /** Config. */
   private static final String DEFAULT_ALLOW_RA_VERIFY_POPO = "false";
+  /** Config. */
   private static final String DEFAULT_RA_USERNAME_GENERATION_SCHEME = "DN";
+  /** Config. */
   private static final String DEFAULT_RA_USERNAME_GENERATION_PARAMS = "CN";
+  /** Config. */
   private static final String DEFAULT_RA_USERNAME_GENERATION_PREFIX = "";
+  /** Config. */
   private static final String DEFAULT_RA_USERNAME_GENERATION_POSTFIX = "";
+  /** Config. */
   private static final String DEFAULT_RA_PASSWORD_GENERARION_PARAMS = "random";
+  /** Config. */
   private static final String DEFAULT_RA_ALLOW_CUSTOM_SERNO = "false";
+  /** Config. */
   public static final String DEFAULT_RA_EEPROFILE = "1";
+  /** Config. */
   private static final String DEFAULT_RA_CERTPROFILE = "ENDUSER";
+  /** Config. */
   private static final String DEFAULT_RA_CANAME = "ManagementCA";
+  /** Config. */
   private static final String DEFAULT_CLIENT_AUTHENTICATION_MODULE =
       CmpConfiguration.AUTHMODULE_REG_TOKEN_PWD
           + ";"
           + CmpConfiguration.AUTHMODULE_HMAC;
+  /** Config. */
   private static final String DEFAULT_CLIENT_AUTHENTICATION_PARAMS = "-;-";
+  /** Config. */
   private static final String DEFAULT_RA_OMITVERIFICATIONSINEEC = "false";
+  /** Config. */
   private static final String DEFAULT_RACERT_PATH = "";
+  /** Config. */
   private static final String DEFAULT_CERTREQHANDLER =
       ""; // "org.ejbca.core.protocol.unid.UnidFnrHandler";
 
-  /** Creates a new instance of CmpConfiguration */
+  /** Creates a new instance of CmpConfiguration. */
   public CmpConfiguration() {
     super();
   }
 
+  /**
+   * @param dataobj Object.
+   */
   public CmpConfiguration(final Serializable dataobj) {
     @SuppressWarnings("unchecked")
     LinkedHashMap<Object, Object> d = (LinkedHashMap<Object, Object>) dataobj;
@@ -174,7 +242,7 @@ public class CmpConfiguration extends ConfigurationBase
   }
 
   /**
-   * Copy constructor for {@link CmpConfiguration}
+   * Copy constructor for {@link CmpConfiguration}.
    *
    * @param cmpConfiguration config
    */
@@ -193,11 +261,11 @@ public class CmpConfiguration extends ConfigurationBase
   /**
    * Initializes a new cmp configuration with default values.
    *
-   * @param alias alias
+   * @param oalias alias
    */
-  public void initialize(String alias) {
-    if (StringUtils.isNotEmpty(alias)) {
-      alias = alias + ".";
+  public void initialize(final String oalias) {
+    if (StringUtils.isNotEmpty(oalias)) {
+      String alias = oalias + ".";
       data.put(alias + CONFIG_DEFAULTCA, DEFAULT_DEFAULTCA);
       data.put(alias + CONFIG_RESPONSEPROTECTION, DEFAULT_RESPONSE_PROTECTION);
       data.put(alias + CONFIG_OPERATIONMODE, DEFAULT_OPERATION_MODE);
@@ -255,9 +323,10 @@ public class CmpConfiguration extends ConfigurationBase
     }
   }
 
-  // return all the key with an alias
-  public static Set<String> getAllAliasKeys(String alias) {
-    alias = alias + ".";
+  /** @param oalias Alias
+ * @return all the key with an alias */
+  public static Set<String> getAllAliasKeys(final String oalias) {
+    String alias = oalias + ".";
     Set<String> keys = new LinkedHashSet<>();
     keys.add(alias + CONFIG_DEFAULTCA);
     keys.add(alias + CONFIG_RESPONSEPROTECTION);
@@ -300,11 +369,19 @@ public class CmpConfiguration extends ConfigurationBase
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param defCA CA
+   */
   public void setCMPDefaultCA(final String alias, final String defCA) {
     String key = alias + "." + CONFIG_DEFAULTCA;
     setValue(key, defCA, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Protect
+   */
   public String getResponseProtection(final String alias) {
     String key = alias + "." + CONFIG_RESPONSEPROTECTION;
     String result = getValue(key, alias);
@@ -316,6 +393,10 @@ public class CmpConfiguration extends ConfigurationBase
     }
   }
 
+  /**
+   * @param alias Alias
+   * @param protection Protect
+   */
   public void setResponseProtection(
       final String alias, final String protection) {
     String key = alias + "." + CONFIG_RESPONSEPROTECTION;
@@ -324,39 +405,64 @@ public class CmpConfiguration extends ConfigurationBase
 
   // Any value that is not "ra" or "RA" will be client mode, no matter what it
   // is
+  /**
+   * @param alias Alias
+   * @return Mode
+   */
   public boolean getRAMode(final String alias) {
     String key = alias + "." + CONFIG_OPERATIONMODE;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "ra");
   }
 
+  /**
+   * @param alias Alias
+   * @param ramode Mode
+   */
   public void setRAMode(final String alias, final boolean ramode) {
     String key = alias + "." + CONFIG_OPERATIONMODE;
     setValue(key, ramode ? "ra" : "client", alias);
   }
 
+  /**
+ * @param alias Alias
+ * @param mode  Mode
+   */
   public void setRAMode(final String alias, final String mode) {
     setRAMode(alias, StringUtils.equalsIgnoreCase(mode, "ra"));
   }
 
+  /**
+   * @param alias Alias
+   * @return Module
+   */
   public String getAuthenticationModule(final String alias) {
     String key = alias + "." + CONFIG_AUTHENTICATIONMODULE;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param authModule Module
+   */
   public void setAuthenticationModule(
       final String alias, final String authModule) {
     String key = alias + "." + CONFIG_AUTHENTICATIONMODULE;
     setValue(key, authModule, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param authmodules Modules
+   * @param authparams Params
+   */
   public void setAuthenticationProperties(
       final String alias,
       final ArrayList<String> authmodules,
       final ArrayList<String> authparams) {
     if (authmodules.isEmpty()) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "Did not update CMP Authentication modules or parameters because"
                 + " no Authentication module was specified");
       }
@@ -364,7 +470,7 @@ public class CmpConfiguration extends ConfigurationBase
     }
 
     if (authmodules.size() != authparams.size()) {
-      log.info(
+      LOG.info(
           "Did not update CMP Authentication settings because the number of"
               + " authentication parameters is not the same as the number of"
               + " authentication modules");
@@ -383,17 +489,29 @@ public class CmpConfiguration extends ConfigurationBase
     setAuthenticationParameters(alias, authparams);
   }
 
+  /**
+   * @param alias Alias
+   * @return Params
+   */
   public String getAuthenticationParameters(final String alias) {
     String key = alias + "." + CONFIG_AUTHENTICATIONPARAMETERS;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param authParams Params
+   */
   public void setAuthenticationParameters(
       final String alias, final String authParams) {
     String key = alias + "." + CONFIG_AUTHENTICATIONPARAMETERS;
     setValue(key, authParams, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param authparameters params
+   */
   public void setAuthenticationParameters(
       final String alias, final ArrayList<String> authparameters) {
     String authparam = "";
@@ -404,6 +522,11 @@ public class CmpConfiguration extends ConfigurationBase
     setAuthenticationParameters(alias, authparam);
   }
 
+  /**
+   * @param authModule Module
+   * @param alias Alias
+   * @return Param
+   */
   public String getAuthenticationParameter(
       final String authModule, final String alias) {
 
@@ -411,11 +534,11 @@ public class CmpConfiguration extends ConfigurationBase
       String confModule = getAuthenticationModule(alias);
       String confParams = getAuthenticationParameters(alias);
 
-      String modules[] = confModule.split(";");
-      String params[] = confParams.split(";");
+      String[] modules = confModule.split(";");
+      String[] params = confParams.split(";");
 
       if (modules.length > params.length) {
-        log.info(
+        LOG.info(
             "There are not as many authentication parameters as authentication"
                 + " modules. "
                 + modules.length
@@ -432,13 +555,18 @@ public class CmpConfiguration extends ConfigurationBase
       }
       return "";
     } else {
-      if (log.isDebugEnabled()) {
-        log.debug("No CMP alias was specified. Returning an empty String");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No CMP alias was specified. Returning an empty String");
       }
       return "";
     }
   }
 
+  /**
+   * @param alias Alias
+   * @param authmodule Module
+   * @return Bool
+   */
   public boolean isInAuthModule(final String alias, final String authmodule) {
     String authmodules = getAuthenticationModule(alias);
     String[] modules = authmodules.split(";");
@@ -450,33 +578,57 @@ public class CmpConfiguration extends ConfigurationBase
     return false;
   }
 
+  /**
+   * @param alias Alias
+   * @return Component
+   */
   public String getExtractUsernameComponent(final String alias) {
     String key = alias + "." + CONFIG_EXTRACTUSERNAMECOMPONENT;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param extractComponent Component
+   */
   public void setExtractUsernameComponent(
       final String alias, final String extractComponent) {
     String key = alias + "." + CONFIG_EXTRACTUSERNAMECOMPONENT;
     setValue(key, extractComponent, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Bool
+   */
   public boolean getVendorMode(final String alias) {
     String key = alias + "." + CONFIG_VENDORCERTIFICATEMODE;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias Alias
+   * @param vendormode bool
+   */
   public void setVendorMode(final String alias, final boolean vendormode) {
     String key = alias + "." + CONFIG_VENDORCERTIFICATEMODE;
     setValue(key, Boolean.toString(vendormode), alias);
   }
 
+  /**
+   * @param alias ALias
+   * @return CA
+   */
   public String getVendorCA(final String alias) {
     String key = alias + "." + CONFIG_VENDORCA;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param vendorCA CA
+   */
   public void setVendorCA(final String alias, final String vendorCA) {
     String key = alias + "." + CONFIG_VENDORCA;
     setValue(key, vendorCA, alias);
@@ -535,74 +687,130 @@ public class CmpConfiguration extends ConfigurationBase
     setValue(key, caIdString, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Bool
+   */
   public boolean getAllowRAVerifyPOPO(final String alias) {
     String key = alias + "." + CONFIG_ALLOWRAVERIFYPOPO;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias Alias
+   * @param raVerifyPopo Bool
+   */
   public void setAllowRAVerifyPOPO(
       final String alias, final boolean raVerifyPopo) {
     String key = alias + "." + CONFIG_ALLOWRAVERIFYPOPO;
     setValue(key, Boolean.toString(raVerifyPopo), alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Scheme
+   */
   public String getRANameGenScheme(final String alias) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONSCHEME;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param scheme Scheme
+   */
   public void setRANameGenScheme(final String alias, final String scheme) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONSCHEME;
     setValue(key, scheme, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Params
+   */
   public String getRANameGenParams(final String alias) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONPARAMS;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param params Params
+   */
   public void setRANameGenParams(final String alias, final String params) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONPARAMS;
     setValue(key, params, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Prefix
+   */
   public String getRANameGenPrefix(final String alias) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONPREFIX;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param prefix Prefix
+   */
   public void setRANameGenPrefix(final String alias, final String prefix) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONPREFIX;
     setValue(key, prefix, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Postfix
+   */
   public String getRANameGenPostfix(final String alias) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONPOSTFIX;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param postfix Pastfix
+   */
   public void setRANameGenPostfix(final String alias, final String postfix) {
     String key = alias + "." + CONFIG_RA_NAMEGENERATIONPOSTFIX;
     setValue(key, postfix, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Params
+   */
   public String getRAPwdGenParams(final String alias) {
     String key = alias + "." + CONFIG_RA_PASSWORDGENPARAMS;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param params Params
+   */
   public void setRAPwdGenParams(final String alias, final String params) {
     String key = alias + "." + CONFIG_RA_PASSWORDGENPARAMS;
     setValue(key, params, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Bool
+   */
   public boolean getAllowRACustomSerno(final String alias) {
     String key = alias + "." + CONFIG_RA_ALLOWCUSTOMCERTSERNO;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias alias
+   * @param allowCustomSerno bool
+   */
   public void setAllowRACustomSerno(
       final String alias, final boolean allowCustomSerno) {
     String key = alias + "." + CONFIG_RA_ALLOWCUSTOMCERTSERNO;
@@ -640,116 +848,189 @@ public class CmpConfiguration extends ConfigurationBase
     setValue(key, eep, alias);
   }
 
+  /**
+ * @param alias Alias
+ * @return  Profile */
   public String getRACertProfile(final String alias) {
     String key = alias + "." + CONFIG_RA_CERTIFICATEPROFILE;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param certp profile
+   */
   public void setRACertProfile(final String alias, final String certp) {
     String key = alias + "." + CONFIG_RA_CERTIFICATEPROFILE;
     setValue(key, certp, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Name
+   */
   public String getRACAName(final String alias) {
     String key = alias + "." + CONFIG_RACANAME;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param caname Name
+   */
   public void setRACAName(final String alias, final String caname) {
     String key = alias + "." + CONFIG_RACANAME;
     setValue(key, caname, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @return Path
+   */
   public String getRACertPath(final String alias) {
     String key = alias + "." + CONFIG_RACERT_PATH;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias alias
+   * @param certpath Path
+   */
   public void setRACertPath(final String alias, final String certpath) {
     String key = alias + "." + CONFIG_RACERT_PATH;
     setValue(key, certpath, alias);
   }
 
+  /**
+   * @param alias alias
+   * @return bool
+   */
   public boolean getOmitVerificationsInEEC(final String alias) {
     String key = alias + "." + CONFIG_RA_OMITVERIFICATIONSINEEC;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias Alias
+   * @param omit bool
+   */
   public void setOmitVerificationsInECC(
       final String alias, final boolean omit) {
     String key = alias + "." + CONFIG_RA_OMITVERIFICATIONSINEEC;
     setValue(key, Boolean.toString(omit), alias);
   }
 
+  /**
+   * @param alias alias
+   * @return bool
+   */
   public boolean getKurAllowAutomaticUpdate(final String alias) {
     String key = alias + "." + CONFIG_ALLOWAUTOMATICKEYUPDATE;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias alias
+   * @param allowAutomaticUpdate bool
+   */
   public void setKurAllowAutomaticUpdate(
       final String alias, final boolean allowAutomaticUpdate) {
     String key = alias + "." + CONFIG_ALLOWAUTOMATICKEYUPDATE;
     setValue(key, Boolean.toString(allowAutomaticUpdate), alias);
   }
 
+  /**
+   * @param alias alias
+   * @return bool
+   */
   public boolean getAllowServerGeneratedKeys(final String alias) {
     String key = alias + "." + CONFIG_ALLOWSERVERGENERATEDKEYS;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias alias
+   * @param allowSrvGenKeys bool
+   */
   public void setAllowServerGeneratedKeys(
       final String alias, final boolean allowSrvGenKeys) {
     String key = alias + "." + CONFIG_ALLOWSERVERGENERATEDKEYS;
     setValue(key, Boolean.toString(allowSrvGenKeys), alias);
   }
 
+  /**
+   * @param alias alias
+   * @return bool
+   */
   public boolean getKurAllowSameKey(final String alias) {
     String key = alias + "." + CONFIG_ALLOWUPDATEWITHSAMEKEY;
     String value = getValue(key, alias);
     return StringUtils.equalsIgnoreCase(value, "true");
   }
 
+  /**
+   * @param alias alias
+   * @param allowSameKey key
+   */
   public void setKurAllowSameKey(
       final String alias, final boolean allowSameKey) {
     String key = alias + "." + CONFIG_ALLOWUPDATEWITHSAMEKEY;
     setValue(key, Boolean.toString(allowSameKey), alias);
   }
 
+  /**
+   * @param alias alisa
+   * @return class
+   */
   public String getCertReqHandlerClass(final String alias) {
     String key = alias + "." + CONFIG_CERTREQHANDLER_CLASS;
     return getValue(key, alias);
   }
 
+  /**
+   * @param alias Alias
+   * @param certReqClass Class
+   */
   public void setCertReqHandlerClass(
       final String alias, final String certReqClass) {
     String key = alias + "." + CONFIG_CERTREQHANDLER_CLASS;
     setValue(key, certReqClass, alias);
   }
 
+  /**
+   * @param key Key
+   * @param alias Alias
+   * @return Value
+   */
   public String getValue(final String key, final String alias) {
     if (aliasExists(alias)) {
       if (data.containsKey(key)) {
         return (String) data.get(key);
       } else {
-        log.info(
+        LOG.info(
             "Could not find key '" + key + "' in the CMP configuration data");
       }
     } else {
-      log.error("CMP alias '" + alias + "' does not exist");
+      LOG.error("CMP alias '" + alias + "' does not exist");
     }
     return null;
   }
 
+  /**
+   * @param key Key
+   * @param value Value
+   * @param alias Alias
+   */
   public void setValue(
       final String key, final String value, final String alias) {
     if (aliasExists(alias)) {
       if (data.containsKey(key)) {
         data.put(key, value);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Edited '"
                   + key
                   + "="
@@ -758,8 +1039,8 @@ public class CmpConfiguration extends ConfigurationBase
         }
       } else {
         data.put(key, value);
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(
               "Added '"
                   + key
                   + "="
@@ -768,10 +1049,14 @@ public class CmpConfiguration extends ConfigurationBase
         }
       }
     } else {
-      log.error("CMP alias '" + alias + "' does not exist");
+      LOG.error("CMP alias '" + alias + "' does not exist");
     }
   }
 
+  /**
+   * @param ramode mode
+   * @return response
+   */
   public Collection<String> getCmpResponseProtectionList(final boolean ramode) {
     ArrayList<String> pl = new ArrayList<>();
     pl.add("signature");
@@ -788,16 +1073,22 @@ public class CmpConfiguration extends ConfigurationBase
    * @param aliaslist LinkedHashSet of aliases,
    */
   public void setAliasList(final LinkedHashSet<String> aliaslist) {
-    data.put(ALIAS_LIST, aliaslist);
+    data.put(aliasList, aliaslist);
   }
 
+  /**
+   * @return Aliases
+   */
   public Set<String> getAliasList() {
     @SuppressWarnings("unchecked")
-    Set<String> ret = (Set<String>) data.get(ALIAS_LIST);
+    Set<String> ret = (Set<String>) data.get(aliasList);
 
     return (ret == null ? DEFAULT_ALIAS_LIST : ret);
   }
 
+  /**
+   * @return Aliases
+   */
   public List<String> getSortedAliasList() {
     List<String> result = new ArrayList<>(getAliasList());
     Collections.sort(
@@ -811,6 +1102,10 @@ public class CmpConfiguration extends ConfigurationBase
     return result;
   }
 
+  /**
+   * @param alias alias
+   * @return bool
+   */
   public boolean aliasExists(final String alias) {
     if (StringUtils.isNotEmpty(alias)) {
       Set<String> aliases = getAliasList();
@@ -819,47 +1114,53 @@ public class CmpConfiguration extends ConfigurationBase
     return false;
   }
 
+  /**
+   * @param alias alias
+   */
   public void addAlias(final String alias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Adding CMP alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Adding CMP alias: " + alias);
     }
 
     if (StringUtils.isEmpty(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("No alias is added because no alias was provided.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No alias is added because no alias was provided.");
       }
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (aliases.contains(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("CMP alias '" + alias + "' already exists.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("CMP alias '" + alias + "' already exists.");
       }
       return;
     }
 
     initialize(alias);
     aliases.add(alias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
+  /**
+   * @param alias alias
+   */
   public void removeAlias(final String alias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Removing CMP alias: " + alias);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Removing CMP alias: " + alias);
     }
 
     if (StringUtils.isEmpty(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("No alias is removed because no alias was provided.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No alias is removed because no alias was provided.");
       }
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(alias)) {
-      if (log.isDebugEnabled()) {
-        log.debug("CMP alias '" + alias + "' does not exist");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("CMP alias '" + alias + "' does not exist");
       }
       return;
     }
@@ -870,28 +1171,32 @@ public class CmpConfiguration extends ConfigurationBase
     // remove old keys from previous versions of EJBCA
     data.remove(CONFIG_UNIDDATASOURCE);
     aliases.remove(alias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
+  /**
+   * @param oldAlias old
+   * @param newAlias new
+   */
   public void renameAlias(final String oldAlias, final String newAlias) {
-    if (log.isDebugEnabled()) {
-      log.debug("Renaming CMP alias '" + oldAlias + "' to '" + newAlias + "'");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Renaming CMP alias '" + oldAlias + "' to '" + newAlias + "'");
     }
 
     if (StringUtils.isEmpty(oldAlias) || StringUtils.isEmpty(newAlias)) {
-      log.info(
+      LOG.info(
           "No alias is renamed because one or both aliases were not provided.");
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(oldAlias)) {
-      log.info("Cannot rename. CMP alias '" + oldAlias + "' does not exists.");
+      LOG.info("Cannot rename. CMP alias '" + oldAlias + "' does not exists.");
       return;
     }
 
     if (aliases.contains(newAlias)) {
-      log.info("Cannot rename. CMP alias '" + newAlias + "' already exists.");
+      LOG.info("Cannot rename. CMP alias '" + newAlias + "' already exists.");
       return;
     }
 
@@ -907,29 +1212,33 @@ public class CmpConfiguration extends ConfigurationBase
     removeAlias(oldAlias);
     aliases.remove(oldAlias);
     aliases.add(newAlias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
+  /**
+   * @param originAlias Old
+   * @param cloneAlias New
+   */
   public void cloneAlias(final String originAlias, final String cloneAlias) {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Cloning CMP alias '" + originAlias + "' to '" + cloneAlias + "'");
     }
 
     if (StringUtils.isEmpty(originAlias) || StringUtils.isEmpty(cloneAlias)) {
-      log.info(
+      LOG.info(
           "No alias is cloned because one or both aliased were not provided");
       return;
     }
 
     Set<String> aliases = getAliasList();
     if (!aliases.contains(originAlias)) {
-      log.info("Cannot clone. CMP alias '" + originAlias + "' does not exist.");
+      LOG.info("Cannot clone. CMP alias '" + originAlias + "' does not exist.");
       return;
     }
 
     if (aliases.contains(cloneAlias)) {
-      log.info("Cannot clone. CMP alias '" + cloneAlias + "' already exists.");
+      LOG.info("Cannot clone. CMP alias '" + cloneAlias + "' already exists.");
       return;
     }
 
@@ -942,7 +1251,7 @@ public class CmpConfiguration extends ConfigurationBase
       data.put(cloneKey, value);
     }
     aliases.add(cloneAlias);
-    data.put(ALIAS_LIST, aliases);
+    data.put(aliasList, aliases);
   }
 
   /** @return the configuration as a regular Properties object */
@@ -958,6 +1267,10 @@ public class CmpConfiguration extends ConfigurationBase
     return properties;
   }
 
+  /**
+   * @param alias Alias
+   * @return props
+   */
   public Properties getAsProperties(final String alias) {
     if (aliasExists(alias)) {
       final Properties properties = new Properties();
@@ -972,7 +1285,7 @@ public class CmpConfiguration extends ConfigurationBase
     return null;
   }
 
-  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  /** Implementation of UpgradableDataHashMap function getLatestVersion. */
   @Override
   public float getLatestVersion() {
     return LATEST_VERSION;
@@ -983,7 +1296,7 @@ public class CmpConfiguration extends ConfigurationBase
   public void upgrade() {
     if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
       // New version of the class, upgrade
-      log.info(
+      LOG.info(
           "Upgrading CMP Configuration with version "
               + Float.valueOf(getVersion()));
       // v4

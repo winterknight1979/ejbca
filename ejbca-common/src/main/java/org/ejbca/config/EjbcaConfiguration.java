@@ -17,21 +17,42 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
- * This file handles configuration from ejbca.properties
+ * This file handles configuration from ejbca.properties.
  *
  * @version $Id: EjbcaConfiguration.java 26418 2017-08-25 06:16:20Z henriks $
  */
 public final class EjbcaConfiguration {
 
-  private static final Logger log = Logger.getLogger(EjbcaConfiguration.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(EjbcaConfiguration.class);
 
   // This is a singleton with on static methods
-  private EjbcaConfiguration() {}
+  private EjbcaConfiguration() { }
 
+  /** Boolean true. */
   private static final String TRUE = "true";
 
+  /** One second. */
+  private static final long ONE_SEC = 1000L;
+  /** One second. */
+  private static final int TWENTY_SECS = 20000;
+  /** One minute. */
+  private static final int ONE_MIN = 60000;
+  /** Eight hours. */
+  private static final long EIGHT_HOURS = 8 * 3600L;
+  /** 1KB. */
+  private static final int ONE_K = 1024;
+  /** 128MB.  */
+  private static final int ONE28_MB = 128 * 1024 * 1024;
+  /** Concurrency limit. */
+  private static final int MAX_THREADS = 12;
+  /** Connection limit. */
+  private static final int MAX_CONNS = 100;
+  /** Query limit. */
+  private static final int MAX_ROWS = 2000;
+
   /**
-   * Check if EJBCA is running in production
+   * Check if EJBCA is running in production.
    *
    * @return bool
    */
@@ -56,19 +77,19 @@ public final class EjbcaConfiguration {
    *     seconds in the configuration, but returned as milliseconds.
    */
   public static long getApprovalDefaultRequestValidity() {
-    long value = 28800L;
+    long value = EIGHT_HOURS;
     try {
       value =
           Long.parseLong(
               EjbcaConfigurationHolder.getString(
                   "approval.defaultrequestvalidity"));
     } catch (NumberFormatException e) {
-      log.warn(
+      LOG.warn(
           "\"approval.defaultrequestvalidity\" is not a decimal number. Using"
               + " default value: "
               + value);
     }
-    return value * 1000L;
+    return value * ONE_SEC;
   }
 
   /**
@@ -76,19 +97,19 @@ public final class EjbcaConfiguration {
    *     in seconds in the configuration, but returned as milliseconds.
    */
   public static long getApprovalDefaultApprovalValidity() {
-    long value = 28800L;
+    long value = EIGHT_HOURS;
     try {
       value =
           Long.parseLong(
               EjbcaConfigurationHolder.getString(
                   "approval.defaultapprovalvalidity"));
     } catch (NumberFormatException e) {
-      log.warn(
+      LOG.warn(
           "\"approval.defaultapprovalvalidity\" is not a decimal number. Using"
               + " default value: "
               + value);
     }
-    return value * 1000L;
+    return value * ONE_SEC;
   }
 
   /**
@@ -104,12 +125,12 @@ public final class EjbcaConfiguration {
               EjbcaConfigurationHolder.getString(
                   "approval.defaultmaxextensiontime"));
     } catch (NumberFormatException e) {
-      log.warn(
+      LOG.warn(
           "\"approval.defaultmaxextensiontime\" is not a decimal number. Using"
               + " default value: "
               + value);
     }
-    return value * 1000L;
+    return value * ONE_SEC;
   }
 
   /** @return Excluded classes from approval. */
@@ -126,12 +147,12 @@ public final class EjbcaConfiguration {
           Long.parseLong(
               EjbcaConfigurationHolder.getString("healthcheck.amountfreemem"));
     } catch (NumberFormatException e) {
-      log.warn(
+      LOG.warn(
           "\"healthcheck.amountfreemem\" or \"ocsphealthcheck.amountfreemem\""
               + " is not a decimal number. Using default value: "
               + value);
     }
-    return value * 1024L * 1024L;
+    return value * ONE_K * ONE_K;
   }
 
   /**
@@ -219,13 +240,13 @@ public final class EjbcaConfiguration {
    *     long.
    */
   public static long getCacheEndEntityProfileTime() {
-    long time = 1000; // cache 1 second is the default
+    long time = ONE_SEC; // cache 1 second is the default
     try {
       time =
           Long.valueOf(
               EjbcaConfigurationHolder.getString("eeprofiles.cachetime"));
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value in eeprofiles.cachetime, must be decimal number"
               + " (milliseconds to cache EndEntity profiles): "
               + e.getMessage());
@@ -239,13 +260,13 @@ public final class EjbcaConfiguration {
    *     long.
    */
   public static long getCacheApprovalProfileTime() {
-    long time = 1000; // cache 1 second is the default
+    long time = ONE_SEC; // cache 1 second is the default
     try {
       time =
           Long.valueOf(
               EjbcaConfigurationHolder.getString("approvalprofiles.cachetime"));
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value in approvalprofiles.cachetime, must be decimal number"
               + " (milliseconds to cache approval profiles): "
               + e.getMessage());
@@ -260,13 +281,13 @@ public final class EjbcaConfiguration {
   public static long getCachePublisherTime() {
     final String value =
         EjbcaConfigurationHolder.getString("publisher.cachetime");
-    long time = 1000; // cache 1 second is the default
+    long time = ONE_SEC; // cache 1 second is the default
     try {
       if (value != null) {
         time = Long.valueOf(value);
       }
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value in publisher.cachetime, must be decimal number"
               + " (milliseconds to cache Publisher): "
               + e.getMessage());
@@ -287,28 +308,37 @@ public final class EjbcaConfiguration {
    *     instead of BCrypt.
    */
   public static int getPasswordLogRounds() {
-    final String PROPERTY_NAME = "ejbca.passwordlogrounds";
+    final String propertyName = "ejbca.passwordlogrounds";
     int time = 1; // only 1 single round is the default
     try {
-      time = Integer.valueOf(EjbcaConfigurationHolder.getString(PROPERTY_NAME));
+      time = Integer.valueOf(EjbcaConfigurationHolder.getString(propertyName));
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value in "
-              + PROPERTY_NAME
+              + propertyName
               + ", must be decimal number, using 1 round: "
               + e.getMessage());
     }
     return time;
   }
 
+  /**
+   * @return user
+   */
   public static String getCliDefaultUser() {
     return EjbcaConfigurationHolder.getString("ejbca.cli.defaultusername");
   }
 
+  /**
+   * @return password
+   */
   public static String getCliDefaultPassword() {
     return EjbcaConfigurationHolder.getString("ejbca.cli.defaultpassword");
   }
 
+  /**
+   * @return CA
+   */
   public static String getScepDefaultCA() {
     return EjbcaConfigurationHolder.getString("scep.defaultca");
   }
@@ -349,14 +379,14 @@ public final class EjbcaConfiguration {
   @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove
               // when default is considered stable.
   public static int getPeerSoTimeoutMillis() {
-    return getIntProperty("peerconnector.connection.sotimeout", 20000);
+    return getIntProperty("peerconnector.connection.sotimeout", TWENTY_SECS);
   }
 
   /** @return the maximum pool size for outgoing peer connections. */
   @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove
               // when default is considered stable.
   public static int getPeerMaxPoolSize() {
-    return getIntProperty("peerconnector.connection.maxpoolsize", 100);
+    return getIntProperty("peerconnector.connection.maxpoolsize", MAX_CONNS);
   }
 
   /**
@@ -366,7 +396,7 @@ public final class EjbcaConfiguration {
   @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove
               // when default is considered stable.
   public static int getPeerSyncBatchSize() {
-    return getIntProperty("peerconnector.sync.batchsize", 2000);
+    return getIntProperty("peerconnector.sync.batchsize", MAX_ROWS);
   }
 
   /**
@@ -376,7 +406,7 @@ public final class EjbcaConfiguration {
   @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove
               // when default is considered stable.
   public static int getPeerSyncConcurrency() {
-    return getIntProperty("peerconnector.sync.concurrency", 12);
+    return getIntProperty("peerconnector.sync.concurrency", MAX_THREADS);
   }
 
   /**
@@ -385,7 +415,7 @@ public final class EjbcaConfiguration {
   @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove
               // when default is considered stable.
   public static int getPeerIncomingMaxMessageSize() {
-    return getIntProperty("peerconnector.incoming.maxmessagesize", 134217728);
+    return getIntProperty("peerconnector.incoming.maxmessagesize", ONE28_MB);
   }
 
   /**
@@ -396,12 +426,15 @@ public final class EjbcaConfiguration {
               // when default is considered stable.
   public static long getPeerIncomingAuthCacheTimeMillis() {
     return Integer.valueOf(
-            getIntProperty("peerconnector.incoming.authcachetime", 60000))
+            getIntProperty("peerconnector.incoming.authcachetime", ONE_MIN))
         .longValue();
   }
 
+  /**
+   * @return cache time
+   */
   public static long getPeerDataCacheTime() {
-    return getLongProperty("peerconnector.cachetime", 60000L);
+    return getLongProperty("peerconnector.cachetime", ONE_MIN);
   }
 
   /**
@@ -432,7 +465,7 @@ public final class EjbcaConfiguration {
         ret = Integer.valueOf(value);
       }
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value configured for '"
               + key
               + "', must be decimal number: "
@@ -455,7 +488,7 @@ public final class EjbcaConfiguration {
         ret = Long.valueOf(value);
       }
     } catch (NumberFormatException e) {
-      log.error(
+      LOG.error(
           "Invalid value configured for '"
               + key
               + "', must be decimal number: "

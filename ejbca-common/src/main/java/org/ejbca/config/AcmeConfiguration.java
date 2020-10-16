@@ -26,49 +26,77 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
     implements Serializable {
 
   private static final long serialVersionUID = 1L;
-
+  /** ID. */
   private String configurationId = null;
+  /** IDs. */
   private List<String> caaIdentities = new ArrayList<String>();
 
+  /** Config. */
   private static final String KEY_REQUIRE_EXTERNAL_ACCOUNT_BINDING =
       "requireExternalAccountBinding";
+  /** Config. */
   private static final String KEY_PRE_AUTHORIZATION_ALLOWED =
       "preAuthorizationAllowed";
+  /** Config. */
   private static final String KEY_END_ENTITY_PROFILE_ID = "endEntityProfileId";
+  /** Config. */
   private static final String KEY_VALIDATION_HTTP_CALLBACK_URL_TEMPLATE =
       "valiationHttpCallbackUrlTemplate";
   // private static final String KEY_TERMS_OF_SERVICE_VERSION =
   // "termsOfServiceVersion";
+  /** Config. */
   private static final String KEY_TERMS_OF_SERVICE_URL = "termsOfServiceUrl";
+  /** Config. */
   private static final String KEY_WEB_SITE_URL = "webSiteUrl";
+  /** Config. */
   private static final String KEY_ORDER_VALIDITY = "orderValidity";
+  /** Config. */
   private static final String KEY_PRE_AUTHORIZATION_VALIDITY =
       "preAuthorizationValidity";
+  /** Config. */
   private static final String KEY_WILDCARD_CERTIFICATE_ISSUANCE_ALLOWED =
       "wildcardCertificateIssuanceAllowed";
+  /** Config. */
   private static final String KEY_DNS_RESOLVER = "dnsResolver";
+  /** Config. */
   private static final String KEY_DNSSEC_TRUST_ANCHOR = "dnssecTrustAnchor";
+  /** Config. */
   private static final String KEY_DNS_PORT = "dnsPort";
+  /** Config. */
   private static final String KEY_USE_DNSSEC_VALIDATION = "useDnssecValidation";
+  /** Config. */
   private static final String KEY_TERMS_OF_SERVICE_REQUIRE_NEW_APPROVAL =
       "termsOfServiceRequireNewApproval";
+  /** Config. */
   private static final String DNS_RESOLVER_DEFAULT = "8.8.8.8";
+  /** Config. */
   private static final int DNS_SERVER_PORT_DEFAULT = 53;
 
+  /** Config. */
   private static final int DEFAULT_END_ENTITY_PROFILE_ID =
       EndEntityConstants.NO_END_ENTITY_PROFILE;
+  /** Config. */
   private static final boolean DEFAULT_REQUIRE_EXTERNAL_ACCOUNT_BINDING = false;
+  /** Config. */
   private static final boolean DEFAULT_PRE_AUTHORIZATION_ALLOWED = false;
+  /** Config. */
   private static final boolean DEFAULT_REQUIRE_NEW_APPROVAL = true;
-  private static final boolean DEFAULT__WILDCARD_CERTIFICATE_ISSUANCE_ALLOWED =
+  /** Config. */
+  private static final boolean DEFAULT_WILDCARD_CERTIFICATE_ISSUANCE_ALLOWED =
       false;
+  /** Config. */
   private static final String DEFAULT_TERMS_OF_SERVICE_URL =
       "https://example.com/acme/terms";
+  /** Config. */
   private static final String DEFAULT_WEBSITE_URL = "https://www.example.com/";
+  /** Config. */
   private static final boolean DEFAULT_USE_DNSSEC_VALIDATION = true;
+  /** Null constructor. */
+  public AcmeConfiguration() { }
 
-  public AcmeConfiguration() {}
-
+  /**
+   * @param upgradeableDataHashMapData Data
+   */
   public AcmeConfiguration(final Object upgradeableDataHashMapData) {
     super.loadData(upgradeableDataHashMapData);
   }
@@ -79,15 +107,18 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
   }
 
   @Override
-  public void upgrade() {}
+  public void upgrade() { }
 
   /** @return the configuration ID as used in the request URL path */
   public String getConfigurationId() {
     return configurationId;
   }
 
-  public void setConfigurationId(final String configurationId) {
-    this.configurationId = configurationId;
+  /**
+   * @param aConfigurationId ID
+   */
+  public void setConfigurationId(final String aConfigurationId) {
+    this.configurationId = aConfigurationId;
   }
 
   /**
@@ -104,6 +135,9 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
         (String) super.data.get(KEY_REQUIRE_EXTERNAL_ACCOUNT_BINDING));
   }
 
+  /**
+   * @param requireExternalAccountBinding bool
+   */
   public void setRequireExternalAccountBinding(
       final boolean requireExternalAccountBinding) {
     super.data.put(
@@ -115,7 +149,7 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
    * https://tools.ietf.org/html/draft-ietf-acme-acme-12#section-7.4.1 "If a CA
    * wishes to allow pre-authorization within ACME, it can offer a "new
    * authorization" resource in its directory by adding the field "newAuthz"
-   * with a URL for the new authorization resource."
+   * with a URL for the new authorization resource.".
    *
    * @return boolean
    */
@@ -124,6 +158,9 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
         (String) super.data.get(KEY_PRE_AUTHORIZATION_ALLOWED));
   }
 
+  /**
+   * @param preAuthorizationAllowed bool
+   */
   public void setPreAuthorizationAllowed(
       final boolean preAuthorizationAllowed) {
     super.data.put(
@@ -142,6 +179,9 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
         : endEntityProfileId.intValue();
   }
 
+  /**
+   * @param endEntityProfileId ID
+   */
   public void setEndEntityProfileId(final int endEntityProfileId) {
     super.data.put(
         KEY_END_ENTITY_PROFILE_ID, Integer.valueOf(endEntityProfileId));
@@ -159,6 +199,9 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
         : urlTemplate;
   }
 
+  /**
+   * @param urlTemplate URL
+   */
   public void setValidationHttpCallBackUrlTemplate(final String urlTemplate) {
     super.data.put(KEY_VALIDATION_HTTP_CALLBACK_URL_TEMPLATE, urlTemplate);
   }
@@ -168,6 +211,9 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
     return (String) super.data.get(KEY_TERMS_OF_SERVICE_URL);
   }
 
+  /**
+   * @param termsOfServiceUrl URL
+   */
   public void setTermsOfServiceUrl(final String termsOfServiceUrl) {
     super.data.put(KEY_TERMS_OF_SERVICE_URL, termsOfServiceUrl);
   }
@@ -177,24 +223,43 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
     return (String) super.data.get(KEY_WEB_SITE_URL);
   }
 
+  /**
+   * @param webSiteUrl URL
+   */
   public void setWebSiteUrl(final String webSiteUrl) {
     super.data.put(KEY_WEB_SITE_URL, webSiteUrl);
   }
 
+  /**
+   * @return IDs
+   */
   public List<String> getCaaIdentities() {
     return caaIdentities;
   }
 
-  public void setCaaIdentities(final List<String> caaIdentities) {
-    this.caaIdentities = caaIdentities;
+  /**
+   * @param theCaaIdentities IDs
+   */
+  public void setCaaIdentities(final List<String> theCaaIdentities) {
+    this.caaIdentities = theCaaIdentities;
   }
+
+  /** One hour. */
+  private final long oneHour = 60 * 60 * 1000L;
+
+  /** One day. */
+  private final long oneDay = 24 * oneHour;
 
   /** @return how long a new order will be valid for in milliseconds */
   public long getOrderValidity() {
     final Long orderValidity = (Long) super.data.get(KEY_ORDER_VALIDITY);
-    return orderValidity == null ? 3600000L : orderValidity.intValue();
+    return orderValidity == null ? oneHour : orderValidity.intValue();
   }
 
+  /**
+   *
+   * @param orderValidity validity.
+   */
   public void setOrderValidity(final int orderValidity) {
     super.data.put(KEY_ORDER_VALIDITY, Long.valueOf(orderValidity));
   }
@@ -206,10 +271,13 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
     final Long preAuthorizationValidity =
         (Long) super.data.get(KEY_PRE_AUTHORIZATION_VALIDITY);
     return preAuthorizationValidity == null
-        ? 24 * 3600000L
+        ? oneDay
         : preAuthorizationValidity.intValue();
   }
 
+  /**
+   * @param preAuthorizationValidity bool
+   */
   public void setPreAuthorizationValidity(final int preAuthorizationValidity) {
     super.data.put(
         KEY_PRE_AUTHORIZATION_VALIDITY, Long.valueOf(preAuthorizationValidity));
@@ -223,11 +291,17 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
     return 1;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isWildcardCertificateIssuanceAllowed() {
     return Boolean.valueOf(
         (String) super.data.get(KEY_WILDCARD_CERTIFICATE_ISSUANCE_ALLOWED));
   }
 
+  /**
+   * @param wildcardCertificateIssuanceAllowed bool
+   */
   public void setWildcardCertificateIssuanceAllowed(
       final boolean wildcardCertificateIssuanceAllowed) {
     super.data.put(
@@ -235,36 +309,59 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
         String.valueOf(wildcardCertificateIssuanceAllowed));
   }
 
+  /**
+   * @return anchor
+   */
   public String getDnssecTrustAnchor() {
     return (String) super.data.get(KEY_DNSSEC_TRUST_ANCHOR);
   }
 
+  /**
+   * @param dnssecTrustAnchor anchor
+   */
   public void setDnssecTrustAnchor(final String dnssecTrustAnchor) {
     super.data.put(KEY_DNSSEC_TRUST_ANCHOR, String.valueOf(dnssecTrustAnchor));
   }
 
+  /**
+   * @return resolver
+   */
   public String getDnsResolver() {
     return (String) super.data.get(KEY_DNS_RESOLVER);
   }
 
+  /**
+   * @param dnsResolver resolver
+   */
   public void setDnsResolver(final String dnsResolver) {
     super.data.put(KEY_DNS_RESOLVER, String.valueOf(dnsResolver));
   }
 
+  /**
+   * @return port
+   */
   public int getDnsPort() {
     final Integer dnsPort = (Integer) super.data.get(KEY_DNS_PORT);
     return dnsPort != null ? dnsPort : DNS_SERVER_PORT_DEFAULT;
   }
 
+  /**
+   * @param dnsPort port
+   */
   public void setDnsPort(final int dnsPort) {
     super.data.put(KEY_DNS_PORT, dnsPort);
   }
 
+  /**
+   * @return bool
+   */
   public boolean isTermsOfServiceRequireNewApproval() {
     return Boolean.valueOf(
         (String) super.data.get(KEY_TERMS_OF_SERVICE_REQUIRE_NEW_APPROVAL));
   }
-
+  /**
+   * @param termsOfServiceRequireNewApproval bool
+   */
   public void setTermsOfServiceRequireNewApproval(
       final boolean termsOfServiceRequireNewApproval) {
     super.data.put(
@@ -272,10 +369,16 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
         String.valueOf(termsOfServiceRequireNewApproval));
   }
 
+  /**
+   * @return bool
+   */
   public boolean isUseDnsSecValidation() {
     return Boolean.valueOf((String) super.data.get(KEY_USE_DNSSEC_VALIDATION));
   }
 
+  /**
+   * @param useDnsSecValidation bool
+   */
   public void setUseDnsSecValidation(final boolean useDnsSecValidation) {
     super.data.put(
         KEY_USE_DNSSEC_VALIDATION, String.valueOf(useDnsSecValidation));
@@ -286,15 +389,15 @@ public class AcmeConfiguration extends UpgradeableDataHashMap
    *
    * @param alias Alias
    */
-  public void initialize(String alias) {
-    alias += ".";
+  public void initialize(final String alias) {
+    // alias += ".";
     setEndEntityProfileId(DEFAULT_END_ENTITY_PROFILE_ID);
     setRequireExternalAccountBinding(DEFAULT_REQUIRE_EXTERNAL_ACCOUNT_BINDING);
     setPreAuthorizationAllowed(DEFAULT_PRE_AUTHORIZATION_ALLOWED);
     setTermsOfServiceUrl(DEFAULT_TERMS_OF_SERVICE_URL);
     setTermsOfServiceRequireNewApproval(DEFAULT_REQUIRE_NEW_APPROVAL);
     setWildcardCertificateIssuanceAllowed(
-        DEFAULT__WILDCARD_CERTIFICATE_ISSUANCE_ALLOWED);
+        DEFAULT_WILDCARD_CERTIFICATE_ISSUANCE_ALLOWED);
     setWebSiteUrl(DEFAULT_WEBSITE_URL);
     setDnsResolver(DNS_RESOLVER_DEFAULT);
     setDnssecTrustAnchor(DnsSecDefaults.IANA_ROOT_ANCHORS_DEFAULT);
