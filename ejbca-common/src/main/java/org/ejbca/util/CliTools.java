@@ -15,66 +15,72 @@ package org.ejbca.util;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Tools used in command line handling
+/**
+ * Tools used in command line handling
+ *
  * @version $Id: CliTools.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
 public class CliTools {
 
-    /**
-     * Using Arrays.asList will return an AbstractList that you cannot remove items from. This List is backed by a new ArrayList.
-     * 
-     * Example usage for parsing argument switches:
-     *  public void method(String[] args) {
-     *   List&lt;String&gt; argsList = getAsModifyableList(args);
-     *   boolean switch1 = argsList.remove("-switch1");
-     *   boolean switch2 = argsList.remove("-switch2");
-     *   args = argsList.toArray(new String[0]);
-     *   ...
-     *  }
-     * @param stringArray Strings
-     * @return List of strings
-     */
-    public static List<String> getAsModifyableList(String[] stringArray) {
-    	List<String> list = new ArrayList<String>();
-    	for (String string : stringArray) {
-    		list.add(string);
-    	}
-    	return list;
+  /**
+   * Using Arrays.asList will return an AbstractList that you cannot remove
+   * items from. This List is backed by a new ArrayList.
+   *
+   * <p>Example usage for parsing argument switches: public void method(String[]
+   * args) { List&lt;String&gt; argsList = getAsModifyableList(args); boolean
+   * switch1 = argsList.remove("-switch1"); boolean switch2 =
+   * argsList.remove("-switch2"); args = argsList.toArray(new String[0]); ... }
+   *
+   * @param stringArray Strings
+   * @return List of strings
+   */
+  public static List<String> getAsModifyableList(final String[] stringArray) {
+    List<String> list = new ArrayList<String>();
+    for (String string : stringArray) {
+      list.add(string);
     }
-    
-    /** 
-     * @return the next string after the specified parameter if the switch exists and null otherwise.
-     * The switch and the following value is removed from the supplied list.
-     * @param parameter Param
-     * @param modifyableList List
-     *  
-     */
-    public static String getAndRemoveParameter(String parameter, List<String> modifyableList) {
-        String ret = null;
-        int index = modifyableList.indexOf(parameter);
-        if (index > -1) {
-            ret = modifyableList.get(index + 1);
-            modifyableList.remove(index + 1);
-            modifyableList.remove(index);
-        }
-        return ret;
+    return list;
+  }
+
+  /**
+   * @return the next string after the specified parameter if the switch exists
+   *     and null otherwise. The switch and the following value is removed from
+   *     the supplied list.
+   * @param parameter Param
+   * @param modifyableList List
+   */
+  public static String getAndRemoveParameter(
+      final String parameter, final List<String> modifyableList) {
+    String ret = null;
+    int index = modifyableList.indexOf(parameter);
+    if (index > -1) {
+      ret = modifyableList.get(index + 1);
+      modifyableList.remove(index + 1);
+      modifyableList.remove(index);
     }
-    
-    /** @param parameter Param
-     * @param modifyableList List
-     * @return true if the parameter was present and removes it from the list. */
-    public static boolean getAndRemoveSwitch(final String parameter, List<String> modifyableList) {
-        final int index = modifyableList.indexOf(parameter);
-        if (index > -1) {
-            modifyableList.remove(index);
-            return true;
-        }
-        return false;
+    return ret;
+  }
+
+  /**
+   * @param parameter Param
+   * @param modifyableList List
+   * @return true if the parameter was present and removes it from the list.
+   */
+  public static boolean getAndRemoveSwitch(
+      final String parameter, final List<String> modifyableList) {
+    final int index = modifyableList.indexOf(parameter);
+    if (index > -1) {
+      modifyableList.remove(index);
+      return true;
     }
-    
-    /** @param modifyableList Param
-     * @return the remaining list as a regular args[] array */
-    public static String[] getAsArgs(List<String> modifyableList) {
-        return modifyableList.toArray(new String[modifyableList.size()]);
-    }
+    return false;
+  }
+
+  /**
+   * @param modifyableList Param
+   * @return the remaining list as a regular args[] array
+   */
+  public static String[] getAsArgs(final List<String> modifyableList) {
+    return modifyableList.toArray(new String[modifyableList.size()]);
+  }
 }

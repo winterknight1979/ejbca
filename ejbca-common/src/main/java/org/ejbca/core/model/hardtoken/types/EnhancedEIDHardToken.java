@@ -10,147 +10,163 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.hardtoken.types;
 
 import org.ejbca.core.model.SecConst;
 
-
-
 /**
- * EnhancedEIDHardToken is a class defining data stored in database for a Enhanced EID token.
+ * EnhancedEIDHardToken is a class defining data stored in database for a
+ * Enhanced EID token.
  *
  * @version $Id: EnhancedEIDHardToken.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public class EnhancedEIDHardToken extends HardToken {
-    private static final long serialVersionUID = 9043768992711957547L;
-    // Public Constants
-	public static final int THIS_TOKENTYPE  = SecConst.TOKEN_ENHANCEDEID;
-    public static final String INITIALSIGNATUREPIN = "INITIALSIGNATUREPIN";
-    public static final String SIGNATUREPUK        = "SIGNATUREPUK";
-	public static final String INITIALAUTHPIN      = "INITIALAUTHPIN";
-	public static final String AUTHPUK             = "AUTHPUK";
-	public static final String ENCKEYRECOVERABLE   = "ENCKEYRECOVERABLE";
-		        
-    public static final String[] FIELDSWITHPUK = new String[] {
-		INITIALSIGNATUREPIN, SIGNATUREPUK, EMPTYROW_FIELD, INITIALAUTHPIN, AUTHPUK, 
-		EMPTYROW_FIELD, ENCKEYRECOVERABLE};
-    public static final int[] DATATYPESWITHPUK = new int[] { STRING, STRING, EMPTYROW, 
-                                                             STRING, STRING, EMPTYROW, BOOLEAN };
-    public static final String[] FIELDTEXTSWITHPUK = new String[] {
-		"INITIALSIGNATUREPIN", "SIGNATUREPUK", EMPTYROW_FIELD, 
-		"INITIALAUTHENCPIN", "AUTHENCPUK", EMPTYROW_FIELD, ENCKEYRECOVERABLE 
-    };
-    
-    public static final String[] FIELDSWITHOUTPUK = new String[] {ENCKEYRECOVERABLE};
-    public static final int[] DATATYPESWITHOUTPUK = new int[] {BOOLEAN};
-    public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {ENCKEYRECOVERABLE}; 
-        
-    // Public Methods
-   /** Constructor to use. 
- * @param initialsignaturepin PIN
- * @param signaturepuk PUK
- * @param initialauthencpin PIN 
- * @param authencpuk PUK
- * @param enckeyrecoverable bool 
- * @param hardtokenprofileid int */
-    public EnhancedEIDHardToken(String initialsignaturepin,
-                                String signaturepuk,
-	                            String initialauthencpin,
-								String authencpuk,
-								boolean enckeyrecoverable, 
-                                int hardtokenprofileid) {
-    	super(true);
-        setInitialSignaturePIN(initialsignaturepin);
-		setSignaturePUK(signaturepuk);
-        setInitialAuthPIN(initialauthencpin);
-        setAuthPUK(authencpuk);
-		setEncKeyRecoverable(enckeyrecoverable);
-        setTokenProfileId(hardtokenprofileid);     
-        
-        data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
+  private static final long serialVersionUID = 9043768992711957547L;
+  // Public Constants
+  public static final int THIS_TOKENTYPE = SecConst.TOKEN_ENHANCEDEID;
+  public static final String INITIALSIGNATUREPIN = "INITIALSIGNATUREPIN";
+  public static final String SIGNATUREPUK = "SIGNATUREPUK";
+  public static final String INITIALAUTHPIN = "INITIALAUTHPIN";
+  public static final String AUTHPUK = "AUTHPUK";
+  public static final String ENCKEYRECOVERABLE = "ENCKEYRECOVERABLE";
+
+  public static final String[] FIELDSWITHPUK =
+      new String[] {
+        INITIALSIGNATUREPIN,
+        SIGNATUREPUK,
+        EMPTYROW_FIELD,
+        INITIALAUTHPIN,
+        AUTHPUK,
+        EMPTYROW_FIELD,
+        ENCKEYRECOVERABLE
+      };
+  public static final int[] DATATYPESWITHPUK =
+      new int[] {STRING, STRING, EMPTYROW, STRING, STRING, EMPTYROW, BOOLEAN};
+  public static final String[] FIELDTEXTSWITHPUK =
+      new String[] {
+        "INITIALSIGNATUREPIN",
+        "SIGNATUREPUK",
+        EMPTYROW_FIELD,
+        "INITIALAUTHENCPIN",
+        "AUTHENCPUK",
+        EMPTYROW_FIELD,
+        ENCKEYRECOVERABLE
+      };
+
+  public static final String[] FIELDSWITHOUTPUK =
+      new String[] {ENCKEYRECOVERABLE};
+  public static final int[] DATATYPESWITHOUTPUK = new int[] {BOOLEAN};
+  public static final String[] FIELDTEXTSWITHOUTPUK =
+      new String[] {ENCKEYRECOVERABLE};
+
+  // Public Methods
+  /**
+   * Constructor to use.
+   *
+   * @param initialsignaturepin PIN
+   * @param signaturepuk PUK
+   * @param initialauthencpin PIN
+   * @param authencpuk PUK
+   * @param enckeyrecoverable bool
+   * @param hardtokenprofileid int
+   */
+  public EnhancedEIDHardToken(
+      final String initialsignaturepin,
+      final String signaturepuk,
+      final String initialauthencpin,
+      final String authencpuk,
+      final boolean enckeyrecoverable,
+      final int hardtokenprofileid) {
+    super(true);
+    setInitialSignaturePIN(initialsignaturepin);
+    setSignaturePUK(signaturepuk);
+    setInitialAuthPIN(initialauthencpin);
+    setAuthPUK(authencpuk);
+    setEncKeyRecoverable(enckeyrecoverable);
+    setTokenProfileId(hardtokenprofileid);
+
+    data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
+  }
+
+  /**
+   * Constructor only to be used internally.
+   *
+   * @param includePUK bool
+   */
+  public EnhancedEIDHardToken(final boolean includePUK) {
+    super(includePUK);
+    data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
+    if (!includePUK) {
+      setInitialAuthPIN("");
+      setAuthPUK("");
+      setInitialSignaturePIN("");
+      setSignaturePUK("");
     }
+  }
 
-    /** Constructor only to be used internally. 
-     * @param includePUK  bool */
-    public EnhancedEIDHardToken(boolean includePUK) {
-    	super(includePUK);   	
-    	data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
-    	if(!includePUK){
-      	  setInitialAuthPIN("");
-      	  setAuthPUK("");
-      	  setInitialSignaturePIN("");
-      	  setSignaturePUK("");
-      	}
+  // Public Methods.
+
+  public String getInitialSignaturePIN() {
+    return (String) data.get(INITIALSIGNATUREPIN);
+  }
+
+  public void setInitialSignaturePIN(final String initialsignaturepin) {
+    data.put(INITIALSIGNATUREPIN, initialsignaturepin);
+  }
+
+  public String getSignaturePUK() {
+    return (String) data.get(SIGNATUREPUK);
+  }
+
+  public void setSignaturePUK(final String signaturepuk) {
+    data.put(SIGNATUREPUK, signaturepuk);
+  }
+
+  public String getInitialAuthPIN() {
+    return (String) data.get(INITIALAUTHPIN);
+  }
+
+  public void setInitialAuthPIN(final String initialauthpin) {
+    data.put(INITIALAUTHPIN, initialauthpin);
+  }
+
+  public String getAuthPUK() {
+    return (String) data.get(AUTHPUK);
+  }
+
+  public void setAuthPUK(final String authpuk) {
+    data.put(AUTHPUK, authpuk);
+  }
+
+  public boolean getEncKeyRecoverable() {
+    return ((Boolean) data.get(ENCKEYRECOVERABLE)).booleanValue();
+  }
+
+  public void setEncKeyRecoverable(final boolean enckeyrecoverable) {
+    data.put(ENCKEYRECOVERABLE, Boolean.valueOf(enckeyrecoverable));
+  }
+
+  public int[] getDataTypes(final boolean includePUK) {
+    if (includePUK) {
+      return DATATYPESWITHPUK;
     }
+    return DATATYPESWITHOUTPUK;
+  }
 
-    // Public Methods.
-    
-    public String getInitialSignaturePIN() {
-        return (String) data.get(INITIALSIGNATUREPIN);
+  public String[] getFieldTexts(final boolean includePUK) {
+    if (includePUK) {
+      return FIELDTEXTSWITHPUK;
     }
+    return FIELDTEXTSWITHOUTPUK;
+  }
 
-    public void setInitialSignaturePIN(String initialsignaturepin) {
-        data.put(INITIALSIGNATUREPIN, initialsignaturepin);
+  public String[] getFields(final boolean includePUK) {
+    if (includePUK) {
+      return FIELDSWITHPUK;
     }
-    
+    return FIELDSWITHOUTPUK;
+  }
 
-    public String getSignaturePUK() {
-        return (String) data.get(SIGNATUREPUK);
-    }
-
-    public void setSignaturePUK(String signaturepuk) {
-        data.put(SIGNATUREPUK, signaturepuk);
-    }
-    
-	public String getInitialAuthPIN() {
-		return (String) data.get(INITIALAUTHPIN);
-	}
-
-	public void setInitialAuthPIN(String initialauthpin) {
-		data.put(INITIALAUTHPIN, initialauthpin);
-	}
-    
-
-	public String getAuthPUK() {
-		return (String) data.get(AUTHPUK);
-	}
-
-	public void setAuthPUK(String authpuk) {
-		data.put(AUTHPUK, authpuk);
-	}
-
-	
-	public boolean getEncKeyRecoverable() {
-		return ((Boolean) data.get(ENCKEYRECOVERABLE)).booleanValue();
-	}
-
-	public void setEncKeyRecoverable(boolean enckeyrecoverable) {
-		data.put(ENCKEYRECOVERABLE, Boolean.valueOf(enckeyrecoverable));
-	}
-
-
-	
-	public int[] getDataTypes(boolean includePUK) {
-		if(includePUK){
-			return DATATYPESWITHPUK;	
-		}
-		return DATATYPESWITHOUTPUK;
-	}
-
-	public String[] getFieldTexts(boolean includePUK) {
-		if(includePUK){
-			return FIELDTEXTSWITHPUK;	
-		}
-		return FIELDTEXTSWITHOUTPUK;
-	}
-
-	public String[] getFields(boolean includePUK) {
-		if(includePUK){
-			return FIELDSWITHPUK;	
-		}
-		return FIELDSWITHOUTPUK;
-	}
-	   
-    // Private fields.
+  // Private fields.
 }

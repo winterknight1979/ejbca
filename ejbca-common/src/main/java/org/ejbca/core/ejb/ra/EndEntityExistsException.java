@@ -16,21 +16,23 @@ import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
 /**
- * An exception thrown when someone tries to create and end-entity that already exists.
+ * An exception thrown when someone tries to create and end-entity that already
+ * exists.
  *
- * @version $Id: EndEntityExistsException.java 23918 2016-07-15 12:10:07Z marko $
+ * @version $Id: EndEntityExistsException.java 23918 2016-07-15 12:10:07Z marko
+ *     $
  */
 public class EndEntityExistsException extends CesecoreException {
 
-    private static final long serialVersionUID = -6700250563735120223L;
+  private static final long serialVersionUID = -6700250563735120223L;
 
-    public EndEntityExistsException() {
-        super();
-        setErrorCode(ErrorCode.USER_ALREADY_EXISTS);
-    }
-    
-    public EndEntityExistsException(String msg) {
-        super(msg);
-        setErrorCode(ErrorCode.USER_ALREADY_EXISTS);
-    }
+  public EndEntityExistsException() {
+    super();
+    setErrorCode(ErrorCode.USER_ALREADY_EXISTS);
+  }
+
+  public EndEntityExistsException(final String msg) {
+    super(msg);
+    setErrorCode(ErrorCode.USER_ALREADY_EXISTS);
+  }
 }

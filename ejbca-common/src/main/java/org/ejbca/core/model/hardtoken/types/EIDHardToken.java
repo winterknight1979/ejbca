@@ -10,144 +10,156 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.hardtoken.types;
 
 import org.ejbca.core.model.SecConst;
 
-
 /**
- *  EIDHardToken is a class defining data stored in database for a EID token.
- *  
- *  OBSERVE This class should only be used for backward compability with EJBCA 2.0 
+ * EIDHardToken is a class defining data stored in database for a EID token.
+ *
+ * <p>OBSERVE This class should only be used for backward compability with EJBCA
+ * 2.0
+ *
  * @version $Id: EIDHardToken.java 19901 2014-09-30 14:29:38Z anatom $
  */
 public class EIDHardToken extends HardToken {
-    private static final long serialVersionUID = -3757040668436850815L;
-    // Public Constants
-    public static final String INITIALBASICPIN = "INITIALBASICPIN";
-    public static final String BASICPUK = "BASICPUK";
-    public static final String INITIALSIGNATUREPIN = "INITIALSIGNATUREPIN";
-    public static final String SIGNATUREPUK = "SIGNATUREPUK";
-    public static final int THIS_TOKENTYPE = SecConst.TOKEN_EID;
+  private static final long serialVersionUID = -3757040668436850815L;
+  // Public Constants
+  public static final String INITIALBASICPIN = "INITIALBASICPIN";
+  public static final String BASICPUK = "BASICPUK";
+  public static final String INITIALSIGNATUREPIN = "INITIALSIGNATUREPIN";
+  public static final String SIGNATUREPUK = "SIGNATUREPUK";
+  public static final int THIS_TOKENTYPE = SecConst.TOKEN_EID;
 
-    public static final String[] FIELDSWITHPUK = new String[] {INITIALBASICPIN, BASICPUK, EMPTYROW_FIELD, INITIALSIGNATUREPIN, SIGNATUREPUK};
-    public static final int[] DATATYPESWITHPUK = new int[] { STRING, STRING, EMPTYROW, STRING, STRING };
-    public static final String[] FIELDTEXTSWITHPUK = new String[] { INITIALBASICPIN, BASICPUK, EMPTYROW_FIELD, INITIALSIGNATUREPIN, SIGNATUREPUK};
-    
-    public static final String[] FIELDSWITHOUTPUK = new String[] {};
-    public static final int[] DATATYPESWITHOUTPUK = new int[] {};
-    public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {};
-    
-    
+  public static final String[] FIELDSWITHPUK =
+      new String[] {
+        INITIALBASICPIN,
+        BASICPUK,
+        EMPTYROW_FIELD,
+        INITIALSIGNATUREPIN,
+        SIGNATUREPUK
+      };
+  public static final int[] DATATYPESWITHPUK =
+      new int[] {STRING, STRING, EMPTYROW, STRING, STRING};
+  public static final String[] FIELDTEXTSWITHPUK =
+      new String[] {
+        INITIALBASICPIN,
+        BASICPUK,
+        EMPTYROW_FIELD,
+        INITIALSIGNATUREPIN,
+        SIGNATUREPUK
+      };
 
-    // Public Methods
+  public static final String[] FIELDSWITHOUTPUK = new String[] {};
+  public static final int[] DATATYPESWITHOUTPUK = new int[] {};
+  public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {};
 
-    /**
-     * Creates a certificate with the characteristics of an end user.
-     * @param includePUK Boolean
-     */
-    public EIDHardToken(boolean includePUK) {
-    	super(includePUK);
-        setInitialBasicPIN("");
-        setBasicPUK("");
-        setInitialSignaturePIN("");
-        setSignaturePUK("");
+  // Public Methods
 
-        data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
+  /**
+   * Creates a certificate with the characteristics of an end user.
+   *
+   * @param includePUK Boolean
+   */
+  public EIDHardToken(final boolean includePUK) {
+    super(includePUK);
+    setInitialBasicPIN("");
+    setBasicPUK("");
+    setInitialSignaturePIN("");
+    setSignaturePUK("");
+
+    data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
+  }
+
+  // Public Methods.
+  public String getInitialBasicPIN() {
+    return (String) data.get(INITIALBASICPIN);
+  }
+
+  /**
+   * DOCUMENT ME!
+   *
+   * @param initialbasicpin DOCUMENT ME!
+   */
+  public void setInitialBasicPIN(final String initialbasicpin) {
+    data.put(INITIALBASICPIN, initialbasicpin);
+  }
+
+  /**
+   * DOCUMENT ME!
+   *
+   * @return DOCUMENT ME!
+   */
+  public String getBasicPUK() {
+    return (String) data.get(BASICPUK);
+  }
+
+  /**
+   * DOCUMENT ME!
+   *
+   * @param basicpuk DOCUMENT ME!
+   */
+  public void setBasicPUK(final String basicpuk) {
+    data.put(BASICPUK, basicpuk);
+  }
+
+  /**
+   * DOCUMENT ME!
+   *
+   * @return DOCUMENT ME!
+   */
+  public String getInitialSignaturePIN() {
+    return (String) data.get(INITIALSIGNATUREPIN);
+  }
+
+  /**
+   * DOCUMENT ME!
+   *
+   * @param initialsignaturepin DOCUMENT ME!
+   */
+  public void setInitialSignaturePIN(final String initialsignaturepin) {
+    data.put(INITIALSIGNATUREPIN, initialsignaturepin);
+  }
+
+  /**
+   * DOCUMENT ME!
+   *
+   * @return DOCUMENT ME!
+   */
+  public String getSignaturePUK() {
+    return (String) data.get(SIGNATUREPUK);
+  }
+
+  /**
+   * DOCUMENT ME!
+   *
+   * @param signaturepuk DOCUMENT ME!
+   */
+  public void setSignaturePUK(final String signaturepuk) {
+    data.put(SIGNATUREPUK, signaturepuk);
+  }
+
+  public int[] getDataTypes(final boolean includePUK) {
+    if (includePUK) {
+      return DATATYPESWITHPUK;
     }
+    return DATATYPESWITHOUTPUK;
+  }
 
-
-    // Public Methods.
-    public String getInitialBasicPIN() {
-        return (String) data.get(INITIALBASICPIN);
+  public String[] getFieldTexts(final boolean includePUK) {
+    if (includePUK) {
+      return FIELDTEXTSWITHPUK;
     }
+    return FIELDTEXTSWITHOUTPUK;
+  }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @param initialbasicpin DOCUMENT ME!
-     */
-    public void setInitialBasicPIN(String initialbasicpin) {
-        data.put(INITIALBASICPIN, initialbasicpin);
+  public String[] getFields(final boolean includePUK) {
+    if (includePUK) {
+      return FIELDSWITHPUK;
     }
+    return FIELDSWITHOUTPUK;
+  }
 
-    /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     */
-    public String getBasicPUK() {
-        return (String) data.get(BASICPUK);
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param basicpuk DOCUMENT ME!
-     */
-    public void setBasicPUK(String basicpuk) {
-        data.put(BASICPUK, basicpuk);
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     */
-    public String getInitialSignaturePIN() {
-        return (String) data.get(INITIALSIGNATUREPIN);
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param initialsignaturepin DOCUMENT ME!
-     */
-    public void setInitialSignaturePIN(String initialsignaturepin) {
-        data.put(INITIALSIGNATUREPIN, initialsignaturepin);
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
-     */
-    public String getSignaturePUK() {
-        return (String) data.get(SIGNATUREPUK);
-    }
-
-    /**
-     * DOCUMENT ME!
-     *
-     * @param signaturepuk DOCUMENT ME!
-     */
-    public void setSignaturePUK(String signaturepuk) {
-        data.put(SIGNATUREPUK, signaturepuk);
-    }
-
-
-    
-	public int[] getDataTypes(boolean includePUK) {
-		if(includePUK){
-			return DATATYPESWITHPUK;	
-		}
-		return DATATYPESWITHOUTPUK;
-	}
-
-	public String[] getFieldTexts(boolean includePUK) {
-		if(includePUK){
-			return FIELDTEXTSWITHPUK;	
-		}
-		return FIELDTEXTSWITHOUTPUK;
-	}
-
-	public String[] getFields(boolean includePUK) {
-		if(includePUK){
-			return FIELDSWITHPUK;	
-		}
-		return FIELDSWITHOUTPUK;
-	}
-
-    // Private fields.
+  // Private fields.
 }

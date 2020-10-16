@@ -10,37 +10,37 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
-
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
 
 /**
- * Class used when delivering CMS service response from a CA.  
+ * Class used when delivering CMS service response from a CA.
  *
  * @version $Id: CmsCAServiceResponse.java 19901 2014-09-30 14:29:38Z anatom $
  */
-public class CmsCAServiceResponse extends ExtendedCAServiceResponse implements Serializable {    
-                 
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     *
-     * Maintainers must change this value if and only if the new version
-     * of this class is not compatible with old versions. See Sun docs
-     * for <a href=http://java.sun.com/products/jdk/1.1/docs/guide
-     * /serialization/spec/version.doc.html> details. </a>
-     */
-	private static final long serialVersionUID = 7704310763496240017L;
+public class CmsCAServiceResponse extends ExtendedCAServiceResponse
+    implements Serializable {
 
-	private byte[] doc = null;
-    
-        
-    public CmsCAServiceResponse(byte[] doc) {
-        this.doc = doc;        
-    }    
-           
-    public byte[] getCmsDocument() { return this.doc; }
-        
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * <p>Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for <a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html> details. </a>
+   */
+  private static final long serialVersionUID = 7704310763496240017L;
+
+  private byte[] doc = null;
+
+  public CmsCAServiceResponse(final byte[] doc) {
+    this.doc = doc;
+  }
+
+  public byte[] getCmsDocument() {
+    return this.doc;
+  }
 }

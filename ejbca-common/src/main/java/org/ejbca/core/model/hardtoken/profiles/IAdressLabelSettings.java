@@ -10,100 +10,77 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.hardtoken.profiles;
 
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.io.IOException;
-
 import org.cesecore.certificates.endentity.EndEntityInformation;
 
-
-
-
-
-
 /**
- * Interface contating methods that need to be implementet in order 
- * to have a hard token profile contain adress label, either sent to 
- * a label printer or printed directly on an envelope.
- * 
- * @version $Id: IAdressLabelSettings.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * Interface contating methods that need to be implementet in order to have a
+ * hard token profile contain adress label, either sent to a label printer or
+ * printed directly on an envelope.
+ *
+ * @version $Id: IAdressLabelSettings.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
-
 public interface IAdressLabelSettings {
 
+  /** Constant indicating that no adress label should be printed. */
+  public static int ADRESSLABELTYPE_NONE = 0;
 
-	/**
-	 * Constant indicating that no adress label should be printed.
-	 */    
-	public static int ADRESSLABELTYPE_NONE               = 0;
-	
-    /**
-     * Constants indicating what type of adress label that 
-     * should be printed.
-     */ 
-    public static int ADRESSLABELTYPE_GENERAL       = 1;
+  /** Constants indicating what type of adress label that should be printed. */
+  public static int ADRESSLABELTYPE_GENERAL = 1;
 
+  /** @return the type of adress label to print. */
+  public abstract int getAdressLabelType();
 
-    /**      
-     * @return the type of adress label to print.
-     */
-    public abstract int getAdressLabelType();    
+  /** @param type sets the adress label type. */
+  public abstract void setAdressLabelType(int type);
 
-	/**      
-	 * @param type sets the adress label type.
-	 */
-	public abstract void setAdressLabelType(int type);    
-    
-    /**
-     * @return the filename of the current adress label template.
-     */
-    public abstract String getAdressLabelTemplateFilename();
+  /** @return the filename of the current adress label template. */
+  public abstract String getAdressLabelTemplateFilename();
 
-	/**
-	 * @param filename Sets the filename of the current adress label template.
-	 */    
-	public abstract void setAdressLabelTemplateFilename(String filename);
-    
-	/**
-	 * @return the image data of the adress label, should be a SVG image.
-	 */
-	public abstract String getAdressLabelData();		
-	 
+  /** @param filename Sets the filename of the current adress label template. */
+  public abstract void setAdressLabelTemplateFilename(String filename);
 
-	/**
-	 * @param templatedata Sets the imagedata of the adress label.
-	 */
-	public abstract void setAdressLabelData(String templatedata);
-	
-    /**
-     * @return the number of copies of this PIN Envelope that should be printed.
-     */
-    public abstract int getNumberOfAdressLabelCopies();
+  /** @return the image data of the adress label, should be a SVG image. */
+  public abstract String getAdressLabelData();
 
-	/**
-	 * @param copies Sets the number of copies of this PIN Envelope that should be printed.
-	 */
-	public abstract void setNumberOfAdressLabelCopies(int copies);
-	
+  /** @param templatedata Sets the imagedata of the adress label. */
+  public abstract void setAdressLabelData(String templatedata);
 
-   /**
-    * Method that parses the template, replaces the userdata
-    * and returning a printable byte array 
- * @param userdata Data
- * @param pincodes PIN
- * @param pukcodes PUK
- * @param hardtokensn SN
- * @param copyoftokensn SN
- * @return Validity
- * @throws IOException IO fail 
- * @throws PrinterException Print fail
-    */	
-	public abstract Printable printVisualValidity(EndEntityInformation userdata, 
-	                                        String[] pincodes, String[] pukcodes,
-	                                        String hardtokensn, String copyoftokensn)
-	                                          throws IOException, PrinterException;
+  /**
+   * @return the number of copies of this PIN Envelope that should be printed.
+   */
+  public abstract int getNumberOfAdressLabelCopies();
+
+  /**
+   * @param copies Sets the number of copies of this PIN Envelope that should be
+   *     printed.
+   */
+  public abstract void setNumberOfAdressLabelCopies(int copies);
+
+  /**
+   * Method that parses the template, replaces the userdata and returning a
+   * printable byte array
+   *
+   * @param userdata Data
+   * @param pincodes PIN
+   * @param pukcodes PUK
+   * @param hardtokensn SN
+   * @param copyoftokensn SN
+   * @return Validity
+   * @throws IOException IO fail
+   * @throws PrinterException Print fail
+   */
+  public abstract Printable printVisualValidity(
+      EndEntityInformation userdata,
+      String[] pincodes,
+      String[] pukcodes,
+      String hardtokensn,
+      String copyoftokensn)
+      throws IOException, PrinterException;
 }
-

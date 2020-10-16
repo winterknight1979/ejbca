@@ -18,21 +18,20 @@ import org.junit.Test;
 
 /**
  * This class contains unit tests for the CryptoTools class.
- * 
- * @version $Id: CryptoToolsTest.java 19902 2014-09-30 14:32:24Z anatom $
  *
+ * @version $Id: CryptoToolsTest.java 19902 2014-09-30 14:32:24Z anatom $
  */
 public class CryptoToolsTest {
-    
-    @Test
-    public void testExtractSaltFromPasswordHash() {
-        //Firstly, generate a hash.
-        final String password = "greenunicornisfine";
-        final String salt = BCrypt.gensalt(1);
-        final String passwordHash = BCrypt.hashpw(password, salt);
-        
-        String extractedSalt = CryptoTools.extractSaltFromPasswordHash(passwordHash);
-        assertEquals(salt, extractedSalt);
-    }
 
+  @Test
+  public void testExtractSaltFromPasswordHash() {
+    // Firstly, generate a hash.
+    final String password = "greenunicornisfine";
+    final String salt = BCrypt.gensalt(1);
+    final String passwordHash = BCrypt.hashpw(password, salt);
+
+    String extractedSalt =
+        CryptoTools.extractSaltFromPasswordHash(passwordHash);
+    assertEquals(salt, extractedSalt);
+  }
 }

@@ -16,42 +16,48 @@ import java.io.Serializable;
 
 /**
  * Class used in presenting approval data for the approving administrator
- * Contains a header and a data part and booleans if they should be
- * translated or not.
- * 
+ * Contains a header and a data part and booleans if they should be translated
+ * or not.
  *
  * @version $Id: ApprovalDataText.java 23820 2016-07-07 13:53:30Z mikekushner $
  */
 public class ApprovalDataText implements Serializable {
-    /** Class is also used by the RA. Please keep serialization compatible (do not change the version number) */
-	private static final long serialVersionUID = 1L;
-	
-    private String header;
-    private String data;
-    private boolean headerTranslateable;
-    private boolean dataTranslatable;
-	
-	public ApprovalDataText(String header, String data, boolean headerTranslateable, boolean dataTranslatable) {
-		super();
-		this.header = header;
-		this.data = data;
-		this.headerTranslateable = headerTranslateable;
-		this.dataTranslatable = dataTranslatable;
-	}
-	
-	public String getData() {
-		return data;
-	}
+  /**
+   * Class is also used by the RA. Please keep serialization compatible (do not
+   * change the version number)
+   */
+  private static final long serialVersionUID = 1L;
 
-	public boolean isDataTranslatable() {
-		return dataTranslatable;
-	}
+  private final String header;
+  private final String data;
+  private final boolean headerTranslateable;
+  private final boolean dataTranslatable;
 
-	public String getHeader() {
-		return header;
-	}
+  public ApprovalDataText(
+      final String header,
+      final String data,
+      final boolean headerTranslateable,
+      final boolean dataTranslatable) {
+    super();
+    this.header = header;
+    this.data = data;
+    this.headerTranslateable = headerTranslateable;
+    this.dataTranslatable = dataTranslatable;
+  }
 
-	public boolean isHeaderTranslateable() {
-		return headerTranslateable;
-	}
+  public String getData() {
+    return data;
+  }
+
+  public boolean isDataTranslatable() {
+    return dataTranslatable;
+  }
+
+  public String getHeader() {
+    return header;
+  }
+
+  public boolean isHeaderTranslateable() {
+    return headerTranslateable;
+  }
 }

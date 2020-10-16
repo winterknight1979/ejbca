@@ -10,42 +10,43 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.publisher;
 
 import javax.xml.ws.WebFault;
-
 import org.ejbca.core.EjbcaException;
 
-
 /**
- * Is throw when error occurred when publishing certificate, crl or revoking certificate to a publisher 
+ * Is throw when error occurred when publishing certificate, crl or revoking
+ * certificate to a publisher
  *
- * @version $Id: PublisherException.java 30347 2018-11-01 13:19:07Z mikekushner $
+ * @version $Id: PublisherException.java 30347 2018-11-01 13:19:07Z mikekushner
+ *     $
  */
 @WebFault
 public class PublisherException extends EjbcaException {
-    
-    private static final long serialVersionUID = 7131460595927889580L;
 
+  private static final long serialVersionUID = 7131460595927889580L;
 
-    /**
-     * Creates a new instance of <code>PublisherException</code> without detail message.
-     */
-    public PublisherException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>PublisherException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public PublisherException(String msg) {
-        super(msg);
-    }
-    
-    public PublisherException(String msg, Throwable e) {
-        super(msg, e);
-    }
+  /**
+   * Creates a new instance of <code>PublisherException</code> without detail
+   * message.
+   */
+  public PublisherException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>PublisherException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public PublisherException(final String msg) {
+    super(msg);
+  }
+
+  public PublisherException(final String msg, final Throwable e) {
+    super(msg, e);
+  }
 }

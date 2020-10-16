@@ -10,27 +10,28 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca;
 
 import org.ejbca.core.EjbcaException;
 
 /**
- * Authentication error due to wrong status of user object. To authenticate a user the user must
- * have status new, failed or inprocess.
+ * Authentication error due to wrong status of user object. To authenticate a
+ * user the user must have status new, failed or inprocess.
  *
- * @version $Id: AuthStatusException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: AuthStatusException.java 22117 2015-10-29 10:53:42Z mikekushner
+ *     $
  */
 public class AuthStatusException extends EjbcaException {
-    private static final long serialVersionUID = -1399828365257002586L;
+  private static final long serialVersionUID = -1399828365257002586L;
 
-    /**
-     * Constructor used to create exception with an errormessage. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human redable error message, can not be NULL.
-     */
-    public AuthStatusException(String message) {
-        super(message);
-    }
+  /**
+   * Constructor used to create exception with an errormessage. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human redable error message, can not be NULL.
+   */
+  public AuthStatusException(final String message) {
+    super(message);
+  }
 }

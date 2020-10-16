@@ -10,61 +10,63 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
-
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
 
 /**
- * Class used when requesting CMS related services from a CA.  
+ * Class used when requesting CMS related services from a CA.
  *
  * @version $Id: CmsCAServiceRequest.java 19901 2014-09-30 14:29:38Z anatom $
  */
-public class CmsCAServiceRequest extends ExtendedCAServiceRequest implements Serializable {    
-    
-	public static final Logger m_log = Logger.getLogger(CmsCAServiceRequest.class);
-	
-	public static final int MODE_SIGN    = 1;
-	public static final int MODE_ENCRYPT = 2;
-	public static final int MODE_DECRYPT = 4;
-	
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     *
-     * Maintainers must change this value if and only if the new version
-     * of this class is not compatible with old versions. See Sun docs
-     * for <a href=http://java.sun.com/products/jdk/1.1/docs/guide
-     * /serialization/spec/version.doc.html> details. </a>
-     *
-     */
-    private static final long serialVersionUID = -762331405718560161L;
-	
-    private byte[] doc = null;
-    private int mode = 0;
-    
-    /** Constructor
-     * 
-     * @param doc the data to process
-     * @param mode one of the MODE_ constants
-     */                   
-    public CmsCAServiceRequest(byte[] doc, int mode) {
-        this.doc = doc;
-        this.mode = mode;
-    }
-    public byte[] getDoc() {
-        return doc;
-    }  
-    public int getMode() {
-    	return mode;
-    }
-	@Override
-	public int getServiceType() {
-		return ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE;
-	}
-    
-    
+public class CmsCAServiceRequest extends ExtendedCAServiceRequest
+    implements Serializable {
+
+  public static final Logger m_log =
+      Logger.getLogger(CmsCAServiceRequest.class);
+
+  public static final int MODE_SIGN = 1;
+  public static final int MODE_ENCRYPT = 2;
+  public static final int MODE_DECRYPT = 4;
+
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * <p>Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for <a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html> details. </a>
+   */
+  private static final long serialVersionUID = -762331405718560161L;
+
+  private byte[] doc = null;
+  private int mode = 0;
+
+  /**
+   * Constructor
+   *
+   * @param doc the data to process
+   * @param mode one of the MODE_ constants
+   */
+  public CmsCAServiceRequest(final byte[] doc, final int mode) {
+    this.doc = doc;
+    this.mode = mode;
+  }
+
+  public byte[] getDoc() {
+    return doc;
+  }
+
+  public int getMode() {
+    return mode;
+  }
+
+  @Override
+  public int getServiceType() {
+    return ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE;
+  }
 }

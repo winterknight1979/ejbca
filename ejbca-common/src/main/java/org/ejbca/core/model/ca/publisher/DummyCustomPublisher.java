@@ -10,83 +10,101 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.publisher;
 
 import java.io.Serializable;
 import java.security.cert.Certificate;
 import java.util.Properties;
-
 import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.certificates.certificate.CertificateWrapper;
 import org.cesecore.certificates.endentity.ExtendedInformation;
 import org.cesecore.util.EJBTools;
 
-
 /**
- * This is a class used for testing and example purposes.
- * It is supposed to illustrate how to implement a custom publisher in EJBCA 3.
- *  
+ * This is a class used for testing and example purposes. It is supposed to
+ * illustrate how to implement a custom publisher in EJBCA 3.
  *
- * @version $Id: DummyCustomPublisher.java 23421 2016-05-12 13:16:22Z mikekushner $
+ * @version $Id: DummyCustomPublisher.java 23421 2016-05-12 13:16:22Z
+ *     mikekushner $
  */
 public class DummyCustomPublisher implements ICustomPublisher, Serializable {
-    		
-    private static final long serialVersionUID = 1L;
 
-    private static Logger log = Logger.getLogger(DummyCustomPublisher.class);
+  private static final long serialVersionUID = 1L;
 
-    private CertificateWrapper certificate = null;
+  private static Logger log = Logger.getLogger(DummyCustomPublisher.class);
 
-    
-    /**
-     * Creates a new instance of DummyCustomPublisher
-     */
-    public DummyCustomPublisher() {}
+  private CertificateWrapper certificate = null;
 
-	/**
-	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#init(java.util.Properties)
-	 */
-	public void init(Properties properties) {
-	  log.debug("Initializing DummyCustomPublisher " + properties.getProperty(BasePublisher.DESCRIPTION, ""));
-	}
+  /** Creates a new instance of DummyCustomPublisher */
+  public DummyCustomPublisher() {}
 
-	/**
-	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCertificate
-	 */
-	public boolean storeCertificate(AuthenticationToken admin, Certificate incert, String username, String password, String userDN, String cafp, int status, int type, long revocationDate, int revocationReason, String tag, int certificateProfileId, long lastUpdate, ExtendedInformation extendedinformation) throws PublisherException {
-        log.debug("DummyCustomPublisher, Storing Certificate for user: " + username);	
-        this.certificate = EJBTools.wrap(incert);
-        return true;
-    }
-    
-    public Certificate getStoredCertificate() {
-        return EJBTools.unwrap(certificate);
-    }
-	/**
-	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL
-	 */
-	public boolean storeCRL(AuthenticationToken admin, byte[] incrl, String cafp, int number, String userDN) throws PublisherException {
-        log.debug("DummyCustomPublisher, Storing CRL");
-		return true;
-	}
+  /**
+   * @see
+   *     org.ejbca.core.model.ca.publisher.ICustomPublisher#init(java.util.Properties)
+   */
+  public void init(final Properties properties) {
+    log.debug(
+        "Initializing DummyCustomPublisher "
+            + properties.getProperty(BasePublisher.DESCRIPTION, ""));
+  }
 
-	/**
-	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#testConnection()
-	 */
-	public void testConnection() throws PublisherConnectionException {
-        log.debug("DummyCustomPublisher, Testing connection");			
-	}
+  /**
+   * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCertificate
+   */
+  public boolean storeCertificate(
+      final AuthenticationToken admin,
+      final Certificate incert,
+      final String username,
+      final String password,
+      final String userDN,
+      final String cafp,
+      final int status,
+      final int type,
+      final long revocationDate,
+      final int revocationReason,
+      final String tag,
+      final int certificateProfileId,
+      final long lastUpdate,
+      final ExtendedInformation extendedinformation)
+      throws PublisherException {
+    log.debug(
+        "DummyCustomPublisher, Storing Certificate for user: " + username);
+    this.certificate = EJBTools.wrap(incert);
+    return true;
+  }
 
-    @Override
-    public boolean willPublishCertificate(int status, int revocationReason) {
-        return true;
-    }
-    
-    @Override
-    public boolean isReadOnly() {
-        return false;
-    }
-	
+  public Certificate getStoredCertificate() {
+    return EJBTools.unwrap(certificate);
+  }
+  /** @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL */
+  public boolean storeCRL(
+      final AuthenticationToken admin,
+      final byte[] incrl,
+      final String cafp,
+      final int number,
+      final String userDN)
+      throws PublisherException {
+    log.debug("DummyCustomPublisher, Storing CRL");
+    return true;
+  }
+
+  /**
+   * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#testConnection()
+   */
+  public void testConnection() throws PublisherConnectionException {
+    log.debug("DummyCustomPublisher, Testing connection");
+  }
+
+  @Override
+  public boolean willPublishCertificate(
+      final int status, final int revocationReason) {
+    return true;
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
 }

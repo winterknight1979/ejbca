@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.hardtoken;
 
 import javax.xml.ws.WebFault;
@@ -18,28 +18,30 @@ import javax.xml.ws.WebFault;
 /**
  * An exception thrown when someone tries to add a hard token that already exits
  *
- * @author  Philip Vendil 2003-01-20
- * @version $Id: HardTokenExistsException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @author Philip Vendil 2003-01-20
+ * @version $Id: HardTokenExistsException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 @WebFault
 public class HardTokenExistsException extends java.lang.Exception {
-    
-    private static final long serialVersionUID = -4147417555483748945L;
 
+  private static final long serialVersionUID = -4147417555483748945L;
 
-    /**
-     * Creates a new instance of <code>HardTokenExistsException</code> without detail message.
-     */
-    public HardTokenExistsException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>HardTokenExistsException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public HardTokenExistsException(String msg) {
-        super(msg);
-    }
+  /**
+   * Creates a new instance of <code>HardTokenExistsException</code> without
+   * detail message.
+   */
+  public HardTokenExistsException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>HardTokenExistsException</code> with the
+   * specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public HardTokenExistsException(final String msg) {
+    super(msg);
+  }
 }

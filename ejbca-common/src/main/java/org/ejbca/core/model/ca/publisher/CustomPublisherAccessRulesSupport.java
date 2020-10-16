@@ -16,12 +16,15 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
  * A publisher that implements this interface contains additional access rules
- * 
- * @version $Id: CustomPublisherAccessRulesSupport.java 22117 2015-10-29 10:53:42Z mikekushner $
+ *
+ * @version $Id: CustomPublisherAccessRulesSupport.java 22117 2015-10-29
+ *     10:53:42Z mikekushner $
  */
 public interface CustomPublisherAccessRulesSupport {
 
-    /** @param authenticationToken Token
-     * @return true if admin is authorized to view this publisher. */
-    boolean isAuthorizedToPublisher(AuthenticationToken authenticationToken);
+  /**
+   * @param authenticationToken Token
+   * @return true if admin is authorized to view this publisher.
+   */
+  boolean isAuthorizedToPublisher(AuthenticationToken authenticationToken);
 }

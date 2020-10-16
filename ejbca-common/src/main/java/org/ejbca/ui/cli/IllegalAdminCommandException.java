@@ -10,23 +10,26 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.ui.cli;
 
 /**
- * Exception throws when illegal parameters are issued for an Admin Command (IadminCommand)
+ * Exception throws when illegal parameters are issued for an Admin Command
+ * (IadminCommand)
  *
- * @version $Id: IllegalAdminCommandException.java 19901 2014-09-30 14:29:38Z anatom $
+ * @version $Id: IllegalAdminCommandException.java 19901 2014-09-30 14:29:38Z
+ *     anatom $
  */
-public class IllegalAdminCommandException extends org.ejbca.core.EjbcaException {
-    private static final long serialVersionUID = -5604111464417974618L;
+public class IllegalAdminCommandException
+    extends org.ejbca.core.EjbcaException {
+  private static final long serialVersionUID = -5604111464417974618L;
 
-    /**
-     * Creates a new instance of IllegalAdminCommandException
-     *
-     * @param message error message
-     */
-    public IllegalAdminCommandException(String message) {
-        super(message);
-    }
+  /**
+   * Creates a new instance of IllegalAdminCommandException
+   *
+   * @param message error message
+   */
+  public IllegalAdminCommandException(final String message) {
+    super(message);
+  }
 }

@@ -10,18 +10,17 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core;
 
 import javax.xml.ws.WebFault;
-
 import org.cesecore.CesecoreException;
 import org.cesecore.ErrorCode;
 
-
 /**
- * Base for all specific application exceptions thrown by EJBCA. Can be used to catch any
- * non-critical application exceptions they may be possible to handle: <code> try { . . . } catch
+ * Base for all specific application exceptions thrown by EJBCA. Can be used to
+ * catch any non-critical application exceptions they may be possible to handle:
+ * <code> try { . . . } catch
  * (EjbcaException e) { error("Error: blahblah", e); ... }</code>
  *
  * @version $Id: EjbcaException.java 29354 2018-06-26 12:01:45Z mikekushner $
@@ -29,125 +28,135 @@ import org.cesecore.ErrorCode;
 @WebFault
 public class EjbcaException extends Exception {
 
-    private static final long serialVersionUID = -3754146611270578813L;
-    
-    //private static final Logger log = Logger.getLogger(EjbcaException.class);
+  private static final long serialVersionUID = -3754146611270578813L;
 
-    /** The error code describes the cause of the exception. */
-    ErrorCode errorCode = null;
+  // private static final Logger log = Logger.getLogger(EjbcaException.class);
 
-    /**
-     * Constructor used to create exception without an error message. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     */
-    public EjbcaException() {
-        super();
+  /** The error code describes the cause of the exception. */
+  ErrorCode errorCode = null;
+
+  /**
+   * Constructor used to create exception without an error message. Calls the
+   * same constructor in baseclass <code>Exception</code>.
+   */
+  public EjbcaException() {
+    super();
+  }
+
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human redable error message, can not be NULL.
+   */
+  public EjbcaException(final String message) {
+    super(message);
+  }
+
+  /**
+   * Constructor used to create exception with an errorCode. Calls the same
+   * default constructor in the base class <code>Exception</code>.
+   *
+   * @param errorCode defines the cause of the exception.
+   */
+  public EjbcaException(final ErrorCode errorCode) {
+    super();
+    this.errorCode = errorCode;
+  }
+
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param errorCode defines the cause of the exception.
+   * @param message Human readable error message, can not be NULL.
+   */
+  public EjbcaException(final ErrorCode errorCode, final String message) {
+    super(message);
+    this.errorCode = errorCode;
+  }
+
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass <code>Exception</code>.
+   *
+   * @param exception exception to be embedded.
+   */
+  public EjbcaException(final Exception exception) {
+    super(exception);
+    errorCode = EjbcaException.getErrorCode(exception);
+  }
+
+  /**
+   * Constructor used to create exception with an embedded exception. Calls the
+   * same constructor in baseclass <code>Exception</code>.
+   *
+   * @param errorCode defines the cause of the exception.
+   * @param exception exception to be embedded.
+   */
+  public EjbcaException(final ErrorCode errorCode, final Throwable exception) {
+    super(exception);
+    this.errorCode = errorCode;
+  }
+
+  /**
+   * Constructor used to create exception with an error message. Calls the same
+   * constructor in baseclass <code>Exception</code>.
+   *
+   * @param message Human readable error message, can not be NULL.
+   * @param cause Caise
+   */
+  public EjbcaException(final String message, final Throwable cause) {
+    super(message, cause);
+    if (cause instanceof EjbcaException) {
+      errorCode = ((EjbcaException) cause).getErrorCode();
     }
+  }
 
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human redable error message, can not be NULL.
-     */
-    public EjbcaException(String message) {
-        super(message);
+  public EjbcaException(
+      final ErrorCode errorCode, final String message, final Throwable cause) {
+    super(message, cause);
+    this.errorCode = errorCode;
+  }
+
+  /**
+   * Get the error code.
+   *
+   * @return the error code.
+   */
+  public ErrorCode getErrorCode() {
+    return errorCode;
+  }
+
+  /**
+   * Set the error code.
+   *
+   * @param errorCode the error code.
+   */
+  public void setErrorCode(final ErrorCode errorCode) {
+    this.errorCode = errorCode;
+  }
+
+  /**
+   * Get EJBCA ErrorCode from any exception that is, extends or just wraps
+   * EjbcaException or CesecoreException.
+   *
+   * @param exception exception or its cause from error code should be retrieved
+   * @return error code as ErrorCode object, or null if CesecoreException or
+   *     EjbcaException could not be found
+   */
+  public static ErrorCode getErrorCode(final Throwable exception) {
+    if (exception == null) {
+      return null;
     }
-
-    /**
-     * Constructor used to create exception with an errorCode. Calls the same default constructor
-     * in the base class <code>Exception</code>.
-     *
-     * @param errorCode defines the cause of the exception.
-     */
-    public EjbcaException(ErrorCode errorCode) {
-        super();
-        this.errorCode = errorCode;
+    if (exception instanceof EjbcaException
+        && ((EjbcaException) exception).getErrorCode() != null) {
+      return ((EjbcaException) exception).getErrorCode();
+    } else if (exception instanceof CesecoreException
+        && ((CesecoreException) exception).getErrorCode() != null) {
+      return ((CesecoreException) exception).getErrorCode();
+    } else {
+      return getErrorCode(exception.getCause());
     }
-
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param errorCode defines the cause of the exception.
-     * @param message Human readable error message, can not be NULL.
-     */
-    public EjbcaException(ErrorCode errorCode, String message) {
-        super(message);
-        this.errorCode = errorCode;
-    }
-
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass <code>Exception</code>.
-     *
-     * @param exception exception to be embedded.
-     */
-    public EjbcaException(Exception exception) {
-        super(exception);
-        errorCode = EjbcaException.getErrorCode(exception);
-    }
-
-    /**
-     * Constructor used to create exception with an embedded exception. Calls the same constructor
-     * in baseclass <code>Exception</code>.
-     *
-     * @param errorCode defines the cause of the exception.
-     * @param exception exception to be embedded.
-     */
-    public EjbcaException(ErrorCode errorCode, Throwable exception) {
-        super(exception);
-        this.errorCode = errorCode;
-    }
-
-    /**
-     * Constructor used to create exception with an error message. Calls the same constructor in
-     * baseclass <code>Exception</code>.
-     *
-     * @param message Human readable error message, can not be NULL.
-     * @param cause Caise
-     */
-    public EjbcaException(String message, Throwable cause) {
-		super(message, cause);
-        if (cause instanceof EjbcaException) {
-        	errorCode = ((EjbcaException) cause).getErrorCode();
-        }
-	}
-
-	public EjbcaException(ErrorCode errorCode, String message, Throwable cause) {
-		super(message, cause);
-        this.errorCode = errorCode;
-	}
-
-    /** Get the error code.
-     * @return the error code.
-     */
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
-
-    /** Set the error code.
-     * @param errorCode the error code.
-     */
-    public void setErrorCode(ErrorCode errorCode) {
-        this.errorCode = errorCode;
-    }
-    
-    /** Get EJBCA ErrorCode from any exception that is, extends or just wraps EjbcaException
-     * or CesecoreException.
-     * @param exception exception or its cause from error code should be retrieved
-     * @return error code as ErrorCode object, or null if CesecoreException or EjbcaException could not be found
-     */
-    public static ErrorCode getErrorCode(Throwable exception){
-        if(exception == null){
-            return null;
-        }
-        if(exception instanceof EjbcaException && ((EjbcaException)exception).getErrorCode() != null){
-            return ((EjbcaException)exception).getErrorCode();
-        }else if(exception instanceof CesecoreException && ((CesecoreException)exception).getErrorCode() != null){
-            return ((CesecoreException)exception).getErrorCode();
-        }else{
-            return getErrorCode(exception.getCause());
-        }
-    }
+  }
 }

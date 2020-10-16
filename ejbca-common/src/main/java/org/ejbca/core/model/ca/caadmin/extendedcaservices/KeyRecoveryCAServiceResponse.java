@@ -10,105 +10,120 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
 import java.security.KeyPair;
-
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
 
-
 /**
- * Class used when delevering key recovery service response from a CA.  
+ * Class used when delevering key recovery service response from a CA.
  *
- * @version $Id: KeyRecoveryCAServiceResponse.java 19901 2014-09-30 14:29:38Z anatom $
+ * @version $Id: KeyRecoveryCAServiceResponse.java 19901 2014-09-30 14:29:38Z
+ *     anatom $
  */
-public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse implements Serializable {    
-             
-	private static final long serialVersionUID = -6164842390930090876L;
-    public static final int TYPE_ENCRYPTKEYSRESPONSE = 1;
-	public static final int TYPE_DECRYPTKEYSRESPONSE = 1;
-    
-    private int type;
-    private byte[] keydata;
-    private KeyPair keypair;
-    private String keyAlias;
-    private int cryptoTokenId;
-    private String publicKeyId;
-	
-    /** Used when decrypting key recovery data, keydata is read from the database 
-     * @param type Type
-     * @param keydata key
-     * @param cryptoTokenId ID
-     * @param keyAlias Key
-     * @param publicKeyId Key ID */
-    public KeyRecoveryCAServiceResponse(int type, byte[] keydata, final int cryptoTokenId, final String keyAlias, final String publicKeyId) {
-       this.type = type;
-       this.keydata = keydata;
-       this.cryptoTokenId = cryptoTokenId;
-       this.keyAlias = keyAlias;
-       this.publicKeyId = publicKeyId;
-    } 
-    
-    /** Used when encrypting data, keypair is encrypted to be stored in the database 
-     * @param type Type
-     * @param keypair Key
-     * @param cryptoTokenId OD
-     * @param keyAlias Key
-     * @param publicKeyId Key ID */
-    public KeyRecoveryCAServiceResponse(int type, KeyPair keypair, final int cryptoTokenId, final String keyAlias, final String publicKeyId) {
-    	this.type = type;
-    	this.keypair = keypair;
-        this.cryptoTokenId = cryptoTokenId;
-        this.keyAlias = keyAlias;
-        this.publicKeyId = publicKeyId;
-    }  
-           
-    /**
-     * @return type of response, one of the TYPE_ constants.
-     */
-    public int getType(){
-    	return type;
-    }
-    
-    /**
-     *  Method returning the encrypted key data if the type of response 
-     *  is TYPE_ENCRYPTRESPONSE, null otherwise.
-     * @return data
-     */
-    
-    public byte[] getKeyData(){
-    	byte[] ret = null;
-    	if(type == TYPE_ENCRYPTKEYSRESPONSE) {
-        	ret = keydata;
-    	}
-    	return ret;
-    }
+public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse
+    implements Serializable {
 
-    /**
-     *  Method returning the decrypted keypair if the type of response 
-     *  is TYPE_DECRYPTRESPONSE, null otherwise.
-     * @return Key
-     */
-    public KeyPair getKeyPair(){
-    	KeyPair ret = null;
-    	if(type == TYPE_DECRYPTKEYSRESPONSE) {
-        	ret = keypair;    	
-    	}
-    	return ret;
-    }
+  private static final long serialVersionUID = -6164842390930090876L;
+  public static final int TYPE_ENCRYPTKEYSRESPONSE = 1;
+  public static final int TYPE_DECRYPTKEYSRESPONSE = 1;
 
-    public String getKeyAlias() {
-        return keyAlias;
-    }
+  private final int type;
+  private byte[] keydata;
+  private KeyPair keypair;
+  private final String keyAlias;
+  private final int cryptoTokenId;
+  private final String publicKeyId;
 
-    public int getCryptoTokenId() {
-        return cryptoTokenId;
-    }
+  /**
+   * Used when decrypting key recovery data, keydata is read from the database
+   *
+   * @param type Type
+   * @param keydata key
+   * @param cryptoTokenId ID
+   * @param keyAlias Key
+   * @param publicKeyId Key ID
+   */
+  public KeyRecoveryCAServiceResponse(
+      final int type,
+      final byte[] keydata,
+      final int cryptoTokenId,
+      final String keyAlias,
+      final String publicKeyId) {
+    this.type = type;
+    this.keydata = keydata;
+    this.cryptoTokenId = cryptoTokenId;
+    this.keyAlias = keyAlias;
+    this.publicKeyId = publicKeyId;
+  }
 
-    public String getPublicKeyId() {
-        return publicKeyId;
+  /**
+   * Used when encrypting data, keypair is encrypted to be stored in the
+   * database
+   *
+   * @param type Type
+   * @param keypair Key
+   * @param cryptoTokenId OD
+   * @param keyAlias Key
+   * @param publicKeyId Key ID
+   */
+  public KeyRecoveryCAServiceResponse(
+      final int type,
+      final KeyPair keypair,
+      final int cryptoTokenId,
+      final String keyAlias,
+      final String publicKeyId) {
+    this.type = type;
+    this.keypair = keypair;
+    this.cryptoTokenId = cryptoTokenId;
+    this.keyAlias = keyAlias;
+    this.publicKeyId = publicKeyId;
+  }
+
+  /** @return type of response, one of the TYPE_ constants. */
+  public int getType() {
+    return type;
+  }
+
+  /**
+   * Method returning the encrypted key data if the type of response is
+   * TYPE_ENCRYPTRESPONSE, null otherwise.
+   *
+   * @return data
+   */
+  public byte[] getKeyData() {
+    byte[] ret = null;
+    if (type == TYPE_ENCRYPTKEYSRESPONSE) {
+      ret = keydata;
     }
- 
+    return ret;
+  }
+
+  /**
+   * Method returning the decrypted keypair if the type of response is
+   * TYPE_DECRYPTRESPONSE, null otherwise.
+   *
+   * @return Key
+   */
+  public KeyPair getKeyPair() {
+    KeyPair ret = null;
+    if (type == TYPE_DECRYPTKEYSRESPONSE) {
+      ret = keypair;
+    }
+    return ret;
+  }
+
+  public String getKeyAlias() {
+    return keyAlias;
+  }
+
+  public int getCryptoTokenId() {
+    return cryptoTokenId;
+  }
+
+  public String getPublicKeyId() {
+    return publicKeyId;
+  }
 }

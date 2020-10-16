@@ -17,12 +17,45 @@ import java.io.Serializable;
 /**
  * A DTO class representing the input for certificate enrollment.
  *
- * @version $Id: EnrollPkcs10CertificateRequest.java 28909 2018-05-10 12:16:53Z tarmo_r_helmes $
+ * @version $Id: EnrollPkcs10CertificateRequest.java 28909 2018-05-10 12:16:53Z
+ *     tarmo_r_helmes $
  */
 public class EnrollPkcs10CertificateRequest implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    
+
+  private static final long serialVersionUID = 1L;
+
+  private final String certificateRequest;
+  private final String certificateProfileName;
+  private final String endEntityProfileName;
+  private final String certificateAuthorityName;
+  private final String username;
+  private final String password;
+
+  public String getCertificateRequest() {
+    return certificateRequest;
+  }
+
+  public String getCertificateProfileName() {
+    return certificateProfileName;
+  }
+
+  public String getEndEntityProfileName() {
+    return endEntityProfileName;
+  }
+
+  public String getCertificateAuthorityName() {
+    return certificateAuthorityName;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public static class Builder {
     private String certificateRequest;
     private String certificateProfileName;
     private String endEntityProfileName;
@@ -30,80 +63,48 @@ public class EnrollPkcs10CertificateRequest implements Serializable {
     private String username;
     private String password;
 
-
-    public String getCertificateRequest() {
-        return certificateRequest;
+    public Builder certificateRequest(final String certificateRequest) {
+      this.certificateRequest = certificateRequest;
+      return this;
     }
 
-    public String getCertificateProfileName() {
-        return certificateProfileName;
+    public Builder certificateProfileName(final String certificateProfileName) {
+      this.certificateProfileName = certificateProfileName;
+      return this;
     }
 
-    public String getEndEntityProfileName() {
-        return endEntityProfileName;
+    public Builder endEntityProfileName(final String endEntityProfileName) {
+      this.endEntityProfileName = endEntityProfileName;
+      return this;
     }
 
-    public String getCertificateAuthorityName() {
-        return certificateAuthorityName;
-    }
-    
-    public String getUsername() {
-        return username;
+    public Builder certificateAuthorityName(
+        final String certificateAuthorityName) {
+      this.certificateAuthorityName = certificateAuthorityName;
+      return this;
     }
 
-    public String getPassword() {
-        return password;
+    public Builder username(final String username) {
+      this.username = username;
+      return this;
     }
 
-    public static class Builder {
-        private String certificateRequest;
-        private String certificateProfileName;
-        private String endEntityProfileName;
-        private String certificateAuthorityName;
-        private String username;
-        private String password;
-
-        public Builder certificateRequest(String certificateRequest) {
-            this.certificateRequest = certificateRequest;
-            return this;
-        }
-
-        public Builder certificateProfileName(String certificateProfileName) {
-            this.certificateProfileName = certificateProfileName;
-            return this;
-        }
-
-        public Builder endEntityProfileName(String endEntityProfileName) {
-            this.endEntityProfileName = endEntityProfileName;
-            return this;
-        }
-
-        public Builder certificateAuthorityName(String certificateAuthorityName) {
-            this.certificateAuthorityName = certificateAuthorityName;
-            return this;
-        }
-
-        public Builder username(String username) {
-            this.username = username;
-            return this;
-        }
-
-        public Builder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        public EnrollPkcs10CertificateRequest build() {
-            return new EnrollPkcs10CertificateRequest(this);
-        }
+    public Builder password(final String password) {
+      this.password = password;
+      return this;
     }
-    
-    private EnrollPkcs10CertificateRequest(Builder builder) {
-        this.certificateRequest = builder.certificateRequest;
-        this.certificateProfileName = builder.certificateProfileName;
-        this.endEntityProfileName = builder.endEntityProfileName;
-        this.certificateAuthorityName = builder.certificateAuthorityName;
-        this.username = builder.username;
-        this.password = builder.password;
+
+    public EnrollPkcs10CertificateRequest build() {
+      return new EnrollPkcs10CertificateRequest(this);
     }
+  }
+
+  private EnrollPkcs10CertificateRequest(final Builder builder) {
+    this.certificateRequest = builder.certificateRequest;
+    this.certificateProfileName = builder.certificateProfileName;
+    this.endEntityProfileName = builder.endEntityProfileName;
+    this.certificateAuthorityName = builder.certificateAuthorityName;
+    this.username = builder.username;
+    this.password = builder.password;
+  }
 }

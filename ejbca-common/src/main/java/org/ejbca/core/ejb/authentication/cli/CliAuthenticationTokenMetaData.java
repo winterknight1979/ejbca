@@ -13,19 +13,21 @@
 package org.ejbca.core.ejb.authentication.cli;
 
 import java.util.Arrays;
-
 import org.cesecore.authentication.tokens.AuthenticationTokenMetaDataBase;
 
 /**
- * Meta data definition and ServiceLoader marker for {@link org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken}.
- * 
- * @version $Id: CliAuthenticationTokenMetaData.java 25241 2017-02-10 02:10:43Z jeklund $
+ * Meta data definition and ServiceLoader marker for {@link
+ * org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken}.
+ *
+ * @version $Id: CliAuthenticationTokenMetaData.java 25241 2017-02-10 02:10:43Z
+ *     jeklund $
  */
-public class CliAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
+public class CliAuthenticationTokenMetaData
+    extends AuthenticationTokenMetaDataBase {
 
-    public static final String TOKEN_TYPE = "CliAuthenticationToken";
+  public static final String TOKEN_TYPE = "CliAuthenticationToken";
 
-    public CliAuthenticationTokenMetaData() {
-        super(TOKEN_TYPE, Arrays.asList(CliUserAccessMatchValue.USERNAME), true);
-    }
+  public CliAuthenticationTokenMetaData() {
+    super(TOKEN_TYPE, Arrays.asList(CliUserAccessMatchValue.USERNAME), true);
+  }
 }

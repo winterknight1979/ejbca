@@ -23,64 +23,81 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * see org.ejbca.core.ejb.ProfileAndTraceInterceptor (in ejbca-ejb)
- * 
- * Limitations:
- * - Maximum allowed sum of duration is 292471 years.. :)
- * - Retrieval of stats is not a perfect point in time snapshot
- * 
+ *
+ * <p>Limitations: - Maximum allowed sum of duration is 292471 years.. :) -
+ * Retrieval of stats is not a perfect point in time snapshot
+ *
  * @version $Id: ProfilingStats.java 23718 2016-06-22 14:36:22Z anatom $
  */
 public enum ProfilingStats {
-    INSTANCE;
+  INSTANCE;
 
-    private final ConcurrentHashMap<String,Entry<Long,Long>> sums = new ConcurrentHashMap<String,Entry<Long,Long>>();
+  private final ConcurrentHashMap<String, Entry<Long, Long>> sums =
+      new ConcurrentHashMap<String, Entry<Long, Long>>();
 
-    public void add(final String key, final long invocationDuration) {
-        Entry<Long, Long> expectedValue = null;
-        Entry<Long,Long> currentEntry = null;
-        // Since there are likely many parallel invocations to different methods but rarely to the same
-        // we use a ConcurrentHashMap to allow concurrent modifications.
-        // The drawback is that we another thread might have updated the map while we were doing preparations
-        // and in this case we have to retry.
-        do {
-            currentEntry = sums.get(key);
-            final Entry<Long,Long> newEntry;
-            if (currentEntry == null) {
-                // Populate with a first entry for this key. We expect that the old value should be null
-                newEntry = new SimpleImmutableEntry<Long,Long>(Long.valueOf(invocationDuration), Long.valueOf(1L));
-                expectedValue = sums.putIfAbsent(key, newEntry);
-            } else {
-                newEntry = new SimpleImmutableEntry<Long,Long>(Long.valueOf(currentEntry.getKey().longValue()+invocationDuration),
-                        Long.valueOf(currentEntry.getValue().longValue()+1L));
-                expectedValue = sums.replace(key, newEntry);
-            }
-        } while (expectedValue!=null && !expectedValue.equals(currentEntry));
+  public void add(final String key, final long invocationDuration) {
+    Entry<Long, Long> expectedValue = null;
+    Entry<Long, Long> currentEntry = null;
+    // Since there are likely many parallel invocations to different methods but
+    // rarely to the same
+    // we use a ConcurrentHashMap to allow concurrent modifications.
+    // The drawback is that we another thread might have updated the map while
+    // we were doing preparations
+    // and in this case we have to retry.
+    do {
+      currentEntry = sums.get(key);
+      final Entry<Long, Long> newEntry;
+      if (currentEntry == null) {
+        // Populate with a first entry for this key. We expect that the old
+        // value should be null
+        newEntry =
+            new SimpleImmutableEntry<Long, Long>(
+                Long.valueOf(invocationDuration), Long.valueOf(1L));
+        expectedValue = sums.putIfAbsent(key, newEntry);
+      } else {
+        newEntry =
+            new SimpleImmutableEntry<Long, Long>(
+                Long.valueOf(
+                    currentEntry.getKey().longValue() + invocationDuration),
+                Long.valueOf(currentEntry.getValue().longValue() + 1L));
+        expectedValue = sums.replace(key, newEntry);
+      }
+    } while (expectedValue != null && !expectedValue.equals(currentEntry));
+  }
+
+  /**
+   * Get a shallow copy of the current invocation statistics as a Maps with full
+   * method names as keys. The key of the Entry is the sum of durations (µs) and
+   * the value is the number of invocations. Since the copy operation is
+   * non-locking, this will not be a perfect point in time snapshot.
+   *
+   * @return Map
+   */
+  private Map<String, Entry<Long, Long>> getBestEffortShallowCopyOfStats() {
+    return new HashMap<String, Entry<Long, Long>>(sums);
+  }
+
+  /**
+   * Get a shallow copy of the current invocation statistics as a list if caller
+   * friendly objects. Since the copy operation is non-locking, this will not be
+   * a perfect point in time snapshot.
+   *
+   * @return List
+   */
+  public List<ProfilingStat> getEjbInvocationStats() {
+    final Map<String, Entry<Long, Long>> sums =
+        getBestEffortShallowCopyOfStats();
+    final Set<String> keys = sums.keySet();
+    final List<ProfilingStat> ret = new ArrayList<ProfilingStat>(keys.size());
+    for (final String key : keys) {
+      final Entry<Long, Long> durationAndInvocations = sums.get(key);
+      final ProfilingStat profilingStat =
+          new ProfilingStat(
+              key,
+              durationAndInvocations.getKey(),
+              durationAndInvocations.getValue());
+      ret.add(profilingStat);
     }
-
-    /**
-     * Get a shallow copy of the current invocation statistics as a Maps with full method names as keys.
-     * The key of the Entry is the sum of durations (µs) and the value is the number of invocations.
-     * Since the copy operation is non-locking, this will not be a perfect point in time snapshot.
-     * @return Map
-     */
-    private Map<String,Entry<Long,Long>> getBestEffortShallowCopyOfStats() {
-        return new HashMap<String,Entry<Long,Long>>(sums);
-    }
-
-    /**
-     * Get a shallow copy of the current invocation statistics as a list if caller friendly objects.
-     * Since the copy operation is non-locking, this will not be a perfect point in time snapshot.
-     * @return List
-     */
-    public List<ProfilingStat> getEjbInvocationStats() {
-        final Map<String,Entry<Long,Long>> sums = getBestEffortShallowCopyOfStats();
-        final Set<String> keys = sums.keySet();
-        final List<ProfilingStat> ret = new ArrayList<ProfilingStat>(keys.size());
-        for (final String key : keys) {
-            final Entry<Long, Long> durationAndInvocations = sums.get(key);
-            final ProfilingStat profilingStat = new ProfilingStat(key, durationAndInvocations.getKey(), durationAndInvocations.getValue());
-            ret.add(profilingStat);
-        }
-        return ret;
-    }
+    return ret;
+  }
 }

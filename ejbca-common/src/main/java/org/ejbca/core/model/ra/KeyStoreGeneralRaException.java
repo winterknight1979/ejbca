@@ -10,23 +10,25 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ra;
 
 import org.cesecore.NonSensitiveException;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Wraps the original java.lang.Exception thrown with  KeyStoreCreateSessionBean.generateOrKeyRecoverToken (in ejbca-ejb)
+ * Wraps the original java.lang.Exception thrown with
+ * KeyStoreCreateSessionBean.generateOrKeyRecoverToken (in ejbca-ejb)
  *
- * @version $Id: KeyStoreGeneralRaException.java 25763 2017-04-27 11:01:31Z henriks $
+ * @version $Id: KeyStoreGeneralRaException.java 25763 2017-04-27 11:01:31Z
+ *     henriks $
  */
 @NonSensitiveException
 public class KeyStoreGeneralRaException extends EjbcaException {
-    
-    private static final long serialVersionUID = 1L;
 
-    public KeyStoreGeneralRaException(Exception exception){
-        super(exception);
-    }
+  private static final long serialVersionUID = 1L;
+
+  public KeyStoreGeneralRaException(final Exception exception) {
+    super(exception);
+  }
 }

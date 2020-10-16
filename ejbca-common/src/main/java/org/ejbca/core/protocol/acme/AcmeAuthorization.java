@@ -14,45 +14,46 @@
 package org.ejbca.core.protocol.acme;
 
 import java.util.LinkedHashMap;
+
 /**
- * An ACME Authorization is the right to issue certificates for an identifier (e.g. a DNS Name).
- * 
+ * An ACME Authorization is the right to issue certificates for an identifier
+ * (e.g. a DNS Name).
+ *
  * @version $Id: AcmeAuthorization.java 29141 2018-06-07 12:52:44Z aminkh $
  */
 public interface AcmeAuthorization {
 
-    String getOrderId();
+  String getOrderId();
 
-    void setOrderId(String orderId);
+  void setOrderId(String orderId);
 
-    String getAuthorizationId();
+  String getAuthorizationId();
 
-    void setAuthorizationId(String authorizationId);
+  void setAuthorizationId(String authorizationId);
 
-    String getAccountId();
+  String getAccountId();
 
-    void setAccountId(String accountId);
+  void setAccountId(String accountId);
 
-    AcmeIdentifier getAcmeIdentifier();
+  AcmeIdentifier getAcmeIdentifier();
 
-    void setAcmeIdentifier(AcmeIdentifier acmeIdentifier);
+  void setAcmeIdentifier(AcmeIdentifier acmeIdentifier);
 
-    long getExpires();
+  long getExpires();
 
-    void setExpires(long expires);
+  void setExpires(long expires);
 
-    boolean getWildcard();
+  boolean getWildcard();
 
-    void setWildcard(boolean wildcard);
+  void setWildcard(boolean wildcard);
 
-    AcmeAuthorizationStatus getStatus();
+  AcmeAuthorizationStatus getStatus();
 
-    void setStatus(AcmeAuthorizationStatus acmeAuthorizationStatus);
+  void setStatus(AcmeAuthorizationStatus acmeAuthorizationStatus);
 
-    float getLatestVersion();
+  float getLatestVersion();
 
-    void upgrade();
+  void upgrade();
 
-    LinkedHashMap<Object, Object> getRawData();
-
+  LinkedHashMap<Object, Object> getRawData();
 }

@@ -13,38 +13,40 @@
 package org.ejbca.core.model.approval;
 
 import javax.xml.ws.WebFault;
-
 import org.cesecore.NonSensitiveException;
 
 /**
  * Exception thrown from actions that stop to wait for approvals.
- * <p>
- * This exception contains the requestId of the approval request,
- * which can be used together with IEjbcaWS.getRemainingNumberOfApprovals (in ejcba-ws)
- * to check the status.
- * 
- * @version $Id: WaitingForApprovalException.java 30577 2018-11-22 10:08:42Z samuellb $
- * see org.ejbca.core.protocol.ws.common.IEjbcaWS#getRemainingNumberOfApprovals IEjbcaWS.getRemainingNumberOfApprovals
+ *
+ * <p>This exception contains the requestId of the approval request, which can
+ * be used together with IEjbcaWS.getRemainingNumberOfApprovals (in ejcba-ws) to
+ * check the status.
+ *
+ * @version $Id: WaitingForApprovalException.java 30577 2018-11-22 10:08:42Z
+ *     samuellb $ see
+ *     org.ejbca.core.protocol.ws.common.IEjbcaWS#getRemainingNumberOfApprovals
+ *     IEjbcaWS.getRemainingNumberOfApprovals
  */
 @WebFault
 @NonSensitiveException
 public class WaitingForApprovalException extends Exception {
 
-	private static final long serialVersionUID = 6808192333114783496L;
-    private int requestId = 0;
-	
-	public WaitingForApprovalException(String message, int requestId) {
-		super(message);
-		this.requestId = requestId;
-	}
-	
-	/**
-	 * The requestId of the approval request. It can be used together with IEjbcaWS.getRemainingNumberOfApprovals (in ejcba-ws)
-	 * to check the status.
-	 * @return int
-	 */
-	public int getRequestId(){
-		return requestId;
-	}
+  private static final long serialVersionUID = 6808192333114783496L;
+  private int requestId = 0;
 
+  public WaitingForApprovalException(
+      final String message, final int requestId) {
+    super(message);
+    this.requestId = requestId;
+  }
+
+  /**
+   * The requestId of the approval request. It can be used together with
+   * IEjbcaWS.getRemainingNumberOfApprovals (in ejcba-ws) to check the status.
+   *
+   * @return int
+   */
+  public int getRequestId() {
+    return requestId;
+  }
 }

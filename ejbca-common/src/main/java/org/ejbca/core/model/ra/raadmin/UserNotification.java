@@ -18,194 +18,220 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-
 import org.apache.commons.lang.StringUtils;
 import org.cesecore.certificates.endentity.EndEntityConstants;
 
 /**
- * Class holding information about user notification sent when a user transitions through
- * the work-flow. 
- * This class is implemented on top of a HashMap, so it can easily be upgraded with new features
- * such as different notification actions (apart from email) etc.
- * 
+ * Class holding information about user notification sent when a user
+ * transitions through the work-flow. This class is implemented on top of a
+ * HashMap, so it can easily be upgraded with new features such as different
+ * notification actions (apart from email) etc.
+ *
  * @version $Id: UserNotification.java 26940 2017-10-31 08:34:55Z mikekushner $
  */
 @SuppressWarnings("rawtypes")
-public class UserNotification extends HashMap implements Serializable, Cloneable {
+public class UserNotification extends HashMap
+    implements Serializable, Cloneable {
 
-	/** This is the data stored in this object.
-	 * A hashmap is good because it serializes nicely and data can be upgraded without changing
-	 * serialversion uid
-	 */
-    private HashMap<String, String> data;
+  /**
+   * This is the data stored in this object. A hashmap is good because it
+   * serializes nicely and data can be upgraded without changing serialversion
+   * uid
+   */
+  private final HashMap<String, String> data;
 
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     *
-     * Maintainers must change this value if and only if the new version
-     * of this class is not compatible with old versions. See Sun docs
-     * for <a href=http://java.sun.com/products/jdk/1.1/docs/guide
-     * /serialization/spec/version.doc.html> details. </a>
-     *
-     */
-    private static final long serialVersionUID = -100L;
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * <p>Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for <a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html> details. </a>
+   */
+  private static final long serialVersionUID = -100L;
 
-    /** Recipient of notification is the user */
-    public static final String   RCPT_USER     = "USER";
-    /** recipient of notification is the admin of the user */
-    public static final String   RCPT_CUSTOM    = "CUSTOM";
+  /** Recipient of notification is the user */
+  public static final String RCPT_USER = "USER";
+  /** recipient of notification is the admin of the user */
+  public static final String RCPT_CUSTOM = "CUSTOM";
 
-    public static final String EVENTS_EDITUSER = EndEntityConstants.STATUS_NEW+";"+EndEntityConstants.STATUS_KEYRECOVERY+";"+EndEntityConstants.STATUS_INITIALIZED;
-    public static final String EVENTS_USERENROLL = String.valueOf(EndEntityConstants.STATUS_GENERATED);
-    
-    // protected in order to upgrade in EndEntityProfile.upgrade()
-    // Use private for new fields.
-    protected static final String NOTIFICATIONSENDER     = "NOTIFICATIONSENDER";
-    protected static final String NOTIFICATIONSUBJECT    = "NOTIFICATIONSSUBJECT";
-    protected static final String NOTIFICATIONMESSAGE    = "NOTIFICATIONSMESSAGE";
-    private static final String   NOTIFICATIONRECIPIENT  = "NOTIFICATIONRECIPIENT";
-    private static final String   NOTIFICATIONEVENTS     = "NOTIFICATIONEVENTS";
+  public static final String EVENTS_EDITUSER =
+      EndEntityConstants.STATUS_NEW
+          + ";"
+          + EndEntityConstants.STATUS_KEYRECOVERY
+          + ";"
+          + EndEntityConstants.STATUS_INITIALIZED;
+  public static final String EVENTS_USERENROLL =
+      String.valueOf(EndEntityConstants.STATUS_GENERATED);
 
-    public UserNotification() {
-    	data = new HashMap<String, String>();
-    }
-    
-    public UserNotification(String sender, String rcpt, String subject, String message, String events) {
-    	data = new HashMap<String, String>();
-    	setNotificationSender(sender);
-    	setNotificationSubject(subject);
-    	setNotificationMessage(message);
-    	setNotificationRecipient(rcpt);
-    	setNotificationEvents(events);
-    }
+  // protected in order to upgrade in EndEntityProfile.upgrade()
+  // Use private for new fields.
+  protected static final String NOTIFICATIONSENDER = "NOTIFICATIONSENDER";
+  protected static final String NOTIFICATIONSUBJECT = "NOTIFICATIONSSUBJECT";
+  protected static final String NOTIFICATIONMESSAGE = "NOTIFICATIONSMESSAGE";
+  private static final String NOTIFICATIONRECIPIENT = "NOTIFICATIONRECIPIENT";
+  private static final String NOTIFICATIONEVENTS = "NOTIFICATIONEVENTS";
 
-    public String getNotificationSender(){
-    	String ret = "";
-    	if(data.get(NOTIFICATIONSENDER) != null) {
-    		ret = (String) data.get(NOTIFICATIONSENDER);
-    	}
-    	return ret;
-    }
-    
-    public void setNotificationSender(String sender){
-    	data.put(NOTIFICATIONSENDER, sender);    		
-    }
-    
-    public String getNotificationSubject(){
-    	String ret = "";
-    	if(data.get(NOTIFICATIONSUBJECT) != null) {
-    		ret = (String) data.get(NOTIFICATIONSUBJECT);
-    	}
-    	return ret;
-    }
-    
-    public void setNotificationSubject(String subject){
-    	data.put(NOTIFICATIONSUBJECT, subject);    		
-    }
-        
-    public String getNotificationMessage(){
-    	String ret = "";
-    	if(data.get(NOTIFICATIONMESSAGE) != null) {
-    		ret = (String) data.get(NOTIFICATIONMESSAGE);
-    	}
-    	return ret;
-    }
-    
-    public void setNotificationMessage(String message){
-    	data.put(NOTIFICATIONMESSAGE, message);
-    }
+  public UserNotification() {
+    data = new HashMap<String, String>();
+  }
 
-    public String getNotificationRecipient(){
-    	String ret = "";
-    	if(data.get(NOTIFICATIONRECIPIENT) != null) {
-    		ret = (String) data.get(NOTIFICATIONRECIPIENT);
-    	}
-    	return ret;
-    }
-    
-    /**
-     * Recipient of the notification
-     * @param rcpt can be constants UserNotification.RCPT_XX or an email address. Several recipients can be specified separated by ;
-     */
-    public void setNotificationRecipient(String rcpt){
-    	data.put(NOTIFICATIONRECIPIENT, rcpt);
-    }
+  public UserNotification(
+      final String sender,
+      final String rcpt,
+      final String subject,
+      final String message,
+      final String events) {
+    data = new HashMap<String, String>();
+    setNotificationSender(sender);
+    setNotificationSubject(subject);
+    setNotificationMessage(message);
+    setNotificationRecipient(rcpt);
+    setNotificationEvents(events);
+  }
 
-    /** list of UserDataConstant.STATUS_XX separated by ;. See constants EVENTS_XX for helper events.
-     * example 'String.valueOf(EndEntityConstants.STATUS_NEW)+";"+String.valueOf(EndEntityConstants.STATUS_KEYRECOVERY)'
-     * @return String with integer values separated by ;
-     * @see UserNotification#EVENTS_EDITUSER
-     */
-    public String getNotificationEvents(){
-    	String ret = "";
-    	if(data.get(NOTIFICATIONEVENTS) != null) {
-    		ret = (String) data.get(NOTIFICATIONEVENTS);
-    	}
-    	return ret;
+  public String getNotificationSender() {
+    String ret = "";
+    if (data.get(NOTIFICATIONSENDER) != null) {
+      ret = (String) data.get(NOTIFICATIONSENDER);
     }
+    return ret;
+  }
 
-    /** Returns a collection view of getNotificationEvents.
-     * 
-     * @return A Collection with String values (String.valueOf(EndEntityConstants.STATUS_NEW etc), or an empty Collection, never null.
-     */
-    public Collection<String> getNotificationEventsCollection(){
-    	String events = getNotificationEvents();
-    	ArrayList<String> ret = new ArrayList<String>();
-    	if (StringUtils.isNotEmpty(events)) {
-    		StringTokenizer tokenizer = new StringTokenizer(events, ";", false);
-            while (tokenizer.hasMoreTokens()) {
-            	ret.add(tokenizer.nextToken());
-            }
-    	}
-    	return ret;
-    }
+  public void setNotificationSender(final String sender) {
+    data.put(NOTIFICATIONSENDER, sender);
+  }
 
-    /** list of UserDataConstant.STATUS_XX separated by ;. See constants EVENTS_XX for helper events.
-     * example 'String.valueOf(EndEntityConstants.STATUS_NEW)+";"+String.valueOf(EndEntityConstants.STATUS_KEYRECOVERY)'
-     * @param events String with integer values separated by ;
-     * @see UserNotification#EVENTS_EDITUSER
-     */
-    public void setNotificationEvents(String events){
-    	data.put(NOTIFICATIONEVENTS, events);
+  public String getNotificationSubject() {
+    String ret = "";
+    if (data.get(NOTIFICATIONSUBJECT) != null) {
+      ret = (String) data.get(NOTIFICATIONSUBJECT);
     }
+    return ret;
+  }
 
-    @Override
-    public String toString() {
-    	final StringBuilder strBuffer = new StringBuilder("UserNotification(");
-        strBuffer.append("sender=");
-        strBuffer.append(this.getNotificationSender());
-        strBuffer.append(", rcpt=");
-        strBuffer.append(this.getNotificationRecipient());
-        strBuffer.append(", subject=");
-        strBuffer.append(this.getNotificationSubject());
-        strBuffer.append(", message=");
-        strBuffer.append(this.getNotificationMessage());
-        strBuffer.append(", events=");
-        strBuffer.append(this.getNotificationEvents());
-        strBuffer.append(")");
-        return strBuffer.toString();
-    }
+  public void setNotificationSubject(final String subject) {
+    data.put(NOTIFICATIONSUBJECT, subject);
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        boolean ret = false;
-        if((obj == null) || !(obj instanceof UserNotification)) {
-            return ret;
-        }
-        UserNotification o = (UserNotification)obj;
-        if ( StringUtils.equals(this.getNotificationSender(), o.getNotificationSender()) &&
-        	 StringUtils.equals(this.getNotificationRecipient(), o.getNotificationRecipient()) &&
-        	 StringUtils.equals(this.getNotificationSubject(), o.getNotificationSubject()) &&
-        	 StringUtils.equals(this.getNotificationMessage(), o.getNotificationMessage()) &&
-        	 StringUtils.equals(this.getNotificationEvents(), o.getNotificationEvents()) ) {
-        	ret = true;
-        }
-        return ret;
+  public String getNotificationMessage() {
+    String ret = "";
+    if (data.get(NOTIFICATIONMESSAGE) != null) {
+      ret = (String) data.get(NOTIFICATIONMESSAGE);
     }
-    
-    @Override
-    public int hashCode() {
-        return this.toString().hashCode();
+    return ret;
+  }
+
+  public void setNotificationMessage(final String message) {
+    data.put(NOTIFICATIONMESSAGE, message);
+  }
+
+  public String getNotificationRecipient() {
+    String ret = "";
+    if (data.get(NOTIFICATIONRECIPIENT) != null) {
+      ret = (String) data.get(NOTIFICATIONRECIPIENT);
     }
-    
+    return ret;
+  }
+
+  /**
+   * Recipient of the notification
+   *
+   * @param rcpt can be constants UserNotification.RCPT_XX or an email address.
+   *     Several recipients can be specified separated by ;
+   */
+  public void setNotificationRecipient(final String rcpt) {
+    data.put(NOTIFICATIONRECIPIENT, rcpt);
+  }
+
+  /**
+   * list of UserDataConstant.STATUS_XX separated by ;. See constants EVENTS_XX
+   * for helper events. example
+   * 'String.valueOf(EndEntityConstants.STATUS_NEW)+";"+String.valueOf(EndEntityConstants.STATUS_KEYRECOVERY)'
+   *
+   * @return String with integer values separated by ;
+   * @see UserNotification#EVENTS_EDITUSER
+   */
+  public String getNotificationEvents() {
+    String ret = "";
+    if (data.get(NOTIFICATIONEVENTS) != null) {
+      ret = (String) data.get(NOTIFICATIONEVENTS);
+    }
+    return ret;
+  }
+
+  /**
+   * Returns a collection view of getNotificationEvents.
+   *
+   * @return A Collection with String values
+   *     (String.valueOf(EndEntityConstants.STATUS_NEW etc), or an empty
+   *     Collection, never null.
+   */
+  public Collection<String> getNotificationEventsCollection() {
+    String events = getNotificationEvents();
+    ArrayList<String> ret = new ArrayList<String>();
+    if (StringUtils.isNotEmpty(events)) {
+      StringTokenizer tokenizer = new StringTokenizer(events, ";", false);
+      while (tokenizer.hasMoreTokens()) {
+        ret.add(tokenizer.nextToken());
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * list of UserDataConstant.STATUS_XX separated by ;. See constants EVENTS_XX
+   * for helper events. example
+   * 'String.valueOf(EndEntityConstants.STATUS_NEW)+";"+String.valueOf(EndEntityConstants.STATUS_KEYRECOVERY)'
+   *
+   * @param events String with integer values separated by ;
+   * @see UserNotification#EVENTS_EDITUSER
+   */
+  public void setNotificationEvents(final String events) {
+    data.put(NOTIFICATIONEVENTS, events);
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder strBuffer = new StringBuilder("UserNotification(");
+    strBuffer.append("sender=");
+    strBuffer.append(this.getNotificationSender());
+    strBuffer.append(", rcpt=");
+    strBuffer.append(this.getNotificationRecipient());
+    strBuffer.append(", subject=");
+    strBuffer.append(this.getNotificationSubject());
+    strBuffer.append(", message=");
+    strBuffer.append(this.getNotificationMessage());
+    strBuffer.append(", events=");
+    strBuffer.append(this.getNotificationEvents());
+    strBuffer.append(")");
+    return strBuffer.toString();
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    boolean ret = false;
+    if ((obj == null) || !(obj instanceof UserNotification)) {
+      return ret;
+    }
+    UserNotification o = (UserNotification) obj;
+    if (StringUtils.equals(
+            this.getNotificationSender(), o.getNotificationSender())
+        && StringUtils.equals(
+            this.getNotificationRecipient(), o.getNotificationRecipient())
+        && StringUtils.equals(
+            this.getNotificationSubject(), o.getNotificationSubject())
+        && StringUtils.equals(
+            this.getNotificationMessage(), o.getNotificationMessage())
+        && StringUtils.equals(
+            this.getNotificationEvents(), o.getNotificationEvents())) {
+      ret = true;
+    }
+    return ret;
+  }
+
+  @Override
+  public int hashCode() {
+    return this.toString().hashCode();
+  }
 }

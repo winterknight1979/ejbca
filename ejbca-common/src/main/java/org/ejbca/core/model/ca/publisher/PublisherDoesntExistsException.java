@@ -10,33 +10,36 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.publisher;
 
 /**
- * An exception thrown when someone tries to remove or change a Publisher that doesn't exits
+ * An exception thrown when someone tries to remove or change a Publisher that
+ * doesn't exits
  *
- * @author  Philip Vendil 2003-01-20
- * @version $Id: PublisherDoesntExistsException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @author Philip Vendil 2003-01-20
+ * @version $Id: PublisherDoesntExistsException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public class PublisherDoesntExistsException extends java.lang.Exception {
-    
-    private static final long serialVersionUID = 8116025667365391659L;
 
+  private static final long serialVersionUID = 8116025667365391659L;
 
-    /**
-     * Creates a new instance of <code>PublisherDoesntExistsException</code> without detail message.
-     */
-    public PublisherDoesntExistsException() {
-        super();
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>PublisherDoesntExistsException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public PublisherDoesntExistsException(String msg) {
-        super(msg);
-    }
+  /**
+   * Creates a new instance of <code>PublisherDoesntExistsException</code>
+   * without detail message.
+   */
+  public PublisherDoesntExistsException() {
+    super();
+  }
+
+  /**
+   * Constructs an instance of <code>PublisherDoesntExistsException</code> with
+   * the specified detail message.
+   *
+   * @param msg the detail message.
+   */
+  public PublisherDoesntExistsException(final String msg) {
+    super(msg);
+  }
 }

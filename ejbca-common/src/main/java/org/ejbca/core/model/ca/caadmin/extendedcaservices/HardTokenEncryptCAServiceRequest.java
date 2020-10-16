@@ -10,51 +10,50 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
-
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
 
-
 /**
- * Class used when requesting hard token encrypt related services from a CA.  
+ * Class used when requesting hard token encrypt related services from a CA.
  *
- * @version $Id: HardTokenEncryptCAServiceRequest.java 19901 2014-09-30 14:29:38Z anatom $
+ * @version $Id: HardTokenEncryptCAServiceRequest.java 19901 2014-09-30
+ *     14:29:38Z anatom $
  */
-public class HardTokenEncryptCAServiceRequest extends ExtendedCAServiceRequest implements Serializable {    
- 
-	private static final long serialVersionUID = 8081402124613587671L;
-    public static final int COMMAND_ENCRYPTDATA = 1;
-	public static final int COMMAND_DECRYPTDATA = 2;
-	
-    private int command;
-    private byte[] data;
+public class HardTokenEncryptCAServiceRequest extends ExtendedCAServiceRequest
+    implements Serializable {
 
-    public HardTokenEncryptCAServiceRequest(int command, byte[] data) {
-        this.command = command;
-        this.data = data;
-    }
+  private static final long serialVersionUID = 8081402124613587671L;
+  public static final int COMMAND_ENCRYPTDATA = 1;
+  public static final int COMMAND_DECRYPTDATA = 2;
 
-    
-    public int getCommand(){
-    	return command;    	
-    }
-    
-    /**
-     *  Returns data beloning to the decrypt keys request, returns null oterwise.
-     * @return data
-     */
-    
-    public  byte[] getData(){
-    	return data;
-    }
-    
-	@Override
-	public int getServiceType() {
-		return ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE;
-	}
+  private final int command;
+  private final byte[] data;
 
+  public HardTokenEncryptCAServiceRequest(
+      final int command, final byte[] data) {
+    this.command = command;
+    this.data = data;
+  }
+
+  public int getCommand() {
+    return command;
+  }
+
+  /**
+   * Returns data beloning to the decrypt keys request, returns null oterwise.
+   *
+   * @return data
+   */
+  public byte[] getData() {
+    return data;
+  }
+
+  @Override
+  public int getServiceType() {
+    return ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE;
+  }
 }

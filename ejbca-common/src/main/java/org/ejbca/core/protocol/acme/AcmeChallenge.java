@@ -16,67 +16,75 @@ import java.util.LinkedHashMap;
 import org.ejbca.core.protocol.acme.AcmeIdentifier.AcmeIdentifierTypes;
 
 /**
- * An ACME Challenge is a proof a client needs to provide in order to be authorized to get a certificate for an identifier.
- * 
- * PROCESSING constant in AcmeChallengeStatus ENUM is a requirement imposed by draft-ietf-acme-acme-12 and is preserved for
- * future use. 
- * 
+ * An ACME Challenge is a proof a client needs to provide in order to be
+ * authorized to get a certificate for an identifier.
+ *
+ * <p>PROCESSING constant in AcmeChallengeStatus ENUM is a requirement imposed
+ * by draft-ietf-acme-acme-12 and is preserved for future use.
+ *
  * @version $Id: AcmeChallenge.java 30434 2018-11-08 07:40:52Z andrey_s_helmes $
  */
 public interface AcmeChallenge {
 
-    String getChallengeId();
+  String getChallengeId();
 
-    void setChallengeId(String challengeId);
+  void setChallengeId(String challengeId);
 
-    String getAuthorizationId();
+  String getAuthorizationId();
 
-    void setAuthorizationId(String authorizationId);
+  void setAuthorizationId(String authorizationId);
 
-    String getType();
+  String getType();
 
-    void setType(String type);
+  void setType(String type);
 
-    String getUrl();
+  String getUrl();
 
-    void setUrl(String url);
+  void setUrl(String url);
 
-    AcmeChallengeStatus getStatus();
+  AcmeChallengeStatus getStatus();
 
-    void setStatus(AcmeChallengeStatus status);
+  void setStatus(AcmeChallengeStatus status);
 
-    String getValidated();
+  String getValidated();
 
-    void setValidated(String validated);
+  void setValidated(String validated);
 
-    String getToken();
+  String getToken();
 
-    void setToken(String token);
+  void setToken(String token);
 
-    String getKeyAuthorization();
+  String getKeyAuthorization();
 
-    void setKeyAuthorization(String keyAuthorization);
+  void setKeyAuthorization(String keyAuthorization);
 
-    float getLatestVersion();
+  float getLatestVersion();
 
-    void upgrade();
-    
-    LinkedHashMap<Object, Object> getRawData();
+  void upgrade();
 
-    public static enum AcmeChallengeType {
-        DNS_HTTP_01(AcmeIdentifierTypes.DNS, "http-01"),
-        DNS_DNS_01(AcmeIdentifierTypes.DNS, "dns-01"),
-        ;
+  LinkedHashMap<Object, Object> getRawData();
 
-        private final AcmeIdentifierTypes acmeIdentifierType;
-        private final String challengeType;
+  public static enum AcmeChallengeType {
+    DNS_HTTP_01(AcmeIdentifierTypes.DNS, "http-01"),
+    DNS_DNS_01(AcmeIdentifierTypes.DNS, "dns-01"),
+    ;
 
-        private AcmeChallengeType(final AcmeIdentifierTypes acmeIdentifierType, final String challengeType) {
-            this.acmeIdentifierType = acmeIdentifierType;
-            this.challengeType = challengeType;
-        }
+    private final AcmeIdentifierTypes acmeIdentifierType;
+    private final String challengeType;
 
-        public AcmeIdentifierTypes getAcmeIdentifierType() { return acmeIdentifierType; }
-        public String getChallengeType() { return challengeType; }
+    private AcmeChallengeType(
+        final AcmeIdentifierTypes acmeIdentifierType,
+        final String challengeType) {
+      this.acmeIdentifierType = acmeIdentifierType;
+      this.challengeType = challengeType;
     }
+
+    public AcmeIdentifierTypes getAcmeIdentifierType() {
+      return acmeIdentifierType;
+    }
+
+    public String getChallengeType() {
+      return challengeType;
+    }
+  }
 }

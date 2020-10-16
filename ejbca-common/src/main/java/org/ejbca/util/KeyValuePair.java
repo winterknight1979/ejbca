@@ -14,43 +14,44 @@ package org.ejbca.util;
 
 import java.io.Serializable;
 
-/** 
+/**
  * Object holding a Key and a Value pair used, for example, to hold properties.
  */
-public class KeyValuePair implements Serializable{
+public class KeyValuePair implements Serializable {
 
-    /** Serial version UID, must be changed if class undergoes structural changes */
-    private static final long serialVersionUID = 6515156937734311728L;
-    
-    /** A key, for example a property's key */
-    private String key;
-    /** A value, for example a property's value */
-    private String value;
+  /**
+   * Serial version UID, must be changed if class undergoes structural changes
+   */
+  private static final long serialVersionUID = 6515156937734311728L;
 
-    
-    public KeyValuePair() {
-        this.key = null;
-        this.value = null;
-    }
-    
-    public KeyValuePair(String key, String value) {
-        this.key = key;
-        this.value = value;
-    }
+  /** A key, for example a property's key */
+  private String key;
+  /** A value, for example a property's value */
+  private String value;
 
-    public String getKey() {
-        return key;
-    }
+  public KeyValuePair() {
+    this.key = null;
+    this.value = null;
+  }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
+  public KeyValuePair(final String key, final String value) {
+    this.key = key;
+    this.value = value;
+  }
 
-    public String getValue() {
-        return value;
-    }
+  public String getKey() {
+    return key;
+  }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+  public void setKey(final String key) {
+    this.key = key;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(final String value) {
+    this.value = value;
+  }
 }

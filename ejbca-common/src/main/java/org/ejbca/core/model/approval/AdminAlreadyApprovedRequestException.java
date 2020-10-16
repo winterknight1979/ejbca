@@ -13,16 +13,17 @@
 package org.ejbca.core.model.approval;
 
 /**
- * Exception thrown  to show that an administrator has already approved a request.
- * 
- * @version $Id: AdminAlreadyApprovedRequestException.java 22858 2016-02-24 15:41:56Z mikekushner $
+ * Exception thrown to show that an administrator has already approved a
+ * request.
+ *
+ * @version $Id: AdminAlreadyApprovedRequestException.java 22858 2016-02-24
+ *     15:41:56Z mikekushner $
  */
 public class AdminAlreadyApprovedRequestException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public AdminAlreadyApprovedRequestException(String message) {
-		super(message);
-	}
-
+  public AdminAlreadyApprovedRequestException(final String message) {
+    super(message);
+  }
 }

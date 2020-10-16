@@ -13,105 +13,98 @@
 
 package org.ejbca.core.model.keyrecovery;
 
-
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.Certificate;
-
 import org.cesecore.keys.util.KeyPairWrapper;
 import org.cesecore.util.StringTools;
 
-
 /**
- * This is a value class containing the data relating to key saved for recovery for a user, sent
- * between server and clients.
+ * This is a value class containing the data relating to key saved for recovery
+ * for a user, sent between server and clients.
  *
- * @version $Id: KeyRecoveryInformation.java 20728 2015-02-20 14:55:55Z mikekushner $
+ * @version $Id: KeyRecoveryInformation.java 20728 2015-02-20 14:55:55Z
+ *     mikekushner $
  */
 public class KeyRecoveryInformation implements Serializable {
 
-    private static final long serialVersionUID = -7473386427889757839L;
+  private static final long serialVersionUID = -7473386427889757839L;
 
-    // Private fields
-    private BigInteger certificatesn;
-    private String issuerdn;
-    private String username;
-    private boolean markedasrecoverable;
-    private KeyPairWrapper keypair;
-    private Certificate certificate;
-    
-    
-    // Public Constructors
-    public KeyRecoveryInformation(BigInteger certificatesn, String issuerdn, String username,
-                           boolean markedasrecoverable, KeyPair keypair, Certificate certificate) {
-        this.certificatesn = certificatesn;
-        this.issuerdn = issuerdn;
-        this.username = StringTools.stripUsername(username);
-        this.markedasrecoverable = markedasrecoverable;
-        this.keypair = new KeyPairWrapper(keypair);
-        this.certificate = certificate;
-    }
+  // Private fields
+  private BigInteger certificatesn;
+  private String issuerdn;
+  private String username;
+  private boolean markedasrecoverable;
+  private KeyPairWrapper keypair;
+  private Certificate certificate;
 
-    /**
-     * Creates a new KeyRecoveryData object.
-     */
-    public KeyRecoveryInformation() {
-    }
+  // Public Constructors
+  public KeyRecoveryInformation(
+      final BigInteger certificatesn,
+      final String issuerdn,
+      final String username,
+      final boolean markedasrecoverable,
+      final KeyPair keypair,
+      final Certificate certificate) {
+    this.certificatesn = certificatesn;
+    this.issuerdn = issuerdn;
+    this.username = StringTools.stripUsername(username);
+    this.markedasrecoverable = markedasrecoverable;
+    this.keypair = new KeyPairWrapper(keypair);
+    this.certificate = certificate;
+  }
 
-    // Public Methods
-    public BigInteger getCertificateSN() {
-        return this.certificatesn;
-    }
+  /** Creates a new KeyRecoveryData object. */
+  public KeyRecoveryInformation() {}
 
-    public void setCertificateSN(BigInteger certificatesn) {
-        this.certificatesn = certificatesn;
-    }
+  // Public Methods
+  public BigInteger getCertificateSN() {
+    return this.certificatesn;
+  }
 
-    public String getIssuerDN() {
-        return this.issuerdn;
-    }
+  public void setCertificateSN(final BigInteger certificatesn) {
+    this.certificatesn = certificatesn;
+  }
 
-    public void setIssuerDN(String issuerdn) {
-        this.issuerdn = issuerdn;
-    }
+  public String getIssuerDN() {
+    return this.issuerdn;
+  }
 
-    public String getUsername() {
-        return this.username;
-    }
+  public void setIssuerDN(final String issuerdn) {
+    this.issuerdn = issuerdn;
+  }
 
-    public void setUsername(String username) {
-        this.username = StringTools.stripUsername(username);
-    }
+  public String getUsername() {
+    return this.username;
+  }
 
-    public boolean getMarkedAsRecoverable() {
-        return this.markedasrecoverable;
-    }
+  public void setUsername(final String username) {
+    this.username = StringTools.stripUsername(username);
+  }
 
-    public void setMarkedAsRecoverable(boolean markedasrecoverable) {
-        this.markedasrecoverable = markedasrecoverable;
-    }
+  public boolean getMarkedAsRecoverable() {
+    return this.markedasrecoverable;
+  }
 
-    public KeyPair getKeyPair() {
-        return keypair.getKeyPair();
-    }
+  public void setMarkedAsRecoverable(final boolean markedasrecoverable) {
+    this.markedasrecoverable = markedasrecoverable;
+  }
 
-    public void setKeyPair(KeyPair keypair) {
-        this.keypair = new KeyPairWrapper(keypair);
-    }
+  public KeyPair getKeyPair() {
+    return keypair.getKeyPair();
+  }
 
-	/**
-	 * @return Returns the certificate.
-	 */
-	public Certificate getCertificate() {
-		return certificate;
-	}
-	/**
-	 * @param certificate The certificate to set.
-	 */
-	public void setCertificate(Certificate certificate) {
-		this.certificate = certificate;
-	}
-   
+  public void setKeyPair(final KeyPair keypair) {
+    this.keypair = new KeyPairWrapper(keypair);
+  }
 
+  /** @return Returns the certificate. */
+  public Certificate getCertificate() {
+    return certificate;
+  }
+  /** @param certificate The certificate to set. */
+  public void setCertificate(final Certificate certificate) {
+    this.certificate = certificate;
+  }
 }

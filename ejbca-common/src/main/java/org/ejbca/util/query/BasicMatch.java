@@ -13,36 +13,42 @@
 package org.ejbca.util.query;
 
 import java.io.Serializable;
-
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
- * A base class used by Query class to build a query. Inherited by UserMatch, TimeMatch and
- * LogMatch. Main function is getQueryString which is abstract and must be overloaded.
+ * A base class used by Query class to build a query. Inherited by UserMatch,
+ * TimeMatch and LogMatch. Main function is getQueryString which is abstract and
+ * must be overloaded.
  *
  * @version $Id: BasicMatch.java 25704 2017-04-18 14:42:43Z jeklund $
  */
 public abstract class BasicMatch implements Serializable {
-    
-    private static final long serialVersionUID = -1L;
 
-    public static final int MATCH_TYPE_EQUALS = 0;
-    public static final int MATCH_TYPE_BEGINSWITH = 1;
-    public static final int MATCH_TYPE_CONTAINS = 2;
+  private static final long serialVersionUID = -1L;
 
-    /** Creates a new instance of BasicMatch */
-    public BasicMatch() { }
+  public static final int MATCH_TYPE_EQUALS = 0;
+  public static final int MATCH_TYPE_BEGINSWITH = 1;
+  public static final int MATCH_TYPE_CONTAINS = 2;
 
-    /** @return a SQL statement fragment from the given data (with escaped single quotes). */
-    public abstract String getQueryString();
+  /** Creates a new instance of BasicMatch */
+  public BasicMatch() {}
 
-    /** @return true if query is legal, false otherwise */
-    public abstract boolean isLegalQuery();
+  /**
+   * @return a SQL statement fragment from the given data (with escaped single
+   *     quotes).
+   */
+  public abstract String getQueryString();
 
-    /** Escape single quotes as double quotes 
-     * @param matchValue Value
-     * @return String */
-    public String escapeSql(final String matchValue) {
-        return StringEscapeUtils.escapeSql(matchValue);
-    }
+  /** @return true if query is legal, false otherwise */
+  public abstract boolean isLegalQuery();
+
+  /**
+   * Escape single quotes as double quotes
+   *
+   * @param matchValue Value
+   * @return String
+   */
+  public String escapeSql(final String matchValue) {
+    return StringEscapeUtils.escapeSql(matchValue);
+  }
 }

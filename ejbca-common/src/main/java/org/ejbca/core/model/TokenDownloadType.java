@@ -18,44 +18,51 @@ import java.util.Map;
 
 /**
  * Representation of token download types
- * @version $Id: TokenDownloadType.java 29210 2018-06-13 10:14:03Z henriks $
  *
+ * @version $Id: TokenDownloadType.java 29210 2018-06-13 10:14:03Z henriks $
  */
 public enum TokenDownloadType {
-    PEM(1), PEM_FULL_CHAIN(2), PKCS7(3), P12(4), JKS(5), DER(6);
-    
-    private int value;
-    private static final Map<String, Integer> nameIdLookupMap = new HashMap<String, Integer>();
-    private static final Map<Integer, String> idNameLookupMap = new HashMap<Integer, String>();
-    
-    static {
-        for (TokenDownloadType tokenDownloadType : TokenDownloadType.values()) {
-            nameIdLookupMap.put(tokenDownloadType.name(), tokenDownloadType.value);
-            idNameLookupMap.put(tokenDownloadType.value, tokenDownloadType.name());
-        }
-    }
-    
-    private TokenDownloadType(int value) {
-        this.value = value;
-    }
+  PEM(1),
+  PEM_FULL_CHAIN(2),
+  PKCS7(3),
+  P12(4),
+  JKS(5),
+  DER(6);
 
-    public int getValue() {
-        return value;
+  private int value;
+  private static final Map<String, Integer> nameIdLookupMap =
+      new HashMap<String, Integer>();
+  private static final Map<Integer, String> idNameLookupMap =
+      new HashMap<Integer, String>();
+
+  static {
+    for (TokenDownloadType tokenDownloadType : TokenDownloadType.values()) {
+      nameIdLookupMap.put(tokenDownloadType.name(), tokenDownloadType.value);
+      idNameLookupMap.put(tokenDownloadType.value, tokenDownloadType.name());
     }
-    
-    /**
-     * @param tokenTypeName TokenDownloadType Enum name
-     * @return Id represented by input Enum name or null if non-existent
-     */
-    public static Integer getIdFromName(String tokenTypeName) {
-        return nameIdLookupMap.get(tokenTypeName);
-    }
-    
-    /**
-     * @param id TokenDownloadType Enum Id
-     * @return String representation of the Enum Id input or null of non-existent
-     */
-    public static String getNameFromId(int id) {
-        return idNameLookupMap.get(id);
-    }
+  }
+
+  private TokenDownloadType(final int value) {
+    this.value = value;
+  }
+
+  public int getValue() {
+    return value;
+  }
+
+  /**
+   * @param tokenTypeName TokenDownloadType Enum name
+   * @return Id represented by input Enum name or null if non-existent
+   */
+  public static Integer getIdFromName(final String tokenTypeName) {
+    return nameIdLookupMap.get(tokenTypeName);
+  }
+
+  /**
+   * @param id TokenDownloadType Enum Id
+   * @return String representation of the Enum Id input or null of non-existent
+   */
+  public static String getNameFromId(final int id) {
+    return idNameLookupMap.get(id);
+  }
 }

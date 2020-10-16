@@ -15,23 +15,25 @@ package org.ejbca.config;
 
 /**
  * Parses embedded or overridden database.properties for info.
- * 
- * @version $Id: DatabaseConfiguration.java 22117 2015-10-29 10:53:42Z mikekushner $
+ *
+ * @version $Id: DatabaseConfiguration.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public class DatabaseConfiguration {
 
-	public static final String CONFIG_DATASOURCENAME = "datasource.jndi-name";
-    public static final String CONFIG_DATABASENAME = "database.name";
+  public static final String CONFIG_DATASOURCENAME = "datasource.jndi-name";
+  public static final String CONFIG_DATABASENAME = "database.name";
 
-	public static String getFullDataSourceJndiName(){
-		return InternalConfiguration.getDataSourceJndiNamePrefix() + EjbcaConfigurationHolder.getString(CONFIG_DATASOURCENAME);
-	}
+  public static String getFullDataSourceJndiName() {
+    return InternalConfiguration.getDataSourceJndiNamePrefix()
+        + EjbcaConfigurationHolder.getString(CONFIG_DATASOURCENAME);
+  }
 
-    public static String getDatabaseName(){
-        final String ret = EjbcaConfigurationHolder.getString(CONFIG_DATABASENAME);
-        if (ret==null) {
-            return "hsqldb";
-        }
-        return ret;
+  public static String getDatabaseName() {
+    final String ret = EjbcaConfigurationHolder.getString(CONFIG_DATABASENAME);
+    if (ret == null) {
+      return "hsqldb";
     }
+    return ret;
+  }
 }

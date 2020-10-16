@@ -17,21 +17,22 @@ import org.cesecore.CesecoreException;
 /**
  * An exception thrown when an end entity is thought to exist but does not.
  *
- * @version $Id: NoSuchEndEntityException.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * @version $Id: NoSuchEndEntityException.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public class NoSuchEndEntityException extends CesecoreException {
 
-    private static final long serialVersionUID = -6700250563735120223L;
+  private static final long serialVersionUID = -6700250563735120223L;
 
-    public NoSuchEndEntityException() {
-        super();
-    }
-    
-    public NoSuchEndEntityException(String msg) {
-        super(msg);
-    }
-    
-    public NoSuchEndEntityException(String msg, Throwable e) {
-        super(msg, e);
-    }
+  public NoSuchEndEntityException() {
+    super();
+  }
+
+  public NoSuchEndEntityException(final String msg) {
+    super(msg);
+  }
+
+  public NoSuchEndEntityException(final String msg, final Throwable e) {
+    super(msg, e);
+  }
 }

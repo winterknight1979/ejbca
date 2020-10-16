@@ -14,31 +14,30 @@ package org.ejbca.core.model.approval;
 
 import java.io.Serializable;
 import java.util.Date;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
  * Holds an authentication token (admin) and a timestamp.
+ *
  * @version $Id: TimeAndAdmin.java 23883 2016-07-12 21:16:07Z samuellb $
  */
 public final class TimeAndAdmin implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    
-    private final Date date;
-    private final AuthenticationToken admin;
+  private static final long serialVersionUID = 1L;
 
-    public TimeAndAdmin(Date date, AuthenticationToken admin) {
-        this.date = date;
-        this.admin = admin;
-    }
+  private final Date date;
+  private final AuthenticationToken admin;
 
-    public Date getDate() {
-        return date;
-    }
+  public TimeAndAdmin(final Date date, final AuthenticationToken admin) {
+    this.date = date;
+    this.admin = admin;
+  }
 
-    public AuthenticationToken getAdmin() {
-        return admin;
-    }
+  public Date getDate() {
+    return date;
+  }
 
+  public AuthenticationToken getAdmin() {
+    return admin;
+  }
 }

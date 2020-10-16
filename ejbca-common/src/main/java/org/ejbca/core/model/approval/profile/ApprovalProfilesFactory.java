@@ -18,31 +18,33 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
- * Reads in the implementations of the ApprovalProfile interface. Mainly used by GUI and CLI to list the available types of approvals. 
- * 
- * @version $Id: ApprovalProfilesFactory.java 24946 2016-12-21 15:17:53Z mikekushner $
+ * Reads in the implementations of the ApprovalProfile interface. Mainly used by
+ * GUI and CLI to list the available types of approvals.
  *
+ * @version $Id: ApprovalProfilesFactory.java 24946 2016-12-21 15:17:53Z
+ *     mikekushner $
  */
 public enum ApprovalProfilesFactory {
-    INSTANCE;
+  INSTANCE;
 
-    private Map<String, ApprovalProfile> identifierToImplementationMap = new HashMap<>();
+  private final Map<String, ApprovalProfile> identifierToImplementationMap =
+      new HashMap<>();
 
-    private ApprovalProfilesFactory() {
-        ServiceLoader<ApprovalProfile> svcloader = ServiceLoader.load(ApprovalProfile.class);
-        for(ApprovalProfile type : svcloader) {
-            type.initialize();
-            identifierToImplementationMap.put(type.getApprovalProfileTypeIdentifier(), type);
-        }
+  private ApprovalProfilesFactory() {
+    ServiceLoader<ApprovalProfile> svcloader =
+        ServiceLoader.load(ApprovalProfile.class);
+    for (ApprovalProfile type : svcloader) {
+      type.initialize();
+      identifierToImplementationMap.put(
+          type.getApprovalProfileTypeIdentifier(), type);
     }
-    
-    public Collection<ApprovalProfile> getAllImplementations() {
-        return identifierToImplementationMap.values();
-    }
-    
-    public ApprovalProfile getArcheType(String identifier) {
-        return identifierToImplementationMap.get(identifier).clone();
-    }
-    
-   
+  }
+
+  public Collection<ApprovalProfile> getAllImplementations() {
+    return identifierToImplementationMap.values();
+  }
+
+  public ApprovalProfile getArcheType(final String identifier) {
+    return identifierToImplementationMap.get(identifier).clone();
+  }
 }

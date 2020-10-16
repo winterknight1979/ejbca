@@ -10,59 +10,75 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 package org.ejbca.core.model.ca.caadmin.extendedcaservices;
 
 import java.io.Serializable;
 import java.security.cert.Certificate;
 import java.util.List;
-
 import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
 
 /**
- * Class used mostly when creating service. Also used when info about the services 
- * is needed
- * 
+ * Class used mostly when creating service. Also used when info about the
+ * services is needed
+ *
  * @version $Id: CmsCAServiceInfo.java 19901 2014-09-30 14:29:38Z anatom $
  */
-public class CmsCAServiceInfo extends BaseSigningCAServiceInfo implements Serializable {    
-       
-    private static final long serialVersionUID = 7556251008892332034L;
+public class CmsCAServiceInfo extends BaseSigningCAServiceInfo
+    implements Serializable {
 
-    /** Used when creating new service. 
-     * @param status Status
-     * @param subjectdn DN
-     * @param subjectaltname Name 
-     * @param keyspec Spec
-     * @param keyalgorithm Algo */
-    public CmsCAServiceInfo(int status, String subjectdn, String subjectaltname, String keyspec,  String keyalgorithm) {
-        super(status, subjectdn, subjectaltname, keyspec, keyalgorithm);                       	
-    }
-    
-	/** Used when returning information from service. 
-	 * @param status Status
-     * @param subjectdn DN
-     * @param subjectaltname Name 
-     * @param keyspec Spec
-     * @param keyalgorithm Algo
-	 * @param certchain Certs
-	 * */
-	public CmsCAServiceInfo(int status, String subjectdn, String subjectaltname, String keyspec, String keyalgorithm, List<Certificate> certchain) {
-		super(status, subjectdn, subjectaltname, keyspec, keyalgorithm, certchain);                       	
-	}    
-    
-    /* Used when updating existing services, only status is used. */
-    public CmsCAServiceInfo(int status, boolean renew){
-      super(status, renew);	
-    }
+  private static final long serialVersionUID = 7556251008892332034L;
 
-	@Override
-	public String getImplClass() {
-		return CmsCAService.class.getName();
-	}
+  /**
+   * Used when creating new service.
+   *
+   * @param status Status
+   * @param subjectdn DN
+   * @param subjectaltname Name
+   * @param keyspec Spec
+   * @param keyalgorithm Algo
+   */
+  public CmsCAServiceInfo(
+      final int status,
+      final String subjectdn,
+      final String subjectaltname,
+      final String keyspec,
+      final String keyalgorithm) {
+    super(status, subjectdn, subjectaltname, keyspec, keyalgorithm);
+  }
 
-	@Override
-	public int getType() {
-		return ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE;
-	}
+  /**
+   * Used when returning information from service.
+   *
+   * @param status Status
+   * @param subjectdn DN
+   * @param subjectaltname Name
+   * @param keyspec Spec
+   * @param keyalgorithm Algo
+   * @param certchain Certs
+   */
+  public CmsCAServiceInfo(
+      final int status,
+      final String subjectdn,
+      final String subjectaltname,
+      final String keyspec,
+      final String keyalgorithm,
+      final List<Certificate> certchain) {
+    super(status, subjectdn, subjectaltname, keyspec, keyalgorithm, certchain);
+  }
+
+  /* Used when updating existing services, only status is used. */
+  public CmsCAServiceInfo(final int status, final boolean renew) {
+    super(status, renew);
+  }
+
+  @Override
+  public String getImplClass() {
+    return CmsCAService.class.getName();
+  }
+
+  @Override
+  public int getType() {
+    return ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE;
+  }
 }

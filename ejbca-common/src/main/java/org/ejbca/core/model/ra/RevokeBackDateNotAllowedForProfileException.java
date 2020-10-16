@@ -14,21 +14,22 @@
 package org.ejbca.core.model.ra;
 
 import javax.xml.ws.WebFault;
-
 import org.cesecore.ErrorCode;
 import org.ejbca.core.EjbcaException;
 
 /**
  * The certificate profile is not allowing revocation back date.
- * @version $Id: RevokeBackDateNotAllowedForProfileException.java 22117 2015-10-29 10:53:42Z mikekushner $
  *
+ * @version $Id: RevokeBackDateNotAllowedForProfileException.java 22117
+ *     2015-10-29 10:53:42Z mikekushner $
  */
 @WebFault
-public class RevokeBackDateNotAllowedForProfileException extends EjbcaException {
+public class RevokeBackDateNotAllowedForProfileException
+    extends EjbcaException {
 
-	private static final long serialVersionUID = -707975049447839896L;
+  private static final long serialVersionUID = -707975049447839896L;
 
-	public RevokeBackDateNotAllowedForProfileException(String m) {
-		super(ErrorCode.REVOKE_BACKDATE_NOT_ALLOWED, m);
-	}
+  public RevokeBackDateNotAllowedForProfileException(final String m) {
+    super(ErrorCode.REVOKE_BACKDATE_NOT_ALLOWED, m);
+  }
 }

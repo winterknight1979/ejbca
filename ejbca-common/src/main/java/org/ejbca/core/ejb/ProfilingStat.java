@@ -16,29 +16,49 @@ import java.io.Serializable;
 
 /**
  * Aggregated statistics about an EJB method invocation.
- * 
+ *
  * @version $Id: ProfilingStat.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
 public class ProfilingStat implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
 
-    private final String fullmethodName;
-    private final long duration;
-    private final long invocations;
-    private final long average;
-    
-    public ProfilingStat(final String fullmethodName, final long duration, final long invocations) {
-        this.fullmethodName = fullmethodName;
-        this.duration = duration;
-        this.invocations = invocations;
-        this.average = duration/invocations;
-    }
+  private static final long serialVersionUID = 1L;
 
-    public String getFullmethodName() { return fullmethodName; }
-    public long getDurationMicroSeconds() { return duration; }
-    public long getDurationMilliSeconds() { return duration/1000; }
-    public long getInvocations() { return invocations; }
-    public long getAverageMicroSeconds() { return average; }
-    public long getAverageMilliSeconds() { return average/1000; }
+  private final String fullmethodName;
+  private final long duration;
+  private final long invocations;
+  private final long average;
+
+  public ProfilingStat(
+      final String fullmethodName,
+      final long duration,
+      final long invocations) {
+    this.fullmethodName = fullmethodName;
+    this.duration = duration;
+    this.invocations = invocations;
+    this.average = duration / invocations;
+  }
+
+  public String getFullmethodName() {
+    return fullmethodName;
+  }
+
+  public long getDurationMicroSeconds() {
+    return duration;
+  }
+
+  public long getDurationMilliSeconds() {
+    return duration / 1000;
+  }
+
+  public long getInvocations() {
+    return invocations;
+  }
+
+  public long getAverageMicroSeconds() {
+    return average;
+  }
+
+  public long getAverageMilliSeconds() {
+    return average / 1000;
+  }
 }

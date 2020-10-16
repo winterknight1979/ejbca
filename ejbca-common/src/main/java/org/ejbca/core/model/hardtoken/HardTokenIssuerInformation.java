@@ -22,60 +22,66 @@ package org.ejbca.core.model.hardtoken;
 import java.io.Serializable;
 
 /**
- * This is a value class containing the data relating to a hard token issuer sent between server and clients.
- * 
- * @version $Id: HardTokenIssuerInformation.java 22117 2015-10-29 10:53:42Z mikekushner $
+ * This is a value class containing the data relating to a hard token issuer
+ * sent between server and clients.
+ *
+ * @version $Id: HardTokenIssuerInformation.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
-public class HardTokenIssuerInformation implements Serializable, Comparable<HardTokenIssuerInformation> {
+public class HardTokenIssuerInformation
+    implements Serializable, Comparable<HardTokenIssuerInformation> {
 
-    private static final long serialVersionUID = 4736415526364602434L;
+  private static final long serialVersionUID = 4736415526364602434L;
 
-    private int hardtokenissuerid;
-    private String alias;
-    private int roleDataId;
-    private HardTokenIssuer hardtokenissuer;
+  private int hardtokenissuerid;
+  private String alias;
+  private int roleDataId;
+  private HardTokenIssuer hardtokenissuer;
 
-    public HardTokenIssuerInformation(int hardtokenissuerid, String alias, int roleDataId, HardTokenIssuer hardtokenissuer) {
-        this.hardtokenissuerid = hardtokenissuerid;
-        this.alias = alias;
-        this.roleDataId = roleDataId;
-        this.hardtokenissuer = hardtokenissuer;
-    }
+  public HardTokenIssuerInformation(
+      final int hardtokenissuerid,
+      final String alias,
+      final int roleDataId,
+      final HardTokenIssuer hardtokenissuer) {
+    this.hardtokenissuerid = hardtokenissuerid;
+    this.alias = alias;
+    this.roleDataId = roleDataId;
+    this.hardtokenissuer = hardtokenissuer;
+  }
 
-    public int getHardTokenIssuerId() {
-        return this.hardtokenissuerid;
-    }
+  public int getHardTokenIssuerId() {
+    return this.hardtokenissuerid;
+  }
 
-    public void setHardTokenIssuerId(int hardtokenissuerid) {
-        this.hardtokenissuerid = hardtokenissuerid;
-    }
+  public void setHardTokenIssuerId(final int hardtokenissuerid) {
+    this.hardtokenissuerid = hardtokenissuerid;
+  }
 
-    public String getAlias() {
-        return this.alias;
-    }
+  public String getAlias() {
+    return this.alias;
+  }
 
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
+  public void setAlias(final String alias) {
+    this.alias = alias;
+  }
 
-    public int getRoleDataId() {
-        return this.roleDataId;
-    }
+  public int getRoleDataId() {
+    return this.roleDataId;
+  }
 
-    public void roleDataId(int roleDataId) {
-        this.roleDataId = roleDataId;
-    }
+  public void roleDataId(final int roleDataId) {
+    this.roleDataId = roleDataId;
+  }
 
-    public HardTokenIssuer getHardTokenIssuer() {
-        return this.hardtokenissuer;
-    }
+  public HardTokenIssuer getHardTokenIssuer() {
+    return this.hardtokenissuer;
+  }
 
-    public void setHardTokenIssuer(HardTokenIssuer hardtokenissuer) {
-        this.hardtokenissuer = hardtokenissuer;
-    }
+  public void setHardTokenIssuer(final HardTokenIssuer hardtokenissuer) {
+    this.hardtokenissuer = hardtokenissuer;
+  }
 
-    public int compareTo(HardTokenIssuerInformation obj) {
-        return this.alias.compareTo(obj.getAlias());
-    }
-
+  public int compareTo(final HardTokenIssuerInformation obj) {
+    return this.alias.compareTo(obj.getAlias());
+  }
 }

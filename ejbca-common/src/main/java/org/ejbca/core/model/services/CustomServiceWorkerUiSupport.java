@@ -15,24 +15,30 @@ package org.ejbca.core.model.services;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.cesecore.authentication.tokens.AuthenticationToken;
 
 /**
  * Interface that a custom service worker can implement to help UI rendering.
- * 
- * @version $Id: CustomServiceWorkerUiSupport.java 22117 2015-10-29 10:53:42Z mikekushner $
+ *
+ * @version $Id: CustomServiceWorkerUiSupport.java 22117 2015-10-29 10:53:42Z
+ *     mikekushner $
  */
 public interface CustomServiceWorkerUiSupport {
 
-    /**
-     * List of configurable properties that the custom service worker supports.
-     * Note that the implementing class can only rely on the provided arguments for generating the list.
-     * 
-     * @param authenticationToken The admin that is configuring the properties.
-     * @param currentProperties The current stored version of the properties for this worker.
-     * @param languageResource A language resource where translatable keys can be looked up.
-     * @return A list of properties in a format an UI can render nicely.
-     */
-    List<CustomServiceWorkerProperty> getCustomUiPropertyList(AuthenticationToken authenticationToken, Properties currentProperties, Map<String, String> languageResource);
+  /**
+   * List of configurable properties that the custom service worker supports.
+   * Note that the implementing class can only rely on the provided arguments
+   * for generating the list.
+   *
+   * @param authenticationToken The admin that is configuring the properties.
+   * @param currentProperties The current stored version of the properties for
+   *     this worker.
+   * @param languageResource A language resource where translatable keys can be
+   *     looked up.
+   * @return A list of properties in a format an UI can render nicely.
+   */
+  List<CustomServiceWorkerProperty> getCustomUiPropertyList(
+      AuthenticationToken authenticationToken,
+      Properties currentProperties,
+      Map<String, String> languageResource);
 }

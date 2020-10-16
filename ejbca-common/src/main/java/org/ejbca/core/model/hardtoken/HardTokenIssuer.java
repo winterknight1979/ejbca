@@ -10,7 +10,7 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
- 
+
 /*
  * HardTokenIssuer.java
  *
@@ -22,78 +22,78 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import org.cesecore.internal.UpgradeableDataHashMap;
 
 /**
- * HardTokenIssuer V3 is a class representing the data saved for each HardTokenIssuer.
- * it isn't back compatible with the old version.
+ * HardTokenIssuer V3 is a class representing the data saved for each
+ * HardTokenIssuer. it isn't back compatible with the old version.
  *
- * @author  TomSelleck
+ * @author TomSelleck
  * @version $Id: HardTokenIssuer.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public  class HardTokenIssuer extends UpgradeableDataHashMap implements Serializable, Cloneable {
+public class HardTokenIssuer extends UpgradeableDataHashMap
+    implements Serializable, Cloneable {
 
-    private static final long serialVersionUID = -1794111124380177196L;
+  private static final long serialVersionUID = -1794111124380177196L;
 
-    // Default Values
-    public static final float LATEST_VERSION = 1;
+  // Default Values
+  public static final float LATEST_VERSION = 1;
 
-    // Protected Constants, must be overloaded by all deriving classes.   
-    protected static final String AVAILABLEHARDTOKENSPROFILES  = "availablehardtokensprofiles"; 
-	protected static final String DESCRIPTION                  = "description"; 
-    
-    public HardTokenIssuer(){
-      data.put(AVAILABLEHARDTOKENSPROFILES,new ArrayList<Integer>());
-      data.put(DESCRIPTION,"");         
-    }
-    
-    // Public Methods
-    
-    // Availablehardtokens defines which hard tokens the issuer is able to issue. 
-    @SuppressWarnings("unchecked")
-    public ArrayList<Integer> getAvailableHardTokenProfiles(){
-      return (ArrayList<Integer>) data.get(AVAILABLEHARDTOKENSPROFILES); 
-    }
-    
-    public void setAvailableHardTokenProfiles(ArrayList<Integer> availablehardtokens){
-      data.put(AVAILABLEHARDTOKENSPROFILES,availablehardtokens); 
-    }    
-    
-    public String getDescription(){
-      return  (String) data.get(DESCRIPTION);	
+  // Protected Constants, must be overloaded by all deriving classes.
+  protected static final String AVAILABLEHARDTOKENSPROFILES =
+      "availablehardtokensprofiles";
+  protected static final String DESCRIPTION = "description";
+
+  public HardTokenIssuer() {
+    data.put(AVAILABLEHARDTOKENSPROFILES, new ArrayList<Integer>());
+    data.put(DESCRIPTION, "");
+  }
+
+  // Public Methods
+
+  // Availablehardtokens defines which hard tokens the issuer is able to issue.
+  @SuppressWarnings("unchecked")
+  public ArrayList<Integer> getAvailableHardTokenProfiles() {
+    return (ArrayList<Integer>) data.get(AVAILABLEHARDTOKENSPROFILES);
+  }
+
+  public void setAvailableHardTokenProfiles(
+      final ArrayList<Integer> availablehardtokens) {
+    data.put(AVAILABLEHARDTOKENSPROFILES, availablehardtokens);
+  }
+
+  public String getDescription() {
+    return (String) data.get(DESCRIPTION);
+  }
+
+  public void setDescription(final String description) {
+    data.put(DESCRIPTION, description);
+  }
+
+  public void setField(final String field, final Object value) {
+    data.put(field, value);
+  }
+
+  /** Implementation of UpgradableDataHashMap function getLatestVersion */
+  public float getLatestVersion() {
+    return LATEST_VERSION;
+  }
+
+  /** Implementation of UpgradableDataHashMap function upgrade. */
+  public void upgrade() {}
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public Object clone() throws CloneNotSupportedException {
+    HardTokenIssuer clone = new HardTokenIssuer();
+    HashMap clonedata = (HashMap) clone.saveData();
+
+    Iterator i = (data.keySet()).iterator();
+    while (i.hasNext()) {
+      Object key = i.next();
+      clonedata.put(key, data.get(key));
     }
 
-	public void setDescription(String description){
-	  data.put(DESCRIPTION, description);	
-	}    
-    
-    public void setField(String field, Object value){ 
-       data.put(field,value);   
-    }
-    
-    /** Implementation of UpgradableDataHashMap function getLatestVersion */
-    public float getLatestVersion(){
-       return LATEST_VERSION;
-    }
-
-    /** Implementation of UpgradableDataHashMap function upgrade. */
-    public void upgrade(){	
-    }
-    
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public Object clone() throws CloneNotSupportedException {
-      HardTokenIssuer clone = new HardTokenIssuer();
-      HashMap clonedata = (HashMap) clone.saveData();
-      
-      Iterator i = (data.keySet()).iterator();
-      while(i.hasNext()){
-        Object key = i.next();  
-        clonedata.put(key,data.get(key)); 
-      }
-      
-      clone.loadData(clonedata);
-      return clone;
-    }    
-
+    clone.loadData(clonedata);
+    return clone;
+  }
 }

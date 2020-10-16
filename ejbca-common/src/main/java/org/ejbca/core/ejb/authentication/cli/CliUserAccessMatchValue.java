@@ -14,51 +14,50 @@ package org.ejbca.core.ejb.authentication.cli;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
- * @version $Id: CliUserAccessMatchValue.java 25615 2017-03-24 18:44:19Z samuellb $
- *
+ * @version $Id: CliUserAccessMatchValue.java 25615 2017-03-24 18:44:19Z
+ *     samuellb $
  */
 public enum CliUserAccessMatchValue implements AccessMatchValue {
-    USERNAME(0);
+  USERNAME(0);
 
-    private final int numericValue;
+  private final int numericValue;
 
-    private CliUserAccessMatchValue(int numericValue) {
-        this.numericValue = numericValue;
-    }
+  private CliUserAccessMatchValue(final int numericValue) {
+    this.numericValue = numericValue;
+  }
 
-    @Override
-    public int getNumericValue() {
-        return numericValue;
-    }
+  @Override
+  public int getNumericValue() {
+    return numericValue;
+  }
 
-    @Override
-    public boolean isDefaultValue() {
-        return numericValue == USERNAME.numericValue;
-    }
+  @Override
+  public boolean isDefaultValue() {
+    return numericValue == USERNAME.numericValue;
+  }
 
-    @Override
-    public String getTokenType() {
-        return CliAuthenticationTokenMetaData.TOKEN_TYPE;
-    }
+  @Override
+  public String getTokenType() {
+    return CliAuthenticationTokenMetaData.TOKEN_TYPE;
+  }
 
-    @Override
-    public boolean isIssuedByCa() {
-        return false;
-    }
+  @Override
+  public boolean isIssuedByCa() {
+    return false;
+  }
 
-    @Override
-    public List<AccessMatchType> getAvailableAccessMatchTypes() {
-        // Always use case sensitive match for usernames
-        return Arrays.asList(AccessMatchType.TYPE_EQUALCASE);
-    }
+  @Override
+  public List<AccessMatchType> getAvailableAccessMatchTypes() {
+    // Always use case sensitive match for usernames
+    return Arrays.asList(AccessMatchType.TYPE_EQUALCASE);
+  }
 
-    @Override
-    public String normalizeMatchValue(final String value) {
-        return value != null ? value.trim() : null;
-    }
+  @Override
+  public String normalizeMatchValue(final String value) {
+    return value != null ? value.trim() : null;
+  }
 }

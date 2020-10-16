@@ -14,66 +14,65 @@ package org.ejbca.core.protocol.acme;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import org.cesecore.certificates.endentity.EndEntityInformation;
 import org.ejbca.core.protocol.acme.response.AcmeProblemResponse;
 
 /**
  * ACME Order object
- * 
+ *
  * @version $Id: AcmeOrder.java 29784 2018-08-30 08:20:30Z tarmo_r_helmes $
  */
 public interface AcmeOrder {
 
-    String getOrderId();
+  String getOrderId();
 
-    String getAccountId();
-    
-    String getFingerprint();
-    
-    void setFingerprint(String fingerprint);
-    
-    String getStatus();
-    
-    void setStatus(String status);
+  String getAccountId();
 
-    String getFinalize();
+  String getFingerprint();
 
-    void setFinalize(String finalize);
+  void setFingerprint(String fingerprint);
 
-    List<AcmeIdentifier> getIdentifiers();
+  String getStatus();
 
-    void setIdentifiers(List<AcmeIdentifier> identifiers);
+  void setStatus(String status);
 
-    long getNotBefore();
+  String getFinalize();
 
-    long getNotAfter();
+  void setFinalize(String finalize);
 
-    long getExpires();
+  List<AcmeIdentifier> getIdentifiers();
 
-    AcmeOrderStatus getAcmeOrderStatus();
+  void setIdentifiers(List<AcmeIdentifier> identifiers);
 
-    void setAcmeOrderStatus(AcmeOrderStatus acmeOrderStatus);
+  long getNotBefore();
 
-    String getCertificateId();
+  long getNotAfter();
 
-    void setCertificateId(String certificateId);
+  long getExpires();
 
-    AcmeProblemResponse getError();
+  AcmeOrderStatus getAcmeOrderStatus();
 
-    void setError(AcmeProblemResponse acmeProblemResponse);
+  void setAcmeOrderStatus(AcmeOrderStatus acmeOrderStatus);
 
-    void setEndEntityInformation(EndEntityInformation endEntityInformation);
+  String getCertificateId();
 
-    EndEntityInformation getEndEntityInformation();
+  void setCertificateId(String certificateId);
 
-    float getLatestVersion();
+  AcmeProblemResponse getError();
 
-    void upgrade();
-    
-    LinkedHashMap<Object, Object> getRawData();
+  void setError(AcmeProblemResponse acmeProblemResponse);
 
-    void setIsActive(boolean isActive);
+  void setEndEntityInformation(EndEntityInformation endEntityInformation);
 
-    boolean getIsActive();
+  EndEntityInformation getEndEntityInformation();
+
+  float getLatestVersion();
+
+  void upgrade();
+
+  LinkedHashMap<Object, Object> getRawData();
+
+  void setIsActive(boolean isActive);
+
+  boolean getIsActive();
 }

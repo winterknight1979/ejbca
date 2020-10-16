@@ -13,17 +13,22 @@
 package org.ejbca.core.protocol.acme;
 
 /**
- * @version $Id: AcmeAuthorizationStatus.java 29587 2018-08-07 15:25:52Z mikekushner $
- *
+ * @version $Id: AcmeAuthorizationStatus.java 29587 2018-08-07 15:25:52Z
+ *     mikekushner $
  */
 public enum AcmeAuthorizationStatus {
-    PENDING,
-    PROCESSING,
-    VALID,
-    INVALID,
-    REVOKED,
-    DEACTIVATED;
+  PENDING,
+  PROCESSING,
+  VALID,
+  INVALID,
+  REVOKED,
+  DEACTIVATED;
 
-    public String getJsonValue() { return this.name().toLowerCase(); }
-    public static AcmeAuthorizationStatus fromJsonValue(final String status) { return AcmeAuthorizationStatus.valueOf(status.toUpperCase()); }
+  public String getJsonValue() {
+    return this.name().toLowerCase();
+  }
+
+  public static AcmeAuthorizationStatus fromJsonValue(final String status) {
+    return AcmeAuthorizationStatus.valueOf(status.toUpperCase());
+  }
 }

@@ -13,36 +13,46 @@
 package org.ejbca.core.protocol.acme;
 
 import javax.ws.rs.core.Response.Status;
-
 import org.ejbca.core.protocol.acme.response.AcmeProblem;
 import org.ejbca.core.protocol.acme.response.AcmeProblemResponse;
 
 /**
  * Custom Exception for reporting problems from the ACME protocol.
- * 
+ *
  * @see AcmeProblemResponse
- * @version $Id: AcmeProblemException.java 29587 2018-08-07 15:25:52Z mikekushner $
+ * @version $Id: AcmeProblemException.java 29587 2018-08-07 15:25:52Z
+ *     mikekushner $
  */
 public class AcmeProblemException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final int httpStatusCode;
-    private final AcmeProblemResponse acmeProblemResponse;
+  private final int httpStatusCode;
+  private final AcmeProblemResponse acmeProblemResponse;
 
-    public AcmeProblemException(final Status httpStatus, final AcmeProblem acmeProblem, final String acmeProblemDetails) {
-        this(httpStatus, new AcmeProblemResponse(acmeProblem, acmeProblemDetails));
-    }
+  public AcmeProblemException(
+      final Status httpStatus,
+      final AcmeProblem acmeProblem,
+      final String acmeProblemDetails) {
+    this(httpStatus, new AcmeProblemResponse(acmeProblem, acmeProblemDetails));
+  }
 
-    public AcmeProblemException(final Status httpStatus, final AcmeProblem acmeProblem) {
-        this(httpStatus, new AcmeProblemResponse(acmeProblem));
-    }
+  public AcmeProblemException(
+      final Status httpStatus, final AcmeProblem acmeProblem) {
+    this(httpStatus, new AcmeProblemResponse(acmeProblem));
+  }
 
-    public AcmeProblemException(final Status httpStatus, final AcmeProblemResponse acmeProblemResponse) {
-        this.httpStatusCode = httpStatus.getStatusCode();
-        this.acmeProblemResponse = acmeProblemResponse;
-    }
+  public AcmeProblemException(
+      final Status httpStatus, final AcmeProblemResponse acmeProblemResponse) {
+    this.httpStatusCode = httpStatus.getStatusCode();
+    this.acmeProblemResponse = acmeProblemResponse;
+  }
 
-    public int getHttpStatusCode() { return httpStatusCode; }
-    public AcmeProblemResponse getAcmeProblemResponse() { return acmeProblemResponse; }
+  public int getHttpStatusCode() {
+    return httpStatusCode;
+  }
+
+  public AcmeProblemResponse getAcmeProblemResponse() {
+    return acmeProblemResponse;
+  }
 }

@@ -23,149 +23,168 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- *  This is a  class containing information about one log event in the database. Used mainly during database queries by the web interface.
+ * This is a class containing information about one log event in the database.
+ * Used mainly during database queries by the web interface.
  *
- * @author  TomSelleck
+ * @author TomSelleck
  * @version $Id: LogEntry.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public class LogEntry implements Serializable {
 
-    // Indicates the type of administrator.
-    /** An administrator authenticated with client certificate */
-    public static final int TYPE_CLIENTCERT_USER = 0;
-    /** A user of the public web pages */
-    public static final int TYPE_PUBLIC_WEB_USER = 1;
-    /** An internal RA function, such as cmd line or CMP */
-    public static final int TYPE_RA_USER = 2;
-    /** An internal CA admin function, such as cms line */
-    public static final int TYPE_CACOMMANDLINE_USER = 3;
-    /** Batch generation tool */
-    public static final int TYPE_BATCHCOMMANDLINE_USER = 4;
-    /** Internal user in EJBCA, such as automatic job */
-    public static final int TYPE_INTERNALUSER = 5;
+  // Indicates the type of administrator.
+  /** An administrator authenticated with client certificate */
+  public static final int TYPE_CLIENTCERT_USER = 0;
+  /** A user of the public web pages */
+  public static final int TYPE_PUBLIC_WEB_USER = 1;
+  /** An internal RA function, such as cmd line or CMP */
+  public static final int TYPE_RA_USER = 2;
+  /** An internal CA admin function, such as cms line */
+  public static final int TYPE_CACOMMANDLINE_USER = 3;
+  /** Batch generation tool */
+  public static final int TYPE_BATCHCOMMANDLINE_USER = 4;
+  /** Internal user in EJBCA, such as automatic job */
+  public static final int TYPE_INTERNALUSER = 5;
 
-    private int id;
-    /** One of LogEntry.TYPE_ constants */
-    private int admintype;
-    private String admindata;
-    private int caid;
-    private int module;
-    private Date time;
-    private String username;
-    private String certificatesnr;
-    private int event;
-    private String comment;
+  private final int id;
+  /** One of LogEntry.TYPE_ constants */
+  private final int admintype;
 
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     *
-     * Maintainers must change this value if and only if the new version
-     * of this class is not compatible with old versions. See Sun docs
-     * for <a href=http://java.sun.com/products/jdk/1.1/docs/guide
-     * /serialization/spec/version.doc.html> details. </a>
-     *
-     */
-	private static final long serialVersionUID = -1L;
+  private final String admindata;
+  private final int caid;
+  private final int module;
+  private final Date time;
+  private final String username;
+  private final String certificatesnr;
+  private final int event;
+  private final String comment;
 
+  /**
+   * Determines if a de-serialized file is compatible with this class.
+   *
+   * <p>Maintainers must change this value if and only if the new version of
+   * this class is not compatible with old versions. See Sun docs for <a
+   * href=http://java.sun.com/products/jdk/1.1/docs/guide
+   * /serialization/spec/version.doc.html> details. </a>
+   */
+  private static final long serialVersionUID = -1L;
 
-    /**
-     * Function used by EJBCA to log information.
-     * @param id ID
-     *
-     * @param admintype is pricipally the type of data stored in the admindata field, should be one of org.ejbca.core.model.log.Admin.TYPE_ constants.
-     * @param admindata is the data identifying the administrator, should be certificate snr or ip-address when no certificate could be retrieved.
-     * @param caid CA ID
-     * @param module indicates from which module the event was logged. i.e one of the constans LogConstants.MODULE_RA, LogConstants.MODULE_CA ....
-     * @param time the time the event occured.
-     * @param username the name of the user involved or null if no user is involved.
-     * @param certificatesnr the certificate involved in the event or null if no certificate is involved.
-     * @param event id of the event, should be one of the org.ejbca.core.model.log.LogConstants.EVENT_ constants.
-     * @param comment comment of the event.
-     */
+  /**
+   * Function used by EJBCA to log information.
+   *
+   * @param id ID
+   * @param admintype is pricipally the type of data stored in the admindata
+   *     field, should be one of org.ejbca.core.model.log.Admin.TYPE_ constants.
+   * @param admindata is the data identifying the administrator, should be
+   *     certificate snr or ip-address when no certificate could be retrieved.
+   * @param caid CA ID
+   * @param module indicates from which module the event was logged. i.e one of
+   *     the constans LogConstants.MODULE_RA, LogConstants.MODULE_CA ....
+   * @param time the time the event occured.
+   * @param username the name of the user involved or null if no user is
+   *     involved.
+   * @param certificatesnr the certificate involved in the event or null if no
+   *     certificate is involved.
+   * @param event id of the event, should be one of the
+   *     org.ejbca.core.model.log.LogConstants.EVENT_ constants.
+   * @param comment comment of the event.
+   */
+  public LogEntry(
+      final int id,
+      final int admintype,
+      final String admindata,
+      final int caid,
+      final int module,
+      final Date time,
+      final String username,
+      final String certificatesnr,
+      final int event,
+      final String comment) {
+    this.id = id;
+    this.admintype = admintype;
+    this.admindata = admindata;
+    this.caid = caid;
+    this.module = module;
+    this.time = time;
+    this.username = username;
+    this.certificatesnr = certificatesnr;
+    this.event = event;
+    this.comment = comment;
+  }
 
-    public LogEntry(int id, int admintype, String admindata, int caid, int module, Date time, String username, String certificatesnr, int event, String comment) {
-        this.id = id;
-    	this.admintype = admintype;
-        this.admindata = admindata;
-        this.caid = caid;
-        this.module = module;
-        this.time = time;
-        this.username = username;
-        this.certificatesnr = certificatesnr;
-        this.event = event;
-        this.comment = comment;
+  // Public methods
+
+  /**
+   * Method used to map between event id and a string representation of event
+   *
+   * @return a string representation of the event.
+   */
+  public String getEventName() {
+    if (this.event < LogConstants.EVENT_ERROR_BOUNDRARY) {
+      return LogConstants.EVENTNAMES_INFO[this.event];
     }
-
-    // Public methods
-
-    /**
-     * Method used to map between event id and a string representation of event
-     *
-     * @return a string representation of the event.
-     */
-    public String getEventName() {
-        if (this.event < LogConstants.EVENT_ERROR_BOUNDRARY) {
-            return LogConstants.EVENTNAMES_INFO[this.event];
-        }
-        if (this.event < LogConstants.EVENT_SYSTEM_BOUNDRARY) {
-            return LogConstants.EVENTNAMES_ERROR[this.event - LogConstants.EVENT_ERROR_BOUNDRARY];
-        }
-        return LogConstants.EVENTNAMES_SYSTEM[this.event - LogConstants.EVENT_SYSTEM_BOUNDRARY];
+    if (this.event < LogConstants.EVENT_SYSTEM_BOUNDRARY) {
+      return LogConstants.EVENTNAMES_ERROR[
+          this.event - LogConstants.EVENT_ERROR_BOUNDRARY];
     }
+    return LogConstants.EVENTNAMES_SYSTEM[
+        this.event - LogConstants.EVENT_SYSTEM_BOUNDRARY];
+  }
 
-    /**
-     * Method used to map between event id and a string representation of event
-     * @param eventId ID
-     *
-     * @return a string representation of the event.
-     */
-    static public String getEventName(int eventId) {
-        if (eventId < LogConstants.EVENT_ERROR_BOUNDRARY) {
-            return LogConstants.EVENTNAMES_INFO[eventId];
-        }
-        if (eventId < LogConstants.EVENT_SYSTEM_BOUNDRARY) {
-            return LogConstants.EVENTNAMES_ERROR[eventId - LogConstants.EVENT_ERROR_BOUNDRARY];
-        }
-        return LogConstants.EVENTNAMES_SYSTEM[eventId - LogConstants.EVENT_SYSTEM_BOUNDRARY];
+  /**
+   * Method used to map between event id and a string representation of event
+   *
+   * @param eventId ID
+   * @return a string representation of the event.
+   */
+  public static String getEventName(final int eventId) {
+    if (eventId < LogConstants.EVENT_ERROR_BOUNDRARY) {
+      return LogConstants.EVENTNAMES_INFO[eventId];
     }
-
-	public int getId() {
-		return this.id;
-	}
-
-    public int getAdminType() {
-        return this.admintype;
+    if (eventId < LogConstants.EVENT_SYSTEM_BOUNDRARY) {
+      return LogConstants.EVENTNAMES_ERROR[
+          eventId - LogConstants.EVENT_ERROR_BOUNDRARY];
     }
+    return LogConstants.EVENTNAMES_SYSTEM[
+        eventId - LogConstants.EVENT_SYSTEM_BOUNDRARY];
+  }
 
-    public String getAdminData() {
-        return this.admindata;
-    }
+  public int getId() {
+    return this.id;
+  }
 
-    public int getCAId() {
-        return this.caid;
-    }
+  public int getAdminType() {
+    return this.admintype;
+  }
 
-    public int getModule() {
-        return this.module;
-    }
+  public String getAdminData() {
+    return this.admindata;
+  }
 
-    public Date getTime() {
-        return this.time;
-    }
+  public int getCAId() {
+    return this.caid;
+  }
 
-    public String getUsername() {
-        return this.username;
-    }
+  public int getModule() {
+    return this.module;
+  }
 
-    public String getCertificateSNR() {
-        return this.certificatesnr;
-    }
+  public Date getTime() {
+    return this.time;
+  }
 
-    public int getEvent() {
-        return this.event;
-    }
+  public String getUsername() {
+    return this.username;
+  }
 
-    public String getComment() {
-        return this.comment;
-    }
+  public String getCertificateSNR() {
+    return this.certificatesnr;
+  }
+
+  public int getEvent() {
+    return this.event;
+  }
+
+  public String getComment() {
+    return this.comment;
+  }
 }
