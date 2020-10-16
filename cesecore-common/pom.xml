@@ -87,7 +87,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Logging TODO migrate fully to v2 and reinstate the Safer appender-->
+		<!-- Logging TODO migrate fully to v2 and reinstate the Safer appendergit-->
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>

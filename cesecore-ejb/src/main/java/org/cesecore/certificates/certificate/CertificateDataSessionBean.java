@@ -479,11 +479,10 @@ public class CertificateDataSessionBean extends BaseCertificateDataSessionBean
     final TypedQuery<CertificateData> query =
         entityManager.createQuery(
             "SELECT a FROM CertificateData a WHERE a.issuerDN=:issuerDN AND"
-                + " a.serialNumber IN ("
-                + sb.toString()
-                + ")",
+                + " a.serialNumber IN (:sb)",
             CertificateData.class);
     query.setParameter("issuerDN", issuerDN);
+    query.setParameter("sb", sb.toString());
     return getCertificateList(query.getResultList());
   }
 

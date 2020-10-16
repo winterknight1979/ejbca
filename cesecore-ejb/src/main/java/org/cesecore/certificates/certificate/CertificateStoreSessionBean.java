@@ -2331,19 +2331,15 @@ public class CertificateStoreSessionBean
         CertTools.getFingerprintAsString(x509Certificate2);
     entityManager
         .createNativeQuery(
-            "DELETE FROM Base64CertData WHERE fingerprint IN ('"
-                + fingerprint1
-                + "', '"
-                + fingerprint2
-                + "')")
+            "DELETE FROM Base64CertData WHERE fingerprint IN (?1, ?2)")
+        .setParameter(1, fingerprint1)
+        .setParameter(2, fingerprint2)
         .executeUpdate();
     entityManager
         .createNativeQuery(
-            "DELETE FROM CertificateData WHERE fingerprint IN ('"
-                + fingerprint1
-                + "', '"
-                + fingerprint2
-                + "')")
+            "DELETE FROM CertificateData WHERE fingerprint IN (?1, ?2)")
+           .setParameter(1, fingerprint1)
+           .setParameter(2, fingerprint2)
         .executeUpdate();
   }
 
