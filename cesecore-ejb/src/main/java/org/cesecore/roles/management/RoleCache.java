@@ -15,7 +15,6 @@ package org.cesecore.roles.management;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.internal.CommonCache;
 import org.cesecore.internal.CommonCacheBase;
@@ -23,80 +22,90 @@ import org.cesecore.roles.Role;
 
 /**
  * Cache of the role objects.
- * 
- * The cached name is in the form "nameSpace:roleName".
- * 
+ *
+ * <p>The cached name is in the form "nameSpace:roleName".
+ *
  * @version $Id: RoleCache.java 28332 2018-02-20 14:40:52Z anatom $
  */
 public enum RoleCache implements CommonCache<Role> {
+  /** Singleton. */
     INSTANCE;
 
-    private final CommonCacheBase<Role> cache = new CommonCacheBase<Role>() {
+    /** Cache. */
+  private final CommonCacheBase<Role> cache =
+      new CommonCacheBase<Role>() {
         @Override
         protected long getCacheTime() {
-            return CesecoreConfiguration.getCacheAuthorizationTime();
+          return CesecoreConfiguration.getCacheAuthorizationTime();
         }
+
         @Override
         protected long getMaxCacheLifeTime() {
-            // We never purge Role unless a database select discovers a missing object.
-            return 0;
-        };
-    };
-
-    @Override
-    public Role getEntry(final Integer id) {
-        if (id == null) {
-            return null;
+          // We never purge Role unless a database select discovers a missing
+          // object.
+          return 0;
         }
-        return cache.getEntry(id);
-    }
 
-    @Override
-    public Role getEntry(final int id) {
-        return cache.getEntry(id);
-    }
+      };
 
-    @Override
-    public boolean shouldCheckForUpdates(final int id) {
-        return cache.shouldCheckForUpdates(id);
+  @Override
+  public Role getEntry(final Integer id) {
+    if (id == null) {
+      return null;
     }
-    
-    @Override
-    public void updateWith(final int id, final int digest, final String name, final Role object) {
-        cache.updateWith(id, digest, name, object);
-    }
+    return cache.getEntry(id);
+  }
 
-    @Override
-    public void removeEntry(final int id) {
-        cache.removeEntry(id);
-    }
-    
-    @Override
-    public String getName(int id) {
-        return cache.getName(id);
-    }
+  @Override
+  public Role getEntry(final int id) {
+    return cache.getEntry(id);
+  }
 
-    @Override
-    public Map<String,Integer> getNameToIdMap() {
-        return cache.getNameToIdMap();
-    }
-    
-    @Override
-    public void flush() {
-        cache.flush();
-    }
-    
-    @Override
-    public void replaceCacheWith(List<Integer> keys) {
-        cache.replaceCacheWith(keys);
-    }
+  @Override
+  public boolean shouldCheckForUpdates(final int id) {
+    return cache.shouldCheckForUpdates(id);
+  }
 
-    public Set<Role> getAllValues() {
-       return cache.getAllEntries();
-    }
-    @Override
-    public boolean willUpdate(int id, int digest) {
-        return cache.willUpdate(id, digest);
-    }
+  @Override
+  public void updateWith(
+      final int id, final int digest, final String name, final Role object) {
+    cache.updateWith(id, digest, name, object);
+  }
 
+  @Override
+  public void removeEntry(final int id) {
+    cache.removeEntry(id);
+  }
+
+  @Override
+  public String getName(final int id) {
+    return cache.getName(id);
+  }
+
+  @Override
+  public Map<String, Integer> getNameToIdMap() {
+    return cache.getNameToIdMap();
+  }
+
+  @Override
+  public void flush() {
+    cache.flush();
+  }
+
+  @Override
+  public void replaceCacheWith(final List<Integer> keys) {
+    cache.replaceCacheWith(keys);
+  }
+
+  /**
+   * @return Roles
+   */
+  public Set<Role> getAllValues() {
+    return cache.getAllEntries();
+  }
+
+  @Override
+  public boolean willUpdate(final int id, final int digest) {
+    return cache.willUpdate(id, digest);
+  }
 }

@@ -17,7 +17,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.Callable;
-
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
@@ -30,51 +29,84 @@ import org.cesecore.certificates.ocsp.exception.OcspFailureException;
 import org.cesecore.util.CertTools;
 
 /**
- * This internal class exists for the sole purpose of catching deadlocks in the HSM hardware.
- * 
+ * This internal class exists for the sole purpose of catching deadlocks in the
+ * HSM hardware.
+ *
  * @version $Id: HsmResponseThread.java 26780 2017-10-10 09:37:56Z mikekushner $
  */
 public class HsmResponseThread implements Callable<BasicOCSPResp> {
 
-    public static final long HSM_TIMEOUT_SECONDS = 30;
+    /** Timeout. */
+  public static final long HSM_TIMEOUT_SECONDS = 30;
 
-    private final BasicOCSPRespBuilder basicRes;
-    private final String signingAlgorithm;
-    private final PrivateKey signerKey;
-    private final JcaX509CertificateHolder[] chain;
-    private final String provider;
-    private final Date producedAt;
+  /** Res. */
+  private final BasicOCSPRespBuilder basicRes;
+  /** Algo. */
+  private final String signingAlgorithm;
+  /** Key. */
+  private final PrivateKey signerKey;
+  /** Chain. */
+  private final JcaX509CertificateHolder[] chain;
+  /** Provider. */
+  private final String provider;
+  /** Date. */
+  private final Date producedAt;
 
-    public HsmResponseThread(final BasicOCSPRespBuilder basicRes, final String signingAlgorithm, final PrivateKey signerKey,
-            final X509Certificate[] chain, final String provider, final Date producedAt) throws OcspFailureException {
-        this.basicRes = basicRes;
-        this.signingAlgorithm = signingAlgorithm;
-        this.signerKey = signerKey;
-        this.provider = provider;
-        this.producedAt = producedAt;
-        try {
-            this.chain = CertTools.convertToX509CertificateHolder(chain);
-        } catch (CertificateEncodingException e) {
-            throw new OcspFailureException(e);
-        }
+  /**   *
+   * @param theBasicRes     response
+   * @param aSigningAlgorithm algo
+   * @param aSignerKey key
+   * @param aChain chain
+   * @param aProvider provider
+   * @param wasProducedAt time
+   * @throws OcspFailureException fail
+   */
+  public HsmResponseThread(
+      final BasicOCSPRespBuilder theBasicRes,
+      final String aSigningAlgorithm,
+      final PrivateKey aSignerKey,
+      final X509Certificate[] aChain,
+      final String aProvider,
+      final Date wasProducedAt)
+      throws OcspFailureException {
+    this.basicRes = theBasicRes;
+    this.signingAlgorithm = aSigningAlgorithm;
+    this.signerKey = aSignerKey;
+    this.provider = aProvider;
+    this.producedAt = wasProducedAt;
+    try {
+      this.chain = CertTools.convertToX509CertificateHolder(aChain);
+    } catch (CertificateEncodingException e) {
+      throw new OcspFailureException(e);
     }
+  }
 
-    @Override
-    public BasicOCSPResp call() throws OCSPException {
-        try {
-            /*
-             * BufferingContentSigner defaults to allocating a 4096 bytes buffer. Since a rather large OCSP response (e.g. signed with 4K
-             * RSA key, nonce and a one level chain) is less then 2KiB, this is generally a waste of allocation and garbage collection.
-             * 
-             * In high performance environments, the full OCSP response should in general be smaller than 1492 bytes to fit in a single
-             * Ethernet frame.
-             * 
-             * Lowering this allocation from 20480 to 4096 bytes under ECA-4084 which should still be plenty.
-             */
-            final ContentSigner signer = new BufferingContentSigner(new JcaContentSignerBuilder(signingAlgorithm).setProvider(provider).build(signerKey), 20480);
-            return basicRes.build(signer, chain, producedAt!=null? producedAt : new Date());
-        } catch (OperatorCreationException e) {
-            throw new OcspFailureException(e);
-        }
+  @Override
+  public BasicOCSPResp call() throws OCSPException {
+    try {
+      /*
+       * BufferingContentSigner defaults to allocating a 4096 bytes buffer.
+       *  Since a rather large OCSP response (e.g. signed with 4K
+       * RSA key, nonce and a one level chain) is less then 2KiB, this is
+       * generally a waste of allocation and garbage collection.
+       *
+       * In high performance environments, the full OCSP response should
+       *  in general be smaller than 1492 bytes to fit in a single
+       * Ethernet frame.
+       *
+       * Lowering this allocation from 20480 to 4096 bytes
+       * under ECA-4084 which should still be plenty.
+       */
+      final ContentSigner signer =
+          new BufferingContentSigner(
+              new JcaContentSignerBuilder(signingAlgorithm)
+                  .setProvider(provider)
+                  .build(signerKey),
+              20480);
+      return basicRes.build(
+          signer, chain, producedAt != null ? producedAt : new Date());
+    } catch (OperatorCreationException e) {
+      throw new OcspFailureException(e);
     }
+  }
 }

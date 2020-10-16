@@ -15,30 +15,27 @@ package org.cesecore.certificates.ocsp.keys;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-/**
- * 
- * @version $Id: CardKeys.java 17625 2013-09-20 07:12:06Z netmackan $
- */
+/** @version $Id: CardKeys.java 17625 2013-09-20 07:12:06Z netmackan $ */
 public interface CardKeys {
 
-    /**
-     * @param publicKey Key
-     * @return Private key
-     * @throws Exception On fail
-     */
-    PrivateKey getPrivateKey(RSAPublicKey publicKey) throws Exception;
+  /**
+   * @param publicKey Key
+   * @return Private key
+   * @throws Exception On fail
+   */
+  PrivateKey getPrivateKey(RSAPublicKey publicKey) throws Exception;
 
-    /**
-     * @param authCode Code
-     * @throws InterruptedException on fail
-     */
-    void autenticate(String authCode) throws InterruptedException;
+  /**
+   * @param authCode Code
+   * @throws InterruptedException on fail
+   */
+  void autenticate(String authCode) throws InterruptedException;
 
-    /**
-     * Check if key is OK (verifies PIN).
-     * 
-     * @param publicKey Hey
-     * @return Boolean
-     */
-    boolean isOK(RSAPublicKey publicKey);
+  /**
+   * Check if key is OK (verifies PIN).
+   *
+   * @param publicKey Hey
+   * @return Boolean
+   */
+  boolean isOK(RSAPublicKey publicKey);
 }
