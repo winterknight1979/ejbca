@@ -5,7 +5,7 @@
 	<parent>
     <groupId>goldeneyes.ejbca</groupId>
     <artifactId>ejbca</artifactId>
-    <version>1.0.1-beta-2</version>
+    <version>1.0.1-beta-3-SNAPSHOT</version>
   </parent>
 
 	<artifactId>publicweb-gui</artifactId>
