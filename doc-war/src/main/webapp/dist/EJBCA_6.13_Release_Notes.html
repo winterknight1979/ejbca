@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>EJBCA 6.13 Release Notes - EJBCA - Documentation Space</title>
+
+    
+            <meta name="scroll-content-language-key" content="">
+    
+    <meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery.scrollTo.min.js"></script>
+
+
+<script type="text/javascript" src="assets/js/translate.js"></script>
+
+
+<script type="text/javascript" src="assets/js/scroll-tree.js"></script>
+
+<script type="text/javascript" src="assets/js/theme.main.js"></script>
+
+    <script type="text/javascript" src="assets/js/iframeResizer.min.js"></script>
+
+<link rel="stylesheet" href="assets/css/content-style.css">
+    <link rel="stylesheet" href="assets/css/search.css">
+
+<link rel="stylesheet" href="assets/css/theme.main.css">
+<link rel="stylesheet" href="assets/css/theme.colors.css">
+
+            <!-- ES5 support for older browsers, needed by lunr -->
+        <script src="js/augment.js"></script>
+        <script id="worker" type="javascript/worker">
+
+        startIndex = function() {
+            idx = lunr.Index.load(lunrIndex);
+            idx.pipeline.remove(lunr.stopWordFilter);
+            postMessage({type: "setup-complete"});
+        }
+
+        onmessage = function (event) {
+            var message = event.data;
+
+            if ((message.type === 'setup') && message.baseUrl) {
+                var url = message.baseUrl;
+                importScripts(url + 'js/lunr.js');
+                importScripts(url + 'js/lunr-extras.js');
+                importScripts(url + 'js/lunr-index.js');
+                importScripts(url + 'js/lunr-data.js');
+                startIndex();
+            }
+
+            if (idx && (message.type === 'search-request') && message.query) {
+                var searchWord = message.query;
+                var results = idx.search(searchWord).map(function (result) {
+                    return lunrData.filter(function (d) {
+                        return d.id === parseInt(result.ref, 10)
+                    })[0]
+                });
+                postMessage({type: 'search-results', results: results, query: searchWord, queryId: message.queryId});
+            }
+        }
+
+    </script>
+    </head>
+
+<body pageid="85921598">
+
+<div id="ht-loader">
+    <noscript>
+        <p style="width: 100%; text-align:center; position: absolute; margin-top: 200px;">This content cannot be displayed without JavaScript.<br>Please enable JavaScript and reload the page.</p>
+    </noscript>
+</div>
+
+<div>
+   	<header id="ht-headerbar">
+    <div class="ht-headerbar-left">
+        <a href="" id="ht-menu-toggle" class="sp-aui-icon-small sp-aui-iconfont-appswitcher"></a>
+    </div>
+    <div class="ht-headerbar-right">
+            <div class="sp-aui-icon-small ht-search-index-loader ht-header-icon"></div>
+
+        <div id="ht-search">
+            <div class="ht-search-input" style="display: none;">
+              	<a href="#" class="sp-aui-icon-small sp-aui-iconfont-remove ht-search-clear"></a>
+
+                <form action="#" method="GET" id="search">
+                    <input class="search-input" type="text" placeholder="Search" tabindex="-1" autocomplete="off" name="q" value="">
+                    <input type="hidden" name="max" value="15" />
+                    <input type="submit" style="display:none" tabindex="-4"/>
+                </form>
+
+                <a href="#" id="ht-search-button" class="ht-header-icon ht-header-icon-svg">
+                                        <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g>
+                            <path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></path>
+                        </g>
+                    </svg>
+              	</a>
+
+                <div class="ht-search-dropdown ht-dropdown">
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </header>   	<aside id="ht-sidebar">
+    <div class="ht-sidebar-content">
+        <div class="ht-sidebar-content-scroll-container">
+            <header class="ht-sidebar-header">
+                <h1 class="ht-logo">
+                    <span class="ht-logo-label">EJBCADS</span>
+                    <img class="space-logo" src="EJBCADS.png" />
+                </h1>
+                <a href="EJBCA_6.15.2.6_Documentation.html" class="ht-space-link">
+                    <h2>EJBCA - Documentation Space</h2>
+                </a>
+            </header>
+                            <iframe id="ht-nav" src="toc.html?pageId=26772579"></iframe>
+                <script>
+                    $('iframe#ht-nav').iFrameResize(
+                            { 'log': true, 'autoResize': true, 'heightCalculationMethod': 'lowestElement', 'checkOrigin': false });
+                </script>
+                    </div>
+    </div>
+
+</aside></div>
+
+<div id="ht-wrap-container">
+
+            
+    <div id="ht-sidebar-dragbar">
+    <div class="ht-sidebar-drag-handle">
+        <span class="drag-handle-1"></span>
+        <span class="drag-handle-2"></span>
+        <span class="drag-handle-3"></span>
+    </div>
+</div>
+    <article id="ht-content" class="ht-content">
+        <header class="ht-content-header">
+            <div id="ht-breadcrumb">
+    <ul>
+        <li><a href="EJBCA_6.15.2.6_Documentation.html">EJBCA - Documentation Space</a></li>
+                                                                                                             <li><a href="" onclick="$('.shortcut').each(function(){$(this).removeClass('shortcut')}); $(this).parent().addClass('shortcut'); return false;">...</a> </li>
+                                        <li class="shortcut"><a href="EJBCA_Release_Information.html">EJBCA Release Information</a></li>
+                                                                                     <li><a href="EJBCA_Release_Notes.html">EJBCA Release Notes</a></li>
+                                                            </ul>
+</div>            <h1 id="src-26772579"> <span>EJBCA 6.13 Release Notes</span></h1>
+        </header>
+
+        <div id="main-content" class="wiki-content sp-grid-section" data-index-for-search="true">
+
+<p   
+>What now, another feature release so soon? Fear not, all is well - instead we felt that some of the work we've put in to the trunk should be made available as soon as possible.</p>
+<p   
+>We hope that as many of you as possible have had a chance to check out the ConfigDump tool we released with EJBCA 6.12, please give us any available feedback that we can plug in to future versions.</p>
+    <div class="section section-1" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-TheEJBCAVAisGDPRReady">
+        <h1 class="heading "><span>The EJBCA VA is GDPR Ready</span></h1>
+<p   
+>We've added an option to the <a   href="Validation_Authority_Peer_Publisher.html">VA Peer Publisher</a> restrict publishing identifying certificate metadata from the CA to VA, such as subject DN, SAN or usernames.</p>
+<p   
+><img  class="confluence-embedded-image"  src="images/download/attachments/26772579/Screen_Shot_2018-05-03_at_15.10.29.png" alt="images/download/attachments/26772579/Screen_Shot_2018-05-03_at_15.10.29.png" width="700"  />
+    </p>
+    </div>
+    <div class="section section-1" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-KeyCeremonyUtilitiesaddedtotheRAWeb">
+        <h1 class="heading "><span>Key Ceremony Utilities added to the RA Web </span></h1>
+<p   
+>During key ceremonies, auditors typically require a copy of all CA Certificate fingerprints. To spare you the process of downloading CA certificates and computing the fingerprints manually using a third-party tool, we've added the following functionality to the RA Web:</p>
+<ul class=" "><li class=" "><p   
+><strong class=" ">Download Fingerprints: </strong>Downloads a YAML text document with the CA Certificate fingerprints of all CAs you have access to.</p>
+</li><li class=" "><p   
+><strong class=" ">Download Certificate Bundle: </strong>Downloads a compressed zip file containing the CA certificates of all CAs you have access to.</p>
+</li></ul><p   
+><img  class="confluence-embedded-image"  src="images/download/attachments/26772579/Screen_Shot_2018-05-03_at_15.33.16.png" alt="images/download/attachments/26772579/Screen_Shot_2018-05-03_at_15.33.16.png" width="700"  />
+    </p>
+<p   
+>For more information, see <a   href="EJBCA_RA_Management.html">RA Web CA Certificates and CRLs</a>.</p>
+    </div>
+    <div class="section section-1" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-RoadmapUpdate">
+        <h1 class="heading "><span>Roadmap Update</span></h1>
+<p   
+><img  class="confluence-embedded-image confluence-thumbnail"  src="images/download/thumbnails/26772579/Screen_Shot_2018-05-03_at_15.58.05.png" alt="images/download/thumbnails/26772579/Screen_Shot_2018-05-03_at_15.58.05.png"  height="150" />
+    </p>
+<p   
+>As always, we tend to be restrictive with discussing our roadmap, but one very long awaited project we're very pleased to finally have time to redo is the CA UI, a point of contention which we're sure all of you are painfully aware of. As refactoring interfaces is always a minefield we'll be taking it in minor steps, beginning with the conversion of the antiquated JSP pages into more modern-ish JSF before beginning to make more concrete improvements in usability. Expect to see some pages in the UI slightly change appearance in the autumn, and keep tuned to our <a  class="external-link" href="http://blog.ejbca.org">blog</a> for more updates on this subject.</p>
+    </div>
+    <div class="section section-1" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-UpgradeInformation">
+        <h1 class="heading "><span>Upgrade Information</span></h1>
+<p   
+>Read the <a   href="EJBCA_6.13_Upgrade_Notes.html">EJBCA 6.13 Upgrade Notes</a> for important information about this release. For upgrade instructions and information on upgrade paths, see<a   href="Upgrading_EJBCA.html"> Upgrading EJBCA</a>.</p>
+    </div>
+    <div class="section section-1" id="src-26772579_safe-id-aWQtLkVKQkNBNi4xM1JlbGVhc2VOb3Rlc3Y2LjE1LjEtQ2hhbmdlTG9nOlJlc29sdmVkSXNzdWVz">
+        <h1 class="heading "><span>Change Log: Resolved Issues</span></h1>
+<p   
+>For full details of fixed bugs and implemented features in EJBCA 6.13, refer to our <a  class="external-link" href="https://jira.primekey.se/issues/?jql=project%20%3D%20ECA%20AND%20resolution%20in%20(Fixed%2C%20Done)%20AND%20fixVersion%20%3D%20%22EJBCA%206.13.0%22%20ORDER%20BY%20resolution%20DESC">JIRA Issue Tracker</a>.</p>
+    <div class="section section-2" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-IssuesResolvedin6.13.0">
+        <h2 class="heading "><span>Issues Resolved in 6.13.0</span></h2>
+<p   
+>Released on 3 May 2018</p>
+<p   
+></p>
+<ul class="toc-indentation "><li class=" "><p   
+><a   href="#src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-Epics">Epics</a></p>
+</li><li class=" "><p   
+><a   href="#src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-NewFeatures">New Features</a></p>
+</li><li class=" "><p   
+><a   href="#src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-Tasks">Tasks</a></p>
+</li><li class=" "><p   
+><a   href="#src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-Improvements">Improvements</a></p>
+</li><li class=" "><p   
+><a   href="#src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-BugFixes">Bug Fixes</a></p>
+</li></ul>    </div>
+    <div class="section section-2" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-Epics">
+        <h2 class="heading "><span>Epics</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-5792">ECA-5792</a> - Allow peer publisher to only publish required data for OCSP</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6727">ECA-6727</a> - Revocation of Throwaway Certificates</p>
+    </div>
+    <div class="section section-2" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-NewFeatures">
+        <h2 class="heading "><span>New Features</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6734">ECA-6734</a> - New DB Table (Part of Alpha)</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6737">ECA-6737</a> - New SSB with basic NoConflictCertificateData functionality (Part of Alpha)</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6738">ECA-6738</a> - CA config changes + Admin GUI mods</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6739">ECA-6739</a> - Certificate lookup from PublishQueueServiceWorker</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6740">ECA-6740</a> - Changes in CRL generation logic</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6741">ECA-6741</a> - Update Database CLI</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6743">ECA-6743</a> - Modify EjbcaWS.revokeCert call (Part of Alpha)</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6744">ECA-6744</a> - Modify EjbcaWS.revokeCert call to accept more meta data</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6745">ECA-6745</a> - Manual tests with asynchronous replication</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6746">ECA-6746</a> - ECA-QA click test for Revocation of Throwaway Certs</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6748">ECA-6748</a> - System tests: WS call (Part of Alpha)</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6750">ECA-6750</a> - System tests: VA Publisher with Throwaway certs</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6751">ECA-6751</a> - Performance tests: Check existing tests (Revoke &amp; OCSP)</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6752">ECA-6752</a> - Performance tests: Perform tests (before &amp; after)</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6753">ECA-6753</a> - Document revocation of throw away certs</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6789">ECA-6789</a> - Edit CA page should include an option to select which certificatedata table to write to</p>
+    </div>
+    <div class="section section-2" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-Tasks">
+        <h2 class="heading "><span>Tasks</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6756">ECA-6756</a> - Add manual test of OCSP for UnidFnr</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6778">ECA-6778</a> - Update all occurrences of ocsp.extensionoid and extensionclass in documentation</p>
+    </div>
+    <div class="section section-2" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-Improvements">
+        <h2 class="heading "><span>Improvements</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-4337">ECA-4337</a> - EJBCA client toolbox PKCS11HSMKeyTool generate command should not overwrite existing keys</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6362">ECA-6362</a> - Document all pages in the UI that are going to be deprecated by EJBCA 7.0</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6572">ECA-6572</a> - Remove timeStampClient.jar from documentation</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6762">ECA-6762</a> - Make existing EjbcaWS.revokeCert call work without certificate data being present</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6764">ECA-6764</a> - Fix missing header and id in test related classes.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6766">ECA-6766</a> - System test of publishing of throw away certificate revocation status, with mock publisher</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6767">ECA-6767</a> - CertificateDataWrapper should handle revoked throw away certificate case</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6772">ECA-6772</a> - GUI: Usability about GeneralNames type fields (e.g. for Subject Alternative Name)</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6779">ECA-6779</a> - Update Confluence documentation for QC-Statements</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6786">ECA-6786</a> - VA Publisher should not update if revocation reason is permanent</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6791">ECA-6791</a> - Create separate CRUD bean for CertificateData and NoConflictCertificateData, for database queries etc.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6795">ECA-6795</a> - CMP: don't log stack trace if CMP alias does not exist</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6796">ECA-6796</a> - Check new option &quot;Accept revocations for non-existing entries&quot; in backend code</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6836">ECA-6836</a> - Make it possible to issue throw-away certificates with publishers enabled</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6837">ECA-6837</a> - Restrict &quot;Accept revocation of non-existing certificates&quot; option to throw-away CAs only</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6844">ECA-6844</a> - Create fingerprint sheet in RA web</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6850">ECA-6850</a> - Add backend code for selecting which certificate data table to write to.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6856">ECA-6856</a> - Use consistent format of library license references</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6859">ECA-6859</a> - Improved naming and ordering of Throw Away Certificate Revocation options</p>
+    </div>
+    <div class="section section-2" id="src-26772579_id-.EJBCA6.13ReleaseNotesv6.15.1-BugFixes">
+        <h2 class="heading "><span>Bug Fixes</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6717">ECA-6717</a> - Remove clientToolBox dependency on ejbca-ejb</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6728">ECA-6728</a> - NPE when changing Approval Profile type</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6761">ECA-6761</a> - Republish/re-activate in the Admin Web passes html encoded data to API</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6768">ECA-6768</a> - DirectoryName in CMP (RA mode) requests doesn't work</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6771">ECA-6771</a> - GUI: Wrong designation of QC-Statements &quot;Name Registration Authorities&quot;</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6775">ECA-6775</a> - Unidfnr entity bean must handle longtext datatype.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6797">ECA-6797</a> - ConfigDump does not find certain profiles etc. when --exclude option is used</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6800">ECA-6800</a> - junit ProtocolOcspHttpTest freezes</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6823">ECA-6823</a> - checkRevocationStatus returns wrong value for throw away CAs</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6848">ECA-6848</a> - Regression: 'Provide request info' hidden when only 'Select key algorithm' should be</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6852">ECA-6852</a> - Upgrade ocsp extensions does not account for '*' prefix</p>
+    </div>
+    </div>
+        </div>
+
+    </article>
+
+
+            <nav id="ht-post-nav">
+                <a href="EJBCA_6.14_Release_Notes.html" class="ht-post-nav-prev">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-prev" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA 6.14 Release Notes</span>
+        </a>
+                <a href="EJBCA_6.12_Release_Notes.html" class="ht-post-nav-next">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-next" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA 6.12 Release Notes</span>
+        </a>
+    </nav>    
+            
+    <footer id="ht-footer">
+    <a href="#" id="ht-jump-top" class="sp-aui-icon-small sp-aui-iconfont-arrows-up"></a>
+</footer></div>
+
+<div>
+    <div id="ht-mq-detect"></div>
+</div>
+
+    <script src="js/lunr.js"></script>
+    <script src="js/lunr-extras.js"></script>
+    <script src="assets/js/scroll-search.js"></script>
+
+</body>
+</html>

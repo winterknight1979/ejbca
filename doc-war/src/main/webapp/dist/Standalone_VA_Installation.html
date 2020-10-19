@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Standalone VA Installation - EJBCA - Documentation Space</title>
+
+    
+            <meta name="scroll-content-language-key" content="">
+    
+    <meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery.scrollTo.min.js"></script>
+
+
+<script type="text/javascript" src="assets/js/translate.js"></script>
+
+
+<script type="text/javascript" src="assets/js/scroll-tree.js"></script>
+
+<script type="text/javascript" src="assets/js/theme.main.js"></script>
+
+    <script type="text/javascript" src="assets/js/iframeResizer.min.js"></script>
+
+<link rel="stylesheet" href="assets/css/content-style.css">
+    <link rel="stylesheet" href="assets/css/search.css">
+
+<link rel="stylesheet" href="assets/css/theme.main.css">
+<link rel="stylesheet" href="assets/css/theme.colors.css">
+
+            <!-- ES5 support for older browsers, needed by lunr -->
+        <script src="js/augment.js"></script>
+        <script id="worker" type="javascript/worker">
+
+        startIndex = function() {
+            idx = lunr.Index.load(lunrIndex);
+            idx.pipeline.remove(lunr.stopWordFilter);
+            postMessage({type: "setup-complete"});
+        }
+
+        onmessage = function (event) {
+            var message = event.data;
+
+            if ((message.type === 'setup') && message.baseUrl) {
+                var url = message.baseUrl;
+                importScripts(url + 'js/lunr.js');
+                importScripts(url + 'js/lunr-extras.js');
+                importScripts(url + 'js/lunr-index.js');
+                importScripts(url + 'js/lunr-data.js');
+                startIndex();
+            }
+
+            if (idx && (message.type === 'search-request') && message.query) {
+                var searchWord = message.query;
+                var results = idx.search(searchWord).map(function (result) {
+                    return lunrData.filter(function (d) {
+                        return d.id === parseInt(result.ref, 10)
+                    })[0]
+                });
+                postMessage({type: 'search-results', results: results, query: searchWord, queryId: message.queryId});
+            }
+        }
+
+    </script>
+    </head>
+
+<body pageid="85921598">
+
+<div id="ht-loader">
+    <noscript>
+        <p style="width: 100%; text-align:center; position: absolute; margin-top: 200px;">This content cannot be displayed without JavaScript.<br>Please enable JavaScript and reload the page.</p>
+    </noscript>
+</div>
+
+<div>
+   	<header id="ht-headerbar">
+    <div class="ht-headerbar-left">
+        <a href="" id="ht-menu-toggle" class="sp-aui-icon-small sp-aui-iconfont-appswitcher"></a>
+    </div>
+    <div class="ht-headerbar-right">
+            <div class="sp-aui-icon-small ht-search-index-loader ht-header-icon"></div>
+
+        <div id="ht-search">
+            <div class="ht-search-input" style="display: none;">
+              	<a href="#" class="sp-aui-icon-small sp-aui-iconfont-remove ht-search-clear"></a>
+
+                <form action="#" method="GET" id="search">
+                    <input class="search-input" type="text" placeholder="Search" tabindex="-1" autocomplete="off" name="q" value="">
+                    <input type="hidden" name="max" value="15" />
+                    <input type="submit" style="display:none" tabindex="-4"/>
+                </form>
+
+                <a href="#" id="ht-search-button" class="ht-header-icon ht-header-icon-svg">
+                                        <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g>
+                            <path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></path>
+                        </g>
+                    </svg>
+              	</a>
+
+                <div class="ht-search-dropdown ht-dropdown">
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </header>   	<aside id="ht-sidebar">
+    <div class="ht-sidebar-content">
+        <div class="ht-sidebar-content-scroll-container">
+            <header class="ht-sidebar-header">
+                <h1 class="ht-logo">
+                    <span class="ht-logo-label">EJBCADS</span>
+                    <img class="space-logo" src="EJBCADS.png" />
+                </h1>
+                <a href="EJBCA_6.15.2.6_Documentation.html" class="ht-space-link">
+                    <h2>EJBCA - Documentation Space</h2>
+                </a>
+            </header>
+                            <iframe id="ht-nav" src="toc.html?pageId=16228576"></iframe>
+                <script>
+                    $('iframe#ht-nav').iFrameResize(
+                            { 'log': true, 'autoResize': true, 'heightCalculationMethod': 'lowestElement', 'checkOrigin': false });
+                </script>
+                    </div>
+    </div>
+
+</aside></div>
+
+<div id="ht-wrap-container">
+
+            
+    <div id="ht-sidebar-dragbar">
+    <div class="ht-sidebar-drag-handle">
+        <span class="drag-handle-1"></span>
+        <span class="drag-handle-2"></span>
+        <span class="drag-handle-3"></span>
+    </div>
+</div>
+    <article id="ht-content" class="ht-content">
+        <header class="ht-content-header">
+            <div id="ht-breadcrumb">
+    <ul>
+        <li><a href="EJBCA_6.15.2.6_Documentation.html">EJBCA - Documentation Space</a></li>
+                                                                                                             <li><a href="" onclick="$('.shortcut').each(function(){$(this).removeClass('shortcut')}); $(this).parent().addClass('shortcut'); return false;">...</a> </li>
+                                        <li class="shortcut"><a href="EJBCA_Documentation.html">EJBCA Documentation</a></li>
+                                                                                                         <li class="shortcut"><a href="EJBCA_Installations.html">EJBCA Installations</a></li>
+                                                                                     <li><a href="EJBCA_Main_Installation.html">EJBCA Main Installation</a></li>
+                                                            </ul>
+</div>            <h1 id="src-16228576"> <span>Standalone VA Installation</span></h1>
+        </header>
+
+        <div id="main-content" class="wiki-content sp-grid-section" data-index-for-search="true">
+
+<p   
+>This section provides a VA Services introduction and a step-by-step guide for a standalone Validation Authority (VA) installation. A Validation Authority (VA) installation is similar to a standard CA installation but only requires a subset of the services to function as a VA.</p>
+    <div class="section section-1" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-Introduction">
+        <h1 class="heading "><span>Introduction</span></h1>
+    <div class="section section-2" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-VAServices">
+        <h2 class="heading "><span>VA Services</span></h2>
+<p   
+>The Validation Authority (VA) module of EJBCA provides services for validating a certificate. These VA services can run on an installed EJBCA or on a standalone VA installation. The services are by default disabled and can be enabled independently at compile time.</p>
+    <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-CACertificateStore">
+        <h3 class="heading "><span>CA Certificate Store</span></h3>
+<p   
+>The CA certificate store allows getting a certificate chain to the root CA to verify that the certificate is signed by a valid CA (it is valid if the root is trusted). <a   href="#src-16228576_RFC_4387">RFC 4387</a> specifies how the certificates are retrieved and the service is configured in the <tt class=" ">conf/certstore.properties</tt> configuration file.</p>
+<p   
+>To list all URLs that can be used, view the page http://vahost:8080/certificates/search.cgi when the service is enabled. To change the default URL <tt class=" ">certificates</tt> path for the web module, update the end of the URL to <tt class=" ">ejbca/publicweb/certificates/search.cgi</tt> in the EJBCA CA configuration).</p>
+    </div>
+    <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-CRLStore">
+        <h3 class="heading "><span>CRL Store</span></h3>
+<p   
+>The CRL store allows retrieving a signed Certificate Revocation List (CRL) of revoked certificates for a CA. <a   href="#src-16228576_RFC_4387">RFC 4387</a> specifies how the CRLs are retrieved and the service is configured in the <tt class=" ">conf/crlstore.properties</tt> configuration file.</p>
+<p   
+>To list possible URLs, view the page http://vahost:8080/crls/search.cgi. To change the default URL crls path for the web module, update the end of the URL to <tt class=" ">ejbca/publicweb/crls/search.cgi</tt> in the EJBCA CA configuration.</p>
+    </div>
+    <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-OCSPResponder">
+        <h3 class="heading "><span>OCSP Responder</span></h3>
+<p   
+>The OCSP Responder is used to ask if a certificate is revoked or not. The OCSP protocol is specified in <a  class="external-link" href="http://www.ietf.org/rfc/rfc2560.txt">RFC 2560</a> and in the successor <a  class="external-link" href="http://www.ietf.org/rfc/rfc6960.txt">RFC 6960</a>. For more information, see <a   href="External_OCSP_Responders.html">External OCSP Responders</a>. The URL for the OCSP services is http://vahost:8080/ejbca/publicweb/status/ocsp.</p>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-Alias">
+        <h2 class="heading "><span>Alias</span></h2>
+<p   
+>To define aliases to certificates or CRLs, edit the configuration file <tt class=" ">conf/va.properties</tt>. This is an example on how to get your root certificate if you have defined an alias for it:</p>
+    <div  class="confbox programlisting">
+                <div class="content">
+        <pre><code>http://myhost.com:8080/certificates/search.cgi?alias=root</code></pre>
+        </div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-RFC4387">
+        <h2 class="heading "><span>RFC 4387</span></h2>
+<p   
+>The protocol to retrieve CRLs and certificates is described in <a  class="external-link" href="http://www.ietf.org/rfc/rfc4387">RFC 4387</a>.</p>
+<p   
+>Only CA certificates can be fetched and the attributes certHash, uri, iAndSHash and name are not implemented as they are not relevant CA certificates and CRLs.</p>
+<p   
+>To enable specifying that a delta CRL should be fetched, the extra parameter delta is added to the URL:</p>
+    <div  class="confbox programlisting">
+                <div class="content">
+        <pre><code>http://myhost:8080/crls/search.cgi?sKIDHash=X4NX3VF9u/tzkkGZU6M6OEffhFc&amp;delta=</code></pre>
+        </div>
+    </div>
+<p   
+>Note that the adding the delta parameter is not described in the RFC.</p>
+<p   
+>When searching for certificates, use iHash, sHash and sKIDHash. iHash is the ASN1 encoded DN of the issuer in a certificate and retrieves all certificates that has the same issuer, except for the root certificate. To search for root certificates, use sHash.</p>
+<p   
+>For information on implementing your own application accessing the VA, refer to the EJBCA junit test class org.ejbca.ui.web.protocol.CertStoreServletTest.</p>
+    </div>
+    </div>
+    <div class="section section-1" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-VADatabase">
+        <h1 class="heading "><span>VA Database</span></h1>
+<p   
+>Certificate revocation information for the VA services must be present in the database of the instance acting as VA/OCSP responder.</p>
+<p   
+>If the issuing CA and VA instances of EJBCA uses different databases, Publishers are used to push real-time information from the CA to the VA database.</p>
+    </div>
+    <div class="section section-1" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-SecurityConsiderations">
+        <h1 class="heading "><span>Security Considerations</span></h1>
+    <div class="section section-2" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-Databaseprivileges">
+        <h2 class="heading "><span>Database privileges</span></h2>
+<p   
+>Since a pure VA only reads from the database you should consider using a read-only database user for the VA. The only write access needed to the database is the VA Publisher configured on the CA.</p>
+    </div>
+    <div class="section section-2" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-MonitoringandHealthcheck">
+        <h2 class="heading "><span>Monitoring and Healthcheck</span></h2>
+<p   
+>When OcspKeyBindings are used to respond to OCSP requests, the regular EJBCA health-check will monitor that all marked as ACTIVE can be used to sign OCSP requests.</p>
+    </div>
+    </div>
+    <div class="section section-1" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-StandaloneVAInstallationStandalone_VA_Installation">
+        <h1 class="heading "><span id="src-16228576_id-.StandaloneVAInstallationv6.13.0-Standalone_VA_Installation" class="confluence-anchor-link"></span><span>Standalone VA Installation </span></h1>
+<p   
+>The standalone VA installation is described in the following steps:</p>
+<p   
+><a   href="#src-16228576_id-.StandaloneVAInstallationv6.13.0-Step1OntheEJBCAVA-ConfiguretheVA">Step 1: On the EJBCA VA - Configure the VA</a></p>
+<p   
+><a   href="#src-16228576_id-.StandaloneVAInstallationv6.13.0-Step2OntheEJBCAVA-BuildtheVA">Step 2: On the EJBCA VA - Build the VA</a></p>
+<p   
+><a   href="#src-16228576_id-.StandaloneVAInstallationv6.13.0-Step3OntheEJBCACA-DataSynchronization">Step 3: On the EJBCA CA - Data Synchronization</a></p>
+<p   
+><a   href="#src-16228576_id-.StandaloneVAInstallationv6.13.0-Step4OntheEJBCACA-AddaPublisher">Step 4: On the EJBCA CA - Add a Publisher</a></p>
+    <div class="section section-2" id="src-16228576_safe-id-aWQtLlN0YW5kYWxvbmVWQUluc3RhbGxhdGlvbnY2LjEzLjAtU3RlcDE6T250aGVFSkJDQVZBLUNvbmZpZ3VyZXRoZVZB">
+        <h2 class="heading "><span>Step 1: On the EJBCA VA - Configure the VA</span></h2>
+<p   
+>A Validation Authority installation is at first glance identical to a standard CA installation, but only a subset of services need to be activated for it to function as a VA. This means that an EJBCA installation could in practice be used as both its own CA and as a VA for another CA at the same time.</p>
+<p   
+>The VA is configured using the same configuration files as EJBCA. Files that are of special interest to an installation acting as a VA are <strong class=" ">va.properties</strong>, <strong class=" ">ocsp.properties</strong>, <strong class=" ">crlstore.properties</strong> and <strong class=" ">certstore.properties</strong>.</p>
+<p   
+>For the certificate and CRL store services, the sample file should be enough to understand how to set the VA up. For the OCSP responder, all default options for the OCSP behavior are set in the <strong class=" ">conf/ocsp.properties</strong> and <strong class=" ">conf/va.properties</strong> files and the Admin GUI (or the command line).</p>
+<p   
+>In the OCSP responder case, you can configure <strong class=" ">conf/cesecore.properties</strong> for <strong class=" ">Secure audit log configuration</strong> to log to database or file. The database audit log is only used for security events, that is access control and configuration change events when using the GUI or CLI.</p>
+    </div>
+    <div class="section section-2" id="src-16228576_safe-id-aWQtLlN0YW5kYWxvbmVWQUluc3RhbGxhdGlvbnY2LjEzLjAtU3RlcDI6T250aGVFSkJDQVZBLUJ1aWxkdGhlVkE">
+        <h2 class="heading "><span>Step 2: On the EJBCA VA - Build the VA</span></h2>
+<p   
+>The VA is built in the same way as the CA. After starting JBoss, run the following command from EJBCA home directory:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">ant deploy</code></div>
+</div>
+    </div>
+<p   
+>If you have not disabled SSL (by setting <strong class=" ">web.nosslconfigure</strong> in web.properties file), copy <strong class=" ">tomcat.jks</strong> and <strong class=" ">truststore.jks</strong> from <strong class=" ">EJBCA_HOME/p12</strong> directory on the CA to the <strong class=" ">EJBCA_HOME/p12</strong> directory on the VA. You might also need to configure <strong class=" ">web.properties</strong> to use the right passwords.</p>
+<p   
+>Then, from EJBCA home directory, run the following commands:</p>
+    <div  class="confbox programlisting" style="counter-reset: scroll-code-numbering 1">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="defaultnew syntaxhighlighter scroll-html-formatted-code" data-linenumbers="false" data-firstline="1">
+<div class="line"><code class="plain">ant deploy-keystore</code></div>
+<div class="line"><code class="plain">ant web-configure</code></div>
+</div>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16228576_safe-id-aWQtLlN0YW5kYWxvbmVWQUluc3RhbGxhdGlvbnY2LjEzLjAtU3RlcDM6T250aGVFSkJDQUNBLURhdGFTeW5jaHJvbml6YXRpb24">
+        <h2 class="heading "><span>Step 3: On the EJBCA CA - Data Synchronization</span></h2>
+<p   
+></p>
+<p   
+><span class="status blue " >ENTERPRISE</span>
+ This is an EJBCA Enterprise feature.</p>
+<p   
+>Data Synchronization can be performed using the EJBCA Enterprise Edition features VA Publisher or Peer System.</p>
+    <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-UsingVAPublisher">
+        <h3 class="heading "><span>Using VA Publisher </span></h3>
+<p   
+>The EJBCA CA should be configured similar for the VA as for any other installation, with the addition of setting preferences for the VA database in conf/va-publisher.properties. The VA database is the master database for the standalone VA installations and where the master CA will publish certificates when they are issued or revoked.</p>
+<p   
+>In the case of the VA being an OCSP responder, the data source <strong class=" ">java:/OcspDS</strong> should be set in JBoss. The VA data source should not be involved in transactions (a no-tx-datasource in JBoss), and it should have auto-commit (should be default in JBoss). See <a   href="Installation_Instructions.html">Installation Instructions</a> for instruction on how to create this data source if needed.</p>
+    </div>
+    <div class="section section-3" id="src-16228576_id-.StandaloneVAInstallationv6.13.0-UsingEJBCAPeerSystem">
+        <h3 class="heading "><span>Using EJBCA Peer System </span></h3>
+<p   
+>Instead of configuring <strong class=" ">va-publisher.properties</strong>, it is possible to publish certificate data through a peer connector. For information on setting up an outgoing peer connector, see <a   href="Peer_Systems.html">Peer Systems</a>.</p>
+<p   
+>Note that when setting up a new Peer System, all previously issued certificates need to be pushed to the VA. To do this, perform the following steps:</p>
+<ol class=" "><li class=" "><p   
+>In the Admin GUI, go to <strong class=" ">Peer Systems</strong>.</p>
+</li><li class=" "><p   
+>Click <strong class=" ">Manage</strong> for the peer connector representing the VA and select the <strong class=" ">Certificate Data Synchronization</strong> tab.</p>
+</li><li class=" "><p   
+>Configure the relevant subset of information to synchronize and click <strong class=" ">Start</strong> to initiate the synchronization as a background task. The progress can be followed either in this view or in the Peer Systems overview.</p>
+</li></ol><p   
+>The connecting system needs to be authorized to the <tt class=" ">/peerincoming /peerpublish/readcert /peerpublish/writecert /ca/[CAName]</tt> access rules to be able to check synchronization data and push missing or outdated certificate entries.</p>
+    </div>
+    </div>
+    <div class="section section-2" id="src-16228576_safe-id-aWQtLlN0YW5kYWxvbmVWQUluc3RhbGxhdGlvbnY2LjEzLjAtU3RlcDQ6T250aGVFSkJDQUNBLUFkZGFQdWJsaXNoZXI">
+        <h2 class="heading "><span>Step 4: On the EJBCA CA - Add a Publisher</span></h2>
+<p   
+></p>
+<p   
+><span class="status blue " >ENTERPRISE</span>
+ This is an EJBCA Enterprise feature.</p>
+<p   
+>Adding a publisher can be performed using the EJBCA Enterprise Edition using either the <a   href="Validation_Authority_Peer_Publisher.html">VA Peer Publisher</a> (recommended) or the <a   href="Validation_Authority_Publisher_%28Legacy%29.html">VA Publisher</a> (legacy).</p>
+    </div>
+    </div>
+        </div>
+
+    </article>
+
+
+            <nav id="ht-post-nav">
+                <a href="Installation_Instructions.html" class="ht-post-nav-prev">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-prev" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>Installation Instructions</span>
+        </a>
+                <a href="JBoss_7_and_EAP_6_Debug_logging.html" class="ht-post-nav-next">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-next" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>JBoss 7 and EAP 6 Debug logging</span>
+        </a>
+    </nav>    
+            
+    <footer id="ht-footer">
+    <a href="#" id="ht-jump-top" class="sp-aui-icon-small sp-aui-iconfont-arrows-up"></a>
+</footer></div>
+
+<div>
+    <div id="ht-mq-detect"></div>
+</div>
+
+    <script src="js/lunr.js"></script>
+    <script src="js/lunr-extras.js"></script>
+    <script src="assets/js/scroll-search.js"></script>
+
+</body>
+</html>

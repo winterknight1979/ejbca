@@ -108,8 +108,8 @@ public abstract class StoreServletBase extends HttpServlet {
         if (log.isTraceEnabled()) {
             log.trace(">doGet()");
         }
-        if (!req.getRequestURI().substring(req.getContextPath().length()).contains("search.cgi")) {
-            resp.sendRedirect(req.getRequestURI() + "search.cgi");
+        if (!req.getRequestURI().substring(req.getContextPath().length()).contains("search.cgi")) {	       
+        resp.sendRedirect(req.getRequestURI() + "search.cgi");
             return;
         }
         try {
@@ -183,7 +183,7 @@ public abstract class StoreServletBase extends HttpServlet {
 		}
 		final String sKIDHash = VAConfiguration.sKIDHashFromName(alias);
 		if ( sKIDHash==null || sKIDHash.length()<1 ) {
-			final String m = "No '"+alias+"' alias defined in va.properties .";
+			final String m = "No '"+removeSpecial(alias)+"' alias defined in va.properties .";
 			resp.sendError(HttpServletResponse.SC_NOT_FOUND, m);
 			log.debug(m);
 			return true;
@@ -192,6 +192,9 @@ public abstract class StoreServletBase extends HttpServlet {
 		return true;
 	}
 	
+	  private static String removeSpecial(String str) {	
+			return str.replaceAll("[^a-zA-Z0-9=, ]", "");	
+		}
 	/**
 	 * Reloads the certificate cache, if it was requested.
 	 * 

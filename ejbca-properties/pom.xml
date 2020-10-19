@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
-		<version>${revision}</version>
+		<version>1.0.1-beta-2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>ejbca-properties</artifactId>
@@ -68,12 +68,9 @@
 				<version>1.8</version>
 				<configuration>
 					<target>
-						<copy todir="${project.build.directory}/classes"
-							file="${project.build.directory}/maven-shared-archive-resource/internal.properties">
+						<copy todir="${project.build.directory}/classes" file="${project.build.directory}/maven-shared-archive-resource/internal.properties">
 							<filterchain>
-								<replacestring
-									from="#datasource.jndi-name-prefix="
-									to="datasource.jndi-name-prefix=${datasource.jndi-name-prefix}" />
+								<replacestring from="#datasource.jndi-name-prefix=" to="datasource.jndi-name-prefix=${datasource.jndi-name-prefix}" />
 							</filterchain>
 						</copy>
 					</target>

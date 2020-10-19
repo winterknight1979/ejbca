@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>EJBCA 6.15 Release Notes - EJBCA - Documentation Space</title>
+
+    
+            <meta name="scroll-content-language-key" content="">
+    
+    <meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery.scrollTo.min.js"></script>
+
+
+<script type="text/javascript" src="assets/js/translate.js"></script>
+
+
+<script type="text/javascript" src="assets/js/scroll-tree.js"></script>
+
+<script type="text/javascript" src="assets/js/theme.main.js"></script>
+
+    <script type="text/javascript" src="assets/js/iframeResizer.min.js"></script>
+
+<link rel="stylesheet" href="assets/css/content-style.css">
+    <link rel="stylesheet" href="assets/css/search.css">
+
+<link rel="stylesheet" href="assets/css/theme.main.css">
+<link rel="stylesheet" href="assets/css/theme.colors.css">
+
+            <!-- ES5 support for older browsers, needed by lunr -->
+        <script src="js/augment.js"></script>
+        <script id="worker" type="javascript/worker">
+
+        startIndex = function() {
+            idx = lunr.Index.load(lunrIndex);
+            idx.pipeline.remove(lunr.stopWordFilter);
+            postMessage({type: "setup-complete"});
+        }
+
+        onmessage = function (event) {
+            var message = event.data;
+
+            if ((message.type === 'setup') && message.baseUrl) {
+                var url = message.baseUrl;
+                importScripts(url + 'js/lunr.js');
+                importScripts(url + 'js/lunr-extras.js');
+                importScripts(url + 'js/lunr-index.js');
+                importScripts(url + 'js/lunr-data.js');
+                startIndex();
+            }
+
+            if (idx && (message.type === 'search-request') && message.query) {
+                var searchWord = message.query;
+                var results = idx.search(searchWord).map(function (result) {
+                    return lunrData.filter(function (d) {
+                        return d.id === parseInt(result.ref, 10)
+                    })[0]
+                });
+                postMessage({type: 'search-results', results: results, query: searchWord, queryId: message.queryId});
+            }
+        }
+
+    </script>
+    </head>
+
+<body pageid="85921598">
+
+<div id="ht-loader">
+    <noscript>
+        <p style="width: 100%; text-align:center; position: absolute; margin-top: 200px;">This content cannot be displayed without JavaScript.<br>Please enable JavaScript and reload the page.</p>
+    </noscript>
+</div>
+
+<div>
+   	<header id="ht-headerbar">
+    <div class="ht-headerbar-left">
+        <a href="" id="ht-menu-toggle" class="sp-aui-icon-small sp-aui-iconfont-appswitcher"></a>
+    </div>
+    <div class="ht-headerbar-right">
+            <div class="sp-aui-icon-small ht-search-index-loader ht-header-icon"></div>
+
+        <div id="ht-search">
+            <div class="ht-search-input" style="display: none;">
+              	<a href="#" class="sp-aui-icon-small sp-aui-iconfont-remove ht-search-clear"></a>
+
+                <form action="#" method="GET" id="search">
+                    <input class="search-input" type="text" placeholder="Search" tabindex="-1" autocomplete="off" name="q" value="">
+                    <input type="hidden" name="max" value="15" />
+                    <input type="submit" style="display:none" tabindex="-4"/>
+                </form>
+
+                <a href="#" id="ht-search-button" class="ht-header-icon ht-header-icon-svg">
+                                        <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g>
+                            <path d="M29.572,28.802 L28.801,29.571 C28.515,29.857 28.187,30 27.816,30 C27.445,30 27.116,29.857 26.831,29.571 L21.392,24.134 C20.193,24.762 18.908,25.076 17.538,25.076 C15.396,25.076 13.605,24.348 12.163,22.892 C10.721,21.436 10,19.651 10,17.538 C10,15.397 10.721,13.605 12.163,12.163 C13.605,10.721 15.396,10 17.538,10 C19.651,10 21.434,10.721 22.89,12.163 C24.347,13.605 25.075,15.397 25.075,17.538 C25.075,18.937 24.761,20.222 24.132,21.393 L29.572,26.832 C29.857,27.118 30,27.446 30,27.817 C30,28.188 29.857,28.517 29.572,28.802 L29.572,28.802 Z M13.662,21.414 C14.732,22.485 16.024,23.02 17.538,23.02 C19.051,23.02 20.343,22.485 21.413,21.414 C22.484,20.344 23.019,19.052 23.019,17.538 C23.019,16.025 22.484,14.733 21.413,13.662 C20.343,12.592 19.051,12.056 17.538,12.056 C16.024,12.056 14.732,12.592 13.662,13.662 C12.591,14.733 12.056,16.025 12.056,17.538 C12.056,19.052 12.591,20.344 13.662,21.414 L13.662,21.414 Z"></path>
+                        </g>
+                    </svg>
+              	</a>
+
+                <div class="ht-search-dropdown ht-dropdown">
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    </header>   	<aside id="ht-sidebar">
+    <div class="ht-sidebar-content">
+        <div class="ht-sidebar-content-scroll-container">
+            <header class="ht-sidebar-header">
+                <h1 class="ht-logo">
+                    <span class="ht-logo-label">EJBCADS</span>
+                    <img class="space-logo" src="EJBCADS.png" />
+                </h1>
+                <a href="EJBCA_6.15.2.6_Documentation.html" class="ht-space-link">
+                    <h2>EJBCA - Documentation Space</h2>
+                </a>
+            </header>
+                            <iframe id="ht-nav" src="toc.html?pageId=23859396"></iframe>
+                <script>
+                    $('iframe#ht-nav').iFrameResize(
+                            { 'log': true, 'autoResize': true, 'heightCalculationMethod': 'lowestElement', 'checkOrigin': false });
+                </script>
+                    </div>
+    </div>
+
+</aside></div>
+
+<div id="ht-wrap-container">
+
+            
+    <div id="ht-sidebar-dragbar">
+    <div class="ht-sidebar-drag-handle">
+        <span class="drag-handle-1"></span>
+        <span class="drag-handle-2"></span>
+        <span class="drag-handle-3"></span>
+    </div>
+</div>
+    <article id="ht-content" class="ht-content">
+        <header class="ht-content-header">
+            <div id="ht-breadcrumb">
+    <ul>
+        <li><a href="EJBCA_6.15.2.6_Documentation.html">EJBCA - Documentation Space</a></li>
+                                                                                                             <li><a href="" onclick="$('.shortcut').each(function(){$(this).removeClass('shortcut')}); $(this).parent().addClass('shortcut'); return false;">...</a> </li>
+                                        <li class="shortcut"><a href="EJBCA_Release_Information.html">EJBCA Release Information</a></li>
+                                                                                     <li><a href="EJBCA_Release_Notes.html">EJBCA Release Notes</a></li>
+                                                            </ul>
+</div>            <h1 id="src-23859396"> <span>EJBCA 6.15 Release Notes</span></h1>
+        </header>
+
+        <div id="main-content" class="wiki-content sp-grid-section" data-index-for-search="true">
+
+<p   
+>Version 6 of EJBCA is beginning to near its end, and the team are looking forward with great anticipation to be able to give you all a look at what's coming with EJBCA 7. That said, we're sending off the last feature release of EJBCA 6 with a helluva bang: full support for the ACME REST protocol!</p>
+<p   
+></p>
+<ul class="toc-indentation "><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-Features">Features</a></p>
+<ul class="toc-indentation "><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-ACMESupport">ACME Support</a></p>
+</li><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-WildcardsforCustomCertificateExtensions">Wildcards for Custom Certificate Extensions</a></p>
+</li></ul></li><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-RoadmapUpdate">Roadmap Update</a></p>
+</li><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-UpgradeInformation">Upgrade Information</a></p>
+</li><li class=" "><p   
+><a   href="#src-23859396_safe-id-aWQtLkVKQkNBNi4xNVJlbGVhc2VOb3Rlc3Y2LjE1LjAtQ2hhbmdlTG9nOlJlc29sdmVkSXNzdWVz">Change Log: Resolved Issues</a></p>
+</li></ul>    <div class="section section-1" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-Features">
+        <h1 class="heading "><span>Features</span></h1>
+    <div class="section section-2" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-ACMESupport">
+        <h2 class="heading "><span>ACME Support</span></h2>
+<p   
+>Nearly done by the release of 6.14 but not quite there, EJBCA 6.15's main feature is our support for the <a   href="ACME.html">ACME</a> protocol, up unto and including all mandatory features in <a  class="external-link" href="https://tools.ietf.org/html/draft-ietf-acme-acme-12">draft 12</a>. Naturally we've implemented it with full support for proxying communications over Peers through our RA, and support for multiple configurations using aliases as we do with other protocols.</p>
+<p   
+><img  class="confluence-embedded-image image-center"                 style="display:block; margin-left: auto; margin-right: auto;"
+     src="images/download/attachments/23859396/Screen_Shot_2018-10-03_at_15.08.46.png" alt="images/download/attachments/23859396/Screen_Shot_2018-10-03_at_15.08.46.png"  height="250" />
+As it's a commonly asked question, we'd like to state here that our implementation has been verified against <a  class="external-link" href="https://certbot.eff.org/">Certbot</a>, <a  class="external-link" href="https://github.com/porunov/acme_client">PJAC</a> and <a  class="external-link" href="https://github.com/diafygi/acme-tiny">ACME Tiny</a>, and our <a   href="ACME.html">documentation</a> describes how to configure them.</p>
+    </div>
+    <div class="section section-2" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-WildcardsforCustomCertificateExtensions">
+        <h2 class="heading "><span>Wildcards for Custom Certificate Extensions </span></h2>
+<p   
+>We've added two minor features to Custom Certificate Extensions: <img  class="confluence-embedded-image image-center"                 style="display:block; margin-left: auto; margin-right: auto;"
+     src="images/download/attachments/23859396/Screen_Shot_2018-10-04_at_08.31.28.png" alt="images/download/attachments/23859396/Screen_Shot_2018-10-04_at_08.31.28.png" width="450"  />
+</p>
+<p   
+>Firstly, we've added <strong class=" ">wildcards</strong> (identified by an <i class=" ">'*'</i>) to the OID field, which allows a defined extension to match against any array of extensions defined in an incoming request (e.g. in the above example, any request containing an extension ending in <i class=" ">.123</i>. The second addition is the <i class=" ">Required</i> property, which is by default checked. Unchecking this property makes an extension available to be requested in the enrollment request but not necessary.</p>
+    </div>
+    </div>
+    <div class="section section-1" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-RoadmapUpdate">
+        <h1 class="heading "><span>Roadmap Update</span></h1>
+<p   
+>Development of EJBCA 7.0 is now underway, and while many of you will be pleased at the new Common Criteria certification that's incoming, the initial UI changes won't be monumental at first. This is because most of the work is being done behind the scenes to pay back a monumental technical debt which has been incurred over the years in the UI module, and in order to maintain stability while the UI is being worked on we're making the changes as slow and gradual as possible. What you'll be seeing next over the coming months will first be a normalization of UI functionality (making sure that similar actions across different pages behave in the same way), followed by a massive renovation of our CSS. After that we'll progressively start introducing more tangible improvements to the UI.</p>
+    </div>
+    <div class="section section-1" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-UpgradeInformation">
+        <h1 class="heading "><span>Upgrade Information</span></h1>
+<p  class="confluence-link" 
+>Read the <a   href="EJBCA_6.15_Upgrade_Notes.html">EJBCA 6.15 Upgrade Notes</a> for important information about this release. For upgrade instructions and information on upgrade paths, see <a   href="Upgrading_EJBCA.html">Upgrading EJBCA</a>.</p>
+    </div>
+    <div class="section section-1" id="src-23859396_safe-id-aWQtLkVKQkNBNi4xNVJlbGVhc2VOb3Rlc3Y2LjE1LjAtQ2hhbmdlTG9nOlJlc29sdmVkSXNzdWVz">
+        <h1 class="heading "><span>Change Log: Resolved Issues</span></h1>
+<p   
+>For full details of fixed bugs and implemented features in EJBCA 6.15.0, refer to our <a  class="external-link" href="https://jira.primekey.se/issues/?jql=project%20%3D%20ECA%20AND%20resolution%20in%20(Fixed%2C%20Done)%20AND%20fixVersion%20%3D%20%22EJBCA%206.15.0%22%20ORDER%20BY%20resolution%20DESC">JIRA Issue Tracker</a>.</p>
+    <div class="section section-2" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-IssuesResolvedin6.15.0">
+        <h2 class="heading "><span>Issues Resolved in 6.15.0</span></h2>
+<p   
+>Released on 5 October 2018</p>
+<p   
+></p>
+<ul class="toc-indentation "><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-NewFeatures">New Features</a></p>
+</li><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-Tasks">Tasks</a></p>
+</li><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-Improvements">Improvements</a></p>
+</li><li class=" "><p   
+><a   href="#src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-BugFixes">Bug Fixes</a></p>
+</li></ul>    </div>
+    <div class="section section-2" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-NewFeatures">
+        <h2 class="heading "><span>New Features</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7019">ECA-7019</a> - Write documentation for ACME</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7185">ECA-7185</a> - ACME persistence: Create ORM scripts AcmeAccountData</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7187">ECA-7187</a> - Add ACME to Statedump</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7188">ECA-7188</a> - Add ACME to Configdump</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7198">ECA-7198</a> - ACME persistence: Create ORM scripts/entities/CRUD for AcmeOrderData</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7199">ECA-7199</a> - ACME persistence: Create ORM scripts/entities/CRUD for AcmeAuthorizationData</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7200">ECA-7200</a> - ACME persistence: Create ORM scripts/entities/CRUD for AcmeChallengeData</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7202">ECA-7202</a> - ACME system tests - analyse, improve and enable skipped system tests</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7237">ECA-7237</a> - Swagger problems with ACME module</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7244">ECA-7244</a> - Add ability to link in compiled JARs as plugins</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7250">ECA-7250</a> - PKCS11 enable using CKA_LABEL also when a sun attributes file is used</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7253">ECA-7253</a> - Add a method to SignSession in order to sign arbitrary payloads</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7257">ECA-7257</a> - Add possibility to disable Crypto Token key generation for specific PKCS#11 drivers in GUI</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7259">ECA-7259</a> - Add Amazon CloudHSM p11 driver to known P11 drivers in web.properties</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7264">ECA-7264</a> - Re-use endentity for ACME cert renewal flow</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7287">ECA-7287</a> - Add Required checkbox to the custom extension configuration screen and logic in backend</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7288">ECA-7288</a> - Add wildcard identifier to the Certificate Extension OIDs</p>
+    </div>
+    <div class="section section-2" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-Tasks">
+        <h2 class="heading "><span>Tasks</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7138">ECA-7138</a> - Ensure quality in ACME</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7203">ECA-7203</a> - Verify that ACME works with aliases</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7207">ECA-7207</a> - Verify &amp; document External Account Binding in ACME</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7252">ECA-7252</a> - test ACME cert renewal and deacticvation flows with acme4j</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7275">ECA-7275</a> - Test ACME wildcard cert issuance and pre-authorization with certbot.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7323">ECA-7323</a> - Document Peer RA Protocol Rules</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7324">ECA-7324</a> - Document Optional Custom Extensions</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7331">ECA-7331</a> - Verify if Swagger UI for works for ACME API. If it does, add documentation to confluence. If not, hide the ACME part from swaggerUI</p>
+    </div>
+    <div class="section section-2" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-Improvements">
+        <h2 class="heading "><span>Improvements</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6921">ECA-6921</a> - ACME persistence: CRUD for AcmeAccountData</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7114">ECA-7114</a> - Improved test for ACME dns-01 validation.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7120">ECA-7120</a> - Upgrade EJBCA/CESeCore to BouncyCastle 1.60</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7125">ECA-7125</a> - Precompile Swagger UI WAR and add to ejbca/dist</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7194">ECA-7194</a> - Create certificate only for order from request</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7204">ECA-7204</a> - Re-enable ACME in GUI</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7227">ECA-7227</a> - Remove &quot;CA Service Activation&quot; from Certificate Profiles</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7233">ECA-7233</a> - Remove JavaDoc and source files from lib directory</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7234">ECA-7234</a> - Use a StringBuilder to improve efficiency creating database protection</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7239">ECA-7239</a> - Make DNSSEC optional for dns validation</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7240">ECA-7240</a> - EJBCA_TRUNK_MARIADB_UBUNTU1204_JBOSS711GA_PUPPET tests failing</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7243">ECA-7243</a> - Hide external account binding option from ACME GUI</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7247">ECA-7247</a> - Improve the New Terms of Service Agreement functionality of EJBCA ACME server.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7248">ECA-7248</a> - Use EJBCA name style for issuerDN in CMP revocation request handler</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7251">ECA-7251</a> - Remove clover jar from ziprelease</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7304">ECA-7304</a> - Update default DNSSEC trust anchors</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7305">ECA-7305</a> - Upgrade handling for new &quot;DNS port&quot; setting for ACME</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7310">ECA-7310</a> - Improve feedback from CAA Validator</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7311">ECA-7311</a> - Possible serialization failure when editing Access Rules in Advanced Mode</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7316">ECA-7316</a> - Missing svn:keywords</p>
+    </div>
+    <div class="section section-2" id="src-23859396_id-.EJBCA6.15ReleaseNotesv6.15.0-BugFixes">
+        <h2 class="heading "><span>Bug Fixes</span></h2>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-6872">ECA-6872</a> - Cannot enroll user with Cyrillic characters using RA web + appliance</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7096">ECA-7096</a> - Don't store certificate meta data option makes expireDate not published, causing archiveCutOff</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7154">ECA-7154</a> - SQL Grammar Exception on MS SQL Server v12</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7193">ECA-7193</a> - Move check of requested certificate validity from finalize to newOrder</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7201">ECA-7201</a> - Documentation link to Renew CA gives 404</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7211">ECA-7211</a> - OCSP signing certificates aren't always published for throwaway CAs with revoke enabled</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7215">ECA-7215</a> - CMP: RA Name Generation Scheme with DN component serialNumber does not work</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7220">ECA-7220</a> - DROP table scripts for AcmeNonceData is missing</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7224">ECA-7224</a> - Broken class-path references in ctlog.jar causes WARN messages in the JBoss log file</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7231">ECA-7231</a> - StringTools B64 failing unit test after upgrade to BC 1.60</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7238">ECA-7238</a> - EjbcaWS doesn't handle timeformats ending with 'Z'</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7242">ECA-7242</a> - EJBCA is trying to parse the string 'KeyId' as an integer when authorising an admin</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7245">ECA-7245</a> - NPE when issuing certificate via certbot</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7246">ECA-7246</a> - EjbcaWSTest fails with clearpassword</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7249">ECA-7249</a> - HSMKeyTool --force flag does not work when using an attributes file</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7258">ECA-7258</a> - Security: information leak in debug log</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7260">ECA-7260</a> - CryptoToken key generate button shown when it should not</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7268">ECA-7268</a> - RA Web search End Entities doesn't render if not authorized to search certificates</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7269">ECA-7269</a> - Regression: JSF errors on JBoss AS 7.1.1</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7274">ECA-7274</a> - Test ACME wildcard certificate issuance and pre-authorization with acme4j</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7277">ECA-7277</a> - DatabaseProtection on CertificateProfileData incompatible between &lt;=6.11 and &gt;= 6.12</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7285">ECA-7285</a> - Add HEAD request for the endpoint revokeCert</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7286">ECA-7286</a> - Fix NPE which happens when de-registering account with certbot</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7302">ECA-7302</a> - Name Constraints error when saving existing CA</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7306">ECA-7306</a> - GUI bug in Edit CA page.</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7307">ECA-7307</a> - 'Close' button not functioning under 'View Certificate'</p>
+<p   
+><a  class="external-link" href="https://jira.primekey.se/browse/ECA-7322">ECA-7322</a> - Import renewed CA certificates, for External CA does not import to CertificateData, for Externally Signed CA does not publish</p>
+<p   
+></p>
+<p   
+></p>
+    </div>
+    </div>
+        </div>
+
+    </article>
+
+
+            <nav id="ht-post-nav">
+                <a href="EJBCA_6.15.1_Release_Notes.html" class="ht-post-nav-prev">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-prev" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-45.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA 6.15.1 Release Notes</span>
+        </a>
+                <a href="EJBCA_6.14.1_Release_Notes.html" class="ht-post-nav-next">
+            <svg width="22px" height="22px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                <g id="ht-icon-next" sketch:type="MSArtboardGroup">
+                    <path fill="#000000" d="M16,8 L16,6 L6,6 L6,16 L8,16 L8,8 L16,8 Z" id="Rectangle-2"
+                          sketch:type="MSShapeGroup"
+                          transform="translate(11.000000, 11.000000) rotate(-225.000000) translate(-11.000000, -11.000000) "></path>
+                </g>
+            </svg>
+            <span>EJBCA 6.14.1 Release Notes</span>
+        </a>
+    </nav>    
+            
+    <footer id="ht-footer">
+    <a href="#" id="ht-jump-top" class="sp-aui-icon-small sp-aui-iconfont-arrows-up"></a>
+</footer></div>
+
+<div>
+    <div id="ht-mq-detect"></div>
+</div>
+
+    <script src="js/lunr.js"></script>
+    <script src="js/lunr-extras.js"></script>
+    <script src="assets/js/scroll-search.js"></script>
+
+</body>
+</html>

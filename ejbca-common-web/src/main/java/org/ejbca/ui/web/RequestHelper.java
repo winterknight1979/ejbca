@@ -606,12 +606,16 @@ public class RequestHelper {
      */
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, CertificateResponseType resulttype) throws Exception {
         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);
-        String issuerDN = CertTools.getIssuerDN(cert);
-        String serialNumber = CertTools.getSerialNumberAsString(cert);
-        String resultTypeStr = String.valueOf(resulttype.getNumber()); 
-        
+        String issuerDN = CertTools.getIssuerDN(cert);	       
+        String serialNumber = CertTools.getSerialNumberAsString(cert);	       
+        String resultTypeStr = String.valueOf(resulttype.getNumber()); 	       
+
+
         out.sendRedirect("enrol/result_download.jsp?issuer="+URLEncoder.encode(issuerDN, "UTF-8")+"&serno="+serialNumber+"&resulttype="+resultTypeStr+"&hidemenu="+hidemenu);
+        		
     }
+    
+   
     
     /**
      * Sends a page with certificate information and an automatic redirect to the
@@ -627,10 +631,10 @@ public class RequestHelper {
      */
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, String installToBrowser) throws Exception {
         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);
-        
-        String issuerDN = CertTools.getIssuerDN(cert);
-        String serialNumber = CertTools.getSerialNumberAsString(cert);
-        
+
+        String issuerDN = CertTools.getIssuerDN(cert);	        
+        String serialNumber = CertTools.getSerialNumberAsString(cert);	       
+
         out.sendRedirect("enrol/result_download.jsp?issuer="+URLEncoder.encode(issuerDN, "UTF-8")+"&serno="+serialNumber+"&installtobrowser="+installToBrowser+"&hidemenu="+hidemenu);
     }
     

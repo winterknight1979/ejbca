@@ -95,10 +95,6 @@ private static final String WARN_PREFIX = "log4j warning: ";
   @Override
   public void setLogger(final Logger logger) { }
 
-  /** No options to activate. */
-  @Override
-  public void activateOptions() { }
-
   /** Does not do anything. */
   @Override
   public void setAppender(final Appender appender) { }

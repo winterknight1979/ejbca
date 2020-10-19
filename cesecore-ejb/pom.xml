@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
-		<version>${revision}</version>
+		<version>1.0.1-beta-2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>cesecore-ejb</artifactId>
@@ -65,11 +65,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- log4j -->
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-		</dependency>
+	
 
 		<!-- LDAP -->
 		<dependency>
@@ -184,6 +180,15 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			<plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-ejb-plugin</artifactId>
+          <version>3.1.0</version>
+          <configuration>
+            <ejbVersion>3.0</ejbVersion>
+          </configuration>
+        </plugin>
 		</plugins>
 	</build>
 
