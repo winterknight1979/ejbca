@@ -606,25 +606,16 @@ public class RequestHelper {
      */
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, CertificateResponseType resulttype) throws Exception {
         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);
-        String issuerDN = removeSpecial(CertTools.getIssuerDN(cert));
-        String serialNumber = removeSpecial(CertTools.getSerialNumberAsString(cert));
-        String resultTypeStr = removeSpecial(String.valueOf(resulttype.getNumber())); 
-        
-        StringBuilder build = new StringBuilder();
-        build.append("enrol/result_download.jsp?issuer=");
-        build.append(URLEncoder.encode(issuerDN, "UTF-8"));
-        build.append("&serno="+serialNumber);
-        build.append("&resulttype="+resultTypeStr);
-        build.append("&hidemenu="+hidemenu);
-        
-        
-        out.sendRedirect(build.toString());
+        String issuerDN = CertTools.getIssuerDN(cert);	       
+        String serialNumber = CertTools.getSerialNumberAsString(cert);	       
+        String resultTypeStr = String.valueOf(resulttype.getNumber()); 	       
+
+
+        out.sendRedirect("enrol/result_download.jsp?issuer="+URLEncoder.encode(issuerDN, "UTF-8")+"&serno="+serialNumber+"&resulttype="+resultTypeStr+"&hidemenu="+hidemenu);
         		
     }
     
-    private static String removeSpecial(String str) {
-		return str.replaceAll("[^a-zA-Z0-9=, ]", "");
-	}
+   
     
     /**
      * Sends a page with certificate information and an automatic redirect to the
@@ -641,17 +632,11 @@ public class RequestHelper {
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, String installToBrowser) throws Exception {
         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);
 
-        String issuerDN = removeSpecial(CertTools.getIssuerDN(cert));
-        String serialNumber = removeSpecial(CertTools.getSerialNumberAsString(cert));
-        
-        StringBuilder build = new StringBuilder();
-        build.append("enrol/result_download.jsp?issuer=");
-        build.append(URLEncoder.encode(issuerDN, "UTF-8"));
-        build.append("&serno="+serialNumber);
-        build.append("&installtobrowser="+removeSpecial(installToBrowser));
-        build.append("&hidemenu="+hidemenu);
+        String issuerDN = CertTools.getIssuerDN(cert);	        
+        String serialNumber = CertTools.getSerialNumberAsString(cert);	       
 
-        out.sendRedirect(build.toString());
+        build.append(URLEncoder.encode(issuerDN, "UTF-8"));
+        out.sendRedirect("enrol/result_download.jsp?issuer="+URLEncoder.encode(issuerDN, "UTF-8")+"&serno="+serialNumber+"&installtobrowser="+installToBrowser+"&hidemenu="+hidemenu);
     }
     
     /** Sets the default character encoding for decoding post and get parameters. 
