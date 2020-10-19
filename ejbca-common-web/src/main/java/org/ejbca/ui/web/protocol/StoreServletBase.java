@@ -108,7 +108,6 @@ public abstract class StoreServletBase extends HttpServlet {
         if (log.isTraceEnabled()) {
             log.trace(">doGet()");
         }
-        final String search = "search.cgi";
         if (!req.getRequestURI().substring(req.getContextPath().length()).contains("search.cgi")) {	       
         resp.sendRedirect(req.getRequestURI() + "search.cgi");
             return;
