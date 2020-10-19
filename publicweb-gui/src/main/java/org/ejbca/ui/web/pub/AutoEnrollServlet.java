@@ -273,7 +273,10 @@ public class AutoEnrollServlet extends HttpServlet {
 	            log.info("Sent cert to client");
 	        }
 	    } catch (AuthorizationDeniedException e1) {
-	        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e1.getMessage());
+	    	// TODO: localize this.
+        	log.info("Authentication failed", e1);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
+            return;
 	    }
 		log.trace("<doPost");
 	}

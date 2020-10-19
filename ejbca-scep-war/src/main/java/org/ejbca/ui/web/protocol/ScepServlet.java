@@ -304,57 +304,57 @@ public class ScepServlet extends HttpServlet {
             }
         } catch (CADoesntExistsException cae) {
     		String errMsg = intres.getLocalizedMessage("scep.errorunknownca", "cert");
-            log.info(errMsg);
+            log.info(errMsg, cae);
             // TODO: Send back proper Failure Response
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, cae.getMessage());
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, errMsg);
         } catch (DecoderException de) {
     		String errMsg = intres.getLocalizedMessage("scep.errorinvalidreq");
             log.info(errMsg, de);
             // TODO: Send back proper Failure Response
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, de.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,errMsg);
         } catch (AuthorizationDeniedException ae) {
     		String errMsg = intres.getLocalizedMessage("scep.errorauth");
             log.info(errMsg, ae);
             // TODO: Send back proper Failure Response
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ae.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errMsg);
         } catch (AuthLoginException ae) {
+            final String errMsg = intres.getLocalizedMessage("scep.errorauth");
             if (log.isDebugEnabled()) {
                 // AuthLogin is logged as a security event already by inner layers, not need to log the exception at info level
                 // this is seens clearly in the info log already, more details is inly needed in debug level
-                final String errMsg = intres.getLocalizedMessage("scep.errorauth");
                 log.debug(errMsg, ae);
             }
             // TODO: Send back proper Failure Response
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ae.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errMsg);
         } catch (AuthStatusException ae) {
     		String errMsg = intres.getLocalizedMessage("scep.errorclientstatus");
             log.info(errMsg, ae);
             // TODO: Send back proper Failure Response
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ae.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, errMsg);
         } catch (CryptoTokenOfflineException ee) {
     		String errMsg = intres.getLocalizedMessage("scep.errorgeneral");
             log.info(errMsg, ee);
             // TODO: Send back proper Failure Response
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ee.getMessage());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errMsg);
         } catch (NoSuchEndEntityException ee) {
             String errMsg = intres.getLocalizedMessage("scep.errorgeneral");
             errMsg += " Registering new EndEntities is only allowed in RA mode.";
             log.info(errMsg, ee);
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, ee.getMessage());    
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, errMsg);    
         } catch(IllegalKeyException e) {
             String errMsg = intres.getLocalizedMessage("scep.errorclientcertificaterenewal");
             errMsg += " Reusing the old keys was attempted, but this action is prohibited by configuration.";
             log.info(errMsg, e);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());    
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, errMsg);    
         } catch(SignatureException e) {
             String errMsg = intres.getLocalizedMessage("scep.errorclientcertificaterenewal");
             errMsg += " Request was not signed with previous certificate's public key.";
             log.info(errMsg, e);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, errMsg);
         } catch(CertificateRenewalException e) {
             String errMsg = intres.getLocalizedMessage("scep.errorclientcertificaterenewal");
             log.info(errMsg, e);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, errMsg);
         } catch (NoSuchAliasException e) {
             String msg = intres.getLocalizedMessage("protocol.nosuchalias", "SCEP", alias);
             log.info(msg);
@@ -362,7 +362,7 @@ public class ScepServlet extends HttpServlet {
         } catch (Exception e) {             
     		String errMsg = intres.getLocalizedMessage("scep.errorgeneral");
             log.info(errMsg, e);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, errMsg);
         }
     }
     

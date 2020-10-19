@@ -66,7 +66,9 @@ public class CryptoTokenDownloadServlet extends BaseAdminServlet {
         try {
             admin = authenticateAdmin(request, response, CryptoTokenRules.VIEW.resource());
         } catch (AdminWebAuthenticationException authExc) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, authExc.getMessage());
+        	// TODO: localize this.
+        	log.info("Authentication failed", authExc);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
             return;
         }
         final String cryptoTokenIdParam = request.getParameter("cryptoTokenId");

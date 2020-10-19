@@ -169,7 +169,6 @@ import org.cesecore.util.CeSecoreNameStyle;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.log.ProbableErrorHandler;
 import org.cesecore.util.log.SaferAppenderListener;
-import org.cesecore.util.log.SaferDailyRollingFileAppender;
 import org.cesecore.util.provider.EkuPKIXCertPathChecker;
 
 /**
@@ -238,12 +237,7 @@ public class OcspResponseGeneratorSessionBean
   /** Setup. */
   @PostConstruct
   public void init() {
-    if (OcspConfiguration.getLogSafer()) {
-      SaferDailyRollingFileAppender.addSubscriber(this);
-      LOG.info(
-          "Added us as subscriber: "
-              + SaferDailyRollingFileAppender.class.getCanonicalName());
-    }
+   
     timerService = sessionContext.getTimerService();
   }
 

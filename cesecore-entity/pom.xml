@@ -66,11 +66,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- log4j -->
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-		</dependency>
+		
 
 		<!-- Other modules -->
 		<dependency>

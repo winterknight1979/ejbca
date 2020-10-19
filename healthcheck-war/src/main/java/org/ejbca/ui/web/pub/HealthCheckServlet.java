@@ -155,6 +155,8 @@ public class HealthCheckServlet extends HttpServlet {
                 }
                 if (customErrorMessage != null) {
                     status = customErrorMessage;
+                } else {
+                	status = "Healthcheck returned error.";
                 }
                 // Return fail message
                 if (EjbcaConfiguration.getSendServerError()) {

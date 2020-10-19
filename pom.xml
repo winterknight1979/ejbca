@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>goldeneyes.ejbca</groupId>
@@ -65,7 +67,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-ejb-cli</module>
 
 		<!-- WebApp modules -->
-		
+
 		<module>publicweb-gui</module>
 		<module>ejbca-renew-war</module>
 		<module>ejbca-scep-war</module>
@@ -92,8 +94,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<connection>scm:git:https://github.com/winterknight1979/ejbca.git</connection>
 		<developerConnection>scm:git:git@github.com:winterknight1979/ejbca.git</developerConnection>
 		<url>https://github.com/winterknight1979/ejbca</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 	<ciManagement>
 		<system>Github Actions</system>
 		<url>https://github.com/winterknight1979/ejbca/actions</url>
@@ -384,9 +386,13 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			</dependency>
 			<!-- Logging -->
 			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>1.2.17</version>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-1.2-api</artifactId>
+				<version>2.13.3</version>
+			</dependency><dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>2.13.3</version>
 			</dependency>
 			<dependency>
 				<groupId>org.jboss.logging</groupId>
@@ -711,11 +717,11 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.1.1</version>
 				<dependencies>
-				    <dependency>
-  <groupId>goldeneyes.ejbca</groupId>
-  <artifactId>build-config</artifactId>
-  <version>1.0</version>
-				    </dependency>
+					<dependency>
+						<groupId>goldeneyes.ejbca</groupId>
+						<artifactId>build-config</artifactId>
+						<version>1.0</version>
+					</dependency>
 				</dependencies>
 				<configuration>
 					<suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
@@ -950,7 +956,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				</pluginManagement>
 			</build>
 		</profile>
-		
+
 		<profile>
 			<id>lint</id>
 			<build>

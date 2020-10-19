@@ -103,7 +103,9 @@ public class ProfilesExportServlet extends BaseAdminServlet {
         try {
             admin = authenticateAdmin(request, response, AccessRulesConstants.ROLE_ADMINISTRATOR);
         } catch (AdminWebAuthenticationException authExc) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, authExc.getMessage());
+        	// TODO: localize this.
+        	log.info("Authentication failed", authExc);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
             return;
         }
 

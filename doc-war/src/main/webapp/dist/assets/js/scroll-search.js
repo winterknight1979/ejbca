@@ -65,7 +65,7 @@
         list.empty();
 
         var baseUrl = window.location.href.substr(0, window.location.href.lastIndexOf('/') + 1);
-
+        baseUrl = baseUrl.replace(/[^a-zA-Z0-9\.]/g, '')
         jQuery.each(searchResults, function(index, searchResult) {
             var displayUrl = baseUrl + searchResult.link;
             list.append('<section class="search-result">'
@@ -169,7 +169,8 @@
     }
 
     function getUrlParameter(name) {
-        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        /** TODO: Sanitize this more effectively */
+        name = name.replace(/[\[]/g, '\\[').replace(/[\]]/g, '\\]');
         var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
         var results = regex.exec(location.search);
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
