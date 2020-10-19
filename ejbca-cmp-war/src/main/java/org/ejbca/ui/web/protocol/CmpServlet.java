@@ -96,7 +96,8 @@ public class CmpServlet extends HttpServlet {
             }
             service(output.toByteArray(), request.getRemoteAddr(), response, alias);
         } catch (IOException | RuntimeException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        	// TODO: localize.
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad request. ");
             log.info(intres.getLocalizedMessage("cmp.errornoasn1"), e);
         }
         if (log.isTraceEnabled()) {
@@ -134,7 +135,7 @@ public class CmpServlet extends HttpServlet {
                 result = raMasterApiProxyBean.cmpDispatch(authenticationToken, pkiMessageBytes, alias);
             } catch (NoSuchAliasException e) {
                 // The CMP alias does not exist
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Error in CmpServlet: No such alias");
                 log.info(e.getMessage());
                 return;
             }
@@ -152,7 +153,7 @@ public class CmpServlet extends HttpServlet {
             log.info(intres.getLocalizedMessage("cmp.sentresponsemsg", remoteAddr, Long.valueOf(endTime - startTime)));
         } catch (IOException | RuntimeException e) {
             log.error("Error in CmpServlet:", e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error in CmpServlet.");
         }
     }
     

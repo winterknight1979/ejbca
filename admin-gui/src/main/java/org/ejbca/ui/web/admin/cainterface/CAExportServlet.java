@@ -72,7 +72,9 @@ public class CAExportServlet extends BaseAdminServlet {
         try {
             admin = authenticateAdmin(req, res, StandardRules.ROLE_ROOT.resource());
         } catch (AdminWebAuthenticationException authExc) {
-            res.sendError(HttpServletResponse.SC_FORBIDDEN, authExc.getMessage());
+        	// TODO: localize this.
+        	log.info("Authentication failed", authExc);
+            res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
             return;
         }
 	    RequestHelper.setDefaultCharacterEncoding(req);
@@ -93,8 +95,10 @@ public class CAExportServlet extends BaseAdminServlet {
         	res.setHeader("Content-Disposition", "attachment;filename=\"" + StringTools.stripFilename(caname+"."+ext) + "\"");
 	        res.getOutputStream().write(keystorebytes);
   		} catch(Exception e) {
+  			//TODO: localize
+  			log.info("Bad request", e);
 	        res.setContentType("text/plain");
-	        res.sendError( HttpServletResponse.SC_BAD_REQUEST, e.getMessage() );
+	        res.sendError( HttpServletResponse.SC_BAD_REQUEST, "Bad request." );
   		} 
 	}
 }

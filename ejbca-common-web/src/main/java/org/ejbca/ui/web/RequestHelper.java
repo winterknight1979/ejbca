@@ -635,7 +635,6 @@ public class RequestHelper {
         String issuerDN = CertTools.getIssuerDN(cert);	        
         String serialNumber = CertTools.getSerialNumberAsString(cert);	       
 
-        build.append(URLEncoder.encode(issuerDN, "UTF-8"));
         out.sendRedirect("enrol/result_download.jsp?issuer="+URLEncoder.encode(issuerDN, "UTF-8")+"&serno="+serialNumber+"&installtobrowser="+installToBrowser+"&hidemenu="+hidemenu);
     }
     

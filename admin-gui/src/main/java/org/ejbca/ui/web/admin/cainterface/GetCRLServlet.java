@@ -70,7 +70,9 @@ public class GetCRLServlet extends BaseAdminServlet {
         try {
             authenticateAdmin(req, res, AccessRulesConstants.REGULAR_VIEWCERTIFICATE);
         } catch (AdminWebAuthenticationException authExc) {
-            res.sendError(HttpServletResponse.SC_FORBIDDEN, authExc.getMessage());
+        	// TODO: localize this.
+        	log.info("Authentication failed", authExc);
+            res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
             return;
         }
         RequestHelper.setDefaultCharacterEncoding(req);

@@ -89,7 +89,9 @@ public class CACertReqServlet extends BaseAdminServlet {
         try {
             admin = authenticateAdmin(req, res, StandardRules.ROLE_ROOT.resource());
         } catch (AdminWebAuthenticationException authExc) {
-            res.sendError(HttpServletResponse.SC_FORBIDDEN, authExc.getMessage());
+        	// TODO: localize this.
+        	log.info("Authentication failed", authExc);
+            res.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
             return;
         }
 
