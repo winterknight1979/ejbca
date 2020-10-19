@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>goldeneyes.ejbca</groupId>
 	<artifactId>ejbca</artifactId>
-	<version>1.0.1-beta-2-SNAPSHOT</version>
+	<version>1.0.1-beta-2</version>
 	<packaging>pom</packaging>
 
 	<name>EJB-CA</name>
@@ -94,7 +92,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<connection>scm:git:https://github.com/winterknight1979/ejbca.git</connection>
 		<developerConnection>scm:git:git@github.com:winterknight1979/ejbca.git</developerConnection>
 		<url>https://github.com/winterknight1979/ejbca</url>
-		<tag>HEAD</tag>
+		<tag>ejbca-1.0.1-beta-2</tag>
 	</scm>
 	<ciManagement>
 		<system>Github Actions</system>
@@ -720,7 +718,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<dependency>
 						<groupId>goldeneyes.ejbca</groupId>
 						<artifactId>build-config</artifactId>
-						<version>1.0</version>
+						<version>1.0.1-beta-2</version>
 					</dependency>
 				</dependencies>
 				<configuration>
