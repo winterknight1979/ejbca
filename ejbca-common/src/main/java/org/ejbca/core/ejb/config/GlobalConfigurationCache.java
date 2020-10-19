@@ -47,6 +47,7 @@ public final class GlobalConfigurationCache implements ConfigurationCache {
    */
   private volatile long lastupdatetime = -1;
 
+  /** Null. */
   public GlobalConfigurationCache() {
     // Do nothing
   }
@@ -62,6 +63,7 @@ public final class GlobalConfigurationCache implements ConfigurationCache {
     return true;
   }
 
+  /** Clear. */
   public void clearCache() {
     globalconfigurationCache = null;
   }
@@ -105,7 +107,7 @@ public final class GlobalConfigurationCache implements ConfigurationCache {
     Properties ejbca = EjbcaConfigurationHolder.getAsProperties();
     Properties cesecore = ConfigurationHolder.getAsProperties();
     for (Iterator<Object> iterator = ejbca.keySet().iterator();
-        iterator.hasNext(); ) {
+        iterator.hasNext();) {
       String key = (String) iterator.next();
       cesecore.setProperty(key, ejbca.getProperty(key));
     }

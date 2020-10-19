@@ -15,18 +15,31 @@ public class ServiceLocatorException extends RuntimeException {
 
   private static final long serialVersionUID = -4079132608707751216L;
 
+  /**
+   * Null.
+   */
   public ServiceLocatorException() {
     super();
   }
 
+  /**
+   * @param message Message
+   */
   public ServiceLocatorException(final String message) {
     super(message);
   }
 
+  /**
+   * @param cause Cause
+   */
   public ServiceLocatorException(final Throwable cause) {
     super(cause);
   }
 
+  /**
+   * @param message message
+   * @param cause Cause
+   */
   public ServiceLocatorException(final String message, final Throwable cause) {
     super(message, cause);
   }

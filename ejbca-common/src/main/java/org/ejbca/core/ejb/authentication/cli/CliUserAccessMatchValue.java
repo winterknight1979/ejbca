@@ -22,12 +22,17 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
  *     samuellb $
  */
 public enum CliUserAccessMatchValue implements AccessMatchValue {
-  USERNAME(0);
+  /** User. */
+    USERNAME(0);
 
+    /** Value. */
   private final int numericValue;
 
-  private CliUserAccessMatchValue(final int numericValue) {
-    this.numericValue = numericValue;
+  /**
+   * @param aNumericValue value
+   */
+  CliUserAccessMatchValue(final int aNumericValue) {
+    this.numericValue = aNumericValue;
   }
 
   @Override

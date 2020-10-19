@@ -44,6 +44,7 @@ public final class CMPConfigurationCache implements ConfigurationCache {
    */
   private volatile long lastupdatetime = -1;
 
+  /** Null. */
   public CMPConfigurationCache() {
     // Do nothing
   }
@@ -59,6 +60,7 @@ public final class CMPConfigurationCache implements ConfigurationCache {
     return true;
   }
 
+  /** Clear. */
   public void clearCache() {
     cmpconfigurationCache = null;
   }

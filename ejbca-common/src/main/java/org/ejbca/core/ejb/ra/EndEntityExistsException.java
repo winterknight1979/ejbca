@@ -26,11 +26,15 @@ public class EndEntityExistsException extends CesecoreException {
 
   private static final long serialVersionUID = -6700250563735120223L;
 
+  /** Null. */
   public EndEntityExistsException() {
     super();
     setErrorCode(ErrorCode.USER_ALREADY_EXISTS);
   }
 
+  /**
+   * @param msg Message.
+   */
   public EndEntityExistsException(final String msg) {
     super(msg);
     setErrorCode(ErrorCode.USER_ALREADY_EXISTS);

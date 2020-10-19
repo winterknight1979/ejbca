@@ -33,7 +33,7 @@ public class EjbcaException extends Exception {
   // private static final Logger log = Logger.getLogger(EjbcaException.class);
 
   /** The error code describes the cause of the exception. */
-  ErrorCode errorCode = null;
+  private ErrorCode errorCode = null;
 
   /**
    * Constructor used to create exception without an error message. Calls the
@@ -57,23 +57,23 @@ public class EjbcaException extends Exception {
    * Constructor used to create exception with an errorCode. Calls the same
    * default constructor in the base class <code>Exception</code>.
    *
-   * @param errorCode defines the cause of the exception.
+   * @param anErrorCode defines the cause of the exception.
    */
-  public EjbcaException(final ErrorCode errorCode) {
+  public EjbcaException(final ErrorCode anErrorCode) {
     super();
-    this.errorCode = errorCode;
+    this.errorCode = anErrorCode;
   }
 
   /**
    * Constructor used to create exception with an error message. Calls the same
    * constructor in baseclass <code>Exception</code>.
    *
-   * @param errorCode defines the cause of the exception.
+   * @param anErrorCode defines the cause of the exception.
    * @param message Human readable error message, can not be NULL.
    */
-  public EjbcaException(final ErrorCode errorCode, final String message) {
+  public EjbcaException(final ErrorCode anErrorCode, final String message) {
     super(message);
-    this.errorCode = errorCode;
+    this.errorCode = anErrorCode;
   }
 
   /**
@@ -91,12 +91,13 @@ public class EjbcaException extends Exception {
    * Constructor used to create exception with an embedded exception. Calls the
    * same constructor in baseclass <code>Exception</code>.
    *
-   * @param errorCode defines the cause of the exception.
+   * @param anErrorCode defines the cause of the exception.
    * @param exception exception to be embedded.
    */
-  public EjbcaException(final ErrorCode errorCode, final Throwable exception) {
+  public EjbcaException(final ErrorCode anErrorCode,
+          final Throwable exception) {
     super(exception);
-    this.errorCode = errorCode;
+    this.errorCode = anErrorCode;
   }
 
   /**
@@ -113,10 +114,16 @@ public class EjbcaException extends Exception {
     }
   }
 
+  /**
+   * @param anErrorCode EC
+   * @param message Message
+   * @param cause Cause
+   */
   public EjbcaException(
-      final ErrorCode errorCode, final String message, final Throwable cause) {
+      final ErrorCode anErrorCode,
+      final String message, final Throwable cause) {
     super(message, cause);
-    this.errorCode = errorCode;
+    this.errorCode = anErrorCode;
   }
 
   /**
@@ -131,10 +138,10 @@ public class EjbcaException extends Exception {
   /**
    * Set the error code.
    *
-   * @param errorCode the error code.
+   * @param anErrorCode the error code.
    */
-  public void setErrorCode(final ErrorCode errorCode) {
-    this.errorCode = errorCode;
+  public void setErrorCode(final ErrorCode anErrorCode) {
+    this.errorCode = anErrorCode;
   }
 
   /**

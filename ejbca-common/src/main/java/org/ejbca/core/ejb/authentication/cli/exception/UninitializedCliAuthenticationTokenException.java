@@ -24,19 +24,30 @@ public class UninitializedCliAuthenticationTokenException
 
   private static final long serialVersionUID = -3404632335972154544L;
 
+  /** Null. */
   public UninitializedCliAuthenticationTokenException() {
     super();
   }
 
+  /**
+   * @param arg0 Message
+   * @param arg1 Cause
+   */
   public UninitializedCliAuthenticationTokenException(
       final String arg0, final Throwable arg1) {
     super(arg0, arg1);
   }
 
+  /**
+   * @param arg0 Message
+   */
   public UninitializedCliAuthenticationTokenException(final String arg0) {
     super(arg0);
   }
 
+  /**
+   * @param arg0 Cause
+   */
   public UninitializedCliAuthenticationTokenException(final Throwable arg0) {
     super(arg0);
   }

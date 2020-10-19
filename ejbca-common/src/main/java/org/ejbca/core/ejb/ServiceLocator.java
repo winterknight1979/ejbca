@@ -32,14 +32,15 @@ import org.apache.log4j.Logger;
  *     datasources, ...
  * @version $Id: ServiceLocator.java 22117 2015-10-29 10:53:42Z mikekushner $
  */
-public class ServiceLocator {
+public final class ServiceLocator {
 
-  private static final Logger log = Logger.getLogger(ServiceLocator.class);
+    /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ServiceLocator.class);
 
-  /** the jndi context */
+  /** the jndi context. */
   private transient Context ctx;
 
-  /** the singleton instance */
+  /** the singleton instance. */
   private static transient ServiceLocator instance;
 
   /**
@@ -56,13 +57,13 @@ public class ServiceLocator {
   }
 
   /**
-   * return the singleton instance
+   * return the singleton instance.
    *
    * @return the singleton instance
    * @throws ServiceLocatorException if the instance could not be initialized
    *     the first time
    */
-  public static final ServiceLocator getInstance()
+  public static  ServiceLocator getInstance()
       throws ServiceLocatorException {
     // synchronization is intentionally left out. It 'should' not have dramatic
     // consequences as it is not that destructive.
@@ -73,7 +74,7 @@ public class ServiceLocator {
   }
 
   /**
-   * return the datasource object corresponding the the env entry name
+   * return the datasource object corresponding the the env entry name.
    *
    * @param dataSourceName Name
    * @return the DataSource corresponding to the env entry name parameter
@@ -85,7 +86,7 @@ public class ServiceLocator {
   }
 
   /**
-   * return the URL object corresponding to the env entry name
+   * return the URL object corresponding to the env entry name.
    *
    * @param envName the env entry name
    * @return the URL value corresponding to the env entry name.
@@ -96,7 +97,7 @@ public class ServiceLocator {
   }
 
   /**
-   * return a boolean value corresponding to the env entry
+   * return a boolean value corresponding to the env entry.
    *
    * @param envName the env entry name
    * @return the boolean value corresponding to the env entry.
@@ -108,7 +109,7 @@ public class ServiceLocator {
   }
 
   /**
-   * return a string value corresponding to the env entry
+   * return a string value corresponding to the env entry.
    *
    * @param envName the env entry name
    * @return the boolean value corresponding to the env entry.
@@ -129,7 +130,7 @@ public class ServiceLocator {
   }
 
   /**
-   * return a mail session corresponding to the env entry
+   * return a mail session corresponding to the env entry.
    *
    * @param envName the env entry name
    * @return the mail session corresponding to the env entry.
@@ -141,7 +142,7 @@ public class ServiceLocator {
   }
 
   /**
-   * return a known java object corresponding to the env entry
+   * return a known java object corresponding to the env entry.
    *
    * @param envName the env entry name
    * @return the java object corresponding to the env entry
@@ -149,8 +150,8 @@ public class ServiceLocator {
    */
   public Object getObject(final String envName) throws ServiceLocatorException {
     try {
-      if (log.isDebugEnabled()) {
-        log.debug("Doing lookup of '" + envName + "'");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Doing lookup of '" + envName + "'");
       }
       return ctx.lookup(envName);
     } catch (NamingException e) {

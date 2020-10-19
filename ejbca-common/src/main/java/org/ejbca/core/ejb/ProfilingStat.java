@@ -23,42 +23,72 @@ public class ProfilingStat implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Name. */
   private final String fullmethodName;
+  /** Durations. */
   private final long duration;
+  /** Invoke. */
   private final long invocations;
+  /** Average. */
   private final long average;
 
+  /**
+   * @param afullmethodName Name
+   * @param aduration duration
+   * @param ainvocations invoke
+   */
   public ProfilingStat(
-      final String fullmethodName,
-      final long duration,
-      final long invocations) {
-    this.fullmethodName = fullmethodName;
-    this.duration = duration;
-    this.invocations = invocations;
-    this.average = duration / invocations;
+      final String afullmethodName,
+      final long aduration,
+      final long ainvocations) {
+    this.fullmethodName = afullmethodName;
+    this.duration = aduration;
+    this.invocations = ainvocations;
+    this.average = aduration / ainvocations;
   }
 
+  /**
+   * @return Name
+   */
   public String getFullmethodName() {
     return fullmethodName;
   }
 
+  /**
+   * @return us
+   */
   public long getDurationMicroSeconds() {
     return duration;
   }
 
+  /**
+   * @return ms
+   */
   public long getDurationMilliSeconds() {
-    return duration / 1000;
+    return duration / msPerS;
   }
 
+  /**
+   * @return invocations.
+   */
   public long getInvocations() {
     return invocations;
   }
 
+  /**
+   * @return us
+   */
   public long getAverageMicroSeconds() {
     return average;
   }
 
+  /**
+   * @return MS
+   */
   public long getAverageMilliSeconds() {
-    return average / 1000;
+    return average / msPerS;
   }
+
+  /** Mils. */
+  private final int msPerS = 1000;
 }

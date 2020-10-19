@@ -24,14 +24,21 @@ public class NoSuchEndEntityException extends CesecoreException {
 
   private static final long serialVersionUID = -6700250563735120223L;
 
+  /** Null. */
   public NoSuchEndEntityException() {
     super();
   }
 
+  /**
+   * @param msg Message. */
   public NoSuchEndEntityException(final String msg) {
     super(msg);
   }
 
+  /**
+   * @param msg Message
+   * @param e Cause
+   */
   public NoSuchEndEntityException(final String msg, final Throwable e) {
     super(msg, e);
   }

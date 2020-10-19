@@ -43,14 +43,18 @@ import org.cesecore.authentication.AuthenticationFailedException;
  *     10:53:42Z mikekushner $
  */
 public enum CliAuthenticationTokenReferenceRegistry {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
-  private static final Logger log =
+    /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(CliAuthenticationTokenReferenceRegistry.class);
 
+  /** Registry. */
   private Map<Long, CliAuthenticationToken> tokenRegistry;
 
-  private CliAuthenticationTokenReferenceRegistry() {
+  /** Constructor. */
+  CliAuthenticationTokenReferenceRegistry() {
     tokenRegistry =
         Collections.synchronizedMap(
             new HashMap<Long, CliAuthenticationToken>());
@@ -87,8 +91,8 @@ public enum CliAuthenticationTokenReferenceRegistry {
     CliAuthenticationToken safetyCopy = token.clone();
     safetyCopy.setSha1Hash(token.getSha1Hash());
     tokenRegistry.put(token.getReferenceNumber(), safetyCopy);
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           "Registered new CliAuthenticationToken: "
               + safetyCopy
               + ", with reference number: "
@@ -106,8 +110,8 @@ public enum CliAuthenticationTokenReferenceRegistry {
   public boolean unregisterToken(final Long referenceNumber) {
     if (tokenRegistry.containsKey(referenceNumber)) {
       tokenRegistry.remove(referenceNumber);
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Unregistered CliAuthenticationToken with reference number: "
                 + referenceNumber);
       }

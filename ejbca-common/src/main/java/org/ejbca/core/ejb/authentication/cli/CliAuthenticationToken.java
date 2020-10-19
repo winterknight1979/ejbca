@@ -33,37 +33,45 @@ import org.ejbca.util.crypto.SupportedPasswordHashAlgorithm;
  */
 public class CliAuthenticationToken extends AuthenticationToken {
 
-  public static final CliAuthenticationTokenMetaData metaData =
+    /** Meta. */
+  public static final CliAuthenticationTokenMetaData METADATA =
       new CliAuthenticationTokenMetaData();
 
   private static final long serialVersionUID = -3942437717641924829L;
 
+  /** Ref. */
   private final long referenceNumber;
+  /** User. */
   private final String userName;
+  /** Alg. */
   private final SupportedPasswordHashAlgorithm hashAlgorithm;
   // In case the password was hashed using BCrypt, we need to supply the hash in
   // order to recreate it.
+  /** Salt. */
   private String passwordSalt;
+  /** Salt. */
   private final String sha1Salt;
+  /** Hash. */
   private String sha1Hash;
 
+  /** bool. */
   private transient boolean isVerified = false;
 
   /**
    * @param principal a UsernamePrincipal representing a user name.
-   * @param passwordHash a hashed password.
-   * @param sha1Salt Salt
+   * @param aPasswordHash a hashed password.
+   * @param aSha1Salt Salt
    * @param referenceId the reference ID of this token.
-   * @param hashAlgorithm the hash algorithm used to produce the password hash.
+   * @param aHashAlgorithm the hash algorithm used to produce the password hash.
    *     This will be needed in order to reproduce the sha1Hash on the client
    *     side.
    */
   public CliAuthenticationToken(
       final UsernamePrincipal principal,
-      final String passwordHash,
-      final String sha1Salt,
+      final String aPasswordHash,
+      final String aSha1Salt,
       final long referenceId,
-      final SupportedPasswordHashAlgorithm hashAlgorithm) {
+      final SupportedPasswordHashAlgorithm aHashAlgorithm) {
     super(
         new HashSet<Principal>() {
           private static final long serialVersionUID = 5868667272584423392L;
@@ -75,15 +83,15 @@ public class CliAuthenticationToken extends AuthenticationToken {
         null);
     this.referenceNumber = referenceId;
     this.userName = principal.getName();
-    this.hashAlgorithm = hashAlgorithm;
-    this.sha1Salt = sha1Salt;
-    if (passwordHash != null) {
-      this.sha1Hash = generateSha1Hash(passwordHash, referenceId);
+    this.hashAlgorithm = aHashAlgorithm;
+    this.sha1Salt = aSha1Salt;
+    if (aPasswordHash != null) {
+      this.sha1Hash = generateSha1Hash(aPasswordHash, referenceId);
 
       // The modern BCrypt hash uses a salt, which we have to pass with.
-      switch (hashAlgorithm) {
+      switch (aHashAlgorithm) {
         case SHA1_BCRYPT:
-          passwordSalt = CryptoTools.extractSaltFromPasswordHash(passwordHash);
+          passwordSalt = CryptoTools.extractSaltFromPasswordHash(aPasswordHash);
           break;
         case SHA1_OLD:
         default:
@@ -119,7 +127,8 @@ public class CliAuthenticationToken extends AuthenticationToken {
   public boolean matches(final AccessUserAspect accessUser)
       throws AuthenticationFailedException {
     /*
-     * We just have to verify once, so that the same token can be used sequentially within EJBCA.
+     * We just have to verify once, so that the same token can be used
+     * sequentially within EJBCA.
      */
     if (sha1Hash == null) {
       throw new UninitializedCliAuthenticationTokenException(
@@ -160,7 +169,7 @@ public class CliAuthenticationToken extends AuthenticationToken {
     return CliUserAccessMatchValue.USERNAME.getNumericValue();
   }
 
-  /** Returns the username */
+  /** Returns the username. */
   @Override
   public String getPreferredMatchValue() {
     return userName;
@@ -177,7 +186,7 @@ public class CliAuthenticationToken extends AuthenticationToken {
 
   /**
    * This value is a SHA1 hash consisting of the hashed password concactenated
-   * with
+   * with.
    *
    * @return the sha1Hash
    */
@@ -185,6 +194,9 @@ public class CliAuthenticationToken extends AuthenticationToken {
     return sha1Hash;
   }
 
+  /**
+   * @param hashedPassword password
+   */
   public void setSha1HashFromHashedPassword(final String hashedPassword) {
     sha1Hash = generateSha1Hash(hashedPassword, referenceNumber);
   }
@@ -210,9 +222,9 @@ public class CliAuthenticationToken extends AuthenticationToken {
     setSha1HashFromHashedPassword(hashedPassword);
   }
 
-  /** @param sha1Hash the sha1Hash to set */
-  public void setSha1Hash(final String sha1Hash) {
-    this.sha1Hash = sha1Hash;
+  /** @param asha1Hash the sha1Hash to set */
+  public void setSha1Hash(final String asha1Hash) {
+    this.sha1Hash = asha1Hash;
   }
 
   /**
@@ -282,6 +294,9 @@ public class CliAuthenticationToken extends AuthenticationToken {
     return true;
   }
 
+/**
+ * @return Algorithm
+ */
   public SupportedPasswordHashAlgorithm getHashAlgorithm() {
     return hashAlgorithm;
   }
@@ -291,9 +306,9 @@ public class CliAuthenticationToken extends AuthenticationToken {
     return passwordSalt;
   }
 
-  /** @param passwordSalt the passwordSalt to set */
-  public void setPasswordSalt(final String passwordSalt) {
-    this.passwordSalt = passwordSalt;
+  /** @param apasswordSalt the passwordSalt to set */
+  public void setPasswordSalt(final String apasswordSalt) {
+    this.passwordSalt = apasswordSalt;
   }
 
   @Override
@@ -309,6 +324,6 @@ public class CliAuthenticationToken extends AuthenticationToken {
 
   @Override
   public AuthenticationTokenMetaData getMetaData() {
-    return metaData;
+    return METADATA;
   }
 }

@@ -41,6 +41,7 @@ public class GlobalCustomCssConfigurationCache implements ConfigurationCache {
   private volatile GlobalCustomCssConfiguration
       globalCustomCssConfigurationCache = null;
 
+  /** Time. */
   private volatile long lastupdatetime = -1;
 
   @Override

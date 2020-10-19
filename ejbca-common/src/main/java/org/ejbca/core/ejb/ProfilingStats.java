@@ -30,11 +30,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version $Id: ProfilingStats.java 23718 2016-06-22 14:36:22Z anatom $
  */
 public enum ProfilingStats {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /** CAche. */
   private final ConcurrentHashMap<String, Entry<Long, Long>> sums =
       new ConcurrentHashMap<String, Entry<Long, Long>>();
 
+  /**
+   * @param key Key
+   * @param invocationDuration duration
+   */
   public void add(final String key, final long invocationDuration) {
     Entry<Long, Long> expectedValue = null;
     Entry<Long, Long> currentEntry = null;
@@ -85,12 +91,12 @@ public enum ProfilingStats {
    * @return List
    */
   public List<ProfilingStat> getEjbInvocationStats() {
-    final Map<String, Entry<Long, Long>> sums =
+    final Map<String, Entry<Long, Long>> thesums =
         getBestEffortShallowCopyOfStats();
-    final Set<String> keys = sums.keySet();
+    final Set<String> keys = thesums.keySet();
     final List<ProfilingStat> ret = new ArrayList<ProfilingStat>(keys.size());
     for (final String key : keys) {
-      final Entry<Long, Long> durationAndInvocations = sums.get(key);
+      final Entry<Long, Long> durationAndInvocations = thesums.get(key);
       final ProfilingStat profilingStat =
           new ProfilingStat(
               key,

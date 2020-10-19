@@ -43,7 +43,7 @@ public final class ScepConfigurationCache implements ConfigurationCache {
    * to often.
    */
   private volatile long lastupdatetime = -1;
-
+ /** Null. /*/
   public ScepConfigurationCache() {
     // Do nothing
   }
@@ -58,7 +58,7 @@ public final class ScepConfigurationCache implements ConfigurationCache {
     }
     return true;
   }
-
+ /** Clear. */
   public void clearCache() {
     scepConfigurationCache = null;
   }

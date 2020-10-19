@@ -44,6 +44,7 @@ public final class EstConfigurationCache implements ConfigurationCache {
    */
   private volatile long lastupdatetime = -1;
 
+  /** Null. */
   public EstConfigurationCache() {
     // Do nothing
   }
@@ -59,6 +60,7 @@ public final class EstConfigurationCache implements ConfigurationCache {
     return true;
   }
 
+  /** Clear. */
   public void clearCache() {
     estconfigurationCache = null;
   }

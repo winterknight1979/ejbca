@@ -35,7 +35,8 @@ public class GlobalUpgradeConfigurationCache implements ConfigurationCache {
   /** help variable used to control that update isn't performed to often. */
   private volatile long lastupdatetime = -1;
 
-  public GlobalUpgradeConfigurationCache() {}
+  /** Null. */
+  public GlobalUpgradeConfigurationCache() { }
 
   @Override
   public boolean needsUpdate() {
@@ -48,6 +49,7 @@ public class GlobalUpgradeConfigurationCache implements ConfigurationCache {
     return true;
   }
 
+  /** Clear. */
   public void clearCache() {
     configurationCache = null;
   }

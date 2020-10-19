@@ -23,22 +23,34 @@ import org.cesecore.configuration.ConfigurationBase;
  */
 public class GlobalUpgradeConfiguration extends ConfigurationBase {
 
+      /** Config key. */
   public static final String CONFIGURATION_ID = "UPGRADE";
 
   private static final long serialVersionUID = 1L;
 
+  /** Config key. */
   private static final String UPGRADED_TO_VERSION = "upgradedToVersion";
+  /** Config key. */
   private static final String POST_UPGRADED_TO_VERSION =
       "postUpgradedToVersion";
+  /** Config key. */
   private static final String EEP_IN_CERTIFICATE_DATA =
       "endEntityProfileInCertificateData";
+  /** Config key. */
   private static final String POST_UPGRADE_STARTED = "postUpgradeStarted";
+  /** Config key. */
   private static final String UPGRADED_FROM = "upgradedFromVersion";
 
+  /**
+   * @return version
+   */
   public String getUpgradedToVersion() {
     return (String) data.get(UPGRADED_TO_VERSION);
   }
 
+  /**
+   * @param version version
+   */
   public void setUpgradedToVersion(final String version) {
     data.put(UPGRADED_TO_VERSION, version);
   }
@@ -51,14 +63,23 @@ public class GlobalUpgradeConfiguration extends ConfigurationBase {
     return (String) data.get(UPGRADED_FROM);
   }
 
+  /**
+   * @param version version
+   */
   public void setUpgradedFromVersion(final String version) {
     data.put(UPGRADED_FROM, version);
   }
 
+  /**
+   * @return Version
+   */
   public String getPostUpgradedToVersion() {
     return (String) data.get(POST_UPGRADED_TO_VERSION);
   }
 
+  /**
+   * @param version version
+   */
   public void setPostUpgradedToVersion(final String version) {
     data.put(POST_UPGRADED_TO_VERSION, version);
   }
@@ -70,6 +91,9 @@ public class GlobalUpgradeConfiguration extends ConfigurationBase {
     return Boolean.parseBoolean((String) data.get(EEP_IN_CERTIFICATE_DATA));
   }
 
+  /**
+   * @param value bool
+   */
   public void setEndEntityProfileInCertificateData(final boolean value) {
     data.put(EEP_IN_CERTIFICATE_DATA, Boolean.valueOf(value).toString());
   }
@@ -85,7 +109,7 @@ public class GlobalUpgradeConfiguration extends ConfigurationBase {
   public String getConfigurationId() {
     return CONFIGURATION_ID;
   }
-
+  /** @return Properties. */
   public Properties getAsProperties() {
     final Properties properties = new Properties();
     properties.put(UPGRADED_TO_VERSION, getUpgradedToVersion());
@@ -93,6 +117,9 @@ public class GlobalUpgradeConfiguration extends ConfigurationBase {
     return properties;
   }
 
+  /**
+   * @return time
+   */
   public long getPostUpgradeStarted() {
     final String value = (String) data.get(POST_UPGRADE_STARTED);
     if (value == null) {
@@ -101,6 +128,9 @@ public class GlobalUpgradeConfiguration extends ConfigurationBase {
     return Long.parseLong(value);
   }
 
+  /**
+   * @param startTimeMs time
+   */
   public void setPostUpgradeStarted(final long startTimeMs) {
     data.put(POST_UPGRADE_STARTED, String.valueOf(startTimeMs));
   }

@@ -25,8 +25,10 @@ import org.cesecore.authentication.tokens.AuthenticationTokenMetaDataBase;
 public class CliAuthenticationTokenMetaData
     extends AuthenticationTokenMetaDataBase {
 
+    /** Config. */
   public static final String TOKEN_TYPE = "CliAuthenticationToken";
 
+  /** construct. */
   public CliAuthenticationTokenMetaData() {
     super(TOKEN_TYPE, Arrays.asList(CliUserAccessMatchValue.USERNAME), true);
   }

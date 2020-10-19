@@ -16,7 +16,7 @@ import javax.ejb.ApplicationException;
 
 /**
  * This exception is thrown if authentication fails during the authorization
- * phase of a CliAuthenticationToken
+ * phase of a CliAuthenticationToken.
  *
  * @version $Id: CliAuthenticationFailedException.java 22117 2015-10-29
  *     10:53:42Z mikekushner $
@@ -26,19 +26,30 @@ public class CliAuthenticationFailedException extends Exception {
 
   private static final long serialVersionUID = 1092700837332116526L;
 
+  /** Null. */
   public CliAuthenticationFailedException() {
     super();
   }
 
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
   public CliAuthenticationFailedException(
       final String message, final Throwable cause) {
     super(message, cause);
   }
 
+  /**
+   * @param message Message
+   */
   public CliAuthenticationFailedException(final String message) {
     super(message);
   }
 
+  /**
+   * @param cause Cause
+   */
   public CliAuthenticationFailedException(final Throwable cause) {
     super(cause);
   }
