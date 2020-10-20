@@ -11,11 +11,6 @@
  *                                                                       *
  *************************************************************************/
 
-/*
- * AdminInformation.java
- *
- * Created on den 19 juli 2002, 11:53
- */
 
 package org.ejbca.core.model.authorization;
 
@@ -36,27 +31,32 @@ public class AdminInformation implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  // Special in JVM random token to authenticate specialuser.
-  // The token will work _if_ we are running within the same jvm as the service
-  // we call (i.e. EJBCA/JBoss server)
-  protected static final byte[] randomToken = createRandomToken();
+  /** Special in JVM random token to authenticate specialuser.
+   The token will work _if_ we are running within the same jvm as the service
+    we call (i.e. EJBCA/JBoss server). */
+  protected static final byte[] RANDOM_TOKEN = createRandomToken();
 
   // Public Methods
   /**
-   * Creates a new instance of AdminInformation
+   * Creates a new instance of AdminInformation.
    *
-   * @param certificate Cert
+   * @param aCertificate Cert
    * @param authToken Token
    */
   public AdminInformation(
-      final Certificate certificate, final byte[] authToken) {
-    this.certificate = certificate;
+      final Certificate aCertificate, final byte[] authToken) {
+    this.certificate = aCertificate;
     this.specialuser = 0;
     this.localAuthToken = authToken;
   }
 
-  public AdminInformation(final int specialuser, final byte[] authToken) {
-    this.specialuser = specialuser;
+
+  /**
+   * @param aspecialuser user
+   * @param authToken token
+   */
+  public AdminInformation(final int aspecialuser, final byte[] authToken) {
+    this.specialuser = aspecialuser;
     this.localAuthToken = authToken;
   }
 
@@ -65,51 +65,83 @@ public class AdminInformation implements Serializable {
     this.localAuthToken = authToken;
   }
 
+  /**
+   * @param roleId ID
+   * @return Info
+   */
   public static AdminInformation getAdminInformationByRoleId(final int roleId) {
     AdminInformation adminInformation = new AdminInformation(getRandomToken());
     adminInformation.adminGroupId = roleId;
     return adminInformation;
   }
 
+  /**
+   * @return Random
+   */
   public static final byte[] createRandomToken() {
-    byte[] token = new byte[32];
+    final int size = 32;
+    byte[] token = new byte[size];
     Random randomSource;
     randomSource = new SecureRandom();
     randomSource.nextBytes(token);
     return token;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isSpecialUser() {
     return this.specialuser != 0;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isGroupUser() {
     return this.adminGroupId != null;
   }
 
+  /**
+   * @return cert
+   */
   public Certificate getX509Certificate() {
     return this.certificate;
   }
 
+  /**
+   * @return User
+   */
   public int getSpecialUser() {
     return this.specialuser;
   }
 
+  /**
+   * @return ID
+   */
   public int getGroupId() {
     return this.adminGroupId;
   }
 
+  /**
+   * @return token
+   */
   public byte[] getLocalAuthToken() {
     return localAuthToken;
   }
 
+  /**
+   * @return token
+   */
   public static final byte[] getRandomToken() {
-    return randomToken;
+    return RANDOM_TOKEN;
   }
 
   // Private fields
+  /** Cert. */
   private Certificate certificate;
+  /** User. */
   private int specialuser = 0;
+  /** ID. */
   private Integer adminGroupId = null;
 
   /** transient as authToken should _not_ be serialized. * */
