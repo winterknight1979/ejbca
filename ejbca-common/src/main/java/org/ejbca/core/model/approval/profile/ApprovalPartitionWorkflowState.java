@@ -20,19 +20,19 @@ package org.ejbca.core.model.approval.profile;
  *     anatom $
  */
 public enum ApprovalPartitionWorkflowState {
-  /** The partition has been approved and no longer requires any action */
+  /** The partition has been approved and no longer requires any action. */
   APPROVED,
   /**
-   * The partition has been approved, but still requires additional approvals
+   * The partition has been approved, but still requires additional approvals.
    */
   APPROVED_PARTIALLY,
-  /** The partition has been rejected and no longer requires any action */
+  /** The partition has been rejected and no longer requires any action. */
   REJECTED,
-  /** The partition requires an action from admin */
+  /** The partition requires an action from admin. */
   REQUIRES_ACTION,
   /**
    * The partition (and also currently the whole approval) has expired and no
-   * longer requires any action
+   * longer requires any action.
    */
   EXPIRED,
 }

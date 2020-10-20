@@ -32,38 +32,49 @@ import org.ejbca.core.model.approval.ApprovalException;
 public interface ApprovalProfile
     extends Profile, Serializable, Cloneable, Comparable<ApprovalProfile> {
 
-  public static final int NO_PROFILE_ID = -1;
+      /** Config. */
+  int NO_PROFILE_ID = -1;
 
-  static final String TYPE_NAME = "APPROVAL_PROFILE";
+  /** Config. */
+  String TYPE_NAME = "APPROVAL_PROFILE";
 
-  final String PROPERTY_NOTIFICATION_EMAIL_RECIPIENT =
+  /** Config. */
+  String PROPERTY_NOTIFICATION_EMAIL_RECIPIENT =
       "notification_email_recipient";
-  final String PROPERTY_NOTIFICATION_EMAIL_SENDER = "notification_email_sender";
-  final String PROPERTY_NOTIFICATION_EMAIL_MESSAGE_SUBJECT =
+  /** Config. */
+  String PROPERTY_NOTIFICATION_EMAIL_SENDER = "notification_email_sender";
+  /** Config. */
+  String PROPERTY_NOTIFICATION_EMAIL_MESSAGE_SUBJECT =
       "notification_email_msg_subject";
-  final String PROPERTY_NOTIFICATION_EMAIL_MESSAGE_BODY =
+  /** Config. */
+  String PROPERTY_NOTIFICATION_EMAIL_MESSAGE_BODY =
       "notification_email_msg_body";
 
-  final String PROPERTY_USER_NOTIFICATION_EMAIL_SENDER =
+  /** Config. */
+  String PROPERTY_USER_NOTIFICATION_EMAIL_SENDER =
       "user_notification_email_sender";
-  final String PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_SUBJECT =
+  /** Config. */
+  String PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_SUBJECT =
       "user_notification_email_msg_subject";
-  final String PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_BODY =
+  /** Config. */
+  String PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_BODY =
       "user_notification_email_msg_body";
 
   /** Key for the data value marking the number of approvals required. */
-  final String PROPERTY_NUMBER_OF_REQUIRED_APPROVALS =
+  String PROPERTY_NUMBER_OF_REQUIRED_APPROVALS =
       "number_of_required_approvals";
 
-  final String PROPERTY_REQUEST_EXPIRATION_PERIOD = "request_expiration_period";
-  final String PROPERTY_APPROVAL_EXPIRATION_PERIOD =
+  /** Config. */
+  String PROPERTY_REQUEST_EXPIRATION_PERIOD = "request_expiration_period";
+  /** Config. */
+  String PROPERTY_APPROVAL_EXPIRATION_PERIOD =
       "approval_expiration_period";
 
   /** @see #getMaxExtensionTime */
-  final String PROPERTY_MAX_EXTENSION_TIME = "max_extension_time";
+  String PROPERTY_MAX_EXTENSION_TIME = "max_extension_time";
 
   /** @see #getAllowSelfEdit() */
-  final String PROPERTY_ALLOW_SELF_EDIT = "allow_self_edit";
+  String PROPERTY_ALLOW_SELF_EDIT = "allow_self_edit";
 
   /** @return the type as a human readable name. */
   String getApprovalProfileLabel();
@@ -75,17 +86,29 @@ public interface ApprovalProfile
    */
   String getApprovalProfileTypeIdentifier();
 
+  /**
+   * @return period
+   */
   long getRequestExpirationPeriod();
 
+  /**
+   * @param reqExpirationPeriod period
+   */
   void setRequestExpirationPeriod(long reqExpirationPeriod);
 
+  /**
+   * @return period
+   */
   long getApprovalExpirationPeriod();
 
+  /**
+   * @param approvalExpirationPeriod period
+   */
   void setApprovalExpirationPeriod(long approvalExpirationPeriod);
 
   /**
    * Maximum time which an administrator can extend a request by in
-   * milliseconds, or 0 to forbid request extension
+   * milliseconds, or 0 to forbid request extension.
    *
    * @return long
    */
@@ -132,14 +155,14 @@ public interface ApprovalProfile
    * @throws AuthenticationFailedException if any of the authentication tokens
    *     in the approval collection were faulty
    */
-  boolean canApprovalExecute(final Collection<Approval> approvalsPerformed)
+  boolean canApprovalExecute(Collection<Approval> approvalsPerformed)
       throws ApprovalException, AuthenticationFailedException;
 
   /**
    * @param approvalsPerformed the approvals performed against this profile
    * @return the number of remaining approvals, or -1 if any approval is denied
    */
-  int getRemainingApprovals(final Collection<Approval> approvalsPerformed);
+  int getRemainingApprovals(Collection<Approval> approvalsPerformed);
 
   /**
    * @return true if the amount of sequences of this profile is fixed, false if
@@ -153,6 +176,9 @@ public interface ApprovalProfile
    */
   boolean arePartitionsFixed();
 
+  /**
+   * @return Steps
+   */
   Map<Integer, ApprovalStep> getSteps();
 
   /**
@@ -161,7 +187,7 @@ public interface ApprovalProfile
    *
    * @param step an ApprovalStep
    */
-  void addStep(final ApprovalStep step);
+  void addStep(ApprovalStep step);
 
   /**
    * Creates a new step and adds it first.
@@ -183,12 +209,15 @@ public interface ApprovalProfile
    *
    * @param approvalStepIdentifier the identifier of the approval step
    */
-  void deleteStep(final int approvalStepIdentifier);
-
-  void setSteps(final Map<Integer, ApprovalStep> steps);
+  void deleteStep(int approvalStepIdentifier);
 
   /**
-   * Switches position betwen two steps
+   * @param steps Steps
+   */
+  void setSteps(Map<Integer, ApprovalStep> steps);
+
+  /**
+   * Switches position betwen two steps.
    *
    * @param firstStepIdentifier the ID of the first step
    * @param secondStepIdentifier the ID of the second step
@@ -208,9 +237,9 @@ public interface ApprovalProfile
    *     found.
    */
   void addPropertyToPartition(
-      final int stepId,
-      final int partitionId,
-      final DynamicUiProperty<? extends Serializable> property)
+      int stepId,
+      int partitionId,
+      DynamicUiProperty<? extends Serializable> property)
       throws NoSuchApprovalStepException;
 
   /**
@@ -222,15 +251,15 @@ public interface ApprovalProfile
    * @param propertyName the name of the property.
    */
   void removePropertyFromPartition(
-      final int stepId, final int partitionId, final String propertyName);
+      int stepId, int partitionId, String propertyName);
 
   /**
-   * Adds a partition to this sequence
+   * Adds a partition to this sequence.
    *
    * @param stepIdentifier the identifier of the sequence
    * @return the partition, with a generated ID
    */
-  ApprovalPartition addPartition(final int stepIdentifier);
+  ApprovalPartition addPartition(int stepIdentifier);
 
   /**
    * @param stepId the identifier of the step
@@ -240,9 +269,9 @@ public interface ApprovalProfile
    *     exist
    */
   void addPropertiesToPartition(
-      final Integer stepId,
-      final int partitionId,
-      final Collection<DynamicUiProperty<? extends Serializable>> properties)
+      Integer stepId,
+      int partitionId,
+      Collection<DynamicUiProperty<? extends Serializable>> properties)
       throws NoSuchApprovalStepException;
 
   /**
@@ -250,25 +279,25 @@ public interface ApprovalProfile
    *
    * @param firstStep step
    */
-  void setFirstStep(final int firstStep);
+  void setFirstStep(int firstStep);
 
   /**
    * @param identifier a step identifier
    * @return the sequence with the given identifier, or null if not found.
    */
-  ApprovalStep getStep(final Integer identifier);
+  ApprovalStep getStep(Integer identifier);
 
   /** @return the first step */
   ApprovalStep getFirstStep();
 
   /**
-   * Deletes a partition from a step
+   * Deletes a partition from a step.
    *
    * @param approvalStepIdentifier the ID of the step
    * @param partitionIdentifier the ID of the partition
    */
   void deletePartition(
-      final int approvalStepIdentifier, final int partitionIdentifier);
+      int approvalStepIdentifier, int partitionIdentifier);
 
   /**
    * Returns true if the approval is authorized for the step and partition it
@@ -281,7 +310,7 @@ public interface ApprovalProfile
    *     approval wasn't valid
    */
   boolean isApprovalAuthorized(
-      final Collection<Approval> approvalsPerformed, final Approval approval)
+      Collection<Approval> approvalsPerformed, Approval approval)
       throws AuthenticationFailedException;
 
   /** @return the number of steps in this profile */
@@ -295,7 +324,7 @@ public interface ApprovalProfile
    *     approvals failed
    */
   int getOrdinalOfStepBeingEvaluated(
-      final Collection<Approval> approvalsPerformed)
+      Collection<Approval> approvalsPerformed)
       throws AuthenticationFailedException;
 
   /**
@@ -309,11 +338,11 @@ public interface ApprovalProfile
    *     approvals failed
    */
   ApprovalStep getStepBeingEvaluated(
-      final Collection<Approval> approvalsPerformed)
+      Collection<Approval> approvalsPerformed)
       throws AuthenticationFailedException;
 
   /**
-   * Tests if an administrator can approve a particular partition
+   * Tests if an administrator can approve a particular partition.
    *
    * @param authenticationToken an authentication token
    * @param approvalPartition an approval partition from an approval step
@@ -322,8 +351,8 @@ public interface ApprovalProfile
    *     approval doesn't check out
    */
   boolean canApprovePartition(
-      final AuthenticationToken authenticationToken,
-      final ApprovalPartition approvalPartition)
+      AuthenticationToken authenticationToken,
+      ApprovalPartition approvalPartition)
       throws AuthenticationFailedException;
 
   /**
@@ -337,8 +366,8 @@ public interface ApprovalProfile
    *     approval doesn't check out
    */
   boolean canViewPartition(
-      final AuthenticationToken authenticationToken,
-      final ApprovalPartition approvalPartition)
+      AuthenticationToken authenticationToken,
+      ApprovalPartition approvalPartition)
       throws AuthenticationFailedException;
 
   /**
@@ -348,7 +377,7 @@ public interface ApprovalProfile
    * @param approvalPartition the approval partition.
    * @return true if any admin is allowed
    */
-  boolean canAnyoneApprovePartition(final ApprovalPartition approvalPartition);
+  boolean canAnyoneApprovePartition(ApprovalPartition approvalPartition);
 
   /**
    * Returns the list of roles which have been configured in the given partition
@@ -358,7 +387,7 @@ public interface ApprovalProfile
    * @return list of names of administrator roles. May return an empty list if
    *     canAnyoneApprovePartition returns true.
    */
-  List<String> getAllowedRoleNames(final ApprovalPartition approvalPartition);
+  List<String> getAllowedRoleNames(ApprovalPartition approvalPartition);
 
   /** @return a set of properties to hide at the approval screen. */
   Set<String> getHiddenProperties();
@@ -375,7 +404,7 @@ public interface ApprovalProfile
   boolean isNotificationEnabled(ApprovalPartition approvalPartition);
 
   /**
-   * Add notification properties
+   * Add notification properties.
    *
    * @param approvalPartition approval
    * @param recipient recip
@@ -392,7 +421,7 @@ public interface ApprovalProfile
       String body);
 
   /**
-   * Remove notification properties
+   * Remove notification properties.
    *
    * @param approvalPartition approval
    * @return updated approval
@@ -408,7 +437,7 @@ public interface ApprovalProfile
   boolean isUserNotificationEnabled(ApprovalPartition approvalPartition);
 
   /**
-   * Add user notification properties
+   * Add user notification properties.
    *
    * @param approvalPartition approval
    * @param sender sender
@@ -423,7 +452,7 @@ public interface ApprovalProfile
       String body);
 
   /**
-   * Remove user notification properties
+   * Remove user notification properties.
    *
    * @param approvalPartition approval
    * @return updated approval
@@ -441,7 +470,7 @@ public interface ApprovalProfile
    * @return true if the property is considered predefined.
    */
   boolean isPropertyPredefined(
-      int stepIdentifier, int partitionIdentifier, final String propertyName);
+      int stepIdentifier, int partitionIdentifier, String propertyName);
 
   /**
    * @param stepIdentifier Step
@@ -453,7 +482,7 @@ public interface ApprovalProfile
 
   /**
    * Return the number of required approvals of the specified partition that
-   * have not yet been approved
+   * have not yet been approved.
    *
    * @param approvalsPerformed a collection of performed approvals
    * @param stepIdentifier the ID of the step to check in
@@ -478,7 +507,7 @@ public interface ApprovalProfile
    *     persisted to the database.
    */
   boolean updateCAIds(
-      final int fromId, final int toId, final String toSubjectDN);
+      int fromId, int toId, String toSubjectDN);
 
   /**
    * Retrieve a list of all steps which must be completed before an approval

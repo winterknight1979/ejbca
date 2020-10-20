@@ -23,6 +23,9 @@ public class AdminAlreadyApprovedRequestException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
+  /**
+   * @param message Message
+   */
   public AdminAlreadyApprovedRequestException(final String message) {
     super(message);
   }

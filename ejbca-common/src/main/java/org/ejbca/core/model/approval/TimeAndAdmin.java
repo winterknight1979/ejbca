@@ -25,18 +25,30 @@ public final class TimeAndAdmin implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Date. */
   private final Date date;
+  /** Token. */
   private final AuthenticationToken admin;
 
-  public TimeAndAdmin(final Date date, final AuthenticationToken admin) {
-    this.date = date;
-    this.admin = admin;
+  /**
+   * @param adate Date
+   * @param anadmin Token
+   */
+  public TimeAndAdmin(final Date adate, final AuthenticationToken anadmin) {
+    this.date = adate;
+    this.admin = anadmin;
   }
 
+  /**
+   * @return date
+   */
   public Date getDate() {
     return date;
   }
 
+  /**
+   * @return token
+   */
   public AuthenticationToken getAdmin() {
     return admin;
   }

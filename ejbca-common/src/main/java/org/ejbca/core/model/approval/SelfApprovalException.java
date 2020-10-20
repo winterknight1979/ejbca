@@ -24,7 +24,7 @@ public class SelfApprovalException extends Exception {
   private static final long serialVersionUID = 1L;
 
   /** */
-  public SelfApprovalException() {}
+  public SelfApprovalException() { }
 
   /** @param message Message */
   public SelfApprovalException(final String message) {

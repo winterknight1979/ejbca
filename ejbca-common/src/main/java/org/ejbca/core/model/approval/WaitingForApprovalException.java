@@ -32,12 +32,17 @@ import org.cesecore.NonSensitiveException;
 public class WaitingForApprovalException extends Exception {
 
   private static final long serialVersionUID = 6808192333114783496L;
+  /** Request. */
   private int requestId = 0;
 
+  /**
+   * @param message message
+   * @param therequestId request
+   */
   public WaitingForApprovalException(
-      final String message, final int requestId) {
+      final String message, final int therequestId) {
     super(message);
-    this.requestId = requestId;
+    this.requestId = therequestId;
   }
 
   /**

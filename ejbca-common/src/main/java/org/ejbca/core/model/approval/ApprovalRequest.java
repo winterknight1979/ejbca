@@ -55,23 +55,25 @@ import org.ejbca.core.model.log.Admin;
 public abstract class ApprovalRequest implements Externalizable {
 
   private static final long serialVersionUID = -1L;
-  private static final Logger log = Logger.getLogger(ApprovalRequest.class);
+  /** Logger. */
+  private static final Logger LOG = Logger.getLogger(ApprovalRequest.class);
+  /** version. */
   private static final int LATEST_BASE_VERSION = 5;
 
   /**
-   * Constants indicating approval settings for viewing hard token through WS
+   * Constants indicating approval settings for viewing hard token through WS.
    */
   public static final int REQ_APPROVAL_VIEW_HARD_TOKEN = 5;
 
   /**
    * Constants indicating approval settings for generating token certificate
-   * through WS
+   * through WS.
    */
   public static final int REQ_APPROVAL_GENERATE_TOKEN_CERTIFICATE = 6;
 
   /**
    * Simple request type means that the approver will only see new data about
-   * the action and will not compare it to old data
+   * the action and will not compare it to old data.
    */
   public static final int REQUESTTYPE_SIMPLE = 1;
 
@@ -81,16 +83,23 @@ public abstract class ApprovalRequest implements Externalizable {
    */
   public static final int REQUESTTYPE_COMPARING = 2;
 
+  /** Admin. */
   private AuthenticationToken requestAdmin = null;
+  /** Sig. */
   private String requestSignature = null;
+  /** Type. */
   private int approvalRequestType = REQUESTTYPE_SIMPLE;
   /** @deprecated since 6.6.0 kept only for 100% uptime reasons. */
   @Deprecated private int numOfRequiredApprovals = 0;
 
+  /** CA. */
   private int cAId = 0;
+  /** ID. */
   private int endEntityProfileId = 0;
+  /** Steps. */
   private boolean[] approvalSteps = {false};
 
+  /** Profile. */
   private ApprovalProfile approvalProfile;
 
   /**
@@ -103,69 +112,71 @@ public abstract class ApprovalRequest implements Externalizable {
    * Main constructor of an approval request for standard one step approval
    * request.
    *
-   * @param requestAdmin the certificate of the requesting admit
-   * @param requestSignature signature of the requester (OPTIONAL, for future
+   * @param aRequestAdmin the certificate of the requesting admit
+   * @param aRequestSignature signature of the requester (OPTIONAL, for future
    *     use)
-   * @param approvalRequestType one of TYPE_ constants
-   * @param approvalProfile Profile
-   * @param cAId the related cAId of the request that the approver must be
+   * @param anApprovalRequestType one of TYPE_ constants
+   * @param anApprovalProfile Profile
+   * @param acAId the related cAId of the request that the approver must be
    *     authorized to or ApprovalDataVO.ANY_CA in applicable to any ca
-   * @param endEntityProfileId the related profile id that the approver must be
+   * @param anEndEntityProfileId the related profile
+   *      id that the approver must be
    *     authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable to
    *     any end entity profile
    */
   protected ApprovalRequest(
-      final AuthenticationToken requestAdmin,
-      final String requestSignature,
-      final int approvalRequestType,
-      final int cAId,
-      final int endEntityProfileId,
-      final ApprovalProfile approvalProfile) {
+      final AuthenticationToken aRequestAdmin,
+      final String aRequestSignature,
+      final int anApprovalRequestType,
+      final int acAId,
+      final int anEndEntityProfileId,
+      final ApprovalProfile anApprovalProfile) {
     super();
-    setRequestAdmin(requestAdmin);
-    this.requestSignature = requestSignature;
-    this.approvalRequestType = approvalRequestType;
-    this.cAId = cAId;
-    this.endEntityProfileId = endEntityProfileId;
-    this.approvalProfile = approvalProfile;
+    setRequestAdmin(aRequestAdmin);
+    this.requestSignature = aRequestSignature;
+    this.approvalRequestType = anApprovalRequestType;
+    this.cAId = acAId;
+    this.endEntityProfileId = anEndEntityProfileId;
+    this.approvalProfile = anApprovalProfile;
   }
 
   /**
    * Main constructor of an approval request.
    *
-   * @param requestAdmin the certificate of the requesting admin
-   * @param requestSignature signature of the requester (OPTIONAL, for future
+   * @param aRequestAdmin the certificate of the requesting admin
+   * @param aRequestSignature signature of the requester (OPTIONAL, for future
    *     use)
-   * @param approvalRequestType one of TYPE_ constants
-   * @param cAId the related cAId of the request that the approver must be
+   * @param anApprovalRequestType one of TYPE_ constants
+   * @param acAId the related cAId of the request that the approver must be
    *     authorized to or ApprovalDataVO.ANY_CA in applicable to any ca
-   * @param endEntityProfileId the related profile id that the approver must be
+   * @param anEndEntityProfileId the related
+   *         profile id that the approver must be
    *     authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable to
    *     any end entity profile
-   * @param numberOfSteps that this type approval request supports.
-   * @param approvalProfile Profile
+   * @param theNumberOfSteps that this type approval request supports.
+   * @param anApprovalProfile Profile
    */
   protected ApprovalRequest(
-      final AuthenticationToken requestAdmin,
-      final String requestSignature,
-      final int approvalRequestType,
-      final int cAId,
-      final int endEntityProfileId,
-      final int numberOfSteps,
-      final ApprovalProfile approvalProfile) {
+      final AuthenticationToken aRequestAdmin,
+      final String aRequestSignature,
+      final int anApprovalRequestType,
+      final int acAId,
+      final int anEndEntityProfileId,
+      final int theNumberOfSteps,
+      final ApprovalProfile anApprovalProfile) {
     super();
-    setRequestAdmin(requestAdmin);
-    this.requestSignature = requestSignature;
-    this.approvalRequestType = approvalRequestType;
-    this.cAId = cAId;
-    this.endEntityProfileId = endEntityProfileId;
+    setRequestAdmin(aRequestAdmin);
+    this.requestSignature = aRequestSignature;
+    this.approvalRequestType = anApprovalRequestType;
+    this.cAId = acAId;
+    this.endEntityProfileId = anEndEntityProfileId;
 
-    this.approvalProfile = approvalProfile;
-    this.approvalSteps = new boolean[numberOfSteps];
+    this.approvalProfile = anApprovalProfile;
+    this.approvalSteps = new boolean[theNumberOfSteps];
   }
 
-  /** Constructor used in externalization only */
-  public ApprovalRequest() {}
+  /** Constructor used in externalization only. */
+  public ApprovalRequest() { }
 
   /**
    * Should return true if the request if of the type that should be executed by
@@ -248,7 +259,7 @@ public abstract class ApprovalRequest implements Externalizable {
 
   /**
    * Should return the time in millisecond that the request should be valid or
-   * Long.MAX_VALUE if it should never expire
+   * Long.MAX_VALUE if it should never expire.
    *
    * <p>Default if will return the value defined in the ejbca.properties
    *
@@ -260,7 +271,7 @@ public abstract class ApprovalRequest implements Externalizable {
 
   /**
    * Should return the time in millisecond that the approval should be valid or
-   * Long.MAX_VALUE if it should never expire
+   * Long.MAX_VALUE if it should never expire.
    *
    * <p>Default if will return the value defined in the ejbca.properties
    *
@@ -271,7 +282,7 @@ public abstract class ApprovalRequest implements Externalizable {
   }
 
   /**
-   * Should return one of the ApprovalDataVO.APPROVALTYPE_ constants
+   * Should return one of the ApprovalDataVO.APPROVALTYPE_ constants.
    *
    * @return int
    */
@@ -287,16 +298,22 @@ public abstract class ApprovalRequest implements Externalizable {
     return numOfRequiredApprovals;
   }
 
+  /**
+   * @return profile
+   */
   public ApprovalProfile getApprovalProfile() {
     return approvalProfile;
   }
 
-  public void setApprovalProfile(final ApprovalProfile approvalProfile) {
-    this.approvalProfile = approvalProfile;
+  /**
+   * @param anApprovalProfile Profile
+   */
+  public void setApprovalProfile(final ApprovalProfile anApprovalProfile) {
+    this.approvalProfile = anApprovalProfile;
   }
 
   /**
-   * The type of request type, one of TYPE_ constants
+   * The type of request type, one of TYPE_ constants.
    *
    * @return int
    */
@@ -327,13 +344,13 @@ public abstract class ApprovalRequest implements Externalizable {
 
   /**
    * NOTE: This method should never be used publicly except from
-   * UpgradeSessionBean
+   * UpgradeSessionBean.
    *
-   * @param requestAdmin admin
+   * @param aRequestAdmin admin
    */
-  public void setRequestAdmin(final AuthenticationToken requestAdmin) {
+  public void setRequestAdmin(final AuthenticationToken aRequestAdmin) {
 
-    this.requestAdmin = requestAdmin;
+    this.requestAdmin = aRequestAdmin;
   }
 
   /**
@@ -355,6 +372,9 @@ public abstract class ApprovalRequest implements Externalizable {
     return null;
   }
 
+  /**
+   * @return token
+   */
   public AuthenticationToken getRequestAdmin() {
     return requestAdmin;
   }
@@ -377,7 +397,7 @@ public abstract class ApprovalRequest implements Externalizable {
 
   /**
    * When an approval request is edited, we keep a list of which admin edited a
-   * request
+   * request.
    *
    * @param admin an admin that edited a request
    */
@@ -387,7 +407,7 @@ public abstract class ApprovalRequest implements Externalizable {
 
   /**
    * When an approval request is edited, we keep a list of which admin edited a
-   * request
+   * request.
    *
    * @return a list of admins that has edited a request
    */
@@ -462,7 +482,7 @@ public abstract class ApprovalRequest implements Externalizable {
             (X509Certificate)
                 cf.generateCertificate(new ByteArrayInputStream(certbuf));
       } catch (CertificateException e) {
-        log.error(e);
+        LOG.error(e);
       }
       this.requestAdmin = new X509CertificateAuthenticationToken(x509cert);
       this.requestSignature = (String) in.readObject();
@@ -532,14 +552,14 @@ public abstract class ApprovalRequest implements Externalizable {
     if (version == 4) {
       // Version 4 after conversion to CESeCore where Admin was deprecated.
       this.requestAdmin = (AuthenticationToken) in.readObject();
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "ApprovalRequest has a requestAdmin token of type: "
                 + this.requestAdmin.getClass().getName());
       }
       if (this.requestAdmin instanceof LocalJvmOnlyAuthenticationToken) {
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "It was a LocalJvmOnlyAuthenticationToken so we will re-init it"
                   + " with local random token.");
         }
@@ -559,15 +579,15 @@ public abstract class ApprovalRequest implements Externalizable {
       this.cAId = in.readInt();
       this.endEntityProfileId = in.readInt();
       final int stepSize = in.readInt();
-      if (log.isTraceEnabled()) {
-        log.trace("ApprovalRequest have " + stepSize + " approval steps.");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("ApprovalRequest have " + stepSize + " approval steps.");
       }
       this.approvalSteps = new boolean[stepSize];
       for (int i = 0; i < approvalSteps.length; i++) {
         approvalSteps[i] = in.readBoolean();
       }
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "ApprovalRequest (version 4) of type "
                 + getApprovalType()
                 + " read.");
@@ -576,14 +596,14 @@ public abstract class ApprovalRequest implements Externalizable {
     if (version == 5) {
       // Version 5 after introducing approval profiles
       this.requestAdmin = (AuthenticationToken) in.readObject();
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "ApprovalRequest has a requestAdmin token of type: "
                 + this.requestAdmin.getClass().getName());
       }
       if (this.requestAdmin instanceof LocalJvmOnlyAuthenticationToken) {
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "It was a LocalJvmOnlyAuthenticationToken so we will re-init it"
                   + " with local random token.");
         }
@@ -603,8 +623,8 @@ public abstract class ApprovalRequest implements Externalizable {
       this.cAId = in.readInt();
       this.endEntityProfileId = in.readInt();
       final int stepSize = in.readInt();
-      if (log.isTraceEnabled()) {
-        log.trace("ApprovalRequest have " + stepSize + " approval steps.");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("ApprovalRequest have " + stepSize + " approval steps.");
       }
       this.approvalSteps = new boolean[stepSize];
       for (int i = 0; i < approvalSteps.length; i++) {
@@ -612,8 +632,8 @@ public abstract class ApprovalRequest implements Externalizable {
       }
       this.approvalProfile = (ApprovalProfile) in.readObject();
       this.editedByAdmins = (List<TimeAndAdmin>) in.readObject();
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
             "ApprovalRequest (version 5) of type "
                 + getApprovalType()
                 + " read.");

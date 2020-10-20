@@ -44,38 +44,48 @@ public class Approval implements Comparable<Approval>, Externalizable {
 
   private static final long serialVersionUID = -1L;
 
-  /*
-   * Version 4: Introduced approval profiles in 6.6.0. With this, approvals became specific for a certain sequence and partition.
+  /**
+   * Version 4: Introduced approval profiles in 6.6.0. With this, approvals
+   * became specific for a certain sequence and partition.
    */
   private static final int LATEST_VERSION = 4;
 
+  /** Token.*/
   private AuthenticationToken admin = null;
+  /** DN. */
   private String adminCertIssuerDN = null;
+  /** SN. */
   private String adminCertSerialNumber = null;
+  /** Approval. */
   private boolean approved = false;
+  /** Date. */
   private Date approvalDate = null;
+  /** Comment. */
   private String comment = null;
+  /**   The identity of the step which this approval covers. */
   private String approvalSignature = null;
-  private int stepId; // The identity of the step which this approval covers.
+  /** ID. */
+  private int stepId;
+  /**  The identity of the partition which this approval covers. */
   private int
-      partitionId; // The identity of the partition which this approval covers.
+      partitionId;
 
   /**
-   * @param comment Comment
-   * @param stepId Step
-   * @param partitionId Partition
+   * @param aCcomment Comment
+   * @param aStepId Step
+   * @param aPartitionId Partition
    */
   public Approval(
-      final String comment, final int stepId, final int partitionId) {
+      final String aCcomment, final int aStepId, final int aPartitionId) {
     super();
     this.approvalDate = new Date();
-    this.comment = comment;
-    setStepId(stepId);
-    setPartitionId(partitionId);
+    this.comment = aCcomment;
+    setStepId(aStepId);
+    setPartitionId(aPartitionId);
   }
 
-  /** Constructor used in externalization only */
-  public Approval() {}
+  /** Constructor used in externalization only. */
+  public Approval() { }
 
   /**
    * @return Returns the adminCertIssuerDN.
@@ -117,18 +127,20 @@ public class Approval implements Comparable<Approval>, Externalizable {
   }
 
   /**
-   * Used specify rejection or approval
+   * Used specify rejection or approval.
    *
-   * @param approved true for approved, false for rejected
-   * @param admin is the Admin that approved or rejected the current Approval
+   * @param isApproved true for approved, false for rejected
+   * @param anAdmin is the Admin that approved or rejected the current Approval
    */
   public void setApprovalAdmin(
-      final boolean approved, final AuthenticationToken admin) {
-    this.approved = approved;
-    this.admin = admin;
+      final boolean isApproved, final AuthenticationToken anAdmin) {
+    this.approved = isApproved;
+    this.admin = anAdmin;
   }
 
-  /** Sort by approval date */
+  /** Sort by approval date.
+   * @param arg0 arg
+   * @return int */
   public int compareTo(final Approval arg0) {
     return approvalDate.compareTo(arg0.approvalDate);
   }
@@ -159,20 +171,21 @@ public class Approval implements Comparable<Approval>, Externalizable {
       // this.username = (String) in.readObject(); This information is now
       // available through the Admin object
     } else if (version == 2) {
-      final Admin admin = (Admin) in.readObject();
+      final Admin anAdmin = (Admin) in.readObject();
       final X509Certificate x509cert =
-          (X509Certificate) admin.getAdminInformation().getX509Certificate();
+          (X509Certificate) anAdmin.getAdminInformation().getX509Certificate();
       if (x509cert != null) {
         this.admin = new X509CertificateAuthenticationToken(x509cert);
         this.adminCertIssuerDN = CertTools.getIssuerDN(x509cert);
         this.adminCertSerialNumber =
             CertTools.getSerialNumberAsString(x509cert);
-      } else if ((admin.getAdminType() >= 0) && (admin.getAdminType() <= 5)) {
+      } else if ((anAdmin.getAdminType() >= 0)
+              && (anAdmin.getAdminType() <= 5)) {
         // We trust this admin as if it were created internal to EJBCA and fill
         // in the auth token
         this.admin =
             new AlwaysAllowLocalAuthenticationToken(
-                new UsernamePrincipal(admin.getUsername()));
+                new UsernamePrincipal(anAdmin.getUsername()));
       }
       this.approved = in.readBoolean();
       this.approvalDate = (Date) in.readObject();
@@ -225,8 +238,11 @@ public class Approval implements Comparable<Approval>, Externalizable {
     return stepId;
   }
 
-  public void setStepId(final int stepId) {
-    this.stepId = stepId;
+  /**
+   * @param aStepId Step
+   */
+  public void setStepId(final int aStepId) {
+    this.stepId = aStepId;
   }
 
   /** @return the identity of the partition which this approval covers. */
@@ -234,7 +250,10 @@ public class Approval implements Comparable<Approval>, Externalizable {
     return partitionId;
   }
 
-  public void setPartitionId(final int partitionId) {
-    this.partitionId = partitionId;
+  /**
+   * @param aPartitionId ID
+   */
+  public void setPartitionId(final int aPartitionId) {
+    this.partitionId = aPartitionId;
   }
 }

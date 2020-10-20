@@ -37,28 +37,35 @@ import org.ejbca.core.model.approval.ApprovalException;
  */
 public class AccumulativeApprovalProfile extends ApprovalProfileBase {
 
+    /** Config. */
   public static final int FIXED_STEP_ID = 0; // Contains only a single sequence
 
   private static final long serialVersionUID = 6432620040542676563L;
 
-  private static final InternalResources intres =
+  /** Resource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
   /** Note: do not change, may cause problems in deployed installations. */
   private static final String TYPE_IDENTIFIER = "ACCUMULATIVE_APPROVAL";
 
+  /** Null constructor. */
   public AccumulativeApprovalProfile() {
     // Public constructor needed deserialization
     super();
   }
 
+  /**
+   * @param name Name
+   */
   public AccumulativeApprovalProfile(final String name) {
     super(name);
     initialize();
   }
 
   /*
-   * This method only needs to be called by the factory method (and some unit tests), because it sets a ton of boilerplate stuff which isn't
+   * This method only needs to be called by the factory method (and some
+   * unit tests), because it sets a ton of boilerplate stuff which isn't
    * required by already initialized profiles.
    */
   @Override
@@ -79,10 +86,14 @@ public class AccumulativeApprovalProfile extends ApprovalProfileBase {
 
   @Override
   public String getApprovalProfileLabel() {
-    return intres.getLocalizedMessage(
+    return INTRES.getLocalizedMessage(
         "approval.profile.implementation.accumulative.approval.name");
   }
 
+  /**
+   * @param approvalsRequired Num
+   * @throws PropertyValidationException Fail
+   */
   public void setNumberOfApprovalsRequired(final int approvalsRequired)
       throws PropertyValidationException {
     final int partitionIdentifier = getSinglePartitionIdentifier(FIXED_STEP_ID);
@@ -98,6 +109,9 @@ public class AccumulativeApprovalProfile extends ApprovalProfileBase {
     saveTransientObjects();
   }
 
+  /**
+   * @return Num
+   */
   public int getNumberOfApprovalsRequired() {
     return getNumberOfApprovalsRequired(
         FIXED_STEP_ID, getSinglePartitionIdentifier(FIXED_STEP_ID));

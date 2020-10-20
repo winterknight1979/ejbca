@@ -16,7 +16,7 @@ import javax.xml.ws.WebFault;
 
 /**
  * Exception throws after approving,executing or requesting actions that have
- * expired in the approval database
+ * expired in the approval database.
  *
  * @version $Id: ApprovalRequestExpiredException.java 26224 2017-08-04 15:11:12Z
  *     mikekushner $
@@ -26,10 +26,14 @@ public class ApprovalRequestExpiredException extends Exception {
 
   private static final long serialVersionUID = 170838528150319772L;
 
+  /** Null constructor. */
   public ApprovalRequestExpiredException() {
     super();
   }
 
+  /**
+   * @param message Message
+   */
   public ApprovalRequestExpiredException(final String message) {
     super(message);
   }

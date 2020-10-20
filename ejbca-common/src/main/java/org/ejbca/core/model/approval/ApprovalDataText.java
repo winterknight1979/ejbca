@@ -27,36 +27,57 @@ public class ApprovalDataText implements Serializable {
    * change the version number)
    */
   private static final long serialVersionUID = 1L;
-
+  /** Header. */
   private final String header;
+  /** Data. */
   private final String data;
+  /** Bool. */
   private final boolean headerTranslateable;
+  /** Bool. */
   private final boolean dataTranslatable;
 
+  /**
+   * @param aHeader gead
+   * @param theData data
+   * @param isHeaderTranslateable bool
+   * @param isDataTranslatable vool
+   */
   public ApprovalDataText(
-      final String header,
-      final String data,
-      final boolean headerTranslateable,
-      final boolean dataTranslatable) {
+      final String aHeader,
+      final String theData,
+      final boolean isHeaderTranslateable,
+      final boolean isDataTranslatable) {
     super();
-    this.header = header;
-    this.data = data;
-    this.headerTranslateable = headerTranslateable;
-    this.dataTranslatable = dataTranslatable;
+    this.header = aHeader;
+    this.data = theData;
+    this.headerTranslateable = isHeaderTranslateable;
+    this.dataTranslatable = isDataTranslatable;
   }
 
+  /**
+   * @return data
+   */
   public String getData() {
     return data;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isDataTranslatable() {
     return dataTranslatable;
   }
 
+  /**
+   * @return header
+   */
   public String getHeader() {
     return header;
   }
 
+  /**
+   * @return bool
+   */
   public boolean isHeaderTranslateable() {
     return headerTranslateable;
   }

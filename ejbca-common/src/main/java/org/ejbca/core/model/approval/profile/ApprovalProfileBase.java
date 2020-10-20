@@ -46,23 +46,31 @@ import org.ejbca.core.model.approval.Approval;
 public abstract class ApprovalProfileBase extends ProfileBase
     implements ApprovalProfile, Cloneable {
 
-  private static final Logger log = Logger.getLogger(ApprovalProfileBase.class);
+    /**Logger. */
+  private static final Logger LOG = Logger.getLogger(ApprovalProfileBase.class);
 
   private static final long serialVersionUID = 1L;
 
+  /** Config. */
   private static final int NO_SEQUENCES = -1;
 
+  /** Config. */
   private static final String STEPS_KEY = "steps";
+  /** Config. */
   private static final String FIRST_STEP_KEY = "firstStep";
 
-  /** The sequences of this approval profile, as mapped by their sequences */
+  /** The sequences of this approval profile, as mapped by their sequences. */
   private transient Map<Integer, ApprovalStep> steps = new HashMap<>();
 
+  /** Null constructor. */
   public ApprovalProfileBase() {
     // Public constructor needed deserialization
     super();
   }
 
+  /**
+   * @param name name
+   */
   public ApprovalProfileBase(final String name) {
     super(name);
     data.put(
@@ -292,7 +300,7 @@ public abstract class ApprovalProfileBase extends ProfileBase
   }
 
   /**
-   * Allows implementations to specify their own list of hidden properties
+   * Allows implementations to specify their own list of hidden properties.
    *
    * @return a list of property keys.
    */
@@ -353,8 +361,8 @@ public abstract class ApprovalProfileBase extends ProfileBase
       final int partitionId,
       final Collection<DynamicUiProperty<? extends Serializable>> properties)
       throws NoSuchApprovalStepException {
-    for (final DynamicUiProperty<? extends Serializable> property :
-        properties) {
+    for (final DynamicUiProperty<? extends Serializable> property
+        : properties) {
       addPropertyToPartition(stepId, partitionId, property);
     }
     saveTransientObjects();
@@ -379,10 +387,10 @@ public abstract class ApprovalProfileBase extends ProfileBase
               + " does not support it.");
     } else {
       getSteps().put(step.getStepIdentifier(), step);
-      if (log.isDebugEnabled() && !StringUtils.isEmpty(getProfileName())) {
+      if (LOG.isDebugEnabled() && !StringUtils.isEmpty(getProfileName())) {
         // This method may be called from the factory when creating archetypes,
         // so don't debug log that case.
-        log.debug(
+        LOG.debug(
             "Added step with ID "
                 + step.getStepIdentifier()
                 + " to profile "
@@ -610,8 +618,8 @@ public abstract class ApprovalProfileBase extends ProfileBase
   @Override
   public int getNumberOfApprovalsRequired(
       final int stepIdentifier, final int partitionIdentifier) {
-    if (log.isTraceEnabled()) {
-      log.trace(
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(
           ">getNumberOfApprovalsRequired: "
               + stepIdentifier
               + ", "
@@ -622,14 +630,14 @@ public abstract class ApprovalProfileBase extends ProfileBase
             .getPartition(partitionIdentifier)
             .getProperty(PROPERTY_NUMBER_OF_REQUIRED_APPROVALS);
     if (numberOfRequiredApprovals == null) {
-      if (log.isTraceEnabled()) {
-        log.trace("<getNumberOfApprovalsRequired: 1");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("<getNumberOfApprovalsRequired: 1");
       }
       return 1; // Default to 1 required approval per partition
     }
     final int ret = (Integer) numberOfRequiredApprovals.getValue();
-    if (log.isTraceEnabled()) {
-      log.trace("<getNumberOfApprovalsRequired: " + ret);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("<getNumberOfApprovalsRequired: " + ret);
     }
     return ret;
   }
@@ -710,11 +718,11 @@ public abstract class ApprovalProfileBase extends ProfileBase
   public boolean updateCAIds(
       final int fromId, final int toId, final String toSubjectDN) {
     boolean changed = false;
-    final Map<Integer, ApprovalStep> steps = getSteps();
-    for (final ApprovalStep step : new ArrayList<>(steps.values())) {
+    final Map<Integer, ApprovalStep> thesteps = getSteps();
+    for (final ApprovalStep step : new ArrayList<>(thesteps.values())) {
       final Map<Integer, ApprovalPartition> partitions = step.getPartitions();
-      for (final ApprovalPartition partition :
-          new ArrayList<>(partitions.values())) {
+      for (final ApprovalPartition partition
+          : new ArrayList<>(partitions.values())) {
         // Check if the role user aspect datas need updating
         final DynamicUiProperty<? extends Serializable> prop =
             partition.getProperty(

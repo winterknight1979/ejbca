@@ -25,12 +25,17 @@ import java.util.ServiceLoader;
  *     mikekushner $
  */
 public enum ApprovalProfilesFactory {
-  INSTANCE;
+  /** Singleton. */
+    INSTANCE;
 
+    /**
+     * Map. */
   private final Map<String, ApprovalProfile> identifierToImplementationMap =
       new HashMap<>();
 
-  private ApprovalProfilesFactory() {
+  /**
+   * Factory. */
+  ApprovalProfilesFactory() {
     ServiceLoader<ApprovalProfile> svcloader =
         ServiceLoader.load(ApprovalProfile.class);
     for (ApprovalProfile type : svcloader) {
@@ -40,10 +45,17 @@ public enum ApprovalProfilesFactory {
     }
   }
 
+  /**
+   * @return Profile
+   */
   public Collection<ApprovalProfile> getAllImplementations() {
     return identifierToImplementationMap.values();
   }
 
+  /**
+   * @param identifier ID
+   * @return Profile
+   */
   public ApprovalProfile getArcheType(final String identifier) {
     return identifierToImplementationMap.get(identifier).clone();
   }

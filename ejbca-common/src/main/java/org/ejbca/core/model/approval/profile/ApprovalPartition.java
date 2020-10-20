@@ -27,22 +27,27 @@ public class ApprovalPartition implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Props. */
   private final LinkedHashMap<String, DynamicUiProperty<? extends Serializable>>
       properties = new LinkedHashMap<>();
+  /** ID. */
   private final int partitionIdentifier;
 
-  public ApprovalPartition(final int partitionIdentifier) {
-    this.partitionIdentifier = partitionIdentifier;
+  /**
+   * @param aPartitionIdentifier ID
+   */
+  public ApprovalPartition(final int aPartitionIdentifier) {
+    this.partitionIdentifier = aPartitionIdentifier;
   }
 
   /**
-   * Copy constructor
+   * Copy constructor.
    *
    * @param original the original
    */
   public ApprovalPartition(final ApprovalPartition original) {
-    for (DynamicUiProperty<? extends Serializable> property :
-        original.getPropertyList().values()) {
+    for (DynamicUiProperty<? extends Serializable> property
+        : original.getPropertyList().values()) {
       properties.put(property.getName(), new DynamicUiProperty<>(property));
     }
     this.partitionIdentifier = original.getPartitionIdentifier();
@@ -50,7 +55,7 @@ public class ApprovalPartition implements Serializable {
 
   /**
    * In a PartionedApprovalProfile the partition has a name with property
-   * PartitionedApprovalProfile.PROPERTY_NAME
+   * PartitionedApprovalProfile.PROPERTY_NAME.
    *
    * @param name the key
    * @return DynamicUiProperty that was stored for this key, or null if not
@@ -60,7 +65,9 @@ public class ApprovalPartition implements Serializable {
       final String name) {
     return properties.get(name);
   }
-
+/**
+ * @return Props
+ */
   public LinkedHashMap<String, DynamicUiProperty<? extends Serializable>>
       getPropertyList() {
     final LinkedHashMap<String, DynamicUiProperty<? extends Serializable>> ret =
@@ -78,15 +85,24 @@ public class ApprovalPartition implements Serializable {
     return ret;
   }
 
+  /**
+   * @param value Value
+   */
   public void addProperty(
       final DynamicUiProperty<? extends Serializable> value) {
     properties.put(value.getName(), value);
   }
 
+  /**
+   * @param propertyName Name
+   */
   public void removeProperty(final String propertyName) {
     properties.remove(propertyName);
   }
 
+  /**
+   * @return ID
+   */
   public int getPartitionIdentifier() {
     return partitionIdentifier;
   }
@@ -101,11 +117,19 @@ public class ApprovalPartition implements Serializable {
 
   @Override
   public boolean equals(final Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+        return true;
+    }
+    if (obj == null) {
+        return false;
+    }
+    if (getClass() != obj.getClass()) {
+        return false;
+    }
     ApprovalPartition other = (ApprovalPartition) obj;
-    if (partitionIdentifier != other.partitionIdentifier) return false;
+    if (partitionIdentifier != other.partitionIdentifier) {
+        return false;
+    }
     return true;
   }
 }

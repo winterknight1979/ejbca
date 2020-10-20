@@ -50,20 +50,29 @@ import org.cesecore.util.ui.RadioButton;
 public class ApprovalStep implements Serializable {
 
   private static final long serialVersionUID = 1L;
+  /** ID. */
   private final int id;
+  /** Step. */
   private Integer nextStep = null;
+  /** Step. */
   private Integer previousStep = null;
 
+  /**
+   * Partotions.
+   */
   private final LinkedHashMap<Integer, ApprovalPartition> partitions;
 
-  public ApprovalStep(final int id) {
-    this.id = id;
+  /**
+   * @param anid ID
+   */
+  public ApprovalStep(final int anid) {
+    this.id = anid;
     // Use LinkedHashMap to keep insertion order.
     partitions = new LinkedHashMap<>();
   }
 
   /**
-   * Copy constructor for ApprovalStep objects
+   * Copy constructor for ApprovalStep objects.
    *
    * @param original the step to copy
    */
@@ -86,7 +95,7 @@ public class ApprovalStep implements Serializable {
    */
   public ApprovalStep(final String encodedStep) {
     final byte[] bytes = Base64.decode(encodedStep.getBytes());
-    try (final LookAheadObjectInputStream ois =
+    try (LookAheadObjectInputStream ois =
         new LookAheadObjectInputStream(new ByteArrayInputStream(bytes))) {
       ois.setEnabledMaxObjects(false);
       ois.setAcceptedClasses(
@@ -119,6 +128,9 @@ public class ApprovalStep implements Serializable {
     }
   }
 
+  /**
+   * @return Encoded
+   */
   public String getEncoded() {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
@@ -137,6 +149,9 @@ public class ApprovalStep implements Serializable {
     return id;
   }
 
+  /**Partitions.
+   * @return Partitions
+   */
   public LinkedHashMap<Integer, ApprovalPartition> getPartitions() {
     return partitions;
   }
@@ -156,16 +171,25 @@ public class ApprovalStep implements Serializable {
     return nextStep;
   }
 
-  public void setNextStep(final Integer nextStep) {
-    this.nextStep = nextStep;
+  /**
+   * @param theNextStep Step
+   */
+  public void setNextStep(final Integer theNextStep) {
+    this.nextStep = theNextStep;
   }
 
+  /**
+   * @return Step
+   */
   public Integer getPreviousStep() {
     return previousStep;
   }
 
-  public void setPreviousStep(final Integer previousStep) {
-    this.previousStep = previousStep;
+  /**
+   * @param thePreviousStep Step
+   */
+  public void setPreviousStep(final Integer thePreviousStep) {
+    this.previousStep = thePreviousStep;
   }
 
   /**
@@ -198,6 +222,9 @@ public class ApprovalStep implements Serializable {
     }
   }
 
+  /**
+   * @return Partition
+   */
   public ApprovalPartition addPartition() {
     Integer identifier;
     do {

@@ -24,19 +24,30 @@ public class NonModifiableApprovalProfileException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
 
+  /** Null constructor. */
   public NonModifiableApprovalProfileException() {
     super();
   }
 
+  /**
+   * @param message Message
+   * @param cause Cause
+   */
   public NonModifiableApprovalProfileException(
       final String message, final Throwable cause) {
     super(message, cause);
   }
 
+  /**
+   * @param message Message
+   */
   public NonModifiableApprovalProfileException(final String message) {
     super(message);
   }
 
+  /**
+   * @param cause Cause
+   */
   public NonModifiableApprovalProfileException(final Throwable cause) {
     super(cause);
   }

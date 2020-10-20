@@ -43,24 +43,32 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
 
   private static final long serialVersionUID = 6991912129797327010L;
 
-  private static final Logger log =
+  /** Logger. */
+  private static final Logger LOG =
       Logger.getLogger(PartitionedApprovalProfile.class);
 
-  private static final InternalResources intres =
+  /** Resource. */
+  private static final InternalResources INTRES =
       InternalResources.getInstance();
 
+  /** Config. */
   public static final RoleInformation ANYBODY =
       RoleInformation.fromRoleMembers(
           -1, null, "Anybody", new ArrayList<RoleMember>());
 
+  /** Config. */
   public static final int EXECUTION_STEP_ID = 0;
+  /** Config. */
   public static final String PROPERTY_NAME = "name";
+  /** Config. */
   public static final String PROPERTY_ROLES_WITH_APPROVAL_RIGHTS =
       "roles_with_approval_rights";
+  /** Config. */
   public static final String PROPERTY_ROLES_WITH_VIEW_RIGHTS =
       "roles_with_view_rights";
 
-  private static final Set<String> predefinedProperties =
+  /** Properties. */
+  private static final Set<String> PREDEFINED_PROPS =
       new HashSet<>(
           Arrays.asList(
               PROPERTY_NAME,
@@ -70,18 +78,23 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
   /** Note: do not change, may cause problems in deployed installations. */
   private static final String TYPE_IDENTIFIER = "PARTITIONED_APPROVAL";
 
+  /** Null constructor. */
   public PartitionedApprovalProfile() {
     // Public constructor needed deserialization
     super();
   }
 
+  /**
+   * @param name Name
+   */
   public PartitionedApprovalProfile(final String name) {
     super(name);
     initialize();
   }
 
   /*
-   * This method only needs to be called by the factory method (and some unit tests), because it sets a ton of boilerplate stuff which isn't
+   * This method only needs to be called by the factory method (and
+   * some unit tests), because it sets a ton of boilerplate stuff which isn't
    * required by already initialized profiles.
    */
   @Override
@@ -96,7 +109,7 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
 
   @Override
   public String getApprovalProfileLabel() {
-    return intres.getLocalizedMessage(
+    return INTRES.getLocalizedMessage(
         "approval.profile.implementation.partitioned.approval.name");
   }
 
@@ -187,8 +200,8 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
                   .getProperty(PROPERTY_ROLES_WITH_APPROVAL_RIGHTS)
                   .getValues();
       for (RoleInformation role : roles) {
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(
               "Checking if authenticationToken '"
                   + authenticationToken
                   + "' matches role "
@@ -199,8 +212,8 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
         } else {
           // Check if authenticationToken matches any of the AccessUserAspects
           // that existed in the Role when the ApprovalProfile was saved.
-          for (final AccessUserAspect accessUserAspect :
-              role.getAccessUserAspects()) {
+          for (final AccessUserAspect accessUserAspect
+              : role.getAccessUserAspects()) {
             if (authenticationToken.matches(accessUserAspect)) {
               return true;
             }
@@ -208,16 +221,16 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
         }
       }
     } else {
-      if (log.isTraceEnabled()) {
-        log.trace(
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(
             "Approval partition is null, canApprovePartition returns false for"
                 + " authenticationToken "
                 + authenticationToken);
       }
       return false;
     }
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(
           "Administrator '"
               + authenticationToken
               + "' does not belong to a role that can approve partition "
@@ -277,8 +290,8 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
       } else {
         // Check if authenticationToken matches any of the AccessUserAspects
         // that existed in the Role when the ApprovalProfile was saved.
-        for (final AccessUserAspect accessUserAspect :
-            role.getAccessUserAspects()) {
+        for (final AccessUserAspect accessUserAspect
+            : role.getAccessUserAspects()) {
           if (authenticationToken.matches(accessUserAspect)) {
             result = true;
           }
@@ -296,8 +309,8 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
     // of approvals performed (presume that no approvals performed overlap)
     int remainingApprovalsInAllPartitions = 0;
     for (final ApprovalStep approvalStep : getSteps().values()) {
-      for (final ApprovalPartition approvalPartition :
-          approvalStep.getPartitions().values()) {
+      for (final ApprovalPartition approvalPartition
+         : approvalStep.getPartitions().values()) {
         int remainingApprovalsInPartition =
             getRemainingApprovalsInPartition(
                 approvalsPerformed,
@@ -386,6 +399,6 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
       final String propertyName) {
     return super.isPropertyPredefined(
             stepIdentifier, partitionIdentifier, propertyName)
-        || predefinedProperties.contains(propertyName);
+        || PREDEFINED_PROPS.contains(propertyName);
   }
 }

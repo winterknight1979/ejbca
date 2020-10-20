@@ -24,7 +24,7 @@ public class NoSuchApprovalStepException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
   /** */
-  public NoSuchApprovalStepException() {}
+  public NoSuchApprovalStepException()  { }
 
   /** @param message Message */
   public NoSuchApprovalStepException(final String message) {
