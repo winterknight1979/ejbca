@@ -55,11 +55,11 @@ jobs:
       with:
         path: '**/pmd.xml'
 
-
-    - name: Deploy reports to github.io
-      env:
-        PASS: ${{ secrets.REPO_PASS }}
-      run: mvn -B -Dusername=winterknight1979 -Dpassword=$PASS -Pjboss scm-publish:publish-scm --file pom.xml
+# Disable this for now and run it manually
+#    - name: Deploy reports to github.io
+#      env:
+#        PASS: ${{ secrets.REPO_PASS }}
+#      run: mvn -B -Dusername=winterknight1979 -Dpassword=$PASS -Pjboss scm-publish:publish-scm --file pom.xml
       
     - name: Publish snapshot to GitHub Packages Apache Maven
       run: mvn -B deploy -Pjboss -DskipTests=true -s $GITHUB_WORKSPACE/settings.xml
